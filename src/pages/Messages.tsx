@@ -10,6 +10,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useMessages } from '@/hooks/useMessages';
 import { useProjects } from '@/hooks/useProjects';
 import { useAuth } from '@/hooks/useAuth';
+import { useTeamSync } from '@/hooks/useTeamSync';
 import { ThreadCard } from '@/components/messages/ThreadCard';
 import { CreateThreadDialog } from '@/components/messages/CreateThreadDialog';
 import { MessageBubble } from '@/components/messages/MessageBubble';
@@ -20,12 +21,11 @@ const Messages = () => {
   const [selectedProject, setSelectedProject] = useState<string>('');
   const [searchTerm, setSearchTerm] = useState('');
   const [messageType, setMessageType] = useState<'direct' | 'group'>('direct');
-  const [projectUsers, setProjectUsers] = useState<any[]>([]);
   const [connectionStatus, setConnectionStatus] = useState<'connected' | 'disconnected'>('connected');
-  const [teamRefreshKey, setTeamRefreshKey] = useState(0);
   
   const { profile } = useAuth();
-  const { projects, getProjectUsers } = useProjects();
+  const { projects } = useProjects();
+  const { teamMembers: projectUsers } = useTeamSync(selectedProject);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   
   const {
@@ -50,16 +50,7 @@ const Messages = () => {
     }
   }, [projects, selectedProject]);
 
-  // Fetch project users when project changes
-  useEffect(() => {
-    const fetchUsers = async () => {
-      if (selectedProject) {
-        const users = await getProjectUsers(selectedProject);
-        setProjectUsers(users);
-      }
-    };
-    fetchUsers();
-  }, [selectedProject, getProjectUsers, teamRefreshKey]);
+  // No longer needed as we use useTeamSync hook
 
   // Handle direct messaging from project contacts
   useEffect(() => {
@@ -81,15 +72,7 @@ const Messages = () => {
     }
   }, [projectUsers, selectedProject, profile?.user_id, createThread]);
 
-  // Listen for team updates from project management
-  useEffect(() => {
-    const handleTeamUpdate = () => {
-      setTeamRefreshKey(prev => prev + 1);
-    };
-
-    window.addEventListener('projectTeamUpdated', handleTeamUpdate);
-    return () => window.removeEventListener('projectTeamUpdated', handleTeamUpdate);
-  }, []);
+  // No longer needed as we use useTeamSync hook which handles updates automatically
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
@@ -298,7 +281,7 @@ const Messages = () => {
                       key={message.id}
                       message={message}
                       isOwnMessage={message.sender_id === profile?.user_id}
-                      senderName={senderProfile?.profiles?.name || 'User'}
+                      senderName={senderProfile?.user_profile?.name || 'User'}
                       isConsecutive={isConsecutive}
                     />
                   );
@@ -349,50 +332,42 @@ const Messages = () => {
           <CardContent className="flex-1 pt-0">
             <ScrollArea className="h-full">
               <div className="space-y-2">
-                {projectUsers.map((user) => {
-                  const isOnline = onlineUsers.has(user.user_id);
-                  const profile = user.profiles;
-                  
-                  return (
-                    <div
-                      key={user.user_id}
-                      className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 cursor-pointer"
-                      onClick={() => {
-                        // TODO: Start direct message with this user
-                        console.log('Start DM with:', user.user_id);
-                      }}
-                    >
-                      <div className="relative">
-                        <Avatar className="h-8 w-8">
-                          <AvatarImage src={profile?.avatar_url} />
-                          <AvatarFallback className="text-xs">
-                            {profile?.name?.charAt(0)?.toUpperCase() || 'U'}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className={`absolute -bottom-1 -right-1 h-3 w-3 rounded-full border-2 border-background ${
-                          isOnline ? 'bg-green-500' : 'bg-gray-400'
-                        }`} />
-                      </div>
-                      
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between">
-                          <p className="text-sm font-medium truncate">
-                            {profile?.name || 'Unknown User'}
-                          </p>
-                          <Circle className={`h-2 w-2 ${isOnline ? 'fill-green-500 text-green-500' : 'fill-gray-400 text-gray-400'}`} />
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <p className="text-xs text-muted-foreground capitalize">
-                            {user.role}
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            {isOnline ? 'Online' : 'Offline'}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
+                 {projectUsers.map((user) => {
+                   const isOnline = onlineUsers.has(user.user_id) || user.isOnline;
+                   const userProfile = user.user_profile;
+                   
+                   return (
+                     <div
+                       key={user.user_id}
+                       className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent cursor-pointer border border-transparent hover:border-border transition-all"
+                       onClick={() => {
+                         // Start direct message with this user
+                         if (userProfile && profile?.user_id) {
+                           createThread(`Direct message with ${userProfile.name}`, [profile.user_id, user.user_id]);
+                         }
+                       }}
+                     >
+                       <div className="relative">
+                         <Avatar className="h-10 w-10">
+                           <AvatarFallback className="bg-primary/10 text-primary font-medium">
+                             {(userProfile?.name || 'U').split(' ').map(n => n[0]).join('').toUpperCase()}
+                           </AvatarFallback>
+                         </Avatar>
+                         <Circle className={`h-3 w-3 absolute -bottom-0.5 -right-0.5 border-2 border-background rounded-full ${
+                           isOnline ? 'fill-construction-success text-construction-success' : 'fill-muted text-muted'
+                         }`} />
+                       </div>
+                       
+                       <div className="flex-1 min-w-0">
+                         <div className="text-sm font-medium truncate">{userProfile?.name || 'Unknown User'}</div>
+                         <div className="text-xs text-muted-foreground capitalize">{user.role}</div>
+                       </div>
+                       <div className="text-xs text-muted-foreground">
+                         {isOnline ? 'Online' : 'Offline'}
+                       </div>
+                     </div>
+                   );
+                 })}
                 
                 {projectUsers.length === 0 && (
                   <div className="text-center py-8">

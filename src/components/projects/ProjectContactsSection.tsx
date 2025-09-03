@@ -1,14 +1,13 @@
-import { useState, useEffect } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { useAuth } from '@/hooks/useAuth';
-import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
-import { Users, Mail, Phone, Plus, Trash2, MessageCircle } from 'lucide-react';
+import { useTeamSync } from '@/hooks/useTeamSync';
+import { Users, Mail, Phone, Plus, Trash2, MessageCircle, Clock, Circle } from 'lucide-react';
 
 interface ProjectUser {
   id: string;
@@ -21,6 +20,8 @@ interface ProjectUser {
     avatar_url?: string;
     phone?: string;
   } | null;
+  lastActive?: string;
+  isOnline?: boolean;
 }
 
 interface ProjectContactsSectionProps {
@@ -31,10 +32,10 @@ interface ProjectContactsSectionProps {
 }
 
 const roleColors = {
-  architect: 'bg-blue-100 text-blue-800',
-  builder: 'bg-green-100 text-green-800',
-  homeowner: 'bg-purple-100 text-purple-800',
-  contractor: 'bg-orange-100 text-orange-800'
+  architect: 'bg-primary/10 text-primary',
+  builder: 'bg-construction-success/10 text-construction-success',
+  homeowner: 'bg-purple-500/10 text-purple-600',
+  contractor: 'bg-construction-warning/10 text-construction-warning'
 };
 
 const roleLabels = {
@@ -50,78 +51,12 @@ export const ProjectContactsSection = ({
   onUserRemove,
   onUserAdd 
 }: ProjectContactsSectionProps) => {
-  const [projectUsers, setProjectUsers] = useState<ProjectUser[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { teamMembers: projectUsers, loading } = useTeamSync(projectId);
   const { profile } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const fetchProjectUsers = async () => {
-      setLoading(true);
-      try {
-        // First, get project users
-        const { data: projectUsersData, error: projectUsersError } = await supabase
-          .from('project_users')
-          .select('id, user_id, role, joined_at')
-          .eq('project_id', projectId);
-
-        if (projectUsersError) {
-          console.error('Error fetching project users:', projectUsersError);
-          throw projectUsersError;
-        }
-
-        if (!projectUsersData || projectUsersData.length === 0) {
-          setProjectUsers([]);
-          return;
-        }
-
-        // Then, get user profiles for these users
-        const userIds = projectUsersData.map(user => user.user_id);
-        const { data: profilesData, error: profilesError } = await supabase
-          .from('profiles')
-          .select('user_id, name, role, avatar_url, phone')
-          .in('user_id', userIds);
-
-        if (profilesError) {
-          console.error('Error fetching profiles:', profilesError);
-          throw profilesError;
-        }
-
-        // Combine the data
-        const transformedUsers: ProjectUser[] = projectUsersData.map(user => {
-          const profile = profilesData?.find(p => p.user_id === user.user_id);
-          return {
-            id: user.id,
-            user_id: user.user_id,
-            role: user.role,
-            joined_at: user.joined_at,
-            user_profile: profile ? {
-              name: profile.name,
-              role: profile.role,
-              avatar_url: profile.avatar_url || undefined,
-              phone: profile.phone || undefined
-            } : null
-          };
-        }).filter(user => user.user_profile !== null);
-
-        console.log('Fetched project users:', transformedUsers);
-        setProjectUsers(transformedUsers);
-      } catch (error: any) {
-        console.error('Error in fetchProjectUsers:', error);
-        toast({
-          title: "Error fetching team members",
-          description: "Failed to load project team. Please try again.",
-          variant: "destructive"
-        });
-        setProjectUsers([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchProjectUsers();
-  }, [projectId, toast]);
+  // No longer needed as we use useTeamSync hook
 
   const handleContactUser = (userId: string, userName: string) => {
     // Store the target user for direct messaging
@@ -191,58 +126,81 @@ export const ProjectContactsSection = ({
               </div>
               
               <div className="space-y-2">
-                {users.map((user) => {
-                  if (!user.user_profile) return null;
-                  
-                  return (
-                    <div key={user.id} className="flex items-center justify-between p-3 rounded-lg border bg-card">
-                      <div className="flex items-center gap-3">
-                        <Avatar className="h-10 w-10">
-                          <AvatarFallback>
-                            {user.user_profile.name.split(' ').map(n => n[0]).join('').toUpperCase()}
-                          </AvatarFallback>
-                        </Avatar>
-                        
-                         <div className="space-y-1">
-                           <div className="font-medium">{user.user_profile.name}</div>
-                           <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                             <Button
-                               variant="link"
-                               size="sm"
-                               className="h-auto p-0 text-sm text-primary hover:text-primary/80"
-                               onClick={() => handleContactUser(user.user_id, user.user_profile!.name)}
-                             >
-                               <MessageCircle className="h-3 w-3 mr-1" />
-                               Contact via platform
-                             </Button>
-                             {user.user_profile.phone && (
-                               <div className="flex items-center gap-1">
-                                 <Phone className="h-3 w-3" />
-                                 <span>{user.user_profile.phone}</span>
-                               </div>
+                 {users.map((user) => {
+                   if (!user.user_profile) return null;
+                   
+                   return (
+                     <div key={user.id} className="group relative p-4 rounded-lg border bg-card hover:bg-accent/30 transition-colors">
+                       <div className="flex items-start justify-between">
+                         <div className="flex items-start gap-3 flex-1">
+                           <div className="relative">
+                             <Avatar className="h-12 w-12">
+                               <AvatarFallback className="bg-primary/10 text-primary font-medium">
+                                 {user.user_profile.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                               </AvatarFallback>
+                             </Avatar>
+                             {user.isOnline && (
+                               <div className="absolute -bottom-1 -right-1 h-4 w-4 bg-construction-success border-2 border-background rounded-full"></div>
                              )}
                            </div>
-                          {user.joined_at && (
-                            <div className="text-xs text-muted-foreground">
-                              Joined {new Date(user.joined_at).toLocaleDateString()}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                      
-                      {isEditing && profile?.role === 'architect' && user.role !== 'architect' && (
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => onUserRemove?.(user.user_id)}
-                          className="text-destructive hover:text-destructive"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      )}
-                    </div>
-                  );
-                }).filter(Boolean)}
+                           
+                           <div className="flex-1 space-y-2">
+                             <div className="flex items-center gap-2">
+                               <h4 className="font-medium text-foreground">{user.user_profile.name}</h4>
+                               <Badge variant="secondary" className={roleColors[user.role as keyof typeof roleColors]}>
+                                 {roleLabels[user.role as keyof typeof roleLabels]}
+                               </Badge>
+                             </div>
+                             
+                             <div className="space-y-1">
+                               <div className="flex items-center gap-4 text-sm">
+                                 <Button
+                                   variant="link"
+                                   size="sm"
+                                   className="h-auto p-0 text-sm text-primary hover:text-primary/80 font-medium"
+                                   onClick={() => handleContactUser(user.user_id, user.user_profile!.name)}
+                                 >
+                                   <MessageCircle className="h-3 w-3 mr-1" />
+                                   Contact via platform
+                                 </Button>
+                                 {user.user_profile.phone && (
+                                   <div className="flex items-center gap-1 text-muted-foreground">
+                                     <Phone className="h-3 w-3" />
+                                     <span className="text-xs">{user.user_profile.phone}</span>
+                                   </div>
+                                 )}
+                               </div>
+                               
+                               <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                                 {user.joined_at && (
+                                   <div className="flex items-center gap-1">
+                                     <Clock className="h-3 w-3" />
+                                     <span>Joined {new Date(user.joined_at).toLocaleDateString()}</span>
+                                   </div>
+                                 )}
+                                 <div className="flex items-center gap-1">
+                                   <Circle className={`h-2 w-2 ${user.isOnline ? 'fill-construction-success text-construction-success' : 'fill-muted text-muted'}`} />
+                                   <span>{user.isOnline ? 'Online' : 'Offline'}</span>
+                                 </div>
+                               </div>
+                             </div>
+                           </div>
+                         </div>
+                         
+                         {isEditing && profile?.role === 'architect' && user.role !== 'architect' && (
+                           <Button
+                             size="sm"
+                             variant="ghost"
+                             onClick={() => onUserRemove?.(user.user_id)}
+                             className="text-destructive hover:text-destructive hover:bg-destructive/10 opacity-0 group-hover:opacity-100 transition-opacity"
+                           >
+                             <Trash2 className="h-4 w-4" />
+                           </Button>
+                         )}
+                       </div>
+                     </div>
+                   );
+                 }).filter(Boolean)}
               </div>
             </div>
           </div>

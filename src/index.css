@@ -54,6 +54,12 @@ All colors MUST be HSL.
     --construction-warning: 45 93% 47%;
     --construction-success: 142 76% 36%;
     --construction-info: 217 91% 60%;
+    
+    /* Role-specific colors */
+    --role-architect: 217 91% 19%;
+    --role-builder: 142 76% 36%;
+    --role-homeowner: 271 81% 56%;
+    --role-contractor: 45 93% 47%;
   }
 
   .dark {
