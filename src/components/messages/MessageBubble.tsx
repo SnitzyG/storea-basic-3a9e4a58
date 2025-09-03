@@ -54,9 +54,9 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
         "flex flex-col max-w-[70%]",
         isOwnMessage ? "items-end" : "items-start"
       )}>
-        {!isConsecutive && !isOwnMessage && (
-          <div className="text-xs text-muted-foreground mb-1 px-3">
-            {senderName}
+        {!isConsecutive && (
+          <div className="text-xs font-medium text-muted-foreground mb-1 px-3">
+            {isOwnMessage ? 'You' : senderName}
           </div>
         )}
         

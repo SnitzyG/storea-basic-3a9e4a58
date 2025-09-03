@@ -130,16 +130,15 @@ const Messages = () => {
         <Card className="mb-4">
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between">
-              <CardTitle className="text-lg">{getCurrentProjectName()}</CardTitle>
+              <CardTitle className="text-lg font-semibold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+                {getCurrentProjectName()}
+              </CardTitle>
               <div className="flex items-center gap-1">
                 {connectionStatus === 'connected' ? (
                   <Wifi className="h-4 w-4 text-green-500" />
                 ) : (
                   <WifiOff className="h-4 w-4 text-red-500" />
                 )}
-                <Badge variant="outline" className="text-xs">
-                  {onlineUsers.size} online
-                </Badge>
               </div>
             </div>
             <p className="text-sm text-muted-foreground">
@@ -251,9 +250,6 @@ const Messages = () => {
                 </div>
               </div>
               
-              <Badge variant="outline">
-                {onlineUsers.size} online
-              </Badge>
             </div>
           </CardHeader>
 

@@ -317,12 +317,15 @@ export const useProjects = () => {
       const { data, error } = await supabase
         .from('project_users')
         .select(`
-          *,
-          profiles!project_users_user_id_fkey (
+          user_id,
+          role,
+          joined_at,
+          permissions,
+          profiles!inner (
+            user_id,
             name,
-            role,
-            avatar_url,
-            phone
+            phone,
+            avatar_url
           )
         `)
         .eq('project_id', projectId);
