@@ -503,6 +503,45 @@ export type Database = {
           },
         ]
       }
+      tender_bids: {
+        Row: {
+          attachments: Json | null
+          bid_amount: number
+          bidder_id: string
+          created_at: string
+          id: string
+          proposal_text: string | null
+          status: string | null
+          submitted_at: string
+          tender_id: string
+          updated_at: string
+        }
+        Insert: {
+          attachments?: Json | null
+          bid_amount: number
+          bidder_id: string
+          created_at?: string
+          id?: string
+          proposal_text?: string | null
+          status?: string | null
+          submitted_at?: string
+          tender_id: string
+          updated_at?: string
+        }
+        Update: {
+          attachments?: Json | null
+          bid_amount?: number
+          bidder_id?: string
+          created_at?: string
+          id?: string
+          proposal_text?: string | null
+          status?: string | null
+          submitted_at?: string
+          tender_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       tender_participants: {
         Row: {
           bid_amount: number | null

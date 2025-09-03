@@ -30,7 +30,7 @@ export const Sidebar = ({ userRole }: SidebarProps) => {
       case 'builder':
         return allTabs; // Full access
       case 'homeowner':
-        return allTabs.filter(tab => !['tenders'].includes(tab.id)); // No tenders
+        return allTabs.filter(tab => !['tenders'].includes(tab.id)); // No tenders for homeowners
       case 'contractor':
         return allTabs; // Full access
       default:

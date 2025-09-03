@@ -10,6 +10,7 @@ import Projects from "./pages/Projects";
 import Documents from "./pages/Documents";
 import Messages from "./pages/Messages";
 import RFIs from "./pages/RFIs";
+import Tenders from "./pages/Tenders";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -30,10 +31,7 @@ const App = () => (
           } />
           <Route path="/tenders" element={
             <AppLayout>
-              <div className="text-center py-12">
-                <h1 className="text-2xl font-bold mb-4">Tenders</h1>
-                <p className="text-muted-foreground">Tender management coming soon</p>
-              </div>
+              <Tenders />
             </AppLayout>
           } />
           <Route path="/documents" element={
