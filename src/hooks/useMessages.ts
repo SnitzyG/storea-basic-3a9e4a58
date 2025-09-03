@@ -105,12 +105,19 @@ export const useMessages = (projectId?: string) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user || !projectId) throw new Error('User not authenticated or no project selected');
 
+      // Ensure all participants are valid UUIDs and include current user
+      const validParticipants = [user.id, ...participants.filter(p => {
+        // Check if it's a valid UUID format
+        const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+        return uuidRegex.test(p) && p !== user.id;
+      })];
+
       const { data, error } = await supabase
         .from('message_threads')
         .insert({
           project_id: projectId,
           title,
-          participants,
+          participants: validParticipants,
           created_by: user.id
         })
         .select()
@@ -124,12 +131,13 @@ export const useMessages = (projectId?: string) => {
       });
 
       await fetchThreads(projectId);
+      setCurrentThread(data.id);
       return data;
     } catch (error) {
       console.error('Error creating thread:', error);
       toast({
         title: "Error",
-        description: "Failed to create message thread",
+        description: "Failed to create message thread. Please try again.",
         variant: "destructive",
       });
       return null;

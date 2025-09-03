@@ -3,6 +3,7 @@ import { useProjectLinking } from '@/hooks/useProjectLinking';
 import { Navigate } from 'react-router-dom';
 import { Sidebar } from './Sidebar';
 import { Header } from './Header';
+import { ProfileSetup } from '@/components/profile/ProfileSetup';
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -28,13 +29,9 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
     return <Navigate to="/auth" replace />;
   }
 
-  // If user exists but no profile, wait for profile to load
+  // If user exists but no profile, show profile setup
   if (!profile) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-center">Loading profile...</div>
-      </div>
-    );
+    return <ProfileSetup onComplete={() => window.location.reload()} />;
   }
 
   return (

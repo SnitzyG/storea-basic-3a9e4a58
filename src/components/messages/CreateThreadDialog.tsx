@@ -35,14 +35,14 @@ export const CreateThreadDialog: React.FC<CreateThreadDialogProps> = ({
   const { getProjectUsers } = useProjects();
 
   const addParticipant = () => {
-    if (participantEmail && !participants.includes(participantEmail)) {
-      setParticipants([...participants, participantEmail]);
+    if (participantEmail.trim() && !participants.includes(participantEmail.trim())) {
+      setParticipants([...participants, participantEmail.trim()]);
       setParticipantEmail('');
     }
   };
 
-  const removeParticipant = (email: string) => {
-    setParticipants(participants.filter(p => p !== email));
+  const removeParticipant = (participantId: string) => {
+    setParticipants(participants.filter(p => p !== participantId));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -98,21 +98,19 @@ export const CreateThreadDialog: React.FC<CreateThreadDialogProps> = ({
                       key={user.user_id}
                       className="flex items-center justify-between p-1 rounded hover:bg-muted/50 cursor-pointer"
                       onClick={() => {
-                        const email = user.profiles?.name || `user-${user.user_id}`;
-                        if (!participants.includes(email)) {
-                          addParticipant();
-                          setParticipantEmail(email);
+                        if (!participants.includes(user.user_id)) {
+                          setParticipants([...participants, user.user_id]);
                         }
                       }}
                     >
                       <div className="flex items-center gap-2">
                         <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center">
                           <span className="text-xs">
-                            {user.profiles?.name?.charAt(0)?.toUpperCase() || 'U'}
+                            {user.user_profile?.name?.charAt(0)?.toUpperCase() || 'U'}
                           </span>
                         </div>
                         <div>
-                          <p className="text-sm">{user.profiles?.name || 'Unknown User'}</p>
+                          <p className="text-sm">{user.user_profile?.name || 'Unknown User'}</p>
                           <p className="text-xs text-muted-foreground capitalize">{user.role}</p>
                         </div>
                       </div>
@@ -123,9 +121,8 @@ export const CreateThreadDialog: React.FC<CreateThreadDialogProps> = ({
                         className="h-6 w-6 p-0"
                         onClick={(e) => {
                           e.stopPropagation();
-                          const email = user.profiles?.name || `user-${user.user_id}`;
-                          if (!participants.includes(email)) {
-                            setParticipants([...participants, email]);
+                          if (!participants.includes(user.user_id)) {
+                            setParticipants([...participants, user.user_id]);
                           }
                         }}
                       >
@@ -163,20 +160,25 @@ export const CreateThreadDialog: React.FC<CreateThreadDialogProps> = ({
             
             {participants.length > 0 && (
               <div className="flex flex-wrap gap-2 mt-2">
-                {participants.map((email) => (
-                  <Badge key={email} variant="secondary" className="flex items-center gap-1">
-                    {email}
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      className="h-4 w-4 p-0 hover:bg-transparent"
-                      onClick={() => removeParticipant(email)}
-                    >
-                      <X className="h-3 w-3" />
-                    </Button>
-                  </Badge>
-                ))}
+                {participants.map((participantId) => {
+                  const user = projectUsers.find(u => u.user_id === participantId);
+                  const displayName = user?.user_profile?.name || participantId;
+                  
+                  return (
+                    <Badge key={participantId} variant="secondary" className="flex items-center gap-1">
+                      {displayName}
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="h-4 w-4 p-0 hover:bg-transparent"
+                        onClick={() => removeParticipant(participantId)}
+                      >
+                        <X className="h-3 w-3" />
+                      </Button>
+                    </Badge>
+                  );
+                })}
               </div>
             )}
           </div>

@@ -67,7 +67,7 @@ const Messages = () => {
       // Create or find direct message thread
       const targetUser = projectUsers.find(u => u.user_id === targetUserId);
       if (targetUser && profile?.user_id) {
-        createThread(`Direct message with ${targetUserName}`, [profile.user_id, targetUserId]);
+        createThread(`Direct message with ${targetUserName}`, [targetUserId]);
       }
     }
   }, [projectUsers, selectedProject, profile?.user_id, createThread]);
@@ -340,12 +340,12 @@ const Messages = () => {
                      <div
                        key={user.user_id}
                        className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent cursor-pointer border border-transparent hover:border-border transition-all"
-                       onClick={() => {
-                         // Start direct message with this user
-                         if (userProfile && profile?.user_id) {
-                           createThread(`Direct message with ${userProfile.name}`, [profile.user_id, user.user_id]);
-                         }
-                       }}
+                        onClick={() => {
+                          // Start direct message with this user
+                          if (userProfile && profile?.user_id && user.user_id !== profile.user_id) {
+                            createThread(`Direct message with ${userProfile.name}`, [user.user_id]);
+                          }
+                        }}
                      >
                        <div className="relative">
                          <Avatar className="h-10 w-10">
