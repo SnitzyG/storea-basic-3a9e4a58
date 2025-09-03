@@ -318,10 +318,11 @@ export const useProjects = () => {
         .from('project_users')
         .select(`
           *,
-          profiles:user_id (
+          profiles!project_users_user_id_fkey (
             name,
             role,
-            avatar_url
+            avatar_url,
+            phone
           )
         `)
         .eq('project_id', projectId);
@@ -329,6 +330,7 @@ export const useProjects = () => {
       if (error) throw error;
       return data || [];
     } catch (error: any) {
+      console.error('Error fetching project users:', error);
       toast({
         title: "Error fetching project users",
         description: error.message,
