@@ -9,6 +9,7 @@ import Auth from "./pages/Auth";
 import Projects from "./pages/Projects";
 import Documents from "./pages/Documents";
 import Messages from "./pages/Messages";
+import RFIs from "./pages/RFIs";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -47,10 +48,7 @@ const App = () => (
           } />
           <Route path="/rfis" element={
             <AppLayout>
-              <div className="text-center py-12">
-                <h1 className="text-2xl font-bold mb-4">RFIs</h1>
-                <p className="text-muted-foreground">RFI management coming soon</p>
-              </div>
+              <RFIs />
             </AppLayout>
           } />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

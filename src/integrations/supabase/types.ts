@@ -423,6 +423,33 @@ export type Database = {
           },
         ]
       }
+      rfi_activities: {
+        Row: {
+          action: string
+          created_at: string
+          details: string | null
+          id: string
+          rfi_id: string
+          user_id: string
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          details?: string | null
+          id?: string
+          rfi_id: string
+          user_id: string
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          details?: string | null
+          id?: string
+          rfi_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       rfis: {
         Row: {
           assigned_to: string | null

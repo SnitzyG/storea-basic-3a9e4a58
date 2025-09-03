@@ -1,0 +1,260 @@
+import { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from './useAuth';
+import { useToast } from '@/hooks/use-toast';
+
+export interface RFI {
+  id: string;
+  project_id: string;
+  raised_by: string;
+  assigned_to?: string;
+  question: string;
+  response?: string;
+  status: 'submitted' | 'in_review' | 'responded' | 'closed';
+  priority: 'low' | 'medium' | 'high' | 'critical';
+  due_date?: string;
+  category?: string;
+  attachments?: any[];
+  created_at: string;
+  updated_at: string;
+  raised_by_profile?: {
+    name: string;
+    role: string;
+  };
+  assigned_to_profile?: {
+    name: string;
+    role: string;
+  };
+}
+
+export interface RFIActivity {
+  id: string;
+  rfi_id: string;
+  user_id: string;
+  action: string;
+  details?: string;
+  created_at: string;
+  user_profile?: {
+    name: string;
+    role: string;
+  };
+}
+
+export const useRFIs = (projectId?: string) => {
+  const [rfis, setRFIs] = useState<RFI[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
+  const { toast } = useToast();
+
+  const fetchRFIs = async () => {
+    if (!projectId) return;
+    
+    try {
+      const { data: rfisData, error } = await supabase
+        .from('rfis')
+        .select('*')
+        .eq('project_id', projectId)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      // Fetch user profiles separately
+      const userIds = [...new Set([
+        ...rfisData.map(rfi => rfi.raised_by),
+        ...rfisData.map(rfi => rfi.assigned_to).filter(Boolean)
+      ])];
+
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('user_id, name, role')
+        .in('user_id', userIds);
+
+      const profileMap = new Map(profiles?.map(p => [p.user_id, p]) || []);
+
+      const enrichedRFIs = rfisData.map(rfi => ({
+        ...rfi,
+        raised_by_profile: profileMap.get(rfi.raised_by),
+        assigned_to_profile: rfi.assigned_to ? profileMap.get(rfi.assigned_to) : undefined,
+      }));
+
+      setRFIs(enrichedRFIs as RFI[]);
+    } catch (error) {
+      console.error('Error fetching RFIs:', error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch RFIs",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const createRFI = async (rfiData: {
+    project_id: string;
+    question: string;
+    priority: 'low' | 'medium' | 'high' | 'critical';
+    due_date?: string;
+    category?: string;
+    assigned_to?: string;
+  }) => {
+    if (!user) return null;
+
+    try {
+      const { data, error } = await supabase
+        .from('rfis')
+        .insert({
+          ...rfiData,
+          raised_by: user.id,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      // Log activity
+      await supabase
+        .from('rfi_activities')
+        .insert({
+          rfi_id: data.id,
+          user_id: user.id,
+          action: 'created',
+          details: `RFI created with priority: ${rfiData.priority}`,
+        });
+
+      toast({
+        title: "Success",
+        description: "RFI created successfully",
+      });
+
+      fetchRFIs();
+      return data;
+    } catch (error) {
+      console.error('Error creating RFI:', error);
+      toast({
+        title: "Error",
+        description: "Failed to create RFI",
+        variant: "destructive",
+      });
+      return null;
+    }
+  };
+
+  const updateRFI = async (id: string, updates: Partial<RFI>) => {
+    if (!user) return null;
+
+    try {
+      const { data, error } = await supabase
+        .from('rfis')
+        .update(updates)
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      // Log activity
+      const actions = [];
+      if (updates.status) actions.push(`status changed to ${updates.status}`);
+      if (updates.assigned_to) actions.push('assigned to team member');
+      if (updates.response) actions.push('response added');
+
+      if (actions.length > 0) {
+        await supabase
+          .from('rfi_activities')
+          .insert({
+            rfi_id: id,
+            user_id: user.id,
+            action: 'updated',
+            details: actions.join(', '),
+          });
+      }
+
+      toast({
+        title: "Success",
+        description: "RFI updated successfully",
+      });
+
+      fetchRFIs();
+      return data;
+    } catch (error) {
+      console.error('Error updating RFI:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update RFI",
+        variant: "destructive",
+      });
+      return null;
+    }
+  };
+
+  const getRFIActivities = async (rfiId: string): Promise<RFIActivity[]> => {
+    try {
+      const { data: activitiesData, error } = await supabase
+        .from('rfi_activities')
+        .select('*')
+        .eq('rfi_id', rfiId)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      // Fetch user profiles separately
+      const userIds = [...new Set(activitiesData.map(activity => activity.user_id))];
+      
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('user_id, name, role')
+        .in('user_id', userIds);
+
+      const profileMap = new Map(profiles?.map(p => [p.user_id, p]) || []);
+
+      const enrichedActivities = activitiesData.map(activity => ({
+        ...activity,
+        user_profile: profileMap.get(activity.user_id),
+      }));
+
+      return enrichedActivities as RFIActivity[];
+    } catch (error) {
+      console.error('Error fetching RFI activities:', error);
+      return [];
+    }
+  };
+
+  useEffect(() => {
+    fetchRFIs();
+  }, [projectId]);
+
+  // Set up real-time subscriptions
+  useEffect(() => {
+    if (!projectId) return;
+
+    const channel = supabase
+      .channel('rfis-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'rfis',
+          filter: `project_id=eq.${projectId}`,
+        },
+        () => {
+          fetchRFIs();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [projectId]);
+
+  return {
+    rfis,
+    loading,
+    createRFI,
+    updateRFI,
+    getRFIActivities,
+    refetch: fetchRFIs,
+  };
+};
