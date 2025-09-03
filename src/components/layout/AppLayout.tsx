@@ -10,6 +10,7 @@ interface AppLayoutProps {
 export const AppLayout = ({ children }: AppLayoutProps) => {
   const { user, profile, loading } = useAuth();
 
+  // Show loading state while authentication is being determined
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -18,8 +19,18 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
     );
   }
 
-  if (!user || !profile) {
+  // Only redirect if we're certain the user is not authenticated
+  if (!user) {
     return <Navigate to="/auth" replace />;
+  }
+
+  // If user exists but no profile, wait for profile to load
+  if (!profile) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-center">Loading profile...</div>
+      </div>
+    );
   }
 
   return (

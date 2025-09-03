@@ -20,35 +20,51 @@ export const useAuth = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let mounted = true;
+
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      (event, session) => {
+        if (!mounted) return;
+        
+        console.log('Auth state change:', event, session?.user?.email);
         setSession(session);
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          // Fetch user profile
-          setTimeout(() => {
-            fetchUserProfile(session.user.id);
-          }, 0);
+          // Only fetch profile if user is confirmed
+          if (session.user.email_confirmed_at) {
+            setTimeout(() => {
+              if (mounted) fetchUserProfile(session.user.id);
+            }, 0);
+          } else {
+            setProfile(null);
+          }
         } else {
           setProfile(null);
         }
-        setLoading(false);
+        
+        // Only set loading to false once
+        if (mounted) setLoading(false);
       }
     );
 
     // THEN check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!mounted) return;
+      
       setSession(session);
       setUser(session?.user ?? null);
-      if (session?.user) {
+      if (session?.user && session.user.email_confirmed_at) {
         fetchUserProfile(session.user.id);
       }
-      setLoading(false);
+      if (mounted) setLoading(false);
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const fetchUserProfile = async (userId: string) => {
@@ -72,9 +88,9 @@ export const useAuth = () => {
 
   const signUp = async (email: string, password: string, name: string, role: string) => {
     try {
-      const redirectUrl = `${window.location.origin}/`;
+      const redirectUrl = `${window.location.origin}/auth?confirmed=true`;
       
-      const { error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -95,10 +111,18 @@ export const useAuth = () => {
         return { error };
       }
 
-      toast({
-        title: "Sign up successful",
-        description: "Please check your email to confirm your account."
-      });
+      // Check if user needs email confirmation
+      if (data.user && !data.session) {
+        toast({
+          title: "Sign up successful",
+          description: "Please check your email to confirm your account before signing in."
+        });
+      } else if (data.session) {
+        toast({
+          title: "Account created",
+          description: "Welcome to STOREA Basic!"
+        });
+      }
 
       return { error: null };
     } catch (error) {
@@ -109,18 +133,30 @@ export const useAuth = () => {
 
   const signIn = async (email: string, password: string) => {
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password
       });
 
       if (error) {
+        let description = error.message;
+        if (error.message.includes('email_not_confirmed')) {
+          description = "Please check your email and click the confirmation link before signing in.";
+        }
+        
         toast({
           title: "Sign in failed",
-          description: error.message,
+          description,
           variant: "destructive"
         });
         return { error };
+      }
+
+      if (data.user) {
+        toast({
+          title: "Welcome back!",
+          description: "Successfully signed in."
+        });
       }
 
       return { error: null };

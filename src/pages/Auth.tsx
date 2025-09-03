@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Navigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Navigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -11,11 +11,20 @@ import { Building, Users, Home, Hammer } from 'lucide-react';
 
 const Auth = () => {
   const { user, signIn, signUp, loading } = useAuth();
+  const [searchParams] = useSearchParams();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
   const [role, setRole] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [emailConfirmed, setEmailConfirmed] = useState(false);
+
+  useEffect(() => {
+    // Check if user came from email confirmation
+    if (searchParams.get('confirmed') === 'true') {
+      setEmailConfirmed(true);
+    }
+  }, [searchParams]);
 
   if (loading) {
     return (
@@ -56,6 +65,13 @@ const Auth = () => {
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-primary mb-2">STOREA Basic</h1>
           <p className="text-muted-foreground">Construction Management Platform</p>
+          {emailConfirmed && (
+            <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+              <p className="text-green-800 text-sm">
+                ✓ Email confirmed! You can now sign in to your account.
+              </p>
+            </div>
+          )}
         </div>
 
         <Card>
