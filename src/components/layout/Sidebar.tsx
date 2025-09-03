@@ -5,8 +5,7 @@ import {
   FileStack, 
   MessageSquare, 
   HelpCircle, 
-  Briefcase,
-  Building
+  Briefcase
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -45,7 +44,6 @@ export const Sidebar = ({ userRole }: SidebarProps) => {
     <div className="w-64 bg-sidebar-background border-r border-sidebar-border flex flex-col">
       <div className="p-6 border-b border-sidebar-border">
         <div className="flex items-center gap-2">
-          <Building className="h-8 w-8 text-sidebar-primary" />
           <div>
             <h1 className="text-xl font-bold text-sidebar-foreground">STOREA</h1>
             <p className="text-xs text-sidebar-foreground/70">Basic Platform</p>
