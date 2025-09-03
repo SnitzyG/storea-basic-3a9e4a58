@@ -18,6 +18,7 @@ export const useProjectLinking = () => {
         if (error) {
           console.error('Error linking user to projects:', error);
         } else {
+          console.log('Successfully checked for project linkings:', data);
           
           // Show toast if projects were linked
           if (data?.projectsLinked > 0) {
@@ -26,8 +27,10 @@ export const useProjectLinking = () => {
               description: `You've been automatically linked to ${data.projectsLinked} project(s)!`
             });
             
-            // Refresh the page to show newly linked projects
-            window.location.reload();
+            // Delay reload to show toast first
+            setTimeout(() => {
+              window.location.reload();
+            }, 1000);
           }
         }
       } catch (error) {
