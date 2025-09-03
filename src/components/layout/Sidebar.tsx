@@ -46,7 +46,6 @@ export const Sidebar = ({ userRole }: SidebarProps) => {
         <div className="flex items-center gap-2">
           <div>
             <h1 className="text-xl font-bold text-sidebar-foreground">STOREA</h1>
-            <p className="text-xs text-sidebar-foreground/70">Basic Platform</p>
           </div>
         </div>
       </div>
