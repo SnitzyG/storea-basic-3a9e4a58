@@ -11,7 +11,7 @@ export interface Project {
   budget?: number;
   timeline?: any;
   description?: string;
-  company_id: string;
+  company_id?: string;
   created_at: string;
   updated_at: string;
 }
@@ -70,7 +70,6 @@ export const useProjects = () => {
     estimated_finish_date?: string;
     homeowner_name?: string;
     homeowner_phone?: string;
-    company_id: string;
     collaborators?: Array<{
       email: string;
       name: string;
@@ -83,7 +82,8 @@ export const useProjects = () => {
         .from('projects')
         .insert([{
           ...projectCreateData,
-          created_by: (await supabase.auth.getUser()).data.user?.id
+          created_by: (await supabase.auth.getUser()).data.user?.id,
+          company_id: null // Allow projects without company association
         }])
         .select()
         .single();

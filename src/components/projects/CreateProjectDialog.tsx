@@ -54,15 +54,6 @@ export const CreateProjectDialog = ({ children }: CreateProjectDialogProps) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!profile?.company_id) {
-      toast({
-        title: "Company Required",
-        description: "You must be associated with a company to create projects. Please contact an administrator.",
-        variant: "destructive"
-      });
-      return;
-    }
 
     // Validation for required fields
     if (!formData.estimated_start_date || !formData.estimated_finish_date || !formData.homeowner_name || !formData.homeowner_phone) {
@@ -96,7 +87,6 @@ export const CreateProjectDialog = ({ children }: CreateProjectDialogProps) => {
         estimated_finish_date: formData.estimated_finish_date.toISOString().split('T')[0],
         homeowner_name: formData.homeowner_name,
         homeowner_phone: formData.homeowner_phone,
-        company_id: profile.company_id,
         collaborators
       });
       
