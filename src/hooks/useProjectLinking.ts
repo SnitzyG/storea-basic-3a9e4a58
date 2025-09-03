@@ -15,7 +15,7 @@ export const useProjectLinking = () => {
         // Use the database function to handle all project linking
         const { error } = await supabase.rpc('link_pending_users_to_projects', {
           user_email: user.email,
-          user_id: user.id
+          target_user_id: user.id
         });
 
         if (error) {

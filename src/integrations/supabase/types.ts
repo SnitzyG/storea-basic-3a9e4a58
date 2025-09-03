@@ -731,7 +731,7 @@ export type Database = {
         Returns: boolean
       }
       link_pending_users_to_projects: {
-        Args: { user_email: string; user_id: string }
+        Args: { target_user_id: string; user_email: string }
         Returns: undefined
       }
     }
