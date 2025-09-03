@@ -3,9 +3,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Search, Moon, Sun, Command } from 'lucide-react';
 import { DashboardAnalytics } from '@/components/dashboard/DashboardAnalytics';
-import { ProjectStatusOverview } from '@/components/dashboard/ProjectStatusOverview';
 import { RecentActivity } from '@/components/dashboard/RecentActivity';
 import { QuickActions } from '@/components/dashboard/QuickActions';
+import { OpenRFIs } from '@/components/dashboard/OpenRFIs';
+import { OpenMessages } from '@/components/dashboard/OpenMessages';
+import { ActionableDocuments } from '@/components/dashboard/ActionableDocuments';
+import { ToDoList } from '@/components/dashboard/ToDoList';
+import { InfoPanel } from '@/components/dashboard/InfoPanel';
 import { NotificationCenter } from '@/components/notifications/NotificationCenter';
 import { GlobalSearch } from '@/components/search/GlobalSearch';
 import { UserProfile } from '@/components/profile/UserProfile';
@@ -70,12 +74,25 @@ const Dashboard = () => {
         </TabsList>
         
         <TabsContent value="overview" className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2 space-y-6">
-              <ProjectStatusOverview />
+          <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
+            {/* Left Column - Main Content */}
+            <div className="xl:col-span-2 space-y-6">
+              <RecentActivity />
               <QuickActions />
+              <OpenRFIs />
             </div>
-            <div><RecentActivity /></div>
+            
+            {/* Middle Column - Messages & Documents */}
+            <div className="space-y-6">
+              <OpenMessages />
+              <ActionableDocuments />
+            </div>
+            
+            {/* Right Column - To-Do & Info */}
+            <div className="space-y-6">
+              <ToDoList />
+              <InfoPanel />
+            </div>
           </div>
         </TabsContent>
         
