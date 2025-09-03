@@ -65,8 +65,8 @@ export const useProjects = () => {
           query = query.in('id', projectIds);
         } else {
           // If no direct project assignments, check for pending homeowner email matches
-          // Use proper JSONB query syntax
-          query = query.contains('timeline', { pending_homeowner: { email: userData.user.email } });
+          // Use proper JSONB query syntax for nested properties
+          query = query.filter('timeline->pending_homeowner->>email', 'eq', userData.user.email);
         }
       } else {
         // For architects and other roles, use the project_users relationship
