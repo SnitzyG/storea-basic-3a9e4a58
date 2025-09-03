@@ -22,10 +22,19 @@ interface ThemeProviderProps {
 }
 
 export const ThemeProvider = ({ children }: ThemeProviderProps) => {
-  const [theme, setTheme] = useState<Theme>(() => {
+  // Simple fallback to prevent null useState errors
+  const [theme, setTheme] = useState<Theme>('light');
+
+  useEffect(() => {
+    // Safe theme initialization after component mounts
     const savedTheme = localStorage.getItem('theme') as Theme;
-    return savedTheme || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-  });
+    const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    const initialTheme = savedTheme || systemTheme;
+    
+    if (initialTheme !== theme) {
+      setTheme(initialTheme);
+    }
+  }, []);
 
   useEffect(() => {
     const root = window.document.documentElement;
