@@ -325,14 +325,14 @@ const Messages = () => {
           <CardHeader className="pb-2">
             <CardTitle className="text-sm flex items-center gap-2">
               <Users2 className="h-4 w-4" />
-              Project Team ({teamMembers.length})
+              Project Team ({projectUsers.length})
             </CardTitle>
           </CardHeader>
           
           <CardContent className="flex-1 pt-0">
             <ScrollArea className="h-full">
               <div className="space-y-2">
-                 {teamMembers.map((member) => {
+                 {projectUsers.map((member) => {
                    const isOnline = onlineUsers.has(member.user_id) || member.isOnline;
                    const userProfile = member.user_profile;
                    
@@ -369,7 +369,7 @@ const Messages = () => {
                    );
                  })}
                 
-                {teamMembers.length === 0 && (
+                {projectUsers.length === 0 && (
                   <div className="text-center py-8">
                     <Users2 className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
                     <p className="text-sm text-muted-foreground">No team members found</p>
