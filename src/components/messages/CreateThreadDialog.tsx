@@ -15,12 +15,14 @@ import { useProjects } from '@/hooks/useProjects';
 
 interface CreateThreadDialogProps {
   projectId: string;
+  projectUsers?: any[];
   onCreateThread: (title: string, participants: string[]) => Promise<void>;
   children: React.ReactNode;
 }
 
 export const CreateThreadDialog: React.FC<CreateThreadDialogProps> = ({
   projectId,
+  projectUsers = [],
   onCreateThread,
   children
 }) => {
@@ -85,10 +87,60 @@ export const CreateThreadDialog: React.FC<CreateThreadDialogProps> = ({
 
           <div className="space-y-2">
             <Label htmlFor="participants">Add Participants</Label>
+            
+            {/* Project Users List */}
+            {projectUsers.length > 0 && (
+              <div className="border rounded-lg p-2 max-h-40 overflow-y-auto">
+                <p className="text-xs text-muted-foreground mb-2">Project Team Members:</p>
+                <div className="space-y-1">
+                  {projectUsers.map((user) => (
+                    <div
+                      key={user.user_id}
+                      className="flex items-center justify-between p-1 rounded hover:bg-muted/50 cursor-pointer"
+                      onClick={() => {
+                        const email = user.profiles?.name || `user-${user.user_id}`;
+                        if (!participants.includes(email)) {
+                          addParticipant();
+                          setParticipantEmail(email);
+                        }
+                      }}
+                    >
+                      <div className="flex items-center gap-2">
+                        <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center">
+                          <span className="text-xs">
+                            {user.profiles?.name?.charAt(0)?.toUpperCase() || 'U'}
+                          </span>
+                        </div>
+                        <div>
+                          <p className="text-sm">{user.profiles?.name || 'Unknown User'}</p>
+                          <p className="text-xs text-muted-foreground capitalize">{user.role}</p>
+                        </div>
+                      </div>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="h-6 w-6 p-0"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const email = user.profiles?.name || `user-${user.user_id}`;
+                          if (!participants.includes(email)) {
+                            setParticipants([...participants, email]);
+                          }
+                        }}
+                      >
+                        <Plus className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <div className="flex gap-2">
               <Input
                 id="participants"
-                placeholder="Enter email address..."
+                placeholder="Enter name or email..."
                 value={participantEmail}
                 onChange={(e) => setParticipantEmail(e.target.value)}
                 onKeyPress={(e) => {

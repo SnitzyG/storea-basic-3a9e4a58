@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { Plus, Search, MessageSquare, Users2, Wifi, WifiOff } from 'lucide-react';
+import { Plus, Search, MessageSquare, Users2, Wifi, WifiOff, UserCircle, Circle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useMessages } from '@/hooks/useMessages';
 import { useProjects } from '@/hooks/useProjects';
 import { useAuth } from '@/hooks/useAuth';
@@ -18,10 +19,12 @@ import { TypingIndicator } from '@/components/messages/TypingIndicator';
 const Messages = () => {
   const [selectedProject, setSelectedProject] = useState<string>('');
   const [searchTerm, setSearchTerm] = useState('');
+  const [messageType, setMessageType] = useState<'direct' | 'group'>('direct');
+  const [projectUsers, setProjectUsers] = useState<any[]>([]);
   const [connectionStatus, setConnectionStatus] = useState<'connected' | 'disconnected'>('connected');
   
   const { profile } = useAuth();
-  const { projects } = useProjects();
+  const { projects, getProjectUsers } = useProjects();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   
   const {
@@ -46,6 +49,17 @@ const Messages = () => {
     }
   }, [projects, selectedProject]);
 
+  // Fetch project users when project changes
+  useEffect(() => {
+    const fetchUsers = async () => {
+      if (selectedProject) {
+        const users = await getProjectUsers(selectedProject);
+        setProjectUsers(users);
+      }
+    };
+    fetchUsers();
+  }, [selectedProject, getProjectUsers]);
+
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -62,10 +76,17 @@ const Messages = () => {
   }, [messages, profile?.user_id, markMessageAsRead]);
 
   const filteredThreads = useMemo(() => {
-    return threads.filter(thread =>
+    const filtered = threads.filter(thread =>
       thread.title.toLowerCase().includes(searchTerm.toLowerCase())
     );
-  }, [threads, searchTerm]);
+    
+    // Filter by message type
+    if (messageType === 'direct') {
+      return filtered.filter(thread => thread.participants.length === 2);
+    } else {
+      return filtered.filter(thread => thread.participants.length > 2);
+    }
+  }, [threads, searchTerm, messageType]);
 
   const getCurrentProjectName = () => {
     const project = projects.find(p => p.id === selectedProject);
@@ -105,11 +126,11 @@ const Messages = () => {
     <div className="h-[calc(100vh-8rem)] flex gap-6">
       {/* Sidebar */}
       <div className="w-80 flex flex-col">
-        {/* Project Selector */}
+        {/* Project Header */}
         <Card className="mb-4">
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between">
-              <CardTitle className="text-sm">Project</CardTitle>
+              <CardTitle className="text-lg">{getCurrentProjectName()}</CardTitle>
               <div className="flex items-center gap-1">
                 {connectionStatus === 'connected' ? (
                   <Wifi className="h-4 w-4 text-green-500" />
@@ -121,30 +142,20 @@ const Messages = () => {
                 </Badge>
               </div>
             </div>
+            <p className="text-sm text-muted-foreground">
+              Project Messages
+            </p>
           </CardHeader>
-          <CardContent className="pt-0">
-            <select
-              value={selectedProject}
-              onChange={(e) => setSelectedProject(e.target.value)}
-              className="w-full p-2 border rounded-lg bg-background"
-            >
-              <option value="">Select Project</option>
-              {projects.map((project) => (
-                <option key={project.id} value={project.id}>
-                  {project.name}
-                </option>
-              ))}
-            </select>
-          </CardContent>
         </Card>
 
-        {/* Thread Management */}
+        {/* Messages Management */}
         <Card className="flex-1 flex flex-col">
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between">
-              <CardTitle className="text-sm">Threads</CardTitle>
+              <CardTitle className="text-sm">Messages</CardTitle>
               <CreateThreadDialog
                 projectId={selectedProject}
+                projectUsers={projectUsers}
                 onCreateThread={handleCreateThread}
               >
                 <Button size="sm" variant="outline">
@@ -155,35 +166,38 @@ const Messages = () => {
           </CardHeader>
           
           <CardContent className="flex-1 flex flex-col pt-0">
+            {/* Message Type Selector */}
+            <div className="flex mb-4 bg-muted rounded-lg p-1">
+              <Button
+                variant={messageType === 'direct' ? 'default' : 'ghost'}
+                size="sm"
+                className="flex-1"
+                onClick={() => setMessageType('direct')}
+              >
+                <UserCircle className="h-4 w-4 mr-2" />
+                Direct
+              </Button>
+              <Button
+                variant={messageType === 'group' ? 'default' : 'ghost'}
+                size="sm"
+                className="flex-1"
+                onClick={() => setMessageType('group')}
+              >
+                <Users2 className="h-4 w-4 mr-2" />
+                Group
+              </Button>
+            </div>
+
             {/* Search */}
             <div className="relative mb-4">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
               <Input
-                placeholder="Search threads..."
+                placeholder={`Search ${messageType} messages...`}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
               />
             </div>
-
-            {/* Direct Messages Option */}
-            <div className="mb-2">
-              <Card 
-                className={`cursor-pointer transition-colors hover:bg-muted/50 ${
-                  !currentThread ? 'ring-2 ring-primary bg-muted/50' : ''
-                }`}
-                onClick={() => setCurrentThread(null)}
-              >
-                <CardContent className="p-3">
-                  <div className="flex items-center gap-2">
-                    <MessageSquare className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm font-medium">Direct Messages</span>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            <Separator className="my-2" />
 
             {/* Thread List */}
             <ScrollArea className="flex-1">
@@ -201,7 +215,9 @@ const Messages = () => {
                 {filteredThreads.length === 0 && selectedProject && (
                   <div className="text-center py-8">
                     <MessageSquare className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
-                    <p className="text-sm text-muted-foreground">No threads found</p>
+                    <p className="text-sm text-muted-foreground">
+                      No {messageType} messages found
+                    </p>
                   </div>
                 )}
               </div>
@@ -215,66 +231,70 @@ const Messages = () => {
         {selectedProject ? (
           <>
             {/* Chat Header */}
-            <CardHeader className="border-b">
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle className="text-lg">
-                    {currentThread 
-                      ? threads.find(t => t.id === currentThread)?.title || 'Thread'
-                      : `${getCurrentProjectName()} - Direct Messages`
+          <CardHeader className="border-b">
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-lg">
+                  {currentThread 
+                    ? threads.find(t => t.id === currentThread)?.title || 'Thread'
+                    : `${getCurrentProjectName()} - ${messageType === 'direct' ? 'Direct Messages' : 'Group Messages'}`
+                  }
+                </CardTitle>
+                <div className="flex items-center gap-2 mt-1">
+                  <Users2 className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm text-muted-foreground">
+                    {currentThread
+                      ? `${threads.find(t => t.id === currentThread)?.participants.length || 0} participants`
+                      : 'Project team'
                     }
-                  </CardTitle>
-                  <div className="flex items-center gap-2 mt-1">
-                    <Users2 className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm text-muted-foreground">
-                      {currentThread
-                        ? `${threads.find(t => t.id === currentThread)?.participants.length || 0} participants`
-                        : 'Project team'
-                      }
-                    </span>
-                  </div>
+                  </span>
                 </div>
-                
-                <Badge variant="outline">
-                  {onlineUsers.size} online
-                </Badge>
               </div>
-            </CardHeader>
+              
+              <Badge variant="outline">
+                {onlineUsers.size} online
+              </Badge>
+            </div>
+          </CardHeader>
 
-            {/* Messages */}
-            <CardContent className="flex-1 flex flex-col p-0">
-              <ScrollArea className="flex-1 p-4">
-                <div className="space-y-1">
-                  {messages.map((message, index) => {
-                    const previousMessage = messages[index - 1];
-                    const isConsecutive = isMessageConsecutive(message, previousMessage);
-                    
-                    return (
-                      <MessageBubble
-                        key={message.id}
-                        message={message}
-                        isOwnMessage={message.sender_id === profile?.user_id}
-                        senderName="User" // TODO: Get sender name from profiles
-                        isConsecutive={isConsecutive}
-                      />
-                    );
-                  })}
-                  <div ref={messagesEndRef} />
-                </div>
-                
-                <TypingIndicator 
-                  typingUsers={Array.from(typingUsers)} 
-                  currentUserId={profile?.user_id}
-                />
-              </ScrollArea>
-
-              {/* Message Input */}
-              <MessageInput
-                onSendMessage={handleSendMessage}
-                onTyping={setTypingIndicator}
-                placeholder={`Message ${currentThread ? 'thread' : 'project team'}...`}
+          {/* Messages */}
+          <CardContent className="flex-1 flex flex-col p-0">
+            <ScrollArea className="flex-1 p-4">
+              <div className="space-y-1">
+                {messages.map((message, index) => {
+                  const previousMessage = messages[index - 1];
+                  const isConsecutive = isMessageConsecutive(message, previousMessage);
+                  const senderProfile = projectUsers.find(u => u.user_id === message.sender_id);
+                  
+                  return (
+                    <MessageBubble
+                      key={message.id}
+                      message={message}
+                      isOwnMessage={message.sender_id === profile?.user_id}
+                      senderName={senderProfile?.profiles?.name || 'User'}
+                      isConsecutive={isConsecutive}
+                    />
+                  );
+                })}
+                <div ref={messagesEndRef} />
+              </div>
+              
+              <TypingIndicator 
+                typingUsers={Array.from(typingUsers)} 
+                currentUserId={profile?.user_id}
               />
-            </CardContent>
+            </ScrollArea>
+
+            {/* Message Input */}
+            <MessageInput
+              onSendMessage={handleSendMessage}
+              onTyping={setTypingIndicator}
+              placeholder={`Message ${currentThread ? 'thread' : messageType + ' conversation'}...`}
+              supportAttachments={true}
+              supportMentions={true}
+              projectUsers={projectUsers}
+            />
+          </CardContent>
           </>
         ) : (
           <CardContent className="flex-1 flex items-center justify-center">
@@ -288,6 +308,76 @@ const Messages = () => {
           </CardContent>
         )}
       </Card>
+
+      {/* Contact List Panel */}
+      {selectedProject && (
+        <Card className="w-80 flex flex-col">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm flex items-center gap-2">
+              <Users2 className="h-4 w-4" />
+              Project Team ({projectUsers.length})
+            </CardTitle>
+          </CardHeader>
+          
+          <CardContent className="flex-1 pt-0">
+            <ScrollArea className="h-full">
+              <div className="space-y-2">
+                {projectUsers.map((user) => {
+                  const isOnline = onlineUsers.has(user.user_id);
+                  const profile = user.profiles;
+                  
+                  return (
+                    <div
+                      key={user.user_id}
+                      className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 cursor-pointer"
+                      onClick={() => {
+                        // TODO: Start direct message with this user
+                        console.log('Start DM with:', user.user_id);
+                      }}
+                    >
+                      <div className="relative">
+                        <Avatar className="h-8 w-8">
+                          <AvatarImage src={profile?.avatar_url} />
+                          <AvatarFallback className="text-xs">
+                            {profile?.name?.charAt(0)?.toUpperCase() || 'U'}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className={`absolute -bottom-1 -right-1 h-3 w-3 rounded-full border-2 border-background ${
+                          isOnline ? 'bg-green-500' : 'bg-gray-400'
+                        }`} />
+                      </div>
+                      
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between">
+                          <p className="text-sm font-medium truncate">
+                            {profile?.name || 'Unknown User'}
+                          </p>
+                          <Circle className={`h-2 w-2 ${isOnline ? 'fill-green-500 text-green-500' : 'fill-gray-400 text-gray-400'}`} />
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <p className="text-xs text-muted-foreground capitalize">
+                            {user.role}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {isOnline ? 'Online' : 'Offline'}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+                
+                {projectUsers.length === 0 && (
+                  <div className="text-center py-8">
+                    <Users2 className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
+                    <p className="text-sm text-muted-foreground">No team members found</p>
+                  </div>
+                )}
+              </div>
+            </ScrollArea>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };
