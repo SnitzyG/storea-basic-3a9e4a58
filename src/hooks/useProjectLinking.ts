@@ -2,10 +2,12 @@ import { useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { useToast } from './use-toast';
+import { useProjects } from './useProjects';
 
 export const useProjectLinking = () => {
   const { user, profile } = useAuth();
   const { toast } = useToast();
+  const { fetchProjects } = useProjects();
 
   useEffect(() => {
     const linkUserToProjects = async () => {
@@ -22,7 +24,11 @@ export const useProjectLinking = () => {
           console.error('Error linking user to projects:', error);
         } else {
           // Refresh projects after linking
-          console.log('Successfully checked for project linkings');
+          await fetchProjects();
+          toast({
+            title: "Project Access Updated",
+            description: "Your project access has been updated!"
+          });
         }
       } catch (error) {
         console.error('Error in project linking hook:', error);
