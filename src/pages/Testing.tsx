@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { RoleTestingTools } from '@/components/testing/RoleTestingTools';
 import { PerformanceMonitor } from '@/components/testing/PerformanceMonitor';
 import { SecurityTester } from '@/components/testing/SecurityTester';
+import { TabFunctionalityTester } from '@/components/testing/TabFunctionalityTester';
 import { useAuth } from '@/hooks/useAuth';
 import { TestTube, Activity, Shield, CheckCircle, AlertTriangle, Bug } from 'lucide-react';
 
@@ -12,6 +13,13 @@ const Testing = () => {
   const { profile } = useAuth();
 
   const testingSuites = [
+    {
+      id: 'functionality',
+      name: 'Tab Functionality',
+      description: 'Test all application tabs for RLS and data access issues',
+      icon: Bug,
+      status: 'ready'
+    },
     {
       id: 'roles',
       name: 'Role-Based Access',
@@ -83,8 +91,8 @@ const Testing = () => {
         </p>
       </div>
 
-      <Tabs defaultValue="roles" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3">
+      <Tabs defaultValue="functionality" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-4">
           {testingSuites.map((suite) => (
             <TabsTrigger key={suite.id} value={suite.id} className="flex items-center gap-2">
               <suite.icon className="h-4 w-4" />
@@ -92,6 +100,10 @@ const Testing = () => {
             </TabsTrigger>
           ))}
         </TabsList>
+
+        <TabsContent value="functionality" className="space-y-6">
+          <TabFunctionalityTester />
+        </TabsContent>
 
         <TabsContent value="roles" className="space-y-6">
           <RoleTestingTools />

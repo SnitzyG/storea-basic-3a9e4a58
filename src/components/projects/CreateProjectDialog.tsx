@@ -7,6 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Plus } from 'lucide-react';
 import { useProjects } from '@/hooks/useProjects';
 import { useAuth } from '@/hooks/useAuth';
+import { useToast } from '@/hooks/use-toast';
 
 interface CreateProjectDialogProps {
   children?: React.ReactNode;
@@ -23,10 +24,19 @@ export const CreateProjectDialog = ({ children }: CreateProjectDialogProps) => {
   const [loading, setLoading] = useState(false);
   const { createProject } = useProjects();
   const { profile } = useAuth();
+  const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!profile?.company_id) return;
+    
+    if (!profile?.company_id) {
+      toast({
+        title: "Company Required",
+        description: "You must be associated with a company to create projects. Please contact an administrator.",
+        variant: "destructive"
+      });
+      return;
+    }
     
     setLoading(true);
     try {
@@ -40,8 +50,15 @@ export const CreateProjectDialog = ({ children }: CreateProjectDialogProps) => {
       
       setFormData({ name: '', address: '', budget: '', description: '' });
       setOpen(false);
-    } catch (error) {
-      // Error handled in useProjects hook
+    } catch (error: any) {
+      // Additional error handling for specific cases
+      if (error.message?.includes('policy')) {
+        toast({
+          title: "Permission Denied",
+          description: "You don't have permission to create projects. Only architects can create projects.",
+          variant: "destructive"
+        });
+      }
     } finally {
       setLoading(false);
     }

@@ -40,14 +40,22 @@ export const useProjects = () => {
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Projects fetch error:', error);
+        if (error.message.includes('infinite recursion')) {
+          throw new Error('Database configuration issue detected. Please contact support.');
+        }
+        throw error;
+      }
       setProjects(data || []);
     } catch (error: any) {
+      console.error('Error fetching projects:', error);
       toast({
         title: "Error fetching projects",
-        description: error.message,
+        description: error.message || "Failed to load projects. Please try again.",
         variant: "destructive"
       });
+      setProjects([]); // Set empty array on error
     } finally {
       setLoading(false);
     }

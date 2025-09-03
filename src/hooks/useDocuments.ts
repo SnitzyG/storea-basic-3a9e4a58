@@ -50,21 +50,26 @@ export const useDocuments = (projectId?: string) => {
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (filterProjectId) {
-        query = query.eq('project_id', filterProjectId);
+      if (filterProjectId || projectId) {
+        query = query.eq('project_id', filterProjectId || projectId);
       }
 
       const { data, error } = await query;
 
-      if (error) throw error;
+      if (error) {
+        console.error('Documents fetch error:', error);
+        throw error;
+      }
+      
       setDocuments(data || []);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching documents:', error);
       toast({
-        title: "Error",
-        description: "Failed to fetch documents",
-        variant: "destructive",
+        title: "Error fetching documents",
+        description: error.message || "Failed to load documents. Please try again.",
+        variant: "destructive"
       });
+      setDocuments([]); // Set empty array on error
     } finally {
       setLoading(false);
     }
