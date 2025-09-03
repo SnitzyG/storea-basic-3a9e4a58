@@ -16,7 +16,7 @@ export const useProjectLinking = () => {
         const { data: projects } = await supabase
           .from('projects')
           .select('id, timeline')
-          .like('timeline', `%"email":"${user.email}"%`);
+          .contains('timeline', { pending_homeowner: { email: user.email } });
 
         if (projects && projects.length > 0) {
           for (const project of projects) {
@@ -58,7 +58,7 @@ export const useProjectLinking = () => {
         const { data: collaboratorProjects } = await supabase
           .from('projects')
           .select('id, timeline')
-          .like('timeline', `%"email":"${user.email}"%`);
+          .filter('timeline->pending_collaborators', 'cs', `[{"email":"${user.email}"}]`);
 
         if (collaboratorProjects && collaboratorProjects.length > 0) {
           for (const project of collaboratorProjects) {

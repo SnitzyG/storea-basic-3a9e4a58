@@ -53,7 +53,7 @@ export const useProjects = () => {
       let query = supabase.from('projects').select('*');
 
       if (profile?.role === 'homeowner') {
-        // For homeowners, get projects through project_users table or pending homeowner email
+        // For homeowners, get projects through project_users table first
         const { data: projectUsers } = await supabase
           .from('project_users')
           .select('project_id')
@@ -65,7 +65,8 @@ export const useProjects = () => {
           query = query.in('id', projectIds);
         } else {
           // If no direct project assignments, check for pending homeowner email matches
-          query = query.like('timeline', `%"email":"${userData.user.email}"%`);
+          // Use proper JSONB query syntax
+          query = query.contains('timeline', { pending_homeowner: { email: userData.user.email } });
         }
       } else {
         // For architects and other roles, use the project_users relationship
