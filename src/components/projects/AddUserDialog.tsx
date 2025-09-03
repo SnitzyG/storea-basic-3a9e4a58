@@ -85,6 +85,9 @@ export const AddUserDialog = ({ open, onOpenChange, projectId, onUserAdded }: Ad
       setEmail('');
       setName('');
       setRole('contractor');
+      
+      // Notify other components about team update
+      window.dispatchEvent(new CustomEvent('projectTeamUpdated'));
     } catch (error: any) {
       toast({
         title: "Error adding user",

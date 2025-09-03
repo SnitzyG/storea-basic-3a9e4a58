@@ -114,8 +114,9 @@ export const ProjectDetailsDialog = ({
         description: "Team member has been removed from the project."
       });
       
-      // Refresh contacts section
+      // Refresh contacts section and notify other components
       setContactsKey(prev => prev + 1);
+      window.dispatchEvent(new CustomEvent('projectTeamUpdated'));
     } catch (error: any) {
       toast({
         title: "Error removing user",
@@ -126,8 +127,9 @@ export const ProjectDetailsDialog = ({
   };
 
   const handleUserAdded = () => {
-    // Refresh contacts section
+    // Refresh contacts section and notify other components
     setContactsKey(prev => prev + 1);
+    window.dispatchEvent(new CustomEvent('projectTeamUpdated'));
   };
 
   if (!project) return null;

@@ -7,7 +7,8 @@ import { Separator } from '@/components/ui/separator';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Users, Mail, Phone, Plus, Trash2 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Users, Mail, Phone, Plus, Trash2, MessageCircle } from 'lucide-react';
 
 interface ProjectUser {
   id: string;
@@ -53,6 +54,7 @@ export const ProjectContactsSection = ({
   const [loading, setLoading] = useState(true);
   const { profile } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchProjectUsers = async () => {
@@ -120,6 +122,16 @@ export const ProjectContactsSection = ({
 
     fetchProjectUsers();
   }, [projectId, toast]);
+
+  const handleContactUser = (userId: string, userName: string) => {
+    // Store the target user for direct messaging
+    sessionStorage.setItem('targetUserId', userId);
+    sessionStorage.setItem('targetUserName', userName);
+    sessionStorage.setItem('currentProjectId', projectId);
+    
+    // Navigate to messages tab
+    navigate('/messages');
+  };
 
   const groupedUsers = projectUsers.reduce((acc, user) => {
     const role = user.role;
@@ -191,20 +203,25 @@ export const ProjectContactsSection = ({
                           </AvatarFallback>
                         </Avatar>
                         
-                        <div className="space-y-1">
-                          <div className="font-medium">{user.user_profile.name}</div>
-                          <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                            <div className="flex items-center gap-1">
-                              <Mail className="h-3 w-3" />
-                              <span>Contact via platform</span>
-                            </div>
-                            {user.user_profile.phone && (
-                              <div className="flex items-center gap-1">
-                                <Phone className="h-3 w-3" />
-                                <span>{user.user_profile.phone}</span>
-                              </div>
-                            )}
-                          </div>
+                         <div className="space-y-1">
+                           <div className="font-medium">{user.user_profile.name}</div>
+                           <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                             <Button
+                               variant="link"
+                               size="sm"
+                               className="h-auto p-0 text-sm text-primary hover:text-primary/80"
+                               onClick={() => handleContactUser(user.user_id, user.user_profile!.name)}
+                             >
+                               <MessageCircle className="h-3 w-3 mr-1" />
+                               Contact via platform
+                             </Button>
+                             {user.user_profile.phone && (
+                               <div className="flex items-center gap-1">
+                                 <Phone className="h-3 w-3" />
+                                 <span>{user.user_profile.phone}</span>
+                               </div>
+                             )}
+                           </div>
                           {user.joined_at && (
                             <div className="text-xs text-muted-foreground">
                               Joined {new Date(user.joined_at).toLocaleDateString()}

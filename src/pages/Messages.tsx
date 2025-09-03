@@ -22,6 +22,7 @@ const Messages = () => {
   const [messageType, setMessageType] = useState<'direct' | 'group'>('direct');
   const [projectUsers, setProjectUsers] = useState<any[]>([]);
   const [connectionStatus, setConnectionStatus] = useState<'connected' | 'disconnected'>('connected');
+  const [teamRefreshKey, setTeamRefreshKey] = useState(0);
   
   const { profile } = useAuth();
   const { projects, getProjectUsers } = useProjects();
@@ -58,7 +59,37 @@ const Messages = () => {
       }
     };
     fetchUsers();
-  }, [selectedProject, getProjectUsers]);
+  }, [selectedProject, getProjectUsers, teamRefreshKey]);
+
+  // Handle direct messaging from project contacts
+  useEffect(() => {
+    const targetUserId = sessionStorage.getItem('targetUserId');
+    const targetUserName = sessionStorage.getItem('targetUserName');
+    const projectId = sessionStorage.getItem('currentProjectId');
+    
+    if (targetUserId && targetUserName && projectId === selectedProject) {
+      // Clear session storage
+      sessionStorage.removeItem('targetUserId');
+      sessionStorage.removeItem('targetUserName');
+      sessionStorage.removeItem('currentProjectId');
+      
+      // Create or find direct message thread
+      const targetUser = projectUsers.find(u => u.user_id === targetUserId);
+      if (targetUser && profile?.user_id) {
+        createThread(`Direct message with ${targetUserName}`, [profile.user_id, targetUserId]);
+      }
+    }
+  }, [projectUsers, selectedProject, profile?.user_id, createThread]);
+
+  // Listen for team updates from project management
+  useEffect(() => {
+    const handleTeamUpdate = () => {
+      setTeamRefreshKey(prev => prev + 1);
+    };
+
+    window.addEventListener('projectTeamUpdated', handleTeamUpdate);
+    return () => window.removeEventListener('projectTeamUpdated', handleTeamUpdate);
+  }, []);
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
