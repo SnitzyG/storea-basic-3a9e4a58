@@ -211,7 +211,6 @@ const Projects = () => {
           </AlertDialogContent>
         </AlertDialog>
       </div>
-    </div>
   );
 };
 
