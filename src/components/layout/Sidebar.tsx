@@ -1,6 +1,7 @@
 import { cn } from '@/lib/utils';
 import { useLocation, Link } from 'react-router-dom';
 import { 
+  BarChart3,
   FolderOpen, 
   FileStack, 
   MessageSquare, 
@@ -17,6 +18,7 @@ export const Sidebar = ({ userRole }: SidebarProps) => {
 
   const getVisibleTabs = (role: string) => {
     const allTabs = [
+      { id: 'dashboard', label: 'Dashboard', icon: BarChart3, path: '/dashboard' },
       { id: 'projects', label: 'Projects', icon: FolderOpen, path: '/projects' },
       { id: 'tenders', label: 'Tenders', icon: Briefcase, path: '/tenders' },
       { id: 'documents', label: 'Documents', icon: FileStack, path: '/documents' },

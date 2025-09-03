@@ -1,172 +1,95 @@
-import { useAuth } from '@/hooks/useAuth';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import React, { useState, useEffect } from 'react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { Link } from 'react-router-dom';
-import { 
-  FolderOpen, 
-  FileStack, 
-  MessageSquare, 
-  HelpCircle, 
-  Briefcase,
-  ArrowRight
-} from 'lucide-react';
+import { Search, Moon, Sun, Command } from 'lucide-react';
+import { DashboardAnalytics } from '@/components/dashboard/DashboardAnalytics';
+import { ProjectStatusOverview } from '@/components/dashboard/ProjectStatusOverview';
+import { RecentActivity } from '@/components/dashboard/RecentActivity';
+import { QuickActions } from '@/components/dashboard/QuickActions';
+import { NotificationCenter } from '@/components/notifications/NotificationCenter';
+import { GlobalSearch } from '@/components/search/GlobalSearch';
+import { UserProfile } from '@/components/profile/UserProfile';
+import { useTheme } from '@/context/ThemeContext';
+import { useAuth } from '@/hooks/useAuth';
 
 const Dashboard = () => {
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState('overview');
+  const { theme, toggleTheme } = useTheme();
   const { profile } = useAuth();
 
-  const getQuickActions = (role: string) => {
-    const baseActions = [
-      { 
-        title: 'View Projects', 
-        description: 'Manage your construction projects',
-        icon: FolderOpen, 
-        path: '/projects',
-        color: 'text-blue-600'
-      },
-      { 
-        title: 'Documents', 
-        description: 'Access project documents',
-        icon: FileStack, 
-        path: '/documents',
-        color: 'text-green-600'
-      },
-      { 
-        title: 'Messages', 
-        description: 'Communicate with your team',
-        icon: MessageSquare, 
-        path: '/messages',
-        color: 'text-purple-600'
-      },
-      { 
-        title: 'RFIs', 
-        description: 'Request for Information',
-        icon: HelpCircle, 
-        path: '/rfis',
-        color: 'text-orange-600'
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        setSearchOpen(true);
       }
-    ];
+      if (e.key === 'Escape') {
+        setSearchOpen(false);
+      }
+    };
 
-    if (role !== 'homeowner') {
-      baseActions.splice(1, 0, {
-        title: 'Tenders',
-        description: 'Manage bidding process',
-        icon: Briefcase,
-        path: '/tenders',
-        color: 'text-indigo-600'
-      });
-    }
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
-    return baseActions;
-  };
-
-  const quickActions = getQuickActions(profile?.role || 'contractor');
-
-  const getRoleDescription = (role: string) => {
-    switch (role) {
-      case 'architect':
-        return 'Create and manage projects, invite team members, and oversee the entire construction process.';
-      case 'builder':
-        return 'View assigned projects, submit bids, upload documents, and respond to RFIs.';
-      case 'homeowner':
-        return 'Track project progress, upload documents, create RFIs, and communicate with your team.';
-      case 'contractor':
-        return 'View assigned work, submit bids, respond to RFIs, and upload progress documents.';
-      default:
-        return 'Welcome to STOREA Basic construction management platform.';
-    }
-  };
+  const userName = profile?.name || 'User';
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
-        <p className="text-muted-foreground mt-2">
-          Welcome back, {profile?.name}! {getRoleDescription(profile?.role || '')}
-        </p>
+    <div className="container mx-auto px-4 py-6 space-y-6">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+          <h1 className="text-3xl font-bold">Welcome back, {userName}</h1>
+          <p className="text-muted-foreground">Here's what's happening with your projects today.</p>
+        </div>
+        
+        <div className="flex items-center gap-2">
+          <Button variant="outline" onClick={() => setSearchOpen(true)} className="gap-2">
+            <Search className="h-4 w-4" />
+            Search
+            <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground ml-auto">
+              <Command className="h-3 w-3" />K
+            </kbd>
+          </Button>
+          
+          <Button variant="outline" size="sm" onClick={toggleTheme}>
+            {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+          </Button>
+          
+          <NotificationCenter />
+        </div>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {quickActions.map((action) => {
-          const Icon = action.icon;
-          return (
-            <Card key={action.path} className="hover:shadow-md transition-shadow">
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <Icon className={`h-8 w-8 ${action.color}`} />
-                  <ArrowRight className="h-4 w-4 text-muted-foreground" />
-                </div>
-                <CardTitle className="text-lg">{action.title}</CardTitle>
-                <CardDescription>{action.description}</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Button asChild variant="outline" className="w-full">
-                  <Link to={action.path}>
-                    Open {action.title}
-                  </Link>
-                </Button>
-              </CardContent>
-            </Card>
-          );
-        })}
-      </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Quick Start Guide</CardTitle>
-          <CardDescription>Get started with STOREA Basic</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {profile?.role === 'architect' && (
-              <div className="space-y-2">
-                <h4 className="font-medium">For Architects:</h4>
-                <ul className="text-sm text-muted-foreground space-y-1 ml-4">
-                  <li>• Create your first project with details and timeline</li>
-                  <li>• Invite team members (builders, contractors, homeowners)</li>
-                  <li>• Set up document structure and approval workflows</li>
-                  <li>• Create tenders for contractors to bid on</li>
-                </ul>
-              </div>
-            )}
-            
-            {profile?.role === 'builder' && (
-              <div className="space-y-2">
-                <h4 className="font-medium">For Builders:</h4>
-                <ul className="text-sm text-muted-foreground space-y-1 ml-4">
-                  <li>• View projects you've been assigned to</li>
-                  <li>• Submit bids on available tenders</li>
-                  <li>• Upload progress documents and photos</li>
-                  <li>• Respond to RFIs from the project team</li>
-                </ul>
-              </div>
-            )}
-
-            {profile?.role === 'homeowner' && (
-              <div className="space-y-2">
-                <h4 className="font-medium">For Homeowners:</h4>
-                <ul className="text-sm text-muted-foreground space-y-1 ml-4">
-                  <li>• Track the progress of your construction project</li>
-                  <li>• Upload documents and communicate with your team</li>
-                  <li>• Create RFIs to ask questions about the project</li>
-                  <li>• Review and approve important project documents</li>
-                </ul>
-              </div>
-            )}
-
-            {profile?.role === 'contractor' && (
-              <div className="space-y-2">
-                <h4 className="font-medium">For Contractors:</h4>
-                <ul className="text-sm text-muted-foreground space-y-1 ml-4">
-                  <li>• View work assignments on active projects</li>
-                  <li>• Submit competitive bids on available tenders</li>
-                  <li>• Upload work progress and completion documents</li>
-                  <li>• Respond to technical RFIs in your specialty</li>
-                </ul>
-              </div>
-            )}
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="analytics">Analytics</TabsTrigger>
+          <TabsTrigger value="activity">Activity</TabsTrigger>
+          <TabsTrigger value="profile">Profile</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="overview" className="space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2 space-y-6">
+              <ProjectStatusOverview />
+              <QuickActions />
+            </div>
+            <div><RecentActivity /></div>
           </div>
-        </CardContent>
-      </Card>
+        </TabsContent>
+        
+        <TabsContent value="analytics"><DashboardAnalytics /></TabsContent>
+        <TabsContent value="activity">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <RecentActivity />
+            <QuickActions />
+          </div>
+        </TabsContent>
+        <TabsContent value="profile"><UserProfile /></TabsContent>
+      </Tabs>
+
+      <GlobalSearch open={searchOpen} onOpenChange={setSearchOpen} />
     </div>
   );
 };
