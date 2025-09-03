@@ -7,6 +7,7 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Projects from "./pages/Projects";
+import Documents from "./pages/Documents";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -35,10 +36,7 @@ const App = () => (
           } />
           <Route path="/documents" element={
             <AppLayout>
-              <div className="text-center py-12">
-                <h1 className="text-2xl font-bold mb-4">Documents</h1>
-                <p className="text-muted-foreground">Document management coming soon</p>
-              </div>
+              <Documents />
             </AppLayout>
           } />
           <Route path="/messages" element={
