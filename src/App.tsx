@@ -8,6 +8,7 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Projects from "./pages/Projects";
 import Documents from "./pages/Documents";
+import Messages from "./pages/Messages";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -41,10 +42,7 @@ const App = () => (
           } />
           <Route path="/messages" element={
             <AppLayout>
-              <div className="text-center py-12">
-                <h1 className="text-2xl font-bold mb-4">Messages</h1>
-                <p className="text-muted-foreground">Messaging system coming soon</p>
-              </div>
+              <Messages />
             </AppLayout>
           } />
           <Route path="/rfis" element={
