@@ -66,9 +66,9 @@ const Dashboard = () => {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className={`grid w-full ${profile?.role === 'homeowner' ? 'grid-cols-3' : 'grid-cols-4'}`}>
           <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="analytics">Analytics</TabsTrigger>
+          {profile?.role !== 'homeowner' && <TabsTrigger value="analytics">Analytics</TabsTrigger>}
           <TabsTrigger value="activity">Activity</TabsTrigger>
           <TabsTrigger value="profile">Profile</TabsTrigger>
         </TabsList>

@@ -1,4 +1,5 @@
 import { useAuth } from '@/hooks/useAuth';
+import { useProjectLinking } from '@/hooks/useProjectLinking';
 import { Navigate } from 'react-router-dom';
 import { Sidebar } from './Sidebar';
 import { Header } from './Header';
@@ -9,6 +10,9 @@ interface AppLayoutProps {
 
 export const AppLayout = ({ children }: AppLayoutProps) => {
   const { user, profile, loading } = useAuth();
+  
+  // Handle automatic project linking for homeowners and collaborators
+  useProjectLinking();
 
   // Show loading state while authentication is being determined
   if (loading) {

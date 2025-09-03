@@ -452,6 +452,7 @@ export type Database = {
           description: string | null
           estimated_finish_date: string | null
           estimated_start_date: string | null
+          homeowner_email: string | null
           homeowner_name: string | null
           homeowner_phone: string | null
           id: string
@@ -469,6 +470,7 @@ export type Database = {
           description?: string | null
           estimated_finish_date?: string | null
           estimated_start_date?: string | null
+          homeowner_email?: string | null
           homeowner_name?: string | null
           homeowner_phone?: string | null
           id?: string
@@ -486,6 +488,7 @@ export type Database = {
           description?: string | null
           estimated_finish_date?: string | null
           estimated_start_date?: string | null
+          homeowner_email?: string | null
           homeowner_name?: string | null
           homeowner_phone?: string | null
           id?: string

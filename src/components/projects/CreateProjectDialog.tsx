@@ -35,7 +35,8 @@ export const CreateProjectDialog = ({ children }: CreateProjectDialogProps) => {
     estimated_start_date: undefined as Date | undefined,
     estimated_finish_date: undefined as Date | undefined,
     homeowner_name: '',
-    homeowner_phone: ''
+    homeowner_phone: '',
+    homeowner_email: ''
   });
   const [collaborators, setCollaborators] = useState<Collaborator[]>([]);
   const [newCollaborator, setNewCollaborator] = useState<{
@@ -56,10 +57,10 @@ export const CreateProjectDialog = ({ children }: CreateProjectDialogProps) => {
     e.preventDefault();
 
     // Validation for required fields
-    if (!formData.estimated_start_date || !formData.estimated_finish_date || !formData.homeowner_name || !formData.homeowner_phone) {
+    if (!formData.estimated_start_date || !formData.estimated_finish_date || !formData.homeowner_name || !formData.homeowner_phone || !formData.homeowner_email) {
       toast({
         title: "Missing Required Fields",
-        description: "Please fill in all required fields including dates, homeowner name, and phone number.",
+        description: "Please fill in all required fields including dates, homeowner name, phone number, and email.",
         variant: "destructive"
       });
       return;
@@ -71,6 +72,17 @@ export const CreateProjectDialog = ({ children }: CreateProjectDialogProps) => {
       toast({
         title: "Invalid Phone Number",
         description: "Please enter a valid phone number.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.homeowner_email)) {
+      toast({
+        title: "Invalid Email",
+        description: "Please enter a valid email address.",
         variant: "destructive"
       });
       return;
@@ -87,6 +99,7 @@ export const CreateProjectDialog = ({ children }: CreateProjectDialogProps) => {
         estimated_finish_date: formData.estimated_finish_date.toISOString().split('T')[0],
         homeowner_name: formData.homeowner_name,
         homeowner_phone: formData.homeowner_phone,
+        homeowner_email: formData.homeowner_email,
         collaborators
       });
       
@@ -98,7 +111,8 @@ export const CreateProjectDialog = ({ children }: CreateProjectDialogProps) => {
         estimated_start_date: undefined,
         estimated_finish_date: undefined,
         homeowner_name: '',
-        homeowner_phone: ''
+        homeowner_phone: '',
+        homeowner_email: ''
       });
       setCollaborators([]);
       setNewCollaborator({ email: '', name: '', role: 'contractor' });
@@ -288,16 +302,28 @@ export const CreateProjectDialog = ({ children }: CreateProjectDialogProps) => {
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="homeowner_phone">Homeowner Phone *</Label>
+                <Label htmlFor="homeowner_email">Homeowner Email *</Label>
                 <Input
-                  id="homeowner_phone"
-                  type="tel"
-                  value={formData.homeowner_phone}
-                  onChange={(e) => handleInputChange('homeowner_phone', e.target.value)}
-                  placeholder="Enter phone number"
+                  id="homeowner_email"
+                  type="email"
+                  value={formData.homeowner_email}
+                  onChange={(e) => handleInputChange('homeowner_email', e.target.value)}
+                  placeholder="Enter homeowner email"
                   required
                 />
               </div>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="homeowner_phone">Homeowner Phone *</Label>
+              <Input
+                id="homeowner_phone"
+                type="tel"
+                value={formData.homeowner_phone}
+                onChange={(e) => handleInputChange('homeowner_phone', e.target.value)}
+                placeholder="Enter phone number"
+                required
+              />
             </div>
           </div>
 
@@ -409,7 +435,7 @@ export const CreateProjectDialog = ({ children }: CreateProjectDialogProps) => {
             </Button>
             <Button 
               type="submit" 
-              disabled={loading || !formData.name || !formData.estimated_start_date || !formData.estimated_finish_date || !formData.homeowner_name || !formData.homeowner_phone}
+              disabled={loading || !formData.name || !formData.estimated_start_date || !formData.estimated_finish_date || !formData.homeowner_name || !formData.homeowner_phone || !formData.homeowner_email}
             >
               {loading ? 'Creating...' : 'Create Project'}
             </Button>
