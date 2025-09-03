@@ -11,7 +11,10 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useAuth } from '@/hooks/useAuth';
-import { LogOut, User as UserIcon } from 'lucide-react';
+import { LogOut, User as UserIcon, Bell, Search } from 'lucide-react';
+import { useNotifications } from '@/hooks/useNotifications';
+import { useTheme } from '@/context/ThemeContext';
+import { Badge } from '@/components/ui/badge';
 
 interface HeaderProps {
   user: User;
@@ -20,6 +23,8 @@ interface HeaderProps {
 
 export const Header = ({ user, profile }: HeaderProps) => {
   const { signOut } = useAuth();
+  const { unreadCount } = useNotifications();
+  const { theme, toggleTheme } = useTheme();
 
   const initials = profile.name
     .split(' ')
@@ -36,6 +41,32 @@ export const Header = ({ user, profile }: HeaderProps) => {
       </div>
 
       <div className="flex items-center gap-4">
+        <div className="hidden md:block">
+          <Button variant="ghost" size="sm">
+            <Search className="h-4 w-4" />
+          </Button>
+        </div>
+        
+        <Button variant="ghost" size="sm" className="relative">
+          <Bell className="h-4 w-4" />
+          {unreadCount > 0 && (
+            <Badge 
+              variant="destructive" 
+              className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs"
+            >
+              {unreadCount > 99 ? '99+' : unreadCount}
+            </Badge>
+          )}
+        </Button>
+
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          onClick={toggleTheme}
+          title={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
+        >
+          {theme === 'light' ? '🌙' : '☀️'}
+        </Button>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="relative h-8 w-8 rounded-full">
@@ -60,7 +91,7 @@ export const Header = ({ user, profile }: HeaderProps) => {
             <DropdownMenuSeparator />
             <DropdownMenuItem>
               <UserIcon className="mr-2 h-4 w-4" />
-              <span>Profile</span>
+              <span>Manage Profile</span>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={signOut}>

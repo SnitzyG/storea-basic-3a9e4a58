@@ -6,7 +6,8 @@ import {
   FileStack, 
   MessageSquare, 
   HelpCircle, 
-  Briefcase
+  Briefcase,
+  TestTube
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -23,7 +24,8 @@ export const Sidebar = ({ userRole }: SidebarProps) => {
       { id: 'tenders', label: 'Tenders', icon: Briefcase, path: '/tenders' },
       { id: 'documents', label: 'Documents', icon: FileStack, path: '/documents' },
       { id: 'messages', label: 'Messages', icon: MessageSquare, path: '/messages' },
-      { id: 'rfis', label: 'RFIs', icon: HelpCircle, path: '/rfis' }
+      { id: 'rfis', label: 'RFIs', icon: HelpCircle, path: '/rfis' },
+      { id: 'testing', label: 'Testing', icon: TestTube, path: '/testing' }
     ];
 
     switch (role) {

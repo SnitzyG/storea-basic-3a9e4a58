@@ -12,6 +12,7 @@ import Documents from "./pages/Documents";
 import Messages from "./pages/Messages";
 import RFIs from "./pages/RFIs";
 import Tenders from "./pages/Tenders";
+import Testing from "./pages/Testing";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -53,6 +54,11 @@ const App = () => (
           <Route path="/rfis" element={
             <AppLayout>
               <RFIs />
+            </AppLayout>
+          } />
+          <Route path="/testing" element={
+            <AppLayout>
+              <Testing />
             </AppLayout>
           } />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
