@@ -96,7 +96,25 @@ export const useTeamSync = (projectId: string) => {
           table: 'project_users',
           filter: `project_id=eq.${projectId}`
         },
-        () => {
+        (payload) => {
+          console.log('Project users changed:', payload);
+          fetchTeamMembers();
+        }
+      )
+      .subscribe();
+
+    // Subscribe to profiles changes to update user info
+    const profilesSubscription = supabase
+      .channel(`profiles_${projectId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'profiles'
+        },
+        (payload) => {
+          console.log('Profiles changed:', payload);
           fetchTeamMembers();
         }
       )
@@ -111,6 +129,7 @@ export const useTeamSync = (projectId: string) => {
 
     return () => {
       subscription.unsubscribe();
+      profilesSubscription.unsubscribe();
       window.removeEventListener('projectTeamUpdated', handleTeamUpdate);
     };
   }, [projectId, fetchTeamMembers]);

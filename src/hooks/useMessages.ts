@@ -112,6 +112,12 @@ export const useMessages = (projectId?: string) => {
         return uuidRegex.test(p) && p !== user.id;
       })];
 
+      if (validParticipants.length < 2) {
+        throw new Error('At least one other participant is required');
+      }
+
+      console.log('Creating thread with validated participants:', validParticipants);
+
       const { data, error } = await supabase
         .from('message_threads')
         .insert({
@@ -123,21 +129,23 @@ export const useMessages = (projectId?: string) => {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error creating thread:', error);
+        throw new Error(`Database error: ${error.message}`);
+      }
 
-      toast({
-        title: "Success",
-        description: "Message thread created successfully",
-      });
+      console.log('Thread created successfully:', data);
 
       await fetchThreads(projectId);
       setCurrentThread(data.id);
       return data;
     } catch (error) {
       console.error('Error creating thread:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      
       toast({
         title: "Error",
-        description: "Failed to create message thread. Please try again.",
+        description: `Failed to create message thread: ${errorMessage}`,
         variant: "destructive",
       });
       return null;

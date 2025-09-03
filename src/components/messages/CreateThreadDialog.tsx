@@ -110,7 +110,7 @@ export const CreateThreadDialog: React.FC<CreateThreadDialogProps> = ({
                           </span>
                         </div>
                         <div>
-                          <p className="text-sm">{user.user_profile?.name || 'Unknown User'}</p>
+                          <p className="text-sm font-medium">{user.user_profile?.name || 'Unknown User'}</p>
                           <p className="text-xs text-muted-foreground capitalize">{user.role}</p>
                         </div>
                       </div>
@@ -162,7 +162,10 @@ export const CreateThreadDialog: React.FC<CreateThreadDialogProps> = ({
               <div className="flex flex-wrap gap-2 mt-2">
                 {participants.map((participantId) => {
                   const user = projectUsers.find(u => u.user_id === participantId);
-                  const displayName = user?.user_profile?.name || participantId;
+                  const displayName = user?.user_profile?.name || (
+                    // For manual entries, show the email/name as entered
+                    participantId.includes('@') ? participantId : `User ${participantId.slice(0, 8)}`
+                  );
                   
                   return (
                     <Badge key={participantId} variant="secondary" className="flex items-center gap-1">

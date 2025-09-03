@@ -325,25 +325,25 @@ const Messages = () => {
           <CardHeader className="pb-2">
             <CardTitle className="text-sm flex items-center gap-2">
               <Users2 className="h-4 w-4" />
-              Project Team ({projectUsers.length})
+              Project Team ({teamMembers.length})
             </CardTitle>
           </CardHeader>
           
           <CardContent className="flex-1 pt-0">
             <ScrollArea className="h-full">
               <div className="space-y-2">
-                 {projectUsers.map((user) => {
-                   const isOnline = onlineUsers.has(user.user_id) || user.isOnline;
-                   const userProfile = user.user_profile;
+                 {teamMembers.map((member) => {
+                   const isOnline = onlineUsers.has(member.user_id) || member.isOnline;
+                   const userProfile = member.user_profile;
                    
                    return (
                      <div
-                       key={user.user_id}
-                       className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent cursor-pointer border border-transparent hover:border-border transition-all"
+                       key={member.user_id}
+                       className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent cursor-pointer border border-transparent hover:border-border transition-all group"
                         onClick={() => {
                           // Start direct message with this user
-                          if (userProfile && profile?.user_id && user.user_id !== profile.user_id) {
-                            createThread(`Direct message with ${userProfile.name}`, [user.user_id]);
+                          if (userProfile && profile?.user_id && member.user_id !== profile.user_id) {
+                            createThread(`Direct message with ${userProfile.name}`, [member.user_id]);
                           }
                         }}
                      >
@@ -360,7 +360,7 @@ const Messages = () => {
                        
                        <div className="flex-1 min-w-0">
                          <div className="text-sm font-medium truncate">{userProfile?.name || 'Unknown User'}</div>
-                         <div className="text-xs text-muted-foreground capitalize">{user.role}</div>
+                         <div className="text-xs text-muted-foreground capitalize">{member.role}</div>
                        </div>
                        <div className="text-xs text-muted-foreground">
                          {isOnline ? 'Online' : 'Offline'}
@@ -369,7 +369,7 @@ const Messages = () => {
                    );
                  })}
                 
-                {projectUsers.length === 0 && (
+                {teamMembers.length === 0 && (
                   <div className="text-center py-8">
                     <Users2 className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
                     <p className="text-sm text-muted-foreground">No team members found</p>

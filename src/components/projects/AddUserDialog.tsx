@@ -28,34 +28,83 @@ export const AddUserDialog = ({ open, onOpenChange, projectId, onUserAdded }: Ad
 
     setLoading(true);
     try {
-      // For now, we'll create pending invitations since we can't directly query auth.users
-      // In a real-world scenario, you'd have a user directory or search API
-      const existingUser = null; // Always treat as new user for now
+      // Check if user already exists with this email
+      const { data: existingProfiles } = await supabase
+        .from('profiles')
+        .select('user_id, name')
+        .ilike('name', `%${email}%`);
 
-      // Always store as pending invitation (simplified for this demo)
-      const { data: currentProject } = await supabase
-        .from('projects')
-        .select('timeline')
-        .eq('id', projectId)
-        .single();
+      let addedSuccessfully = false;
 
-      const currentTimeline = (currentProject?.timeline as any) || {};
-      const pendingCollaborators = currentTimeline.pending_collaborators || [];
+      // If we find an existing user, add them directly
+      if (existingProfiles && existingProfiles.length > 0) {
+        const existingUser = existingProfiles[0];
+        
+        // Check if user is already in project
+        const { data: existingProjectUser } = await supabase
+          .from('project_users')
+          .select('id')
+          .eq('project_id', projectId)
+          .eq('user_id', existingUser.user_id)
+          .single();
 
-      await supabase
-        .from('projects')
-        .update({
-          timeline: {
-            ...currentTimeline,
-            pending_collaborators: [...pendingCollaborators, { email, name, role }]
+        if (!existingProjectUser) {
+          const { data: { user: currentUser } } = await supabase.auth.getUser();
+          
+          const { error: addError } = await supabase
+            .from('project_users')
+            .insert({
+              project_id: projectId,
+              user_id: existingUser.user_id,
+              role: role,
+              invited_by: currentUser?.id,
+              joined_at: new Date().toISOString()
+            });
+
+          if (!addError) {
+            addedSuccessfully = true;
+            toast({
+              title: "Team member added",
+              description: `${existingUser.name} has been added to the project immediately.`
+            });
           }
-        })
-        .eq('id', projectId);
+        } else {
+          toast({
+            title: "User already in project",
+            description: `${existingUser.name} is already a member of this project.`,
+            variant: "destructive"
+          });
+          setLoading(false);
+          return;
+        }
+      }
 
-      toast({
-        title: "Team member added",
-        description: `${name} will be automatically added when they create an account with this email.`
-      });
+      // If no existing user found, create pending invitation
+      if (!addedSuccessfully) {
+        const { data: currentProject } = await supabase
+          .from('projects')
+          .select('timeline')
+          .eq('id', projectId)
+          .single();
+
+        const currentTimeline = (currentProject?.timeline as any) || {};
+        const pendingCollaborators = currentTimeline.pending_collaborators || [];
+
+        await supabase
+          .from('projects')
+          .update({
+            timeline: {
+              ...currentTimeline,
+              pending_collaborators: [...pendingCollaborators, { email, name, role }]
+            }
+          })
+          .eq('id', projectId);
+
+        toast({
+          title: "Invitation sent",
+          description: `${name} will be automatically added when they create an account with ${email}.`
+        });
+      }
 
       onUserAdded();
       onOpenChange(false);
