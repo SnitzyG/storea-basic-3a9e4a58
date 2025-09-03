@@ -450,6 +450,10 @@ export type Database = {
           created_at: string
           created_by: string
           description: string | null
+          estimated_finish_date: string | null
+          estimated_start_date: string | null
+          homeowner_name: string | null
+          homeowner_phone: string | null
           id: string
           name: string
           status: Database["public"]["Enums"]["project_status"]
@@ -463,6 +467,10 @@ export type Database = {
           created_at?: string
           created_by: string
           description?: string | null
+          estimated_finish_date?: string | null
+          estimated_start_date?: string | null
+          homeowner_name?: string | null
+          homeowner_phone?: string | null
           id?: string
           name: string
           status?: Database["public"]["Enums"]["project_status"]
@@ -476,6 +484,10 @@ export type Database = {
           created_at?: string
           created_by?: string
           description?: string | null
+          estimated_finish_date?: string | null
+          estimated_start_date?: string | null
+          homeowner_name?: string | null
+          homeowner_phone?: string | null
           id?: string
           name?: string
           status?: Database["public"]["Enums"]["project_status"]

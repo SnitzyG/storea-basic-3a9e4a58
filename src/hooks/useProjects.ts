@@ -66,13 +66,23 @@ export const useProjects = () => {
     address?: string;
     budget?: number;
     description?: string;
+    estimated_start_date?: string;
+    estimated_finish_date?: string;
+    homeowner_name?: string;
+    homeowner_phone?: string;
     company_id: string;
+    collaborators?: Array<{
+      email: string;
+      name: string;
+      role: 'homeowner' | 'contractor' | 'builder';
+    }>;
   }) => {
     try {
+      const { collaborators, ...projectCreateData } = projectData;
       const { data, error } = await supabase
         .from('projects')
         .insert([{
-          ...projectData,
+          ...projectCreateData,
           created_by: (await supabase.auth.getUser()).data.user?.id
         }])
         .select()
@@ -80,15 +90,32 @@ export const useProjects = () => {
 
       if (error) throw error;
 
+      const currentUser = (await supabase.auth.getUser()).data.user;
+
       // Add the creator as a project user
       await supabase
         .from('project_users')
         .insert([{
           project_id: data.id,
-          user_id: (await supabase.auth.getUser()).data.user?.id,
+          user_id: currentUser?.id,
           role: 'architect',
-          invited_by: (await supabase.auth.getUser()).data.user?.id
+          invited_by: currentUser?.id
         }]);
+
+      // TODO: Handle collaborators - for now we'll store them in project metadata
+      // In a real implementation, you'd want to either:
+      // 1. Send invitation emails and create user accounts
+      // 2. Store pending invitations in a separate table
+      if (collaborators && collaborators.length > 0) {
+        await supabase
+          .from('projects')
+          .update({ 
+            timeline: { 
+              pending_collaborators: collaborators 
+            } 
+          })
+          .eq('id', data.id);
+      }
 
       await fetchProjects();
       toast({
