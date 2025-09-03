@@ -730,6 +730,10 @@ export type Database = {
         Args: { project_id: string; user_id: string }
         Returns: boolean
       }
+      link_pending_users_to_projects: {
+        Args: { user_email: string; user_id: string }
+        Returns: undefined
+      }
     }
     Enums: {
       document_status: "draft" | "under_review" | "approved" | "rejected"

@@ -12,101 +12,20 @@ export const useProjectLinking = () => {
       if (!user || !profile || !user.email) return;
 
       try {
-        // Check for projects where this user's email is in pending_homeowner
-        const { data: projects } = await supabase
-          .from('projects')
-          .select('id, timeline')
-          .filter('timeline->pending_homeowner->>email', 'eq', user.email);
+        // Use the database function to handle all project linking
+        const { error } = await supabase.rpc('link_pending_users_to_projects', {
+          user_email: user.email,
+          user_id: user.id
+        });
 
-        if (projects && projects.length > 0) {
-          for (const project of projects) {
-            const timeline = project.timeline as any;
-            const pendingHomeowner = timeline?.pending_homeowner;
-            
-            if (pendingHomeowner?.email === user.email) {
-              // Link this user to the project
-              const { error: linkError } = await supabase
-                .from('project_users')
-                .insert([{
-                  project_id: project.id,
-                  user_id: user.id,
-                  role: 'homeowner',
-                  invited_by: null, // Will be set by the system
-                  joined_at: new Date().toISOString()
-                }]);
-
-              if (!linkError) {
-                // Remove from pending and update timeline
-                const updatedTimeline = { ...timeline };
-                delete updatedTimeline.pending_homeowner;
-                
-                await supabase
-                  .from('projects')
-                  .update({ timeline: updatedTimeline })
-                  .eq('id', project.id);
-
-                toast({
-                  title: "Project Access Granted",
-                  description: "You've been automatically linked to your assigned project!"
-                });
-              }
-            }
-          }
-        }
-
-        // Check for projects where this user's email is in pending_collaborators
-        const { data: collaboratorProjects } = await supabase
-          .from('projects')
-          .select('id, timeline')
-          .filter('timeline->pending_collaborators', 'cs', `[{"email":"${user.email}"}]`);
-
-        if (collaboratorProjects && collaboratorProjects.length > 0) {
-          for (const project of collaboratorProjects) {
-            const timeline = project.timeline as any;
-            const pendingCollaborators = timeline?.pending_collaborators || [];
-            
-            const matchingCollaborator = pendingCollaborators.find(
-              (collab: any) => collab.email === user.email
-            );
-
-            if (matchingCollaborator) {
-              // Link this user to the project
-              const { error: linkError } = await supabase
-                .from('project_users')
-                .insert([{
-                  project_id: project.id,
-                  user_id: user.id,
-                  role: matchingCollaborator.role,
-                  invited_by: null,
-                  joined_at: new Date().toISOString()
-                }]);
-
-              if (!linkError) {
-                // Remove from pending collaborators
-                const updatedCollaborators = pendingCollaborators.filter(
-                  (collab: any) => collab.email !== user.email
-                );
-                
-                const updatedTimeline = {
-                  ...timeline,
-                  pending_collaborators: updatedCollaborators
-                };
-                
-                await supabase
-                  .from('projects')
-                  .update({ timeline: updatedTimeline })
-                  .eq('id', project.id);
-
-                toast({
-                  title: "Project Access Granted",
-                  description: `You've been automatically linked to the project as a ${matchingCollaborator.role}!`
-                });
-              }
-            }
-          }
+        if (error) {
+          console.error('Error linking user to projects:', error);
+        } else {
+          // Refresh projects after linking
+          console.log('Successfully checked for project linkings');
         }
       } catch (error) {
-        console.error('Error linking user to projects:', error);
+        console.error('Error in project linking hook:', error);
       }
     };
 
