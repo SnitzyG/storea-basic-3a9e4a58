@@ -83,6 +83,13 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
           ));
         }, 200);
 
+        console.log('Uploading file:', { 
+          name: file.name, 
+          type: file.type, 
+          size: file.size, 
+          projectId 
+        });
+        
         const result = await uploadDocument(file, projectId, file.name);
 
         clearInterval(progressInterval);
@@ -101,9 +108,12 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
           ));
         }
       } catch (error) {
+        console.error('Upload error:', error);
+        const errorMessage = error instanceof Error ? error.message : 'Upload failed';
+        
         setFiles(prev => prev.map(f => 
           f.id === file.id 
-            ? { ...f, status: 'error', progress: 0, error: 'Upload failed' } 
+            ? { ...f, status: 'error', progress: 0, error: errorMessage } 
             : f
         ));
       }

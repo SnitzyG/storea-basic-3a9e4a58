@@ -157,38 +157,77 @@ export const useDocuments = (projectId?: string) => {
     name?: string
   ): Promise<Document | null> => {
     try {
+      // Validate inputs
+      if (!file) {
+        throw new Error('No file provided');
+      }
+      
+      if (!projectId) {
+        throw new Error('No project ID provided');
+      }
+
+      // Validate file properties
+      const fileName = file.name || 'unnamed-file';
+      const fileType = file.type || 'application/octet-stream';
+      const fileSize = file.size || 0;
+
+      console.log('Uploading file:', { fileName, fileType, fileSize, projectId });
+
       // Get current user
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
 
-      // Generate file path
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
-      const filePath = `${projectId}/${fileName}`;
+      // Generate file path with proper extension handling
+      let fileExt = 'bin'; // Default extension
+      if (fileName && fileName.includes('.')) {
+        const parts = fileName.split('.');
+        fileExt = parts.pop() || 'bin';
+      }
+      
+      const timestamp = Date.now();
+      const randomId = Math.random().toString(36).substring(2);
+      const generatedFileName = `${timestamp}-${randomId}.${fileExt}`;
+      const filePath = `${projectId}/${generatedFileName}`;
+
+      console.log('Generated file path:', filePath);
 
       // Upload file to storage
       const { error: uploadError } = await supabase.storage
         .from('documents')
         .upload(filePath, file);
 
-      if (uploadError) throw uploadError;
+      if (uploadError) {
+        console.error('Storage upload error:', uploadError);
+        throw uploadError;
+      }
+
+      console.log('File uploaded to storage successfully');
 
       // Create document record
+      const documentData = {
+        project_id: projectId,
+        name: name || fileName,
+        file_path: filePath,
+        file_type: fileType,
+        file_size: fileSize,
+        uploaded_by: user.id,
+        status: 'draft' as const
+      };
+
+      console.log('Creating document record:', documentData);
+
       const { data, error } = await supabase
         .from('documents')
-        .insert({
-          project_id: projectId,
-          name: name || file.name,
-          file_path: filePath,
-          file_type: file.type,
-          file_size: file.size,
-          uploaded_by: user.id,
-          status: 'draft'
-        })
+        .insert(documentData)
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Database insert error:', error);
+        throw error;
+      }
+
+      console.log('Document record created successfully:', data);
 
       toast({
         title: "Success",
