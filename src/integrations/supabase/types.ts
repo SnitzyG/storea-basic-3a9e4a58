@@ -638,6 +638,50 @@ export type Database = {
         }
         Relationships: []
       }
+      tender_invitations: {
+        Row: {
+          created_at: string
+          expires_at: string
+          id: string
+          invited_by: string
+          invited_email: string
+          personal_message: string | null
+          status: string
+          tender_id: string
+          token: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string
+          id?: string
+          invited_by: string
+          invited_email: string
+          personal_message?: string | null
+          status?: string
+          tender_id: string
+          token: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string
+          id?: string
+          invited_by?: string
+          invited_email?: string
+          personal_message?: string | null
+          status?: string
+          tender_id?: string
+          token?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tender_invitations_tender_id_fkey"
+            columns: ["tender_id"]
+            isOneToOne: false
+            referencedRelation: "tenders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tender_participants: {
         Row: {
           bid_amount: number | null
