@@ -9,6 +9,9 @@ export interface Document {
   file_path: string;
   file_type: string;
   file_size?: number;
+  file_extension?: string;
+  category?: string;
+  tags?: string[];
   uploaded_by: string;
   visibility_scope?: string;
   status: 'draft' | 'under_review' | 'approved' | 'rejected';
@@ -203,13 +206,16 @@ export const useDocuments = (projectId?: string) => {
 
       console.log('File uploaded to storage successfully');
 
-      // Create document record
+      // Create document record with new fields
       const documentData = {
         project_id: projectId,
         name: name || fileName,
         file_path: filePath,
         file_type: fileType,
         file_size: fileSize,
+        file_extension: fileExt,
+        category: 'general',
+        tags: [],
         uploaded_by: user.id,
         status: 'draft' as const
       };

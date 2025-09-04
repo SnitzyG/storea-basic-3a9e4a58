@@ -155,39 +155,51 @@ export type Database = {
       }
       documents: {
         Row: {
+          category: string | null
           created_at: string
+          file_extension: string | null
           file_path: string
+          file_size: number | null
           file_type: string
           id: string
           name: string
           project_id: string
           status: Database["public"]["Enums"]["document_status"]
+          tags: string[] | null
           updated_at: string
           uploaded_by: string
           version: number | null
           visibility_scope: string | null
         }
         Insert: {
+          category?: string | null
           created_at?: string
+          file_extension?: string | null
           file_path: string
+          file_size?: number | null
           file_type: string
           id?: string
           name: string
           project_id: string
           status?: Database["public"]["Enums"]["document_status"]
+          tags?: string[] | null
           updated_at?: string
           uploaded_by: string
           version?: number | null
           visibility_scope?: string | null
         }
         Update: {
+          category?: string | null
           created_at?: string
+          file_extension?: string | null
           file_path?: string
+          file_size?: number | null
           file_type?: string
           id?: string
           name?: string
           project_id?: string
           status?: Database["public"]["Enums"]["document_status"]
+          tags?: string[] | null
           updated_at?: string
           uploaded_by?: string
           version?: number | null

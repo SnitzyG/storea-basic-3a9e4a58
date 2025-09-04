@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Plus, Search, Filter, Grid, List, Upload, Eye, GitBranch } from 'lucide-react';
+import { Plus, Search, Filter, Grid, List, Upload, Eye, GitBranch, Folder, FolderOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -26,12 +26,16 @@ import { DocumentUpload } from '@/components/documents/DocumentUpload';
 import { DocumentCard } from '@/components/documents/DocumentCard';
 import { DocumentPreview } from '@/components/documents/DocumentPreview';
 import { DocumentDetailsDialog } from '@/components/documents/DocumentDetailsDialog';
+import { DocumentFilters } from '@/components/documents/DocumentFilters';
+import { DocumentFolder } from '@/components/documents/DocumentFolder';
 
 const Documents = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedProject, setSelectedProject] = useState<string>('all');
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [organizationMode, setOrganizationMode] = useState<'flat' | 'folders'>('flat');
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
   const [previewDocument, setPreviewDocument] = useState<Document | null>(null);
   const [detailsDocument, setDetailsDocument] = useState<Document | null>(null);
@@ -50,10 +54,24 @@ const Documents = () => {
   const filteredDocuments = useMemo(() => {
     return documents.filter(doc => {
       const matchesSearch = doc.name.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesCategory = selectedCategory === 'all' || doc.category === selectedCategory;
       const matchesStatus = statusFilter === 'all' || doc.status === statusFilter;
-      return matchesSearch && matchesStatus;
+      return matchesSearch && matchesCategory && matchesStatus;
     });
-  }, [documents, searchTerm, statusFilter]);
+  }, [documents, searchTerm, selectedCategory, statusFilter]);
+
+  // Group documents by category for folder view
+  const documentsByCategory = useMemo(() => {
+    const grouped: Record<string, Document[]> = {};
+    filteredDocuments.forEach(doc => {
+      const category = doc.category || 'general';
+      if (!grouped[category]) {
+        grouped[category] = [];
+      }
+      grouped[category].push(doc);
+    });
+    return grouped;
+  }, [filteredDocuments]);
 
   const getProjectName = (projectId: string) => {
     const project = projects.find(p => p.id === projectId);
@@ -97,6 +115,19 @@ const Documents = () => {
 
   const statusCounts = getStatusCounts();
 
+  const getCategoryDisplayName = (category: string) => {
+    const categoryMap: Record<string, string> = {
+      general: 'General Documents',
+      drawings: 'Drawings & Plans',
+      contracts: 'Contracts & Legal',
+      reports: 'Reports & Analysis',
+      specifications: 'Specifications',
+      permits: 'Permits & Licenses',
+      safety: 'Safety Documents'
+    };
+    return categoryMap[category] || category.charAt(0).toUpperCase() + category.slice(1);
+  };
+
   if (loading) {
     return (
       <div className="space-y-6">
@@ -121,91 +152,77 @@ const Documents = () => {
           </p>
         </div>
         
-        <Dialog open={uploadDialogOpen} onOpenChange={setUploadDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Upload className="h-4 w-4 mr-2" />
-              Upload Documents
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-2xl">
-            <DialogHeader>
-              <DialogTitle>Upload Documents</DialogTitle>
-            </DialogHeader>
-            {projects.length > 0 ? (
-              <DocumentUpload
-                projectId={selectedProject === 'all' ? projects[0]?.id : selectedProject}
-                onUploadComplete={() => setUploadDialogOpen(false)}
-              />
-            ) : (
-              <div className="text-center py-8">
-                <p className="text-muted-foreground">
-                  No projects available. Create a project first to upload documents.
-                </p>
-              </div>
-            )}
-          </DialogContent>
-        </Dialog>
-      </div>
-
-      {/* Filters and Stats */}
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-        <div className="flex flex-1 gap-4">
-          <div className="relative flex-1 max-w-sm">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-            <Input
-              placeholder="Search documents..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
-          </div>
-          
-          <Select value={selectedProject} onValueChange={setSelectedProject}>
-            <SelectTrigger className="w-48">
-              <SelectValue placeholder="All Projects" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Projects</SelectItem>
-              {projects.map((project) => (
-                <SelectItem key={project.id} value={project.id}>
-                  {project.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-40">
-              <SelectValue placeholder="All Status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Status</SelectItem>
-              <SelectItem value="draft">Draft</SelectItem>
-              <SelectItem value="under_review">Under Review</SelectItem>
-              <SelectItem value="approved">Approved</SelectItem>
-              <SelectItem value="rejected">Rejected</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
         <div className="flex items-center gap-2">
           <Button
-            variant={viewMode === 'grid' ? 'default' : 'outline'}
+            variant={organizationMode === 'flat' ? 'default' : 'outline'}
             size="sm"
-            onClick={() => setViewMode('grid')}
+            onClick={() => setOrganizationMode('flat')}
           >
-            <Grid className="h-4 w-4" />
+            <List className="h-4 w-4 mr-2" />
+            List View
           </Button>
           <Button
-            variant={viewMode === 'list' ? 'default' : 'outline'}
+            variant={organizationMode === 'folders' ? 'default' : 'outline'}
             size="sm"
-            onClick={() => setViewMode('list')}
+            onClick={() => setOrganizationMode('folders')}
           >
-            <List className="h-4 w-4" />
+            <Folder className="h-4 w-4 mr-2" />
+            Folder View
           </Button>
+          
+          <Dialog open={uploadDialogOpen} onOpenChange={setUploadDialogOpen}>
+            <DialogTrigger asChild>
+              <Button>
+                <Upload className="h-4 w-4 mr-2" />
+                Upload Documents
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-2xl">
+              <DialogHeader>
+                <DialogTitle>Upload Documents</DialogTitle>
+              </DialogHeader>
+              {projects.length > 0 ? (
+                <DocumentUpload
+                  projectId={selectedProject === 'all' ? projects[0]?.id : selectedProject}
+                  onUploadComplete={() => setUploadDialogOpen(false)}
+                />
+              ) : (
+                <div className="text-center py-8">
+                  <p className="text-muted-foreground">
+                    No projects available. Create a project first to upload documents.
+                  </p>
+                </div>
+              )}
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
+
+      {/* Filters */}
+      <Card className="mb-6">
+        <CardContent className="p-6">
+          <DocumentFilters
+            searchTerm={searchTerm}
+            onSearchChange={setSearchTerm}
+            selectedProject={selectedProject}
+            onProjectChange={setSelectedProject}
+            selectedCategory={selectedCategory}
+            onCategoryChange={setSelectedCategory}
+            selectedStatus={statusFilter}
+            onStatusChange={setStatusFilter}
+            viewMode={viewMode}
+            onViewModeChange={setViewMode}
+            projects={projects}
+            documentCounts={{
+              total: statusCounts.all,
+              draft: statusCounts.draft,
+              under_review: statusCounts.under_review,
+              approved: statusCounts.approved,
+              rejected: statusCounts.rejected
+            }}
+          />
+        </CardContent>
+      </Card>
 
       {/* Status Tabs */}
       <Tabs value={statusFilter} onValueChange={setStatusFilter} className="w-full">
@@ -243,47 +260,132 @@ const Documents = () => {
         </TabsList>
       </Tabs>
 
-      {/* Documents Grid/List */}
-      {filteredDocuments.length === 0 ? (
-        <Card>
-          <CardContent className="text-center py-12">
-            <Upload className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-medium mb-2">No documents found</h3>
-            <p className="text-muted-foreground mb-4">
-              {documents.length === 0 
-                ? "Upload your first document to get started" 
-                : "Try adjusting your filters"
-              }
-            </p>
-            {documents.length === 0 && (
-              <Button onClick={() => setUploadDialogOpen(true)}>
-                <Upload className="h-4 w-4 mr-2" />
-                Upload Documents
-              </Button>
-            )}
-          </CardContent>
-        </Card>
-      ) : (
-        <div className={
-          viewMode === 'grid' 
-            ? "grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
-            : "space-y-4"
-        }>
-          {filteredDocuments.map((document) => (
-            <DocumentCard
-              key={document.id}
-              document={document}
-              onDownload={downloadDocument}
-              onDelete={deleteDocument}
-              onStatusChange={updateDocumentStatus}
-              onRequestApproval={handleRequestApproval}
-              onPreview={setPreviewDocument}
-              onViewDetails={setDetailsDocument}
-              canEdit={canEditDocument(document)}
-              canApprove={canApproveDocument()}
-            />
-          ))}
+      {/* Document Content */}
+      {organizationMode === 'folders' ? (
+        <div className="space-y-4">
+          {Object.entries(documentsByCategory)
+            .sort(([a], [b]) => a.localeCompare(b))
+            .map(([category, docs]) => (
+              <DocumentFolder
+                key={category}
+                title={getCategoryDisplayName(category)}
+                documents={docs}
+                onUpload={() => setUploadDialogOpen(true)}
+                onDownload={downloadDocument}
+                onDelete={docs.some(doc => canEditDocument(doc)) ? deleteDocument : undefined}
+                onStatusChange={docs.some(doc => canApproveDocument()) ? updateDocumentStatus : undefined}
+                onRequestApproval={docs.some(doc => canEditDocument(doc)) ? handleRequestApproval : undefined}
+                onViewDetails={setDetailsDocument}
+                onPreview={setPreviewDocument}
+                canEdit={docs.some(doc => canEditDocument(doc))}
+                canApprove={canApproveDocument()}
+                viewMode={viewMode}
+                defaultExpanded={category === 'general' || Object.keys(documentsByCategory).length <= 3}
+              />
+            ))}
+          
+          {Object.keys(documentsByCategory).length === 0 && (
+            <Card>
+              <CardContent className="text-center py-12">
+                <Upload className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+                <h3 className="text-lg font-medium mb-2">No documents found</h3>
+                <p className="text-muted-foreground mb-4">
+                  {documents.length === 0 
+                    ? "Upload your first document to get started" 
+                    : "Try adjusting your filters"
+                  }
+                </p>
+                {documents.length === 0 && (
+                  <Button onClick={() => setUploadDialogOpen(true)}>
+                    <Upload className="h-4 w-4 mr-2" />
+                    Upload Documents
+                  </Button>
+                )}
+              </CardContent>
+            </Card>
+          )}
         </div>
+      ) : (
+        <>
+          {/* Status Tabs */}
+          <Tabs value={statusFilter} onValueChange={setStatusFilter} className="w-full mb-6">
+            <TabsList className="grid w-full grid-cols-5">
+              <TabsTrigger value="all" className="relative">
+                All
+                <Badge variant="secondary" className="ml-2">
+                  {statusCounts.all}
+                </Badge>
+              </TabsTrigger>
+              <TabsTrigger value="draft" className="relative">
+                Draft
+                <Badge variant="secondary" className="ml-2">
+                  {statusCounts.draft}
+                </Badge>
+              </TabsTrigger>
+              <TabsTrigger value="under_review" className="relative">
+                Review
+                <Badge variant="secondary" className="ml-2">
+                  {statusCounts.under_review}
+                </Badge>
+              </TabsTrigger>
+              <TabsTrigger value="approved" className="relative">
+                Approved
+                <Badge variant="secondary" className="ml-2">
+                  {statusCounts.approved}
+                </Badge>
+              </TabsTrigger>
+              <TabsTrigger value="rejected" className="relative">
+                Rejected
+                <Badge variant="secondary" className="ml-2">
+                  {statusCounts.rejected}
+                </Badge>
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
+
+          {/* Documents Grid/List */}
+          {filteredDocuments.length === 0 ? (
+            <Card>
+              <CardContent className="text-center py-12">
+                <Upload className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+                <h3 className="text-lg font-medium mb-2">No documents found</h3>
+                <p className="text-muted-foreground mb-4">
+                  {documents.length === 0 
+                    ? "Upload your first document to get started" 
+                    : "Try adjusting your filters"
+                  }
+                </p>
+                {documents.length === 0 && (
+                  <Button onClick={() => setUploadDialogOpen(true)}>
+                    <Upload className="h-4 w-4 mr-2" />
+                    Upload Documents
+                  </Button>
+                )}
+              </CardContent>
+            </Card>
+          ) : (
+            <div className={
+              viewMode === 'grid' 
+                ? "grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+                : "space-y-4"
+            }>
+              {filteredDocuments.map((document) => (
+                <DocumentCard
+                  key={document.id}
+                  document={document}
+                  onDownload={downloadDocument}
+                  onDelete={deleteDocument}
+                  onStatusChange={updateDocumentStatus}
+                  onRequestApproval={handleRequestApproval}
+                  onPreview={setPreviewDocument}
+                  onViewDetails={setDetailsDocument}
+                  canEdit={canEditDocument(document)}
+                  canApprove={canApproveDocument()}
+                />
+              ))}
+            </div>
+          )}
+        </>
       )}
 
       {/* Document Preview Dialog */}
