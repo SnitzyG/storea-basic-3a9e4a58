@@ -33,8 +33,7 @@ const handler = async (req: Request): Promise<Response> => {
       .from('tenders')
       .select(`
         *,
-        projects(name),
-        profiles:issued_by(name)
+        projects!inner(name)
       `)
       .eq('id', tender_id)
       .single();
@@ -46,6 +45,13 @@ const handler = async (req: Request): Promise<Response> => {
         { status: 404, headers: { "Content-Type": "application/json", ...corsHeaders } }
       );
     }
+
+    // Get tender issuer profile separately
+    const { data: issuerProfile } = await supabase
+      .from('profiles')
+      .select('name')
+      .eq('user_id', tender.issued_by)
+      .single();
 
     const inviteUrl = `${Deno.env.get('SUPABASE_URL')?.replace('/rest/v1', '')}/auth/v1/invite`;
     const siteUrl = `https://inibugusrzfihldvegrb.supabase.co`;
@@ -66,7 +72,7 @@ const handler = async (req: Request): Promise<Response> => {
             <p><strong>Description:</strong> ${tender.description}</p>
             ${tender.budget ? `<p><strong>Budget:</strong> $${tender.budget.toLocaleString()}</p>` : ''}
             <p><strong>Submission Deadline:</strong> ${new Date(tender.deadline).toLocaleDateString()}</p>
-            <p><strong>Issued by:</strong> ${tender.profiles?.name || 'Unknown'}</p>
+            <p><strong>Issued by:</strong> ${issuerProfile?.name || 'Unknown'}</p>
           </div>
 
           ${message ? `
