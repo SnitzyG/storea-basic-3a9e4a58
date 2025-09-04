@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -88,8 +89,8 @@ const Tenders = () => {
             <p className="text-muted-foreground mb-4">
               Tender management is only available to Architects, Builders, and Contractors.
             </p>
-            <Button onClick={() => window.location.href = '/projects'}>
-              Go to Projects
+            <Button asChild>
+              <Link to="/projects">Go to Projects</Link>
             </Button>
           </CardContent>
         </Card>
@@ -116,8 +117,8 @@ const Tenders = () => {
             <p className="text-muted-foreground mb-4">
               You need to be part of a project to manage tenders.
             </p>
-            <Button onClick={() => window.location.href = '/projects'}>
-              Go to Projects
+            <Button asChild>
+              <Link to="/projects">Go to Projects</Link>
             </Button>
           </CardContent>
         </Card>

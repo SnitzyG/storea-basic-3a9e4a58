@@ -59,27 +59,25 @@ const Testing = () => {
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'completed':
-        return <CheckCircle className="h-4 w-4 text-green-500" />;
+        return <CheckCircle className="h-4 w-4 text-construction-success" />;
       case 'warning':
-        return <AlertTriangle className="h-4 w-4 text-yellow-500" />;
+        return <AlertTriangle className="h-4 w-4 text-construction-warning" />;
       case 'pending':
       default:
-        return <Bug className="h-4 w-4 text-gray-400" />;
+        return <Bug className="h-4 w-4 text-muted-foreground" />;
     }
   };
 
   const getStatusBadge = (status: string) => {
-    const variants = {
-      completed: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300',
-      warning: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300',
-      pending: 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300'
-    };
-    
-    return (
-      <Badge className={variants[status as keyof typeof variants] || variants.pending}>
-        {status.toUpperCase()}
-      </Badge>
-    );
+    switch (status) {
+      case 'completed':
+        return <Badge variant="default" className="bg-construction-success text-white">COMPLETED</Badge>;
+      case 'warning':
+        return <Badge variant="secondary" className="bg-construction-warning text-white">WARNING</Badge>;
+      case 'pending':
+      default:
+        return <Badge variant="outline">PENDING</Badge>;
+    }
   };
 
   return (

@@ -206,35 +206,33 @@ export const SecurityTester = () => {
 
   const getSeverityColor = (severity: SecurityTest['severity']) => {
     switch (severity) {
-      case 'critical': return 'text-red-600 bg-red-50 dark:bg-red-900/20';
-      case 'high': return 'text-orange-600 bg-orange-50 dark:bg-orange-900/20';
-      case 'medium': return 'text-yellow-600 bg-yellow-50 dark:bg-yellow-900/20';
-      case 'low': return 'text-blue-600 bg-blue-50 dark:bg-blue-900/20';
+      case 'critical': return 'text-destructive bg-destructive/10';
+      case 'high': return 'text-construction-warning bg-construction-warning/10';
+      case 'medium': return 'text-construction-info bg-construction-info/10';
+      case 'low': return 'text-primary bg-primary/10';
     }
   };
 
   const getStatusIcon = (status: SecurityTest['status']) => {
     switch (status) {
-      case 'pending': return <Shield className="h-4 w-4 text-gray-400" />;
-      case 'running': return <div className="h-4 w-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />;
-      case 'pass': return <ShieldCheck className="h-4 w-4 text-green-600" />;
-      case 'fail': return <ShieldX className="h-4 w-4 text-red-600" />;
+      case 'pending': return <Shield className="h-4 w-4 text-muted-foreground" />;
+      case 'running': return <div className="h-4 w-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />;
+      case 'pass': return <ShieldCheck className="h-4 w-4 text-construction-success" />;
+      case 'fail': return <ShieldX className="h-4 w-4 text-destructive" />;
     }
   };
 
   const getStatusBadge = (status: SecurityTest['status']) => {
-    const variants = {
-      pending: 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300',
-      running: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300',
-      pass: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300',
-      fail: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300'
-    };
-    
-    return (
-      <Badge className={variants[status]}>
-        {status.toUpperCase()}
-      </Badge>
-    );
+    switch (status) {
+      case 'pending':
+        return <Badge variant="outline">PENDING</Badge>;
+      case 'running':
+        return <Badge variant="secondary">RUNNING</Badge>;
+      case 'pass':
+        return <Badge variant="default" className="bg-construction-success text-white">PASSED</Badge>;
+      case 'fail':
+        return <Badge variant="destructive">FAILED</Badge>;
+    }
   };
 
   const summary = {
@@ -268,8 +266,8 @@ export const SecurityTester = () => {
           
           {summary.total > 0 && !isRunning && (
             <div className="flex gap-2 text-sm">
-              <span className="text-green-600">{summary.passed} Passed</span>
-              <span className="text-red-600">{summary.failed} Failed</span>
+              <span className="text-construction-success">{summary.passed} Passed</span>
+              <span className="text-destructive">{summary.failed} Failed</span>
             </div>
           )}
         </div>
