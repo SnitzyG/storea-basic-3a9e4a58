@@ -44,7 +44,7 @@ const TenderResponse = () => {
   
   const [tender, setTender] = useState<TenderDetails | null>(null);
   const [loading, setLoading] = useState(true);
-  const [progress, setProgress] = useState(25); // Start at 25% for viewing tender
+  const [progress, setProgress] = useState(25);
   const [accessVerified, setAccessVerified] = useState(false);
   
   const token = searchParams.get('token');
@@ -68,21 +68,16 @@ const TenderResponse = () => {
     try {
       setLoading(true);
       
-      // For now, simulate invitation verification
-      // TODO: Update after Supabase types are regenerated
-      const invitation = {
-        tender_id: tenderId,
-        token: token,
-        invited_email: email,
-        status: 'sent'
-      };
-      const inviteError = null;
-
-      if (inviteError || !invitation) {
-        throw new Error('Invalid or expired invitation');
+      // Basic validation for demo purposes
+      if (!token || token.length < 10) {
+        throw new Error('Invalid token format');
+      }
+      
+      if (!email || !email.includes('@')) {
+        throw new Error('Invalid email format');
       }
 
-      // Get tender details with project and issuer information
+      // Get tender details with project information
       const { data: tenderData, error: tenderError } = await supabase
         .from('tenders')
         .select(`
@@ -113,7 +108,14 @@ const TenderResponse = () => {
         .single();
 
       setTender({
-        ...tenderData,
+        id: tenderData.id,
+        title: tenderData.title,
+        description: tenderData.description,
+        deadline: tenderData.deadline,
+        budget: tenderData.budget,
+        status: tenderData.status,
+        begin_date: tenderData.begin_date,
+        requirements: tenderData.requirements || {},
         project: tenderData.projects,
         issuer_profile: issuerProfile || { name: 'Unknown', phone: '' }
       });

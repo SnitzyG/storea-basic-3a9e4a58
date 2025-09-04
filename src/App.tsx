@@ -62,6 +62,7 @@ const App = () => (
               <Testing />
             </AppLayout>
           } />
+          <Route path="/tender/:tenderId" element={<TenderResponse />} />
           <Route path="/tender-response/:tenderId" element={<TenderResponse />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
