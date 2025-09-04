@@ -682,39 +682,48 @@ export type Database = {
       tenders: {
         Row: {
           awarded_to: string | null
+          begin_date: string | null
           budget: number | null
           created_at: string
           deadline: string | null
           description: string | null
+          documents: Json | null
           id: string
           issued_by: string
           project_id: string
+          requirements: Json | null
           status: Database["public"]["Enums"]["tender_status"]
           title: string
           updated_at: string
         }
         Insert: {
           awarded_to?: string | null
+          begin_date?: string | null
           budget?: number | null
           created_at?: string
           deadline?: string | null
           description?: string | null
+          documents?: Json | null
           id?: string
           issued_by: string
           project_id: string
+          requirements?: Json | null
           status?: Database["public"]["Enums"]["tender_status"]
           title: string
           updated_at?: string
         }
         Update: {
           awarded_to?: string | null
+          begin_date?: string | null
           budget?: number | null
           created_at?: string
           deadline?: string | null
           description?: string | null
+          documents?: Json | null
           id?: string
           issued_by?: string
           project_id?: string
+          requirements?: Json | null
           status?: Database["public"]["Enums"]["tender_status"]
           title?: string
           updated_at?: string

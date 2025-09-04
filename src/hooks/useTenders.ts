@@ -11,9 +11,11 @@ export interface Tender {
   issued_by: string;
   awarded_to?: string;
   budget?: number;
+  begin_date?: string;
   deadline: string;
   status: 'draft' | 'open' | 'closed' | 'awarded' | 'cancelled';
   requirements?: any;
+  documents?: any[];
   created_at: string;
   updated_at: string;
   issued_by_profile?: {
@@ -121,8 +123,10 @@ export const useTenders = (projectId?: string) => {
     title: string;
     description: string;
     budget?: number;
+    begin_date?: string;
     deadline: string;
     requirements?: any;
+    documents?: any[];
   }) => {
     if (!user) return null;
 
