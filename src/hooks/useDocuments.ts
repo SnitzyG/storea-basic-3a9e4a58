@@ -75,6 +75,82 @@ export const useDocuments = (projectId?: string) => {
     }
   };
 
+  const createNewVersion = async (
+    documentId: string,
+    file: File,
+    changesSummary?: string
+  ): Promise<DocumentVersion | null> => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('User not authenticated');
+
+      // Get current document to get project_id and current version
+      const { data: currentDoc, error: docError } = await supabase
+        .from('documents')
+        .select('*')
+        .eq('id', documentId)
+        .single();
+
+      if (docError) throw docError;
+
+      const nextVersion = (currentDoc.version || 1) + 1;
+
+      // Upload new version file
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Date.now()}-v${nextVersion}.${fileExt}`;
+      const filePath = `${currentDoc.project_id}/versions/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('documents')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      // Create version record
+      const { data: versionData, error: versionError } = await supabase
+        .from('document_versions')
+        .insert({
+          document_id: documentId,
+          version_number: nextVersion,
+          file_path: filePath,
+          uploaded_by: user.id,
+          changes_summary: changesSummary
+        })
+        .select()
+        .single();
+
+      if (versionError) throw versionError;
+
+      // Update document's current version and file path
+      const { error: updateError } = await supabase
+        .from('documents')
+        .update({
+          version: nextVersion,
+          file_path: filePath,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', documentId);
+
+      if (updateError) throw updateError;
+
+      toast({
+        title: "Success",
+        description: `Version ${nextVersion} created successfully`,
+      });
+
+      await fetchDocuments();
+      return versionData;
+    } catch (error) {
+      console.error('Error creating new version:', error);
+      toast({
+        title: "Error",
+        description: "Failed to create new version",
+        variant: "destructive",
+      });
+      return null;
+    }
+  };
+
   const uploadDocument = async (
     file: File,
     projectId: string,
@@ -310,15 +386,59 @@ export const useDocuments = (projectId?: string) => {
     fetchDocuments(projectId);
   }, [projectId]);
 
+  const revertToVersion = async (documentId: string, versionId: string) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('User not authenticated');
+
+      // Get the version to revert to
+      const { data: version, error: versionError } = await supabase
+        .from('document_versions')
+        .select('*')
+        .eq('id', versionId)
+        .single();
+
+      if (versionError) throw versionError;
+
+      // Update document to use this version
+      const { error: updateError } = await supabase
+        .from('documents')
+        .update({
+          version: version.version_number,
+          file_path: version.file_path,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', documentId);
+
+      if (updateError) throw updateError;
+
+      toast({
+        title: "Success",
+        description: `Reverted to version ${version.version_number}`,
+      });
+
+      await fetchDocuments();
+    } catch (error) {
+      console.error('Error reverting to version:', error);
+      toast({
+        title: "Error",
+        description: "Failed to revert to version",
+        variant: "destructive",
+      });
+    }
+  };
+
   return {
     documents,
     loading,
     fetchDocuments,
     uploadDocument,
+    createNewVersion,
     updateDocumentStatus,
     deleteDocument,
     downloadDocument,
     getDocumentVersions,
+    revertToVersion,
     requestApproval,
     approveDocument
   };

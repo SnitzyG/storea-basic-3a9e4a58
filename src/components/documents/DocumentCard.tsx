@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   Download, 
   Eye, 
@@ -8,7 +8,10 @@ import {
   Clock,
   FileText,
   Image,
-  File
+  File,
+  GitBranch,
+  MessageSquare,
+  Users
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -28,6 +31,8 @@ interface DocumentCardProps {
   onDelete?: (documentId: string, filePath: string) => void;
   onStatusChange?: (documentId: string, status: Document['status']) => void;
   onRequestApproval?: (documentId: string) => void;
+  onViewDetails?: (document: Document) => void;
+  onPreview?: (document: Document) => void;
   canEdit: boolean;
   canApprove: boolean;
 }
@@ -38,6 +43,8 @@ export const DocumentCard: React.FC<DocumentCardProps> = ({
   onDelete,
   onStatusChange,
   onRequestApproval,
+  onViewDetails,
+  onPreview,
   canEdit,
   canApprove
 }) => {
@@ -104,12 +111,26 @@ export const DocumentCard: React.FC<DocumentCardProps> = ({
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
+                  {onPreview && (
+                    <DropdownMenuItem onClick={() => onPreview(document)}>
+                      <Eye className="h-4 w-4 mr-2" />
+                      Preview
+                    </DropdownMenuItem>
+                  )}
+                  
                   <DropdownMenuItem 
                     onClick={() => onDownload(document.file_path, document.name)}
                   >
                     <Download className="h-4 w-4 mr-2" />
                     Download
                   </DropdownMenuItem>
+
+                  {onViewDetails && (
+                    <DropdownMenuItem onClick={() => onViewDetails(document)}>
+                      <GitBranch className="h-4 w-4 mr-2" />
+                      Version History
+                    </DropdownMenuItem>
+                  )}
                   
                   {canEdit && document.status === 'draft' && onRequestApproval && (
                     <DropdownMenuItem 
@@ -166,7 +187,17 @@ export const DocumentCard: React.FC<DocumentCardProps> = ({
             </div>
             
             <div className="text-xs text-muted-foreground space-y-1">
-              <div>{formatFileSize(document.file_size)}</div>
+              <div className="flex items-center gap-4">
+                <span>{formatFileSize(document.file_size)}</span>
+                <span className="flex items-center gap-1">
+                  <Users className="h-3 w-3" />
+                  3
+                </span>
+                <span className="flex items-center gap-1">
+                  <MessageSquare className="h-3 w-3" />
+                  2
+                </span>
+              </div>
               <div>
                 Uploaded {format(new Date(document.created_at), 'MMM dd, yyyy')}
               </div>

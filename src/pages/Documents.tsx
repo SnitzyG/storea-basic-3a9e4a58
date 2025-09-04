@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Plus, Search, Filter, Grid, List, Upload } from 'lucide-react';
+import { Plus, Search, Filter, Grid, List, Upload, Eye, GitBranch } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -19,11 +19,13 @@ import {
 } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useDocuments } from '@/hooks/useDocuments';
+import { useDocuments, Document } from '@/hooks/useDocuments';
 import { useProjects } from '@/hooks/useProjects';
 import { useAuth } from '@/hooks/useAuth';
 import { DocumentUpload } from '@/components/documents/DocumentUpload';
 import { DocumentCard } from '@/components/documents/DocumentCard';
+import { DocumentPreview } from '@/components/documents/DocumentPreview';
+import { DocumentDetailsDialog } from '@/components/documents/DocumentDetailsDialog';
 
 const Documents = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -31,6 +33,8 @@ const Documents = () => {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
+  const [previewDocument, setPreviewDocument] = useState<Document | null>(null);
+  const [detailsDocument, setDetailsDocument] = useState<Document | null>(null);
   
   const { profile } = useAuth();
   const { projects } = useProjects();
@@ -273,12 +277,31 @@ const Documents = () => {
               onDelete={deleteDocument}
               onStatusChange={updateDocumentStatus}
               onRequestApproval={handleRequestApproval}
+              onPreview={setPreviewDocument}
+              onViewDetails={setDetailsDocument}
               canEdit={canEditDocument(document)}
               canApprove={canApproveDocument()}
             />
           ))}
         </div>
       )}
+
+      {/* Document Preview Dialog */}
+      {previewDocument && (
+        <DocumentPreview
+          document={previewDocument}
+          isOpen={!!previewDocument}
+          onClose={() => setPreviewDocument(null)}
+          onDownload={downloadDocument}
+        />
+      )}
+
+      {/* Document Details Dialog */}
+      <DocumentDetailsDialog
+        document={detailsDocument}
+        isOpen={!!detailsDocument}
+        onClose={() => setDetailsDocument(null)}
+      />
     </div>
   );
 };
