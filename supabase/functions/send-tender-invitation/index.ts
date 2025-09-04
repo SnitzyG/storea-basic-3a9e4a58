@@ -55,10 +55,17 @@ const handler = async (req: Request): Promise<Response> => {
 
     const inviteUrl = `${Deno.env.get('SUPABASE_URL')?.replace('/rest/v1', '')}/auth/v1/invite`;
     const siteUrl = `https://id-preview--bd2e83dc-1d1d-4a73-96c2-6279990f514d.lovable.app`;
-    const tenderUrl = `${siteUrl}/tender/${tender_id}?token=${encodeURIComponent(tender_id)}&email=`;
+    
+    // Generate proper authentication token for each recipient
+    const generateTenderToken = (tenderId: string, email: string) => {
+      return btoa(`${tenderId}:${email}:${Date.now()}`);
+    };
 
     // Send invitation emails
     const emailPromises = recipient_emails.map(async (email) => {
+      const tenderToken = generateTenderToken(tender_id, email);
+      const tenderUrl = `${siteUrl}/tender/${tender_id}?token=${encodeURIComponent(tenderToken)}&email=${encodeURIComponent(email)}`;
+      
       const emailHtml = `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
           <h1 style="color: #333; border-bottom: 2px solid #0070f3; padding-bottom: 10px;">
