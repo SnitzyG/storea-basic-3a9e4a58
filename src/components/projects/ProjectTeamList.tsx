@@ -7,9 +7,9 @@ import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 import { useProjectTeam } from '@/hooks/useProjectTeam';
-import { Users, Mail, Phone, Plus, Trash2, MessageCircle, Clock, Circle } from 'lucide-react';
+import { Users, Plus, Trash2, MessageCircle, Clock, Circle } from 'lucide-react';
 
-interface ProjectUser {
+interface TeamMember {
   id: string;
   user_id: string;
   role: string;
@@ -24,11 +24,13 @@ interface ProjectUser {
   isOnline?: boolean;
 }
 
-interface ProjectContactsSectionProps {
+interface ProjectTeamListProps {
   projectId: string;
   isEditing?: boolean;
-  onUserRemove?: (userId: string) => void;
   onUserAdd?: () => void;
+  showAddButton?: boolean;
+  showRemoveButton?: boolean;
+  showContactButton?: boolean;
 }
 
 const roleColors = {
@@ -45,18 +47,18 @@ const roleLabels = {
   contractor: 'Contractor'
 };
 
-export const ProjectContactsSection = ({ 
+export const ProjectTeamList = ({ 
   projectId, 
   isEditing = false,
-  onUserRemove,
-  onUserAdd 
-}: ProjectContactsSectionProps) => {
-  const { teamMembers: projectUsers, loading, error } = useProjectTeam(projectId);
+  onUserAdd,
+  showAddButton = true,
+  showRemoveButton = true,
+  showContactButton = true
+}: ProjectTeamListProps) => {
+  const { teamMembers, loading, error, removeMember } = useProjectTeam(projectId);
   const { profile } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
-
-  // No longer needed as we use useTeamSync hook
 
   const handleContactUser = (userId: string, userName: string) => {
     // Store the target user for direct messaging
@@ -68,14 +70,30 @@ export const ProjectContactsSection = ({
     navigate('/messages');
   };
 
-  const groupedUsers = projectUsers.reduce((acc, user) => {
+  const handleRemoveUser = async (userId: string) => {
+    const success = await removeMember(userId);
+    if (success) {
+      toast({
+        title: "Team member removed",
+        description: "The team member has been removed from the project."
+      });
+    } else {
+      toast({
+        title: "Error removing member",
+        description: "Failed to remove team member. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const groupedUsers = teamMembers.reduce((acc, user) => {
     const role = user.role;
     if (!acc[role]) {
       acc[role] = [];
     }
     acc[role].push(user);
     return acc;
-  }, {} as Record<string, ProjectUser[]>);
+  }, {} as Record<string, TeamMember[]>);
 
   if (loading) {
     return (
@@ -119,9 +137,9 @@ export const ProjectContactsSection = ({
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2">
             <Users className="h-5 w-5" />
-            Project Team ({projectUsers.length})
+            Project Team ({teamMembers.length})
           </CardTitle>
-          {isEditing && profile?.role === 'architect' && (
+          {isEditing && showAddButton && profile?.role === 'architect' && (
             <Button size="sm" variant="outline" onClick={onUserAdd}>
               <Plus className="h-4 w-4 mr-2" />
               Add Member
@@ -171,23 +189,24 @@ export const ProjectContactsSection = ({
                              </div>
                              
                              <div className="space-y-1">
-                               <div className="flex items-center gap-4 text-sm">
-                                 <Button
-                                   variant="link"
-                                   size="sm"
-                                   className="h-auto p-0 text-sm text-primary hover:text-primary/80 font-medium"
-                                   onClick={() => handleContactUser(user.user_id, user.user_profile!.name)}
-                                 >
-                                   <MessageCircle className="h-3 w-3 mr-1" />
-                                   Contact via platform
-                                 </Button>
-                                 {user.user_profile.phone && (
-                                   <div className="flex items-center gap-1 text-muted-foreground">
-                                     <Phone className="h-3 w-3" />
-                                     <span className="text-xs">{user.user_profile.phone}</span>
-                                   </div>
-                                 )}
-                               </div>
+                               {showContactButton && (
+                                 <div className="flex items-center gap-4 text-sm">
+                                   <Button
+                                     variant="link"
+                                     size="sm"
+                                     className="h-auto p-0 text-sm text-primary hover:text-primary/80 font-medium"
+                                     onClick={() => handleContactUser(user.user_id, user.user_profile!.name)}
+                                   >
+                                     <MessageCircle className="h-3 w-3 mr-1" />
+                                     Contact via platform
+                                   </Button>
+                                   {user.user_profile.phone && (
+                                     <div className="flex items-center gap-1 text-muted-foreground">
+                                       <span className="text-xs">{user.user_profile.phone}</span>
+                                     </div>
+                                   )}
+                                 </div>
+                               )}
                                
                                <div className="flex items-center gap-4 text-xs text-muted-foreground">
                                  {user.joined_at && (
@@ -205,11 +224,11 @@ export const ProjectContactsSection = ({
                            </div>
                          </div>
                          
-                         {isEditing && profile?.role === 'architect' && user.role !== 'architect' && (
+                         {isEditing && showRemoveButton && profile?.role === 'architect' && user.role !== 'architect' && (
                            <Button
                              size="sm"
                              variant="ghost"
-                             onClick={() => onUserRemove?.(user.user_id)}
+                             onClick={() => handleRemoveUser(user.user_id)}
                              className="text-destructive hover:text-destructive hover:bg-destructive/10 opacity-0 group-hover:opacity-100 transition-opacity"
                            >
                              <Trash2 className="h-4 w-4" />
@@ -224,7 +243,7 @@ export const ProjectContactsSection = ({
           </div>
         ))}
         
-        {projectUsers.length === 0 && (
+        {teamMembers.length === 0 && (
           <div className="text-center py-6 text-muted-foreground">
             No team members assigned yet.
           </div>

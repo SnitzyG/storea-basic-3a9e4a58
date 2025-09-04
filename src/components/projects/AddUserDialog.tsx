@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
+import { useProjectTeam } from '@/hooks/useProjectTeam';
 import { UserPlus, Loader2 } from 'lucide-react';
 
 interface AddUserDialogProps {
@@ -21,6 +21,7 @@ export const AddUserDialog = ({ open, onOpenChange, projectId, onUserAdded }: Ad
   const [role, setRole] = useState<'homeowner' | 'builder' | 'contractor'>('contractor');
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
+  const { addMember } = useProjectTeam(projectId);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -28,95 +29,26 @@ export const AddUserDialog = ({ open, onOpenChange, projectId, onUserAdded }: Ad
 
     setLoading(true);
     try {
-      // Check if user already exists with this email
-      const { data: existingProfiles } = await supabase
-        .from('profiles')
-        .select('user_id, name')
-        .ilike('name', `%${email}%`);
-
-      let addedSuccessfully = false;
-
-      // If we find an existing user, add them directly
-      if (existingProfiles && existingProfiles.length > 0) {
-        const existingUser = existingProfiles[0];
-        
-        // Check if user is already in project
-        const { data: existingProjectUser } = await supabase
-          .from('project_users')
-          .select('id')
-          .eq('project_id', projectId)
-          .eq('user_id', existingUser.user_id)
-          .single();
-
-        if (!existingProjectUser) {
-          const { data: { user: currentUser } } = await supabase.auth.getUser();
-          
-          const { error: addError } = await supabase
-            .from('project_users')
-            .insert({
-              project_id: projectId,
-              user_id: existingUser.user_id,
-              role: role,
-              invited_by: currentUser?.id,
-              joined_at: new Date().toISOString()
-            });
-
-          if (!addError) {
-            addedSuccessfully = true;
-            toast({
-              title: "Team member added",
-              description: `${existingUser.name} has been added to the project immediately.`
-            });
-          }
-        } else {
-          toast({
-            title: "User already in project",
-            description: `${existingUser.name} is already a member of this project.`,
-            variant: "destructive"
-          });
-          setLoading(false);
-          return;
-        }
-      }
-
-      // If no existing user found, create pending invitation
-      if (!addedSuccessfully) {
-        const { data: currentProject } = await supabase
-          .from('projects')
-          .select('timeline')
-          .eq('id', projectId)
-          .single();
-
-        const currentTimeline = (currentProject?.timeline as any) || {};
-        const pendingCollaborators = currentTimeline.pending_collaborators || [];
-
-        await supabase
-          .from('projects')
-          .update({
-            timeline: {
-              ...currentTimeline,
-              pending_collaborators: [...pendingCollaborators, { email, name, role }]
-            }
-          })
-          .eq('id', projectId);
-
+      const success = await addMember(email, name, role);
+      
+      if (success) {
         toast({
-          title: "Invitation sent",
-          description: `${name} will be automatically added when they create an account with ${email}.`
+          title: "Team member added",
+          description: `${name} has been added to the project.`
+        });
+        
+        onUserAdded();
+        onOpenChange(false);
+        setEmail('');
+        setName('');
+        setRole('contractor');
+      } else {
+        toast({
+          title: "Error adding user",
+          description: "Failed to add team member. Please try again.",
+          variant: "destructive"
         });
       }
-
-      onUserAdded();
-      onOpenChange(false);
-      setEmail('');
-      setName('');
-      setRole('contractor');
-      
-      // Trigger immediate global update for all components
-      window.dispatchEvent(new CustomEvent('teamMembersUpdated', { 
-        detail: { projectId } 
-      }));
-      window.dispatchEvent(new CustomEvent('projectTeamUpdated'));
     } catch (error: any) {
       toast({
         title: "Error adding user",

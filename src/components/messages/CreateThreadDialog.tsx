@@ -11,18 +11,16 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { useProjects } from '@/hooks/useProjects';
+import { useProjectTeam } from '@/hooks/useProjectTeam';
 
 interface CreateThreadDialogProps {
   projectId: string;
-  projectUsers?: any[];
   onCreateThread: (title: string, participants: string[]) => Promise<void>;
   children: React.ReactNode;
 }
 
 export const CreateThreadDialog: React.FC<CreateThreadDialogProps> = ({
   projectId,
-  projectUsers = [],
   onCreateThread,
   children
 }) => {
@@ -32,7 +30,7 @@ export const CreateThreadDialog: React.FC<CreateThreadDialogProps> = ({
   const [participants, setParticipants] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   
-  const { getProjectUsers } = useProjects();
+  const { teamMembers: projectUsers } = useProjectTeam(projectId);
 
   const addParticipant = () => {
     if (participantEmail.trim() && !participants.includes(participantEmail.trim())) {

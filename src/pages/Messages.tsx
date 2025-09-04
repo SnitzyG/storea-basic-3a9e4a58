@@ -10,7 +10,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useMessages } from '@/hooks/useMessages';
 import { useProjects } from '@/hooks/useProjects';
 import { useAuth } from '@/hooks/useAuth';
-import { useTeamSync } from '@/hooks/useTeamSync';
+import { useProjectTeam } from '@/hooks/useProjectTeam';
 import { ThreadCard } from '@/components/messages/ThreadCard';
 import { CreateThreadDialog } from '@/components/messages/CreateThreadDialog';
 import { MessageBubble } from '@/components/messages/MessageBubble';
@@ -25,7 +25,7 @@ const Messages = () => {
   
   const { profile } = useAuth();
   const { projects } = useProjects();
-  const { teamMembers: projectUsers, refreshTeam } = useTeamSync(selectedProject);
+  const { teamMembers: projectUsers, refreshTeam } = useProjectTeam(selectedProject || '');
   
   // Listen for team updates to refresh team list immediately
   useEffect(() => {
@@ -186,7 +186,6 @@ const Messages = () => {
               <CardTitle className="text-sm">Messages</CardTitle>
               <CreateThreadDialog
                 projectId={selectedProject}
-                projectUsers={projectUsers}
                 onCreateThread={handleCreateThread}
               >
                 <Button size="sm" variant="outline">
