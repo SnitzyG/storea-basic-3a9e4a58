@@ -3,8 +3,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Button } from '@/components/ui/button';
 import { useActivity } from '@/hooks/useActivity';
 import { formatDistanceToNow } from 'date-fns';
+import { useNavigate } from 'react-router-dom';
 import { 
   FileText, 
   MessageSquare, 
@@ -12,7 +14,8 @@ import {
   Briefcase, 
   FolderOpen,
   User,
-  Clock
+  Clock,
+  ExternalLink
 } from 'lucide-react';
 
 const activityIcons = {
@@ -36,6 +39,30 @@ const actionColors = {
 
 export const RecentActivity = () => {
   const { activities, loading } = useActivity();
+  const navigate = useNavigate();
+
+  const handleActivityClick = (activity: any) => {
+    // Navigate to relevant tab based on entity type
+    switch (activity.entity_type) {
+      case 'message':
+        navigate('/messages');
+        break;
+      case 'rfi':
+        navigate('/rfis');
+        break;
+      case 'document':
+        navigate('/documents');
+        break;
+      case 'tender':
+        navigate('/tenders');
+        break;
+      case 'project':
+        navigate('/projects');
+        break;
+      default:
+        break;
+    }
+  };
 
   if (loading) {
     return (
@@ -70,7 +97,11 @@ export const RecentActivity = () => {
               {activities.map((activity) => {
                 const Icon = activityIcons[activity.entity_type as keyof typeof activityIcons] || User;
                 return (
-                  <div key={activity.id} className="flex items-start gap-3 p-3 bg-muted/20 rounded-lg">
+                  <div 
+                    key={activity.id} 
+                    className="flex items-start gap-3 p-3 bg-muted/20 rounded-lg hover:bg-muted/30 cursor-pointer transition-colors"
+                    onClick={() => handleActivityClick(activity)}
+                  >
                     <div className="flex-shrink-0">
                       <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
                         <Icon className="h-4 w-4 text-primary" />
@@ -99,16 +130,19 @@ export const RecentActivity = () => {
                         {activity.description}
                       </p>
                       
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                        {activity.project?.name && (
-                          <>
-                            <span>{activity.project.name}</span>
-                            <span>•</span>
-                          </>
-                        )}
-                        <span>
-                          {formatDistanceToNow(new Date(activity.created_at), { addSuffix: true })}
-                        </span>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                          {activity.project?.name && (
+                            <>
+                              <span>{activity.project.name}</span>
+                              <span>•</span>
+                            </>
+                          )}
+                          <span>
+                            {formatDistanceToNow(new Date(activity.created_at), { addSuffix: true })}
+                          </span>
+                        </div>
+                        <ExternalLink className="h-3 w-3 text-muted-foreground" />
                       </div>
                     </div>
                   </div>

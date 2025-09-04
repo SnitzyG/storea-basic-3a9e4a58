@@ -235,6 +235,23 @@ export const useDocuments = (projectId?: string) => {
 
       console.log('Document record created successfully:', data);
 
+      // Log activity for document upload
+      await supabase
+        .from('activity_log')
+        .insert([{
+          user_id: user.id,
+          project_id: projectId,
+          entity_type: 'document',
+          entity_id: data.id,
+          action: 'uploaded',
+          description: `Uploaded document: "${name || fileName}"`,
+          metadata: { 
+            file_type: fileType,
+            file_size: fileSize,
+            category: 'general'
+          }
+        }]);
+
       toast({
         title: "Success",
         description: "Document uploaded successfully",

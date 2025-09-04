@@ -112,7 +112,24 @@ export const useRFIs = (projectId?: string) => {
 
       if (error) throw error;
 
-      // Log activity
+      // Log activity for the general activity feed
+      await supabase
+        .from('activity_log')
+        .insert([{
+          user_id: user.id,
+          project_id: rfiData.project_id,
+          entity_type: 'rfi',
+          entity_id: data.id,
+          action: 'created',
+          description: `Created new RFI: "${rfiData.question.substring(0, 50)}${rfiData.question.length > 50 ? '...' : ''}"`,
+          metadata: { 
+            priority: rfiData.priority,
+            assigned_to: rfiData.assigned_to,
+            category: rfiData.category 
+          }
+        }]);
+
+      // Log RFI-specific activity
       await supabase
         .from('rfi_activities')
         .insert({

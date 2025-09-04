@@ -174,6 +174,19 @@ export const useMessages = (projectId?: string) => {
 
       if (error) throw error;
 
+      // Log activity for new message
+      await supabase
+        .from('activity_log')
+        .insert([{
+          user_id: user.id,
+          project_id: projectId,
+          entity_type: 'message',
+          entity_id: data.id,
+          action: 'created',
+          description: `Posted a new message${threadId ? ' in thread' : ''}: "${content.substring(0, 50)}${content.length > 50 ? '...' : ''}"`,
+          metadata: { thread_id: threadId, content_preview: content.substring(0, 100) }
+        }]);
+
       // Mark message as read for the sender
       await markMessageAsRead(data.id, user.id);
 

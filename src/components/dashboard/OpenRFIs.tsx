@@ -4,10 +4,12 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Clock, AlertTriangle, User } from 'lucide-react';
 import { useRFIs } from '@/hooks/useRFIs';
+import { useNotificationContext } from '@/context/NotificationContext';
 import { format } from 'date-fns';
 
 export const OpenRFIs = () => {
   const { rfis, loading } = useRFIs(); // Get all RFIs across projects
+  const { unreadCounts } = useNotificationContext();
 
   const openRFIs = rfis.filter(rfi => 
     rfi.status === 'submitted' || rfi.status === 'in_review'
@@ -44,6 +46,11 @@ export const OpenRFIs = () => {
         <CardTitle className="flex items-center gap-2">
           <AlertTriangle className="h-5 w-5" />
           Open RFIs ({openRFIs.length})
+          {unreadCounts.rfis > 0 && (
+            <Badge variant="destructive" className="text-xs">
+              {unreadCounts.rfis}
+            </Badge>
+          )}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">

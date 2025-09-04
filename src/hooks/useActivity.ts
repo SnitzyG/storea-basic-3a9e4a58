@@ -34,11 +34,27 @@ export const useActivity = (projectId?: string) => {
         .from('activity_log')
         .select('*')
         .order('created_at', { ascending: false })
-        .limit(50);
+        .limit(20);
 
       if (projectId) {
         query = query.eq('project_id', projectId);
+      } else {
+        // For dashboard, show activities from user's projects only
+        const { data: userProjects } = await supabase
+          .from('project_users')
+          .select('project_id')
+          .eq('user_id', user.id);
+        
+        if (userProjects?.length) {
+          const projectIds = userProjects.map(p => p.project_id);
+          query = query.in('project_id', projectIds);
+        }
       }
+
+      // Filter activities from last 30 days
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      query = query.gte('created_at', thirtyDaysAgo.toISOString());
 
       const { data: activitiesData, error } = await query;
 

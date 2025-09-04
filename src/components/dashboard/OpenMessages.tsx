@@ -4,16 +4,15 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { MessageSquare, Clock, User } from 'lucide-react';
 import { useMessages } from '@/hooks/useMessages';
+import { useNotificationContext } from '@/context/NotificationContext';
 import { format } from 'date-fns';
 
 export const OpenMessages = () => {
-  const { threads, messages, loading, getUnreadCount } = useMessages();
+  const { threads, messages, loading } = useMessages();
+  const { unreadCounts } = useNotificationContext();
 
-  // Filter threads with unread messages
-  const threadsWithUnread = threads.filter(thread => {
-    // For now, just show all recent threads since getUnreadCount returns a Promise
-    return true;
-  });
+  // Show recent threads (last 5)
+  const recentThreads = threads.slice(0, 5);
 
   if (loading) {
     return (
@@ -34,16 +33,21 @@ export const OpenMessages = () => {
   return (
     <Card>
       <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <MessageSquare className="h-5 w-5" />
-            My Messages ({threadsWithUnread.length})
-          </CardTitle>
+        <CardTitle className="flex items-center gap-2">
+          <MessageSquare className="h-5 w-5" />
+          My Messages 
+          {unreadCounts.messages > 0 && (
+            <Badge variant="destructive" className="text-xs">
+              {unreadCounts.messages}
+            </Badge>
+          )}
+        </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        {threadsWithUnread.length === 0 ? (
-          <div className="text-sm text-muted-foreground">No unread messages</div>
+        {recentThreads.length === 0 ? (
+          <div className="text-sm text-muted-foreground">No recent messages</div>
         ) : (
-          threadsWithUnread.slice(0, 5).map((thread) => {
+          recentThreads.map((thread) => {
             const lastMessage = messages
               .filter(m => m.thread_id === thread.id)
               .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0];
@@ -59,9 +63,11 @@ export const OpenMessages = () => {
                       </p>
                     )}
                   </div>
-                  <Badge variant="destructive" className="text-xs ml-2">
-                    New
-                  </Badge>
+                  {unreadCounts.messages > 0 && (
+                    <Badge variant="destructive" className="text-xs ml-2">
+                      New
+                    </Badge>
+                  )}
                 </div>
                 
                 <div className="flex items-center justify-between text-xs text-muted-foreground">
@@ -81,9 +87,9 @@ export const OpenMessages = () => {
           })
         )}
         
-        {threadsWithUnread.length > 5 && (
+        {threads.length > 5 && (
           <Button variant="outline" size="sm" className="w-full">
-            View All ({threadsWithUnread.length - 5} more)
+            View All ({threads.length - 5} more)
           </Button>
         )}
       </CardContent>

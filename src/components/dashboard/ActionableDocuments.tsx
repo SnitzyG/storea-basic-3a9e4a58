@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { FileText, Clock, User } from 'lucide-react';
 import { useDocuments } from '@/hooks/useDocuments';
+import { useNotificationContext } from '@/context/NotificationContext';
 import { format } from 'date-fns';
 
 export const ActionableDocuments = () => {

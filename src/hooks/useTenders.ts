@@ -139,6 +139,23 @@ export const useTenders = (projectId?: string) => {
 
       if (error) throw error;
 
+      // Log activity for tender creation
+      await supabase
+        .from('activity_log')
+        .insert([{
+          user_id: user.id,
+          project_id: tenderData.project_id,
+          entity_type: 'tender',
+          entity_id: data.id,
+          action: 'created',
+          description: `Created new tender: "${tenderData.title}"`,
+          metadata: { 
+            budget: tenderData.budget,
+            deadline: tenderData.deadline,
+            status: 'draft'
+          }
+        }]);
+
       toast({
         title: "Success",
         description: "Tender created successfully",
@@ -252,6 +269,32 @@ export const useTenders = (projectId?: string) => {
         .single();
 
       if (error) throw error;
+
+      // Get tender project_id for activity logging
+      const { data: tender } = await supabase
+        .from('tenders')
+        .select('project_id, title')
+        .eq('id', bidData.tender_id)
+        .single();
+
+      if (tender) {
+        // Log activity for bid submission
+        await supabase
+          .from('activity_log')
+          .insert([{
+            user_id: user.id,
+            project_id: tender.project_id,
+            entity_type: 'tender',
+            entity_id: bidData.tender_id,
+            action: 'submitted',
+            description: `Submitted bid for tender: "${tender.title}" - $${bidData.bid_amount?.toLocaleString()}`,
+            metadata: { 
+              bid_amount: bidData.bid_amount,
+              tender_id: bidData.tender_id,
+              bid_id: data.id
+            }
+          }]);
+      }
 
       toast({
         title: "Success",
