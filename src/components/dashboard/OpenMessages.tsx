@@ -34,10 +34,10 @@ export const OpenMessages = () => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <MessageSquare className="h-5 w-5" />
-          Open Messages ({threadsWithUnread.length})
-        </CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <MessageSquare className="h-5 w-5" />
+            My Messages ({threadsWithUnread.length})
+          </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         {threadsWithUnread.length === 0 ? (
