@@ -10,6 +10,7 @@ import { MapPin, Calendar, Clock, FileText, Users, Phone, Mail, Building, CheckC
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
+import BidSubmissionForm from '@/components/tenders/BidSubmissionForm';
 
 interface TenderDetails {
   id: string;
@@ -46,6 +47,7 @@ const TenderResponse = () => {
   const [loading, setLoading] = useState(true);
   const [progress, setProgress] = useState(25);
   const [accessVerified, setAccessVerified] = useState(false);
+  const [showBidForm, setShowBidForm] = useState(false);
   
   const token = searchParams.get('token');
   const email = searchParams.get('email');
@@ -146,6 +148,29 @@ const TenderResponse = () => {
   const isExpired = tender && new Date(tender.deadline) < new Date();
   const daysRemaining = tender ? Math.ceil((new Date(tender.deadline).getTime() - new Date().getTime()) / (1000 * 3600 * 24)) : 0;
 
+  const handleBidSubmission = async (bidData: any) => {
+    try {
+      // In production, this would submit to Supabase
+      console.log('Bid submitted:', bidData);
+      
+      toast({
+        title: "Bid Submitted Successfully",
+        description: "Your bid has been submitted and is under review.",
+      });
+      
+      // Redirect back to tender details
+      setShowBidForm(false);
+      setProgress(100);
+    } catch (error) {
+      console.error('Bid submission failed:', error);
+      toast({
+        title: "Submission Failed",
+        description: "There was an error submitting your bid. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-background to-muted/20 flex items-center justify-center">
@@ -161,6 +186,16 @@ const TenderResponse = () => {
 
   if (!accessVerified || !tender) {
     return null;
+  }
+
+  if (showBidForm) {
+    return (
+      <BidSubmissionForm
+        tender={tender}
+        onSubmit={handleBidSubmission}
+        onBack={() => setShowBidForm(false)}
+      />
+    );
   }
 
   return (
@@ -335,7 +370,7 @@ const TenderResponse = () => {
                 size="lg" 
                 className="flex-1"
                 disabled={isExpired}
-                onClick={() => setProgress(50)}
+                onClick={() => setShowBidForm(true)}
               >
                 <FileText className="h-4 w-4 mr-2" />
                 {isExpired ? 'Submission Closed' : 'Start Bid Submission'}
