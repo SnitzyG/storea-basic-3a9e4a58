@@ -54,8 +54,8 @@ const handler = async (req: Request): Promise<Response> => {
       .single();
 
     const inviteUrl = `${Deno.env.get('SUPABASE_URL')?.replace('/rest/v1', '')}/auth/v1/invite`;
-    const siteUrl = `https://inibugusrzfihldvegrb.supabase.co`;
-    const tenderUrl = `${siteUrl}/tenders?tender=${tender_id}`;
+    const siteUrl = `https://id-preview--bd2e83dc-1d1d-4a73-96c2-6279990f514d.lovable.app`;
+    const tenderUrl = `${siteUrl}/tender/${tender_id}?token=${encodeURIComponent(tender_id)}&email=`;
 
     // Send invitation emails
     const emailPromises = recipient_emails.map(async (email) => {
