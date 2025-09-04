@@ -6,7 +6,8 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useRFIs } from '@/hooks/useRFIs';
-import { useProjects } from '@/hooks/useProjects';
+import { useProjectTeam } from '@/hooks/useProjectTeam';
+import { DocumentUpload } from '@/components/documents/DocumentUpload';
 
 interface CreateRFIDialogProps {
   open: boolean;
@@ -20,11 +21,28 @@ export const CreateRFIDialog = ({ open, onOpenChange, projectId }: CreateRFIDial
   const [category, setCategory] = useState('');
   const [dueDate, setDueDate] = useState('');
   const [assignedTo, setAssignedTo] = useState('');
+  const [attachments, setAttachments] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
 
   const { createRFI } = useRFIs();
-  const { getProjectUsers } = useProjects();
-  const [projectUsers, setProjectUsers] = useState<any[]>([]);
+  const { teamMembers: projectUsers } = useProjectTeam(projectId);
+
+  // Predefined categories for RFIs
+  const rfiCategories = [
+    'Structural',
+    'Electrical',
+    'Plumbing',
+    'HVAC',
+    'Architectural',
+    'Mechanical',
+    'Fire Safety',
+    'Security',
+    'Landscaping',
+    'Materials',
+    'Code Compliance',
+    'Environmental',
+    'Other'
+  ];
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,9 +54,10 @@ export const CreateRFIDialog = ({ open, onOpenChange, projectId }: CreateRFIDial
       project_id: projectId,
       question: question.trim(),
       priority,
-      category: category.trim() || undefined,
+      category: category || undefined,
       due_date: dueDate || undefined,
       assigned_to: assignedTo || undefined,
+      attachments: attachments.length > 0 ? attachments : undefined,
     };
 
     const result = await createRFI(rfiData);
@@ -48,6 +67,7 @@ export const CreateRFIDialog = ({ open, onOpenChange, projectId }: CreateRFIDial
       setCategory('');
       setDueDate('');
       setAssignedTo('');
+      setAttachments([]);
       setPriority('medium');
       onOpenChange(false);
     }
@@ -55,12 +75,9 @@ export const CreateRFIDialog = ({ open, onOpenChange, projectId }: CreateRFIDial
     setLoading(false);
   };
 
-  // Fetch project users when dialog opens
-  React.useEffect(() => {
-    if (open && projectId) {
-      getProjectUsers(projectId).then(setProjectUsers);
-    }
-  }, [open, projectId, getProjectUsers]);
+  const handleAttachmentUpload = (files: any[]) => {
+    setAttachments(files);
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -100,13 +117,18 @@ export const CreateRFIDialog = ({ open, onOpenChange, projectId }: CreateRFIDial
 
             <div>
               <Label htmlFor="category">Category</Label>
-              <Input
-                id="category"
-                placeholder="e.g., Structural, Electrical"
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
-                className="mt-1"
-              />
+              <Select value={category} onValueChange={setCategory}>
+                <SelectTrigger className="mt-1">
+                  <SelectValue placeholder="Select category" />
+                </SelectTrigger>
+                <SelectContent>
+                  {rfiCategories.map((cat) => (
+                    <SelectItem key={cat} value={cat}>
+                      {cat}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
 
@@ -131,11 +153,22 @@ export const CreateRFIDialog = ({ open, onOpenChange, projectId }: CreateRFIDial
                 <SelectContent>
                   {projectUsers.map((user) => (
                     <SelectItem key={user.user_id} value={user.user_id}>
-                      {user.profiles?.name} ({user.role})
+                      {user.user_profile?.name || 'Unknown User'} ({user.role})
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
+            </div>
+          </div>
+          
+          {/* File Attachments */}
+          <div>
+            <Label>Attachments</Label>
+            <div className="mt-1">
+              <DocumentUpload
+                projectId={projectId}
+                onUploadComplete={() => handleAttachmentUpload([])}
+              />
             </div>
           </div>
 

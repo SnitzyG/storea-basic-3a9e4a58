@@ -13,14 +13,19 @@ import { InfoPanel } from '@/components/dashboard/InfoPanel';
 import { NotificationCenter } from '@/components/notifications/NotificationCenter';
 import { GlobalSearch } from '@/components/search/GlobalSearch';
 import { UserProfile } from '@/components/profile/UserProfile';
+import { UserRFIsDashboard } from '@/components/dashboard/UserRFIsDashboard';
 import { useTheme } from '@/context/ThemeContext';
 import { useAuth } from '@/hooks/useAuth';
+import { useUserRFIs } from '@/hooks/useUserRFIs';
+import { RFI } from '@/hooks/useRFIs';
 
 const Dashboard = () => {
   const [searchOpen, setSearchOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
+  const [selectedRFI, setSelectedRFI] = useState<RFI | null>(null);
   const { theme, toggleTheme } = useTheme();
   const { profile } = useAuth();
+  const { assignedRFIs, updateRFI } = useUserRFIs();
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -37,6 +42,12 @@ const Dashboard = () => {
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, []);
+
+  const handleViewRFI = (rfi: RFI) => {
+    setSelectedRFI(rfi);
+    // In a full implementation, this would open an RFI details dialog
+    console.log('Viewing RFI:', rfi);
+  };
 
   const userName = profile?.name || 'User';
 
@@ -79,6 +90,12 @@ const Dashboard = () => {
             <div className="xl:col-span-2 space-y-6">
               <RecentActivity />
               <QuickActions />
+              {/* User's Assigned RFIs */}
+              <UserRFIsDashboard 
+                assignedRFIs={assignedRFIs}
+                onUpdateRFI={updateRFI}
+                onViewRFI={handleViewRFI}
+              />
               <OpenRFIs />
             </div>
             

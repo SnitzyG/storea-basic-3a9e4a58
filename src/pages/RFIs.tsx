@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, BarChart3, List } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { useRFIs, RFI } from '@/hooks/useRFIs';
 import { useProjects } from '@/hooks/useProjects';
 import { useAuth } from '@/hooks/useAuth';
@@ -10,7 +10,7 @@ import { RFICard } from '@/components/rfis/RFICard';
 import { CreateRFIDialog } from '@/components/rfis/CreateRFIDialog';
 import { RFIDetailsDialog } from '@/components/rfis/RFIDetailsDialog';
 import { RFIFilters } from '@/components/rfis/RFIFilters';
-import { RFIAnalytics } from '@/components/rfis/RFIAnalytics';
+import { useProjectTeam } from '@/hooks/useProjectTeam';
 
 const RFIs = () => {
   const [selectedProject, setSelectedProject] = useState<string>('');
@@ -27,14 +27,12 @@ const RFIs = () => {
   const { profile } = useAuth();
   const currentProject = projects.find(p => p.id === selectedProject) || projects[0];
   const { rfis, loading, updateRFI } = useRFIs(currentProject?.id);
-  const { getProjectUsers } = useProjects();
+  const { teamMembers } = useProjectTeam(currentProject?.id || '');
 
-  // Fetch project users when project changes
+  // Update project users from teamMembers
   React.useEffect(() => {
-    if (currentProject?.id) {
-      getProjectUsers(currentProject.id).then(setProjectUsers);
-    }
-  }, [currentProject?.id, getProjectUsers]);
+    setProjectUsers(teamMembers);
+  }, [teamMembers]);
 
   // Filter RFIs based on search and filters
   const filteredRFIs = useMemo(() => {
@@ -88,7 +86,7 @@ const RFIs = () => {
   const handleAssignRFI = async (rfi: RFI) => {
     // In a full implementation, you'd show an assignment dialog
     // For now, we'll just auto-assign to the first architect
-    const architect = projectUsers.find(user => user.role === 'architect');
+    const architect = teamMembers.find(user => user.role === 'architect');
     if (architect) {
       await updateRFI(rfi.id, { assigned_to: architect.user_id, status: 'in_review' });
     }
@@ -162,71 +160,54 @@ const RFIs = () => {
         </div>
       )}
 
-      {/* Tabs */}
-      <Tabs defaultValue="list" className="space-y-6">
-        <TabsList>
-          <TabsTrigger value="list" className="flex items-center gap-2">
-            <List className="w-4 h-4" />
-            RFI List
-          </TabsTrigger>
-          <TabsTrigger value="analytics" className="flex items-center gap-2">
-            <BarChart3 className="w-4 h-4" />
-            Analytics
-          </TabsTrigger>
-        </TabsList>
+      {/* RFI Management */}
+      <div className="space-y-6">
+        {/* Filters */}
+        <RFIFilters
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          statusFilter={statusFilter}
+          onStatusFilterChange={setStatusFilter}
+          priorityFilter={priorityFilter}
+          onPriorityFilterChange={setPriorityFilter}
+          assigneeFilter={assigneeFilter}
+          onAssigneeFilterChange={setAssigneeFilter}
+          projectUsers={projectUsers}
+          onClearFilters={clearFilters}
+        />
 
-        <TabsContent value="list" className="space-y-6">
-          {/* Filters */}
-          <RFIFilters
-            searchQuery={searchQuery}
-            onSearchChange={setSearchQuery}
-            statusFilter={statusFilter}
-            onStatusFilterChange={setStatusFilter}
-            priorityFilter={priorityFilter}
-            onPriorityFilterChange={setPriorityFilter}
-            assigneeFilter={assigneeFilter}
-            onAssigneeFilterChange={setAssigneeFilter}
-            projectUsers={projectUsers}
-            onClearFilters={clearFilters}
-          />
-
-          {/* RFI Grid */}
-          {filteredRFIs.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredRFIs.map((rfi) => (
-                <RFICard
-                  key={rfi.id}
-                  rfi={rfi}
-                  onView={handleViewRFI}
-                  onEdit={profile?.role === 'architect' ? handleEditRFI : undefined}
-                  onAssign={profile?.role === 'architect' ? handleAssignRFI : undefined}
-                />
-              ))}
-            </div>
-          ) : (
-            <Card>
-              <CardContent className="text-center py-12">
-                <h3 className="text-lg font-semibold mb-2">No RFIs Found</h3>
-                <p className="text-muted-foreground mb-4">
-                  {rfis.length === 0
-                    ? "No RFIs have been created for this project yet."
-                    : "No RFIs match your current filters."
-                  }
-                </p>
-                {rfis.length === 0 && (
-                  <Button onClick={() => setCreateDialogOpen(true)}>
-                    Create First RFI
-                  </Button>
-                )}
-              </CardContent>
-            </Card>
-          )}
-        </TabsContent>
-
-        <TabsContent value="analytics">
-          <RFIAnalytics rfis={rfis} />
-        </TabsContent>
-      </Tabs>
+        {/* RFI Grid */}
+        {filteredRFIs.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredRFIs.map((rfi) => (
+              <RFICard
+                key={rfi.id}
+                rfi={rfi}
+                onView={handleViewRFI}
+                onEdit={profile?.role === 'architect' ? handleEditRFI : undefined}
+                onAssign={profile?.role === 'architect' ? handleAssignRFI : undefined}
+              />
+            ))}
+          </div>
+        ) : (
+          <Card>
+            <CardContent className="text-center py-12">
+              <h3 className="text-lg font-semibold mb-2">No RFIs Found</h3>
+              <p className="text-muted-foreground mb-4">
+                {rfis.length === 0
+                  ? "No RFIs have been created for this project yet."
+                  : "No RFIs match your current filters."
+                }
+              </p>
+              {rfis.length === 0 && (
+                <Button onClick={() => setCreateDialogOpen(true)}>
+                  Create First RFI
+                </Button>
+              )}
+            </CardContent>
+          </Card>
+        )}
+      </div>
 
       {/* Dialogs */}
       <CreateRFIDialog
