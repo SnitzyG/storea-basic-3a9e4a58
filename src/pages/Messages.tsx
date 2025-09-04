@@ -25,7 +25,25 @@ const Messages = () => {
   
   const { profile } = useAuth();
   const { projects } = useProjects();
-  const { teamMembers: projectUsers } = useTeamSync(selectedProject);
+  const { teamMembers: projectUsers, refreshTeam } = useTeamSync(selectedProject);
+  
+  // Listen for team updates to refresh team list immediately
+  useEffect(() => {
+    const handleTeamUpdate = (event: any) => {
+      if (!selectedProject) return;
+      if (event.detail?.projectId === selectedProject || !event.detail?.projectId) {
+        refreshTeam();
+      }
+    };
+    
+    window.addEventListener('teamMembersUpdated', handleTeamUpdate);
+    window.addEventListener('projectTeamUpdated', handleTeamUpdate);
+    
+    return () => {
+      window.removeEventListener('teamMembersUpdated', handleTeamUpdate);
+      window.removeEventListener('projectTeamUpdated', handleTeamUpdate);
+    };
+  }, [selectedProject, refreshTeam]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   
   const {

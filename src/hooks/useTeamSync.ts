@@ -81,11 +81,11 @@ export const useTeamSync = (projectId: string) => {
     }
   }, [projectId]);
 
-  // Real-time sync for team changes
+  // Real-time sync for team changes with immediate updates
   useEffect(() => {
     fetchTeamMembers();
 
-    // Subscribe to project_users changes
+    // Subscribe to project_users changes with immediate UI update
     const subscription = supabase
       .channel(`project_users_${projectId}`)
       .on(
@@ -98,14 +98,20 @@ export const useTeamSync = (projectId: string) => {
         },
         (payload) => {
           console.log('Project users changed:', payload);
+          // Force immediate refetch to sync across all components
           fetchTeamMembers();
+          
+          // Dispatch global event for cross-component sync
+          window.dispatchEvent(new CustomEvent('teamMembersUpdated', { 
+            detail: { projectId, payload } 
+          }));
         }
       )
       .subscribe();
 
-    // Subscribe to profiles changes to update user info
+    // Subscribe to profiles changes to update user info immediately
     const profilesSubscription = supabase
-      .channel(`profiles_${projectId}`)
+      .channel(`profiles_global_${projectId}`)
       .on(
         'postgres_changes',
         {
@@ -115,22 +121,36 @@ export const useTeamSync = (projectId: string) => {
         },
         (payload) => {
           console.log('Profiles changed:', payload);
+          // Immediate refetch for profile updates
           fetchTeamMembers();
+          
+          // Dispatch event for other components
+          window.dispatchEvent(new CustomEvent('teamMembersUpdated', { 
+            detail: { projectId, payload } 
+          }));
         }
       )
       .subscribe();
 
-    // Listen for custom team update events
+    // Listen for custom team update events (backwards compatibility)
     const handleTeamUpdate = () => {
       fetchTeamMembers();
     };
 
+    const handleGlobalTeamUpdate = (event: any) => {
+      if (event.detail?.projectId === projectId) {
+        fetchTeamMembers();
+      }
+    };
+
     window.addEventListener('projectTeamUpdated', handleTeamUpdate);
+    window.addEventListener('teamMembersUpdated', handleGlobalTeamUpdate);
 
     return () => {
       subscription.unsubscribe();
       profilesSubscription.unsubscribe();
       window.removeEventListener('projectTeamUpdated', handleTeamUpdate);
+      window.removeEventListener('teamMembersUpdated', handleGlobalTeamUpdate);
     };
   }, [projectId, fetchTeamMembers]);
 

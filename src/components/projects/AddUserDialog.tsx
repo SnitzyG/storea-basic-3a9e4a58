@@ -112,7 +112,10 @@ export const AddUserDialog = ({ open, onOpenChange, projectId, onUserAdded }: Ad
       setName('');
       setRole('contractor');
       
-      // Notify other components about team update
+      // Trigger immediate global update for all components
+      window.dispatchEvent(new CustomEvent('teamMembersUpdated', { 
+        detail: { projectId } 
+      }));
       window.dispatchEvent(new CustomEvent('projectTeamUpdated'));
     } catch (error: any) {
       toast({
