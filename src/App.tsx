@@ -14,6 +14,7 @@ import RFIs from "./pages/RFIs";
 import Tenders from "./pages/Tenders";
 import Testing from "./pages/Testing";
 import TenderResponse from "./pages/TenderResponse";
+import TenderReviewDemo from "./pages/TenderReviewDemo";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -63,7 +64,7 @@ const App = () => (
             </AppLayout>
           } />
           <Route path="/tender/:tenderId" element={<TenderResponse />} />
-          <Route path="/tender-response/:tenderId" element={<TenderResponse />} />
+          <Route path="/tender-review-demo" element={<TenderReviewDemo />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

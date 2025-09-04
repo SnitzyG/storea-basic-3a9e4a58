@@ -22,6 +22,7 @@ import {
   Info
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import DocumentUploadSystem from '@/components/documents/DocumentUploadSystem';
 
 interface TenderDetails {
   id: string;
@@ -804,70 +805,19 @@ const BidSubmissionForm: React.FC<BidSubmissionFormProps> = ({ tender, onSubmit,
 
   const renderDocumentUpload = () => (
     <div className="space-y-6">
-      <Alert>
-        <Info className="h-4 w-4" />
-        <AlertDescription>
-          Upload required documents to support your bid. Accepted formats: PDF, DOC, DOCX, JPG, PNG, XLS, XLSX. Maximum file size: 50MB per file.
-        </AlertDescription>
-      </Alert>
-
-      <div className="grid md:grid-cols-2 gap-6">
-        {[
-          { category: 'Insurance Certificates', description: 'Public liability, workers compensation' },
-          { category: 'License Documentation', description: 'Builder\'s license, trade certifications' },
-          { category: 'Reference Projects', description: 'Portfolio of similar completed projects' },
-          { category: 'Method Statements', description: 'Technical approach and methodology' },
-          { category: 'Compliance Certificates', description: 'Safety certifications, quality standards' },
-          { category: 'Financial Documents', description: 'Bank guarantees, financial statements' }
-        ].map((docType) => (
-          <Card key={docType.category}>
-            <CardHeader>
-              <CardTitle className="text-lg">{docType.category}</CardTitle>
-              <p className="text-sm text-muted-foreground">{docType.description}</p>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-6 text-center hover:border-muted-foreground/50 transition-colors">
-                  <input
-                    type="file"
-                    multiple
-                    accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.xls,.xlsx"
-                    onChange={(e) => e.target.files && handleFileUpload(e.target.files, docType.category)}
-                    className="hidden"
-                    id={`upload-${docType.category.replace(/\s+/g, '-')}`}
-                  />
-                  <label htmlFor={`upload-${docType.category.replace(/\s+/g, '-')}`} className="cursor-pointer">
-                    <Upload className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
-                    <p className="text-sm text-muted-foreground">
-                      Click to upload or drag and drop
-                    </p>
-                  </label>
-                </div>
-
-                {documents.filter(doc => doc.category === docType.category).map((doc) => (
-                  <div key={doc.id} className="flex items-center justify-between p-2 bg-muted/50 rounded">
-                    <div className="flex items-center gap-2">
-                      <FileText className="h-4 w-4" />
-                      <span className="text-sm">{doc.name}</span>
-                      <Badge variant="secondary" className="text-xs">
-                        {formatFileSize(doc.size)}
-                      </Badge>
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => removeDocument(doc.id)}
-                      className="text-destructive"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+      <DocumentUploadSystem
+        onFilesUploaded={(files) => {
+          const formattedFiles = files.map(file => ({
+            id: file.id,
+            name: file.name,
+            size: file.size,
+            category: file.category
+          }));
+          setDocuments(formattedFiles);
+        }}
+        maxFileSize={50}
+        allowMultiple={true}
+      />
     </div>
   );
 
