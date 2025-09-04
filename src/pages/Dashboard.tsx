@@ -58,32 +58,24 @@ const Dashboard = () => {
         </div>
       </div>
 
-      <div className="w-full">;
-        {/* Single Overview Tab */}
-        
-        <div className="space-y-6">
-          <div className="grid grid-cols-1 xl:grid-cols-4 gap-6 h-[calc(100vh-12rem)]">
-            {/* Left Column - Recent Activity */}
-            <div className="xl:col-span-1 space-y-4">
-              <RecentActivity />
-            </div>
-            
-            {/* Middle Left - Messages & RFIs */}
-            <div className="space-y-4">
-              <OpenMessages />
-              <OpenRFIs />
-            </div>
-            
-            {/* Middle Right - Documents & To-Do */}
-            <div className="space-y-4">
-              <ActionableDocuments />
-              <ToDoList />
-            </div>
-            
-            {/* Right Column - Location Info */}
-            <div className="space-y-4">
-              <LocationInfo />
-            </div>
+      <div className="space-y-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Column 1 - Recent Activity */}
+          <div className="space-y-4">
+            <RecentActivity />
+          </div>
+          
+          {/* Column 2 - Open Documents, Messages & RFIs */}
+          <div className="space-y-4">
+            <ActionableDocuments />
+            <OpenMessages />
+            <OpenRFIs />
+          </div>
+          
+          {/* Column 3 - Location Info & To-Do */}
+          <div className="space-y-4">
+            <LocationInfo />
+            <ToDoList />
           </div>
         </div>
       </div>
