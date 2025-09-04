@@ -2,7 +2,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Calendar, DollarSign, Users, Award, Clock } from 'lucide-react';
+import { Calendar, DollarSign, Users, Award, Clock, Mail } from 'lucide-react';
 import { Tender } from '@/hooks/useTenders';
 import { formatDistanceToNow } from 'date-fns';
 
@@ -14,6 +14,7 @@ interface TenderCardProps {
   onEdit?: (tender: Tender) => void;
   onPublish?: (tender: Tender) => void;
   onAward?: (tender: Tender) => void;
+  onInvite?: (tender: Tender) => void;
 }
 
 const statusColors = {
@@ -39,7 +40,8 @@ export const TenderCard = ({
   onBid, 
   onEdit, 
   onPublish, 
-  onAward 
+  onAward,
+  onInvite
 }: TenderCardProps) => {
   const deadline = new Date(tender.deadline);
   const isExpired = deadline < new Date();
@@ -166,6 +168,13 @@ export const TenderCard = ({
             {canAward && onAward && (
               <Button size="sm" onClick={() => onAward(tender)}>
                 Award Tender
+              </Button>
+            )}
+            
+            {(tender.status === 'draft' || tender.status === 'open') && userRole === 'architect' && onInvite && (
+              <Button variant="outline" size="sm" onClick={() => onInvite(tender)}>
+                <Mail className="w-4 h-4 mr-1" />
+                Invite Bidders
               </Button>
             )}
           </div>

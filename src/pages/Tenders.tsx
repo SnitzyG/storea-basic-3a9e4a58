@@ -11,13 +11,17 @@ import { TenderCard } from '@/components/tenders/TenderCard';
 import { CreateTenderDialog } from '@/components/tenders/CreateTenderDialog';
 import { TenderDetailsDialog } from '@/components/tenders/TenderDetailsDialog';
 import { BidSubmissionDialog } from '@/components/tenders/BidSubmissionDialog';
+import { TenderInviteDialog } from '@/components/tenders/TenderInviteDialog';
+import { BidsReceivedSection } from '@/components/tenders/BidsReceivedSection';
 
 const Tenders = () => {
   const [selectedProject, setSelectedProject] = useState<string>('');
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
   const [bidDialogOpen, setBidDialogOpen] = useState(false);
+  const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
   const [selectedTender, setSelectedTender] = useState<Tender | null>(null);
+  const [activeTab, setActiveTab] = useState<'tenders' | 'bids'>('tenders');
 
   const { projects } = useProjects();
   const { profile } = useAuth();
@@ -57,6 +61,11 @@ const Tenders = () => {
   const handleAwardTender = (tender: Tender) => {
     setSelectedTender(tender);
     setDetailsDialogOpen(true);
+  };
+
+  const handleInviteBidders = (tender: Tender) => {
+    setSelectedTender(tender);
+    setInviteDialogOpen(true);
   };
 
   // Check for expired tenders that need to be closed
@@ -144,6 +153,26 @@ const Tenders = () => {
         )}
       </div>
 
+      {/* Tab Navigation */}
+      <div className="flex gap-1 mb-6 bg-muted/30 p-1 rounded-lg w-fit">
+        <Button
+          variant={activeTab === 'tenders' ? 'default' : 'ghost'}
+          size="sm"
+          onClick={() => setActiveTab('tenders')}
+        >
+          Tender Management
+        </Button>
+        {userRole === 'architect' && (
+          <Button
+            variant={activeTab === 'bids' ? 'default' : 'ghost'}
+            size="sm"
+            onClick={() => setActiveTab('bids')}
+          >
+            Bids Received
+          </Button>
+        )}
+      </div>
+
       {/* Project Selector */}
       {projects.length > 1 && (
         <div className="mb-6">
@@ -175,39 +204,47 @@ const Tenders = () => {
         </Card>
       )}
 
-      {/* Tender Grid */}
-      {filteredTenders.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredTenders.map((tender) => (
-            <TenderCard
-              key={tender.id}
-              tender={tender}
-              userRole={userRole}
-              onView={handleViewTender}
-              onBid={handleBidTender}
-              onEdit={userRole === 'architect' ? handleEditTender : undefined}
-              onPublish={userRole === 'architect' ? handlePublishTender : undefined}
-              onAward={userRole === 'architect' ? handleAwardTender : undefined}
-            />
-          ))}
-        </div>
+      {/* Content based on active tab */}
+      {activeTab === 'tenders' ? (
+        <>
+          {/* Tender Grid */}
+          {filteredTenders.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredTenders.map((tender) => (
+                <TenderCard
+                  key={tender.id}
+                  tender={tender}
+                  userRole={userRole}
+                  onView={handleViewTender}
+                  onBid={handleBidTender}
+                  onEdit={userRole === 'architect' ? handleEditTender : undefined}
+                  onPublish={userRole === 'architect' ? handlePublishTender : undefined}
+                  onAward={userRole === 'architect' ? handleAwardTender : undefined}
+                  onInvite={userRole === 'architect' ? handleInviteBidders : undefined}
+                />
+              ))}
+            </div>
+          ) : (
+            <Card>
+              <CardContent className="text-center py-12">
+                <h3 className="text-lg font-semibold mb-2">No Tenders Found</h3>
+                <p className="text-muted-foreground mb-4">
+                  {userRole === 'architect' 
+                    ? "No tenders have been created for this project yet."
+                    : "No tenders are available for bidding in this project."
+                  }
+                </p>
+                {userRole === 'architect' && (
+                  <Button onClick={() => setCreateDialogOpen(true)}>
+                    Create First Tender
+                  </Button>
+                )}
+              </CardContent>
+            </Card>
+          )}
+        </>
       ) : (
-        <Card>
-          <CardContent className="text-center py-12">
-            <h3 className="text-lg font-semibold mb-2">No Tenders Found</h3>
-            <p className="text-muted-foreground mb-4">
-              {userRole === 'architect' 
-                ? "No tenders have been created for this project yet."
-                : "No tenders are available for bidding in this project."
-              }
-            </p>
-            {userRole === 'architect' && (
-              <Button onClick={() => setCreateDialogOpen(true)}>
-                Create First Tender
-              </Button>
-            )}
-          </CardContent>
-        </Card>
+        <BidsReceivedSection tenders={filteredTenders} />
       )}
 
       {/* Dialogs */}
@@ -227,6 +264,12 @@ const Tenders = () => {
       <BidSubmissionDialog
         open={bidDialogOpen}
         onOpenChange={setBidDialogOpen}
+        tender={selectedTender}
+      />
+
+      <TenderInviteDialog
+        open={inviteDialogOpen}
+        onOpenChange={setInviteDialogOpen}
         tender={selectedTender}
       />
     </div>
