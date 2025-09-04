@@ -42,11 +42,11 @@ All colors MUST be HSL.
 
     /* Sidebar styling - dark blue background */
     --sidebar-background: 220 39% 11%;
-    --sidebar-foreground: 220 14% 91%;
+    --sidebar-foreground: 0 0% 0%;
     --sidebar-primary: 220 91% 69%;
     --sidebar-primary-foreground: 220 39% 11%;
     --sidebar-accent: 220 30% 18%;
-    --sidebar-accent-foreground: 220 14% 91%;
+    --sidebar-accent-foreground: 0 0% 0%;
     --sidebar-border: 220 30% 18%;
     --sidebar-ring: 220 91% 69%;
 
@@ -91,11 +91,11 @@ All colors MUST be HSL.
     --input: 217.2 32.6% 17.5%;
     --ring: 212.7 26.8% 83.9%;
     --sidebar-background: 220 39% 11%;
-    --sidebar-foreground: 220 14% 91%;
+    --sidebar-foreground: 0 0% 0%;
     --sidebar-primary: 220 91% 69%;
     --sidebar-primary-foreground: 220 39% 11%;
     --sidebar-accent: 220 30% 18%;
-    --sidebar-accent-foreground: 220 14% 91%;
+    --sidebar-accent-foreground: 0 0% 0%;
     --sidebar-border: 220 30% 18%;
     --sidebar-ring: 220 91% 69%;
   }
