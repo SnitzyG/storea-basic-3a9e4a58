@@ -37,9 +37,9 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
   return (
     <div className="min-h-screen bg-background flex">
       <Sidebar userRole={profile.role} />
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col min-h-screen">
         <Header user={user} profile={profile} />
-        <main className="flex-1 p-6 overflow-auto">
+        <main className="flex-1 overflow-hidden">
           {children}
         </main>
       </div>

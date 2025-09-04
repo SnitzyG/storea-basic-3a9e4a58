@@ -16,14 +16,14 @@ export const OpenMessages = () => {
 
   if (loading) {
     return (
-      <Card>
-        <CardHeader>
+      <Card className="h-full flex flex-col">
+        <CardHeader className="flex-shrink-0">
           <CardTitle className="flex items-center gap-2">
             <MessageSquare className="h-5 w-5" />
             Open Messages
           </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="flex-1 flex items-center justify-center">
           <div className="text-sm text-muted-foreground">Loading...</div>
         </CardContent>
       </Card>
@@ -31,11 +31,11 @@ export const OpenMessages = () => {
   }
 
   return (
-    <Card>
-      <CardHeader>
+    <Card className="h-full flex flex-col">
+      <CardHeader className="flex-shrink-0">
         <CardTitle className="flex items-center gap-2">
           <MessageSquare className="h-5 w-5" />
-          My Messages 
+          Open Messages 
           {unreadCounts.messages > 0 && (
             <Badge variant="destructive" className="text-xs">
               {unreadCounts.messages}
@@ -43,9 +43,9 @@ export const OpenMessages = () => {
           )}
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="flex-1 overflow-auto space-y-4">
         {recentThreads.length === 0 ? (
-          <div className="text-sm text-muted-foreground">No recent messages</div>
+          <div className="text-sm text-muted-foreground text-center mt-8">No action required</div>
         ) : (
           recentThreads.map((thread) => {
             const lastMessage = messages
@@ -88,7 +88,7 @@ export const OpenMessages = () => {
         )}
         
         {threads.length > 5 && (
-          <Button variant="outline" size="sm" className="w-full">
+          <Button variant="outline" size="sm" className="w-full mt-4">
             View All ({threads.length - 5} more)
           </Button>
         )}
