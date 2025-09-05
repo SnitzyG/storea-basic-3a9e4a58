@@ -118,27 +118,34 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
   };
 
   const statusOptions = [
-    'Draft',
-    'For Review', 
-    'Under Review',
-    'Approved',
-    'Superseded',
-    'Void',
-    'Final'
+    { value: "draft", label: "Draft" },
+    { value: "for_review", label: "For Review" },
+    { value: "under_review", label: "Under Review" },
+    { value: "approved", label: "Approved" },
+    { value: "superseded", label: "Superseded" },
+    { value: "void", label: "Void" },
+    { value: "final", label: "Final" }
   ];
 
   const typeOptions = [
-    'Architectural Drawings',
-    'Structural Plans',
-    'Electrical Plans',
-    'Plumbing Plans',
-    'Specifications',
-    'Contracts',
-    'Permits',
-    'Reports',
-    'Correspondence',
-    'Photographs'
+    { value: "architectural_drawings", label: "Architectural Drawings" },
+    { value: "structural_plans", label: "Structural Plans" },
+    { value: "electrical_plans", label: "Electrical Plans" },
+    { value: "plumbing_plans", label: "Plumbing Plans" },
+    { value: "specifications", label: "Specifications" },
+    { value: "contracts", label: "Contracts" },
+    { value: "permits", label: "Permits" },
+    { value: "reports", label: "Reports" },
+    { value: "correspondence", label: "Correspondence" },
+    { value: "photographs", label: "Photographs" }
   ];
+
+  const assignedToOptions = useMemo(() => {
+    return teamMembers.map(member => ({
+      value: member.user_id,
+      label: `${member.user_profile?.name || 'Unknown User'} (${member.user_profile?.role || member.role})`
+    }));
+  }, [teamMembers]);
 
   return (
     <div className="border rounded-lg">
@@ -219,12 +226,12 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
                     onValueChange={(value) => onStatusChange(document.id, value)}
                   >
                     <SelectTrigger className="h-7 text-xs">
-                      <SelectValue />
+                      <SelectValue placeholder="Select Status" />
                     </SelectTrigger>
                     <SelectContent>
-                      {statusOptions.map((status) => (
-                        <SelectItem key={status} value={status.toLowerCase().replace(' ', '_')}>
-                          {status}
+                      {statusOptions.map((option) => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -251,12 +258,12 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
                   disabled={!canEdit}
                 >
                   <SelectTrigger className="h-7 text-xs">
-                    <SelectValue />
+                    <SelectValue placeholder="Select Type" />
                   </SelectTrigger>
                   <SelectContent>
-                    {typeOptions.map((type) => (
-                      <SelectItem key={type} value={type.toLowerCase().replace(' ', '_')}>
-                        {type}
+                    {typeOptions.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -270,13 +277,13 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
                   disabled={!canEdit}
                 >
                   <SelectTrigger className="h-7 text-xs">
-                    <SelectValue placeholder="Unassigned" />
+                    <SelectValue placeholder="Select Team Member" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="unassigned">Unassigned</SelectItem>
-                    {teamMembers.map((member) => (
-                      <SelectItem key={member.user_id} value={member.user_id}>
-                        {member.user_profile?.name || 'Unknown User'}
+                    {assignedToOptions.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
                       </SelectItem>
                     ))}
                   </SelectContent>
