@@ -265,7 +265,7 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
               
               <TableCell>
                 <Select 
-                  value={document.assigned_to || ''} 
+                  value={document.assigned_to || 'unassigned'} 
                   onValueChange={(value) => {/* TODO: Update assigned to */}}
                   disabled={!canEdit}
                 >
@@ -273,7 +273,7 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
                     <SelectValue placeholder="Unassigned" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Unassigned</SelectItem>
+                    <SelectItem value="unassigned">Unassigned</SelectItem>
                     {teamMembers.map((member) => (
                       <SelectItem key={member.user_id} value={member.user_id}>
                         {member.user_profile?.name || 'Unknown User'}
