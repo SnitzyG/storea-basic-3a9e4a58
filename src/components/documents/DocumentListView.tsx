@@ -56,6 +56,8 @@ interface DocumentListViewProps {
   onDownload: (filePath: string, fileName: string) => void;
   onDelete?: (documentId: string, filePath: string) => void;
   onStatusChange?: (documentId: string, status: string) => void;
+  onTypeChange?: (documentId: string, type: string) => void;
+  onAssignedToChange?: (documentId: string, assignedTo: string) => void;
   onPreview?: (document: Document) => void;
   onViewDetails?: (document: Document) => void;
   onViewEvents?: (document: Document) => void;
@@ -70,6 +72,8 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
   onDownload,
   onDelete,
   onStatusChange,
+  onTypeChange,
+  onAssignedToChange,
   onPreview,
   onViewDetails,
   onViewEvents,
@@ -310,7 +314,7 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
               <TableCell>
                 <Select 
                   value={document.category || 'general'} 
-                  onValueChange={(value) => {/* TODO: Update document type */}}
+                  onValueChange={(value) => onTypeChange?.(document.id, value)}
                   disabled={!canEdit || document.is_locked}
                 >
                   <SelectTrigger className="h-7 text-xs">
@@ -329,7 +333,7 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
               <TableCell>
                 <Select 
                   value={document.assigned_to || 'unassigned'} 
-                  onValueChange={(value) => {/* TODO: Update assigned to */}}
+                  onValueChange={(value) => onAssignedToChange?.(document.id, value === 'unassigned' ? '' : value)}
                   disabled={!canEdit || document.is_locked}
                 >
                   <SelectTrigger className="h-7 text-xs">

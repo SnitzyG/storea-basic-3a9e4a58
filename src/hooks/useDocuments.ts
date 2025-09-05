@@ -412,6 +412,56 @@ export const useDocuments = (projectId?: string) => {
     }
   };
 
+  const updateDocumentType = async (documentId: string, type: string) => {
+    try {
+      const { error } = await supabase
+        .from('documents')
+        .update({ category: type })
+        .eq('id', documentId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Document type updated successfully",
+      });
+
+      await fetchDocuments(projectId);
+    } catch (error) {
+      console.error('Error updating document type:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update document type",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const updateDocumentAssignment = async (documentId: string, assignedTo: string) => {
+    try {
+      const { error } = await supabase
+        .from('documents')
+        .update({ assigned_to: assignedTo || null })
+        .eq('id', documentId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Document assignment updated successfully",
+      });
+
+      await fetchDocuments(projectId);
+    } catch (error) {
+      console.error('Error updating document assignment:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update document assignment",
+        variant: "destructive",
+      });
+    }
+  };
+
   const approveDocument = async (
     approvalId: string,
     documentId: string,
@@ -503,6 +553,8 @@ export const useDocuments = (projectId?: string) => {
     uploadDocument,
     createNewVersion,
     updateDocumentStatus,
+    updateDocumentType,
+    updateDocumentAssignment,
     deleteDocument,
     downloadDocument,
     getDocumentVersions,

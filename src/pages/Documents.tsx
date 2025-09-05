@@ -39,6 +39,8 @@ const Documents = () => {
     downloadDocument, 
     deleteDocument, 
     updateDocumentStatus,
+    updateDocumentType,
+    updateDocumentAssignment,
     requestApproval 
   } = useDocuments(selectedProject === 'all' ? undefined : selectedProject);
 
@@ -67,6 +69,14 @@ const Documents = () => {
 
   const handleStatusChange = async (documentId: string, status: string) => {
     await updateDocumentStatus(documentId, status as Document['status']);
+  };
+
+  const handleTypeChange = async (documentId: string, type: string) => {
+    await updateDocumentType(documentId, type);
+  };
+
+  const handleAssignedToChange = async (documentId: string, assignedTo: string) => {
+    await updateDocumentAssignment(documentId, assignedTo);
   };
 
   const getStatusCounts = () => {
@@ -166,43 +176,6 @@ const Documents = () => {
         </CardContent>
       </Card>
 
-      {/* Status Tabs - only show if there are documents */}
-      {documents.length > 0 && (
-        <Tabs value={statusFilter} onValueChange={setStatusFilter} className="w-full">
-          <TabsList className="grid w-full grid-cols-5">
-            <TabsTrigger value="all" className="relative">
-              All Documents
-              <Badge variant="secondary" className="ml-2">
-                {statusCounts.all}
-              </Badge>
-            </TabsTrigger>
-            <TabsTrigger value="draft" className="relative">
-              Draft
-              <Badge variant="secondary" className="ml-2">
-                {statusCounts.draft}
-              </Badge>
-            </TabsTrigger>
-            <TabsTrigger value="under_review" className="relative">
-              Under Review
-              <Badge variant="secondary" className="ml-2">
-                {statusCounts.under_review}
-              </Badge>
-            </TabsTrigger>
-            <TabsTrigger value="approved" className="relative">
-              Approved
-              <Badge variant="secondary" className="ml-2">
-                {statusCounts.approved}
-              </Badge>
-            </TabsTrigger>
-            <TabsTrigger value="rejected" className="relative">
-              Rejected
-              <Badge variant="secondary" className="ml-2">
-                {statusCounts.rejected}
-              </Badge>
-            </TabsTrigger>
-          </TabsList>
-        </Tabs>
-      )}
 
       {/* Document List View */}
       {filteredDocuments.length === 0 ? (
@@ -230,6 +203,8 @@ const Documents = () => {
           onDownload={downloadDocument}
           onDelete={deleteDocument}
           onStatusChange={handleStatusChange}
+          onTypeChange={handleTypeChange}
+          onAssignedToChange={handleAssignedToChange}
           onPreview={setPreviewDocument}
           onViewDetails={setDetailsDocument}
           onViewEvents={setEventsDocument}
