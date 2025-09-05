@@ -18,6 +18,12 @@ export interface Document {
   version?: number;
   created_at: string;
   updated_at: string;
+  document_number?: string;
+  title?: string;
+  assigned_to?: string;
+  is_locked?: boolean;
+  locked_by?: string;
+  locked_at?: string;
 }
 
 export interface DocumentVersion {
