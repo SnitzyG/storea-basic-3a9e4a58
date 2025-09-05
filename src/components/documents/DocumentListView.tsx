@@ -11,7 +11,15 @@ import {
   X,
   MoreHorizontal,
   Download,
-  Edit
+  Edit,
+  Image,
+  FileCheck,
+  Building,
+  Zap,
+  Wrench,
+  FileBarChart,
+  Mail,
+  Camera
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -41,6 +49,7 @@ import { Document } from '@/hooks/useDocuments';
 import { useProjects } from '@/hooks/useProjects';
 import { useProjectTeam } from '@/hooks/useProjectTeam';
 import { format } from 'date-fns';
+import { supabase } from '@/integrations/supabase/client';
 
 interface DocumentListViewProps {
   documents: Document[];
@@ -73,8 +82,20 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
   const { projects } = useProjects();
   const { teamMembers } = useProjectTeam(selectedProject);
 
-  const getFileTypeIcon = (fileType: string) => {
-    return <FileText className="h-4 w-4 text-muted-foreground" />;
+  const getFileTypeIcon = (category: string) => {
+    const iconMap = {
+      'architectural_drawings': <Building className="h-4 w-4 text-blue-500" />,
+      'structural_plans': <FileBarChart className="h-4 w-4 text-green-500" />,
+      'electrical_plans': <Zap className="h-4 w-4 text-yellow-500" />,
+      'plumbing_plans': <Wrench className="h-4 w-4 text-cyan-500" />,
+      'specifications': <FileCheck className="h-4 w-4 text-purple-500" />,
+      'contracts': <FileText className="h-4 w-4 text-red-500" />,
+      'permits': <FileText className="h-4 w-4 text-orange-500" />,
+      'reports': <FileBarChart className="h-4 w-4 text-indigo-500" />,
+      'correspondence': <Mail className="h-4 w-4 text-gray-500" />,
+      'photographs': <Camera className="h-4 w-4 text-pink-500" />
+    };
+    return iconMap[category as keyof typeof iconMap] || <FileText className="h-4 w-4 text-muted-foreground" />;
   };
 
   const getProjectNumber = (projectId: string) => {
@@ -147,6 +168,40 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
     }));
   }, [teamMembers]);
 
+  // Get user name from user ID
+  const getUserName = async (userId: string) => {
+    try {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('name')
+        .eq('user_id', userId)
+        .single();
+      return profile?.name || 'Unknown User';
+    } catch (error) {
+      return 'Unknown User';
+    }
+  };
+
+  const [userNames, setUserNames] = useState<Record<string, string>>({});
+
+  // Load user names for all documents
+  React.useEffect(() => {
+    const loadUserNames = async () => {
+      const uniqueUserIds = [...new Set(documents.map(doc => doc.uploaded_by))];
+      const names: Record<string, string> = {};
+      
+      for (const userId of uniqueUserIds) {
+        names[userId] = await getUserName(userId);
+      }
+      
+      setUserNames(names);
+    };
+
+    if (documents.length > 0) {
+      loadUserNames();
+    }
+  }, [documents]);
+
   return (
     <div className="border rounded-lg">
       <Table>
@@ -192,7 +247,7 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
               </TableCell>
               
               <TableCell>
-                {getFileTypeIcon(document.file_type)}
+                {getFileTypeIcon(document.category || 'general')}
               </TableCell>
               
               <TableCell>
@@ -220,10 +275,11 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
               </TableCell>
               
               <TableCell>
-                {onStatusChange ? (
+                {onStatusChange && !document.is_locked ? (
                   <Select 
                     value={document.status} 
                     onValueChange={(value) => onStatusChange(document.id, value)}
+                    disabled={document.is_locked}
                   >
                     <SelectTrigger className="h-7 text-xs">
                       <SelectValue placeholder="Select Status" />
@@ -248,14 +304,14 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
               </TableCell>
               
               <TableCell className="text-xs text-muted-foreground">
-                User {document.uploaded_by.substring(0, 8)}...
+                {userNames[document.uploaded_by] || 'Loading...'}
               </TableCell>
               
               <TableCell>
                 <Select 
                   value={document.category || 'general'} 
                   onValueChange={(value) => {/* TODO: Update document type */}}
-                  disabled={!canEdit}
+                  disabled={!canEdit || document.is_locked}
                 >
                   <SelectTrigger className="h-7 text-xs">
                     <SelectValue placeholder="Select Type" />
@@ -274,7 +330,7 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
                 <Select 
                   value={document.assigned_to || 'unassigned'} 
                   onValueChange={(value) => {/* TODO: Update assigned to */}}
-                  disabled={!canEdit}
+                  disabled={!canEdit || document.is_locked}
                 >
                   <SelectTrigger className="h-7 text-xs">
                     <SelectValue placeholder="Select Team Member" />

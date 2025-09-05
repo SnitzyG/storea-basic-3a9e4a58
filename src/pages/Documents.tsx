@@ -166,41 +166,43 @@ const Documents = () => {
         </CardContent>
       </Card>
 
-      {/* Status Tabs */}
-      <Tabs value={statusFilter} onValueChange={setStatusFilter} className="w-full">
-        <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="all" className="relative">
-            All Documents
-            <Badge variant="secondary" className="ml-2">
-              {statusCounts.all}
-            </Badge>
-          </TabsTrigger>
-          <TabsTrigger value="draft" className="relative">
-            Draft
-            <Badge variant="secondary" className="ml-2">
-              {statusCounts.draft}
-            </Badge>
-          </TabsTrigger>
-          <TabsTrigger value="under_review" className="relative">
-            Under Review
-            <Badge variant="secondary" className="ml-2">
-              {statusCounts.under_review}
-            </Badge>
-          </TabsTrigger>
-          <TabsTrigger value="approved" className="relative">
-            Approved
-            <Badge variant="secondary" className="ml-2">
-              {statusCounts.approved}
-            </Badge>
-          </TabsTrigger>
-          <TabsTrigger value="rejected" className="relative">
-            Rejected
-            <Badge variant="secondary" className="ml-2">
-              {statusCounts.rejected}
-            </Badge>
-          </TabsTrigger>
-        </TabsList>
-      </Tabs>
+      {/* Status Tabs - only show if there are documents */}
+      {documents.length > 0 && (
+        <Tabs value={statusFilter} onValueChange={setStatusFilter} className="w-full">
+          <TabsList className="grid w-full grid-cols-5">
+            <TabsTrigger value="all" className="relative">
+              All Documents
+              <Badge variant="secondary" className="ml-2">
+                {statusCounts.all}
+              </Badge>
+            </TabsTrigger>
+            <TabsTrigger value="draft" className="relative">
+              Draft
+              <Badge variant="secondary" className="ml-2">
+                {statusCounts.draft}
+              </Badge>
+            </TabsTrigger>
+            <TabsTrigger value="under_review" className="relative">
+              Under Review
+              <Badge variant="secondary" className="ml-2">
+                {statusCounts.under_review}
+              </Badge>
+            </TabsTrigger>
+            <TabsTrigger value="approved" className="relative">
+              Approved
+              <Badge variant="secondary" className="ml-2">
+                {statusCounts.approved}
+              </Badge>
+            </TabsTrigger>
+            <TabsTrigger value="rejected" className="relative">
+              Rejected
+              <Badge variant="secondary" className="ml-2">
+                {statusCounts.rejected}
+              </Badge>
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
+      )}
 
       {/* Document List View */}
       {filteredDocuments.length === 0 ? (
