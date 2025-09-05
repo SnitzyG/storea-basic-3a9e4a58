@@ -115,6 +115,152 @@ export type Database = {
           },
         ]
       }
+      document_events: {
+        Row: {
+          created_at: string | null
+          document_id: string | null
+          event_description: string
+          event_type: string
+          id: string
+          metadata: Json | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          document_id?: string | null
+          event_description: string
+          event_type: string
+          id?: string
+          metadata?: Json | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          document_id?: string | null
+          event_description?: string
+          event_type?: string
+          id?: string
+          metadata?: Json | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_events_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      document_status_options: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          id: string
+          name: string
+          project_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          name: string
+          project_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          name?: string
+          project_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_status_options_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      document_transmittals: {
+        Row: {
+          created_at: string | null
+          document_id: string | null
+          id: string
+          notes: string | null
+          purpose: string | null
+          sent_at: string | null
+          sent_by: string | null
+          sent_to: string
+          transmittal_number: string
+        }
+        Insert: {
+          created_at?: string | null
+          document_id?: string | null
+          id?: string
+          notes?: string | null
+          purpose?: string | null
+          sent_at?: string | null
+          sent_by?: string | null
+          sent_to: string
+          transmittal_number: string
+        }
+        Update: {
+          created_at?: string | null
+          document_id?: string | null
+          id?: string
+          notes?: string | null
+          purpose?: string | null
+          sent_at?: string | null
+          sent_by?: string | null
+          sent_to?: string
+          transmittal_number?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_transmittals_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      document_types: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          id: string
+          name: string
+          project_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          name: string
+          project_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          name?: string
+          project_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_types_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       document_versions: {
         Row: {
           changes_summary: string | null
@@ -155,51 +301,69 @@ export type Database = {
       }
       documents: {
         Row: {
+          assigned_to: string | null
           category: string | null
           created_at: string
+          document_number: string | null
           file_extension: string | null
           file_path: string
           file_size: number | null
           file_type: string
           id: string
+          is_locked: boolean | null
+          locked_at: string | null
+          locked_by: string | null
           name: string
           project_id: string
           status: Database["public"]["Enums"]["document_status"]
           tags: string[] | null
+          title: string | null
           updated_at: string
           uploaded_by: string
           version: number | null
           visibility_scope: string | null
         }
         Insert: {
+          assigned_to?: string | null
           category?: string | null
           created_at?: string
+          document_number?: string | null
           file_extension?: string | null
           file_path: string
           file_size?: number | null
           file_type: string
           id?: string
+          is_locked?: boolean | null
+          locked_at?: string | null
+          locked_by?: string | null
           name: string
           project_id: string
           status?: Database["public"]["Enums"]["document_status"]
           tags?: string[] | null
+          title?: string | null
           updated_at?: string
           uploaded_by: string
           version?: number | null
           visibility_scope?: string | null
         }
         Update: {
+          assigned_to?: string | null
           category?: string | null
           created_at?: string
+          document_number?: string | null
           file_extension?: string | null
           file_path?: string
           file_size?: number | null
           file_type?: string
           id?: string
+          is_locked?: boolean | null
+          locked_at?: string | null
+          locked_by?: string | null
           name?: string
           project_id?: string
           status?: Database["public"]["Enums"]["document_status"]
           tags?: string[] | null
+          title?: string | null
           updated_at?: string
           uploaded_by?: string
           version?: number | null
@@ -823,6 +987,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      generate_document_number: {
+        Args: { project_id_param: string }
+        Returns: string
+      }
       is_project_creator: {
         Args: { project_id: string; user_id: string }
         Returns: boolean
