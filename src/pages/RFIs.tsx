@@ -11,6 +11,7 @@ import { RFICard } from '@/components/rfis/RFICard';
 import { CreateRFIDialog } from '@/components/rfis/CreateRFIDialog';
 import { RFIDetailsDialog } from '@/components/rfis/RFIDetailsDialog';
 import { RFIFilters } from '@/components/rfis/RFIFilters';
+import { RFIListView } from '@/components/rfis/RFIListView';
 import { useProjectTeam } from '@/hooks/useProjectTeam';
 
 const RFIs = () => {
@@ -18,6 +19,7 @@ const RFIs = () => {
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
   const [selectedRFI, setSelectedRFI] = useState<RFI | null>(null);
+  const [viewMode, setViewMode] = useState<'cards' | 'list'>('cards');
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [priorityFilter, setPriorityFilter] = useState('all');
@@ -100,6 +102,79 @@ const RFIs = () => {
     setAssigneeFilter('all');
   };
 
+  const handleExportPDF = (rfi: RFI) => {
+    // Create a simple PDF export by opening print dialog
+    const printContent = `
+      <html>
+        <head>
+          <title>RFI ${rfi.rfi_number || rfi.id}</title>
+          <style>
+            body { font-family: Arial, sans-serif; margin: 20px; }
+            .header { border-bottom: 2px solid #333; padding-bottom: 10px; margin-bottom: 20px; }
+            .field { margin: 10px 0; }
+            .label { font-weight: bold; }
+            .content { margin-top: 5px; }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <h1>Request for Information</h1>
+            <p><strong>RFI Number:</strong> ${rfi.rfi_number || rfi.id}</p>
+            <p><strong>Project:</strong> ${rfi.project_name || 'N/A'}</p>
+            <p><strong>Date:</strong> ${new Date(rfi.created_at).toLocaleDateString()}</p>
+          </div>
+          
+          <div class="field">
+            <div class="label">From:</div>
+            <div class="content">${rfi.sender_name || rfi.raised_by_profile?.name || 'N/A'}</div>
+          </div>
+          
+          <div class="field">
+            <div class="label">To:</div>
+            <div class="content">${rfi.recipient_name || rfi.assigned_to_profile?.name || 'N/A'}</div>
+          </div>
+          
+          <div class="field">
+            <div class="label">Subject:</div>
+            <div class="content">${rfi.subject || 'N/A'}</div>
+          </div>
+          
+          <div class="field">
+            <div class="label">Priority:</div>
+            <div class="content">${rfi.priority.toUpperCase()}</div>
+          </div>
+          
+          <div class="field">
+            <div class="label">Question/Request:</div>
+            <div class="content">${rfi.question}</div>
+          </div>
+          
+          ${rfi.proposed_solution ? `
+          <div class="field">
+            <div class="label">Proposed Solution:</div>
+            <div class="content">${rfi.proposed_solution}</div>
+          </div>
+          ` : ''}
+          
+          ${rfi.response ? `
+          <div class="field">
+            <div class="label">Response:</div>
+            <div class="content">${rfi.response}</div>
+            <div class="content"><strong>Response Date:</strong> ${rfi.response_date ? new Date(rfi.response_date).toLocaleDateString() : 'N/A'}</div>
+          </div>
+          ` : ''}
+        </body>
+      </html>
+    `;
+    
+    const printWindow = window.open('', '_blank');
+    if (printWindow) {
+      printWindow.document.write(printContent);
+      printWindow.document.close();
+      printWindow.print();
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -138,10 +213,26 @@ const RFIs = () => {
             Manage requests for information for {currentProject.name}
           </p>
         </div>
-        <Button onClick={() => setCreateDialogOpen(true)}>
-          <Plus className="w-4 h-4 mr-2" />
-          New RFI
-        </Button>
+        <div className="flex items-center space-x-2">
+          <Button
+            variant={viewMode === 'cards' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setViewMode('cards')}
+          >
+            Cards
+          </Button>
+          <Button
+            variant={viewMode === 'list' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setViewMode('list')}
+          >
+            List
+          </Button>
+          <Button onClick={() => setCreateDialogOpen(true)}>
+            <Plus className="w-4 h-4 mr-2" />
+            New RFI
+          </Button>
+        </div>
       </div>
 
       {/* Project Selector */}
@@ -177,19 +268,27 @@ const RFIs = () => {
           onClearFilters={clearFilters}
         />
 
-        {/* RFI Grid */}
+        {/* RFI Display */}
         {filteredRFIs.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredRFIs.map((rfi) => (
-              <RFICard
-                key={rfi.id}
-                rfi={rfi}
-                onView={handleViewRFI}
-                onEdit={profile?.role === 'architect' ? handleEditRFI : undefined}
-                onAssign={profile?.role === 'architect' ? handleAssignRFI : undefined}
-              />
-            ))}
-          </div>
+          viewMode === 'list' ? (
+            <RFIListView
+              rfis={filteredRFIs}
+              onView={handleViewRFI}
+              onExportPDF={handleExportPDF}
+            />
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredRFIs.map((rfi) => (
+                <RFICard
+                  key={rfi.id}
+                  rfi={rfi}
+                  onView={handleViewRFI}
+                  onEdit={profile?.role === 'architect' ? handleEditRFI : undefined}
+                  onAssign={profile?.role === 'architect' ? handleAssignRFI : undefined}
+                />
+              ))}
+            </div>
+          )
         ) : (
           <Card>
             <CardContent className="text-center py-12">

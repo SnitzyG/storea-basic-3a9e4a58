@@ -17,6 +17,24 @@ export interface RFI {
   attachments?: any[];
   created_at: string;
   updated_at: string;
+  // New structured RFI fields
+  project_name?: string;
+  project_number?: string;
+  rfi_number?: string;
+  recipient_name?: string;
+  recipient_email?: string;
+  sender_name?: string;
+  sender_email?: string;
+  subject?: string;
+  drawing_no?: string;
+  specification_section?: string;
+  contract_clause?: string;
+  other_reference?: string;
+  proposed_solution?: string;
+  required_response_by?: string;
+  responder_name?: string;
+  responder_position?: string;
+  response_date?: string;
   raised_by_profile?: {
     name: string;
     role: string;
@@ -97,6 +115,20 @@ export const useRFIs = (projectId?: string) => {
     due_date?: string;
     category?: string;
     assigned_to?: string;
+    // New structured fields
+    project_name?: string;
+    project_number?: string;
+    recipient_name?: string;
+    recipient_email?: string;
+    sender_name?: string;
+    sender_email?: string;
+    subject?: string;
+    drawing_no?: string;
+    specification_section?: string;
+    contract_clause?: string;
+    other_reference?: string;
+    proposed_solution?: string;
+    required_response_by?: string;
   }) => {
     if (!user) return null;
 

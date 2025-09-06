@@ -714,43 +714,94 @@ export type Database = {
         Row: {
           assigned_to: string | null
           category: string | null
+          contract_clause: string | null
           created_at: string
+          drawing_no: string | null
           due_date: string | null
           id: string
+          other_reference: string | null
           priority: Database["public"]["Enums"]["priority_level"]
           project_id: string
+          project_name: string | null
+          project_number: string | null
+          proposed_solution: string | null
           question: string
           raised_by: string
+          recipient_email: string | null
+          recipient_name: string | null
+          required_response_by: string | null
+          responder_name: string | null
+          responder_position: string | null
           response: string | null
+          response_date: string | null
+          rfi_number: string | null
+          sender_email: string | null
+          sender_name: string | null
+          specification_section: string | null
           status: Database["public"]["Enums"]["rfi_status"]
+          subject: string | null
           updated_at: string
         }
         Insert: {
           assigned_to?: string | null
           category?: string | null
+          contract_clause?: string | null
           created_at?: string
+          drawing_no?: string | null
           due_date?: string | null
           id?: string
+          other_reference?: string | null
           priority?: Database["public"]["Enums"]["priority_level"]
           project_id: string
+          project_name?: string | null
+          project_number?: string | null
+          proposed_solution?: string | null
           question: string
           raised_by: string
+          recipient_email?: string | null
+          recipient_name?: string | null
+          required_response_by?: string | null
+          responder_name?: string | null
+          responder_position?: string | null
           response?: string | null
+          response_date?: string | null
+          rfi_number?: string | null
+          sender_email?: string | null
+          sender_name?: string | null
+          specification_section?: string | null
           status?: Database["public"]["Enums"]["rfi_status"]
+          subject?: string | null
           updated_at?: string
         }
         Update: {
           assigned_to?: string | null
           category?: string | null
+          contract_clause?: string | null
           created_at?: string
+          drawing_no?: string | null
           due_date?: string | null
           id?: string
+          other_reference?: string | null
           priority?: Database["public"]["Enums"]["priority_level"]
           project_id?: string
+          project_name?: string | null
+          project_number?: string | null
+          proposed_solution?: string | null
           question?: string
           raised_by?: string
+          recipient_email?: string | null
+          recipient_name?: string | null
+          required_response_by?: string | null
+          responder_name?: string | null
+          responder_position?: string | null
           response?: string | null
+          response_date?: string | null
+          rfi_number?: string | null
+          sender_email?: string | null
+          sender_name?: string | null
+          specification_section?: string | null
           status?: Database["public"]["Enums"]["rfi_status"]
+          subject?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -988,6 +1039,10 @@ export type Database = {
     }
     Functions: {
       generate_document_number: {
+        Args: { project_id_param: string }
+        Returns: string
+      }
+      generate_rfi_number: {
         Args: { project_id_param: string }
         Returns: string
       }

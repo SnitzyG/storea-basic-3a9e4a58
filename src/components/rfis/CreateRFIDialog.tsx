@@ -1,13 +1,19 @@
 import React, { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { CalendarIcon } from 'lucide-react';
+import { format } from 'date-fns';
+import { cn } from '@/lib/utils';
 import { useRFIs } from '@/hooks/useRFIs';
 import { useProjectTeam } from '@/hooks/useProjectTeam';
-import { DocumentUpload } from '@/components/documents/DocumentUpload';
+import { useProjects } from '@/hooks/useProjects';
+import { useAuth } from '@/hooks/useAuth';
 
 interface CreateRFIDialogProps {
   open: boolean;
@@ -15,96 +21,255 @@ interface CreateRFIDialogProps {
   projectId: string;
 }
 
-export const CreateRFIDialog = ({ open, onOpenChange, projectId }: CreateRFIDialogProps) => {
-  const [question, setQuestion] = useState('');
-  const [priority, setPriority] = useState<'low' | 'medium' | 'high' | 'critical'>('medium');
-  const [category, setCategory] = useState('');
-  const [dueDate, setDueDate] = useState('');
-  const [assignedTo, setAssignedTo] = useState('');
-  const [attachments, setAttachments] = useState<any[]>([]);
+export const CreateRFIDialog: React.FC<CreateRFIDialogProps> = ({
+  open,
+  onOpenChange,
+  projectId,
+}) => {
+  const { createRFI } = useRFIs(projectId);
+  const { teamMembers } = useProjectTeam(projectId);
+  const { projects } = useProjects();
+  const { profile } = useAuth();
+  
+  const currentProject = projects.find(p => p.id === projectId);
+  
+  const [formData, setFormData] = useState({
+    project_name: currentProject?.name || '',
+    project_number: currentProject?.id || '',
+    date: new Date(),
+    recipient_name: '',
+    recipient_email: '',
+    sender_name: profile?.name || '',
+    sender_email: '', // Would come from auth user email
+    subject: '',
+    drawing_no: '',
+    specification_section: '',
+    contract_clause: '',
+    other_reference: '',
+    question: '',
+    proposed_solution: '',
+    required_response_by: undefined as Date | undefined,
+    priority: 'medium' as const,
+    category: '',
+    assigned_to: '',
+  });
+
+  const [requiredResponseDate, setRequiredResponseDate] = useState<Date>();
   const [loading, setLoading] = useState(false);
 
-  const { createRFI } = useRFIs();
-  const { teamMembers: projectUsers } = useProjectTeam(projectId);
-
-  // Predefined categories for RFIs
   const rfiCategories = [
+    'General',
     'Structural',
+    'Mechanical',
     'Electrical',
     'Plumbing',
     'HVAC',
-    'Architectural',
-    'Mechanical',
     'Fire Safety',
-    'Security',
-    'Landscaping',
-    'Materials',
     'Code Compliance',
-    'Environmental',
+    'Materials',
+    'Schedule',
     'Other'
   ];
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!question.trim()) return;
-
+  const handleSubmit = async () => {
+    if (!formData.question || !formData.subject) return;
+    
     setLoading(true);
-    
-    const rfiData = {
-      project_id: projectId,
-      question: question.trim(),
-      priority,
-      category: category || undefined,
-      due_date: dueDate || undefined,
-      assigned_to: assignedTo || undefined,
-      attachments: attachments.length > 0 ? attachments : undefined,
-    };
-
-    const result = await createRFI(rfiData);
-    
-    if (result) {
-      setQuestion('');
-      setCategory('');
-      setDueDate('');
-      setAssignedTo('');
-      setAttachments([]);
-      setPriority('medium');
+    try {
+      await createRFI({
+        project_id: projectId,
+        question: formData.question,
+        priority: formData.priority,
+        category: formData.category,
+        assigned_to: formData.assigned_to,
+        due_date: requiredResponseDate?.toISOString(),
+        // New structured fields
+        project_name: formData.project_name,
+        project_number: formData.project_number,
+        recipient_name: formData.recipient_name,
+        recipient_email: formData.recipient_email,
+        sender_name: formData.sender_name,
+        sender_email: formData.sender_email,
+        subject: formData.subject,
+        drawing_no: formData.drawing_no,
+        specification_section: formData.specification_section,
+        contract_clause: formData.contract_clause,
+        other_reference: formData.other_reference,
+        proposed_solution: formData.proposed_solution,
+        required_response_by: requiredResponseDate?.toISOString(),
+      });
+      
+      // Reset form
+      setFormData({
+        project_name: currentProject?.name || '',
+        project_number: currentProject?.id || '',
+        date: new Date(),
+        recipient_name: '',
+        recipient_email: '',
+        sender_name: profile?.name || '',
+        sender_email: '',
+        subject: '',
+        drawing_no: '',
+        specification_section: '',
+        contract_clause: '',
+        other_reference: '',
+        question: '',
+        proposed_solution: '',
+        required_response_by: undefined,
+        priority: 'medium',
+        category: '',
+        assigned_to: '',
+      });
+      setRequiredResponseDate(undefined);
       onOpenChange(false);
+    } catch (error) {
+      console.error('Error creating RFI:', error);
+    } finally {
+      setLoading(false);
     }
-    
-    setLoading(false);
-  };
-
-  const handleAttachmentUpload = (files: any[]) => {
-    setAttachments(files);
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Create New RFI</DialogTitle>
         </DialogHeader>
         
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <Label htmlFor="question">Question *</Label>
-            <Textarea
-              id="question"
-              placeholder="Enter your question or request for information..."
-              value={question}
-              onChange={(e) => setQuestion(e.target.value)}
-              className="min-h-[100px] mt-1"
-              required
-            />
+        <div className="grid grid-cols-2 gap-6">
+          {/* Left Column */}
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="project-name">Project Name</Label>
+              <Input
+                id="project-name"
+                value={formData.project_name}
+                onChange={(e) => setFormData(prev => ({ ...prev, project_name: e.target.value }))}
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="project-number">Project Number</Label>
+              <Input
+                id="project-number"
+                value={formData.project_number}
+                onChange={(e) => setFormData(prev => ({ ...prev, project_number: e.target.value }))}
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="date">Date</Label>
+              <Input
+                id="date"
+                type="date"
+                value={format(formData.date, 'yyyy-MM-dd')}
+                onChange={(e) => setFormData(prev => ({ ...prev, date: new Date(e.target.value) }))}
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="recipient-name">To (Recipient Name)</Label>
+              <Input
+                id="recipient-name"
+                value={formData.recipient_name}
+                onChange={(e) => setFormData(prev => ({ ...prev, recipient_name: e.target.value }))}
+                placeholder="Recipient name"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="recipient-email">To (Recipient Email)</Label>
+              <Input
+                id="recipient-email"
+                type="email"
+                value={formData.recipient_email}
+                onChange={(e) => setFormData(prev => ({ ...prev, recipient_email: e.target.value }))}
+                placeholder="recipient@company.com"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="sender-name">From (Sender Name)</Label>
+              <Input
+                id="sender-name"
+                value={formData.sender_name}
+                onChange={(e) => setFormData(prev => ({ ...prev, sender_name: e.target.value }))}
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="sender-email">From (Sender Email)</Label>
+              <Input
+                id="sender-email"
+                type="email"
+                value={formData.sender_email}
+                onChange={(e) => setFormData(prev => ({ ...prev, sender_email: e.target.value }))}
+                placeholder="sender@company.com"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="subject">Subject / Title</Label>
+              <Input
+                id="subject"
+                value={formData.subject}
+                onChange={(e) => setFormData(prev => ({ ...prev, subject: e.target.value }))}
+                placeholder="Brief description of the RFI"
+              />
+            </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          {/* Right Column */}
+          <div className="space-y-4">
+            <div className="space-y-3">
+              <Label>Reference Documents</Label>
+              
+              <div>
+                <Label htmlFor="drawing-no" className="text-sm text-muted-foreground">Drawing No.</Label>
+                <Input
+                  id="drawing-no"
+                  value={formData.drawing_no}
+                  onChange={(e) => setFormData(prev => ({ ...prev, drawing_no: e.target.value }))}
+                  placeholder="A-101, S-201, etc."
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="spec-section" className="text-sm text-muted-foreground">Specification Section</Label>
+                <Input
+                  id="spec-section"
+                  value={formData.specification_section}
+                  onChange={(e) => setFormData(prev => ({ ...prev, specification_section: e.target.value }))}
+                  placeholder="Section 03 30 00"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="contract-clause" className="text-sm text-muted-foreground">Contract Clause</Label>
+                <Input
+                  id="contract-clause"
+                  value={formData.contract_clause}
+                  onChange={(e) => setFormData(prev => ({ ...prev, contract_clause: e.target.value }))}
+                  placeholder="Article 3.2.1"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="other-ref" className="text-sm text-muted-foreground">Other Reference</Label>
+                <Input
+                  id="other-ref"
+                  value={formData.other_reference}
+                  onChange={(e) => setFormData(prev => ({ ...prev, other_reference: e.target.value }))}
+                  placeholder="Additional references"
+                />
+              </div>
+            </div>
+
             <div>
               <Label htmlFor="priority">Priority</Label>
-              <Select value={priority} onValueChange={(value: any) => setPriority(value)}>
-                <SelectTrigger className="mt-1">
-                  <SelectValue />
+              <Select value={formData.priority} onValueChange={(value: any) => setFormData(prev => ({ ...prev, priority: value }))}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select priority" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="low">Low</SelectItem>
@@ -117,75 +282,101 @@ export const CreateRFIDialog = ({ open, onOpenChange, projectId }: CreateRFIDial
 
             <div>
               <Label htmlFor="category">Category</Label>
-              <Select value={category} onValueChange={setCategory}>
-                <SelectTrigger className="mt-1">
+              <Select value={formData.category} onValueChange={(value) => setFormData(prev => ({ ...prev, category: value }))}>
+                <SelectTrigger>
                   <SelectValue placeholder="Select category" />
                 </SelectTrigger>
                 <SelectContent>
-                  {rfiCategories.map((cat) => (
-                    <SelectItem key={cat} value={cat}>
-                      {cat}
+                  {rfiCategories.map((category) => (
+                    <SelectItem key={category} value={category.toLowerCase()}>
+                      {category}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="dueDate">Due Date</Label>
-              <Input
-                id="dueDate"
-                type="date"
-                value={dueDate}
-                onChange={(e) => setDueDate(e.target.value)}
-                className="mt-1"
-              />
-            </div>
 
             <div>
-              <Label htmlFor="assignedTo">Assign To</Label>
-              <Select value={assignedTo} onValueChange={setAssignedTo}>
-                <SelectTrigger className="mt-1">
+              <Label htmlFor="assigned-to">Assign To</Label>
+              <Select value={formData.assigned_to} onValueChange={(value) => setFormData(prev => ({ ...prev, assigned_to: value }))}>
+                <SelectTrigger>
                   <SelectValue placeholder="Select team member" />
                 </SelectTrigger>
                 <SelectContent>
-                  {projectUsers.map((user) => (
-                    <SelectItem key={user.user_id} value={user.user_id}>
-                      {user.user_profile?.name || 'Unknown User'} ({user.role})
+                  {teamMembers.map((member) => (
+                    <SelectItem key={member.user_id} value={member.user_id}>
+                      {member.user_profile?.name || 'Unknown User'} ({member.role})
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
-          </div>
-          
-          {/* File Attachments */}
-          <div>
-            <Label>Attachments</Label>
-            <div className="mt-1">
-              <DocumentUpload
-                projectId={projectId}
-                onUploadComplete={() => handleAttachmentUpload([])}
-              />
+
+            <div>
+              <Label>Required Response By</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "w-full justify-start text-left font-normal",
+                      !requiredResponseDate && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {requiredResponseDate ? format(requiredResponseDate, "PPP") : <span>Pick a date</span>}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={requiredResponseDate}
+                    onSelect={setRequiredResponseDate}
+                    initialFocus
+                    className={cn("p-3 pointer-events-auto")}
+                  />
+                </PopoverContent>
+              </Popover>
             </div>
           </div>
+        </div>
 
-          <div className="flex justify-end gap-2 pt-4">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-              disabled={loading}
-            >
-              Cancel
-            </Button>
-            <Button type="submit" disabled={loading || !question.trim()}>
-              {loading ? 'Creating...' : 'Create RFI'}
-            </Button>
+        {/* Full width fields */}
+        <div className="space-y-4">
+          <div>
+            <Label htmlFor="question">Request / Question</Label>
+            <Textarea
+              id="question"
+              placeholder="Describe your request or question in detail..."
+              value={formData.question}
+              onChange={(e) => setFormData(prev => ({ ...prev, question: e.target.value }))}
+              className="min-h-[100px]"
+            />
           </div>
-        </form>
+
+          <div>
+            <Label htmlFor="proposed-solution">Proposed Solution (Optional)</Label>
+            <Textarea
+              id="proposed-solution"
+              placeholder="If you have a proposed solution, describe it here..."
+              value={formData.proposed_solution}
+              onChange={(e) => setFormData(prev => ({ ...prev, proposed_solution: e.target.value }))}
+              className="min-h-[80px]"
+            />
+          </div>
+        </div>
+
+        <div className="flex justify-end space-x-2">
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
+            Cancel
+          </Button>
+          <Button 
+            onClick={handleSubmit} 
+            disabled={loading || !formData.question || !formData.subject}
+          >
+            {loading ? 'Creating...' : 'Create RFI'}
+          </Button>
+        </div>
       </DialogContent>
     </Dialog>
   );
