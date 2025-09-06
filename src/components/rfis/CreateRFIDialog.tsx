@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,13 +7,14 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { CalendarIcon } from 'lucide-react';
+import { CalendarIcon, FileText, Upload, X } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { useRFIs } from '@/hooks/useRFIs';
 import { useProjectTeam } from '@/hooks/useProjectTeam';
 import { useProjects } from '@/hooks/useProjects';
 import { useAuth } from '@/hooks/useAuth';
+import { useDocuments } from '@/hooks/useDocuments';
 
 interface CreateRFIDialogProps {
   open: boolean;
@@ -29,18 +30,19 @@ export const CreateRFIDialog: React.FC<CreateRFIDialogProps> = ({
   const { createRFI } = useRFIs(projectId);
   const { teamMembers } = useProjectTeam(projectId);
   const { projects } = useProjects();
-  const { profile } = useAuth();
+  const { profile, user } = useAuth();
+  const { documents } = useDocuments(projectId);
   
   const currentProject = projects.find(p => p.id === projectId);
   
   const [formData, setFormData] = useState({
-    project_name: currentProject?.name || '',
-    project_number: currentProject?.id || '',
+    project_name: '',
+    project_number: '',
     date: new Date(),
     recipient_name: '',
     recipient_email: '',
-    sender_name: profile?.name || '',
-    sender_email: '', // Would come from auth user email
+    sender_name: '',
+    sender_email: '',
     subject: '',
     drawing_no: '',
     specification_section: '',
@@ -56,6 +58,23 @@ export const CreateRFIDialog: React.FC<CreateRFIDialogProps> = ({
 
   const [requiredResponseDate, setRequiredResponseDate] = useState<Date>();
   const [loading, setLoading] = useState(false);
+  const [selectedRecipient, setSelectedRecipient] = useState<string>('');
+  const [isOtherRecipient, setIsOtherRecipient] = useState(false);
+  const [selectedDocuments, setSelectedDocuments] = useState<string[]>([]);
+  const [documentNames, setDocumentNames] = useState<Record<string, string>>({});
+
+  // Auto-fill project data when dialog opens
+  useEffect(() => {
+    if (open && currentProject && profile && user) {
+      setFormData(prev => ({
+        ...prev,
+        project_name: currentProject.name || '',
+        project_number: currentProject.id || '',
+        sender_name: profile.name || '',
+        sender_email: user.email || '',
+      }));
+    }
+  }, [open, currentProject, profile, user]);
 
   const rfiCategories = [
     'General',
@@ -71,8 +90,56 @@ export const CreateRFIDialog: React.FC<CreateRFIDialogProps> = ({
     'Other'
   ];
 
+  // Handle recipient selection
+  const handleRecipientChange = (value: string) => {
+    setSelectedRecipient(value);
+    
+    if (value === 'other') {
+      setIsOtherRecipient(true);
+      setFormData(prev => ({ ...prev, recipient_name: '', recipient_email: '' }));
+    } else {
+      setIsOtherRecipient(false);
+      const member = teamMembers.find(m => m.user_id === value);
+      if (member) {
+        setFormData(prev => ({
+          ...prev,
+          recipient_name: member.user_profile?.name || '',
+          recipient_email: '', // Email needs to be filled manually or from auth
+          assigned_to: value
+        }));
+      }
+    }
+  };
+
+  // Handle document selection
+  const handleDocumentSelect = (documentId: string) => {
+    if (selectedDocuments.includes(documentId)) {
+      setSelectedDocuments(prev => prev.filter(id => id !== documentId));
+      setDocumentNames(prev => {
+        const { [documentId]: removed, ...rest } = prev;
+        return rest;
+      });
+    } else {
+      const doc = documents.find(d => d.id === documentId);
+      if (doc) {
+        setSelectedDocuments(prev => [...prev, documentId]);
+        setDocumentNames(prev => ({ ...prev, [documentId]: doc.name }));
+      }
+    }
+  };
+
   const handleSubmit = async () => {
     if (!formData.question || !formData.subject) return;
+    
+    // Build reference documents string from selected documents
+    const referenceDocsFromSelection = selectedDocuments
+      .map(id => documentNames[id])
+      .filter(Boolean)
+      .join(', ');
+    
+    const otherRef = [formData.other_reference, referenceDocsFromSelection]
+      .filter(Boolean)
+      .join(', ');
     
     setLoading(true);
     try {
@@ -94,7 +161,7 @@ export const CreateRFIDialog: React.FC<CreateRFIDialogProps> = ({
         drawing_no: formData.drawing_no,
         specification_section: formData.specification_section,
         contract_clause: formData.contract_clause,
-        other_reference: formData.other_reference,
+        other_reference: otherRef,
         proposed_solution: formData.proposed_solution,
         required_response_by: requiredResponseDate?.toISOString(),
       });
@@ -107,7 +174,7 @@ export const CreateRFIDialog: React.FC<CreateRFIDialogProps> = ({
         recipient_name: '',
         recipient_email: '',
         sender_name: profile?.name || '',
-        sender_email: '',
+        sender_email: user?.email || '',
         subject: '',
         drawing_no: '',
         specification_section: '',
@@ -121,6 +188,10 @@ export const CreateRFIDialog: React.FC<CreateRFIDialogProps> = ({
         assigned_to: '',
       });
       setRequiredResponseDate(undefined);
+      setSelectedRecipient('');
+      setIsOtherRecipient(false);
+      setSelectedDocuments([]);
+      setDocumentNames({});
       onOpenChange(false);
     } catch (error) {
       console.error('Error creating RFI:', error);
@@ -168,25 +239,46 @@ export const CreateRFIDialog: React.FC<CreateRFIDialogProps> = ({
             </div>
 
             <div>
-              <Label htmlFor="recipient-name">To (Recipient Name)</Label>
-              <Input
-                id="recipient-name"
-                value={formData.recipient_name}
-                onChange={(e) => setFormData(prev => ({ ...prev, recipient_name: e.target.value }))}
-                placeholder="Recipient name"
-              />
+              <Label htmlFor="recipient-select">To (Recipient)</Label>
+              <Select value={selectedRecipient} onValueChange={handleRecipientChange}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select recipient" />
+                </SelectTrigger>
+                <SelectContent>
+                  {teamMembers.map((member) => (
+                    <SelectItem key={member.user_id} value={member.user_id}>
+                      {member.user_profile?.name || 'Unknown User'} ({member.role})
+                    </SelectItem>
+                  ))}
+                  <SelectItem value="other">Other recipient</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
-            <div>
-              <Label htmlFor="recipient-email">To (Recipient Email)</Label>
-              <Input
-                id="recipient-email"
-                type="email"
-                value={formData.recipient_email}
-                onChange={(e) => setFormData(prev => ({ ...prev, recipient_email: e.target.value }))}
-                placeholder="recipient@company.com"
-              />
-            </div>
+            {isOtherRecipient && (
+              <>
+                <div>
+                  <Label htmlFor="recipient-name">Recipient Name</Label>
+                  <Input
+                    id="recipient-name"
+                    value={formData.recipient_name}
+                    onChange={(e) => setFormData(prev => ({ ...prev, recipient_name: e.target.value }))}
+                    placeholder="Enter recipient name"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="recipient-email">Recipient Email</Label>
+                  <Input
+                    id="recipient-email"
+                    type="email"
+                    value={formData.recipient_email}
+                    onChange={(e) => setFormData(prev => ({ ...prev, recipient_email: e.target.value }))}
+                    placeholder="recipient@company.com"
+                  />
+                </div>
+              </>
+            )}
 
             <div>
               <Label htmlFor="sender-name">From (Sender Name)</Label>
@@ -255,6 +347,50 @@ export const CreateRFIDialog: React.FC<CreateRFIDialogProps> = ({
               </div>
 
               <div>
+                <Label className="text-sm text-muted-foreground">Attach Project Documents</Label>
+                {documents.length > 0 ? (
+                  <div className="max-h-32 overflow-y-auto border rounded-md p-2 space-y-1">
+                    {documents.map((doc) => (
+                      <div
+                        key={doc.id}
+                        className={cn(
+                          "flex items-center space-x-2 p-2 rounded cursor-pointer hover:bg-muted",
+                          selectedDocuments.includes(doc.id) && "bg-primary/10"
+                        )}
+                        onClick={() => handleDocumentSelect(doc.id)}
+                      >
+                        <FileText className="h-4 w-4" />
+                        <span className="text-sm flex-1 truncate">{doc.name}</span>
+                        {selectedDocuments.includes(doc.id) && (
+                          <div className="text-primary">✓</div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground">No documents available in this project</p>
+                )}
+                
+                {selectedDocuments.length > 0 && (
+                  <div className="space-y-1">
+                    <Label className="text-sm text-muted-foreground">Selected Documents:</Label>
+                    {selectedDocuments.map(docId => (
+                      <div key={docId} className="flex items-center justify-between bg-muted p-2 rounded text-sm">
+                        <span className="truncate flex-1">{documentNames[docId]}</span>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDocumentSelect(docId)}
+                        >
+                          <X className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div>
                 <Label htmlFor="other-ref" className="text-sm text-muted-foreground">Other Reference</Label>
                 <Input
                   id="other-ref"
@@ -296,21 +432,23 @@ export const CreateRFIDialog: React.FC<CreateRFIDialogProps> = ({
               </Select>
             </div>
 
-            <div>
-              <Label htmlFor="assigned-to">Assign To</Label>
-              <Select value={formData.assigned_to} onValueChange={(value) => setFormData(prev => ({ ...prev, assigned_to: value }))}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select team member" />
-                </SelectTrigger>
-                <SelectContent>
-                  {teamMembers.map((member) => (
-                    <SelectItem key={member.user_id} value={member.user_id}>
-                      {member.user_profile?.name || 'Unknown User'} ({member.role})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            {!isOtherRecipient && (
+              <div>
+                <Label htmlFor="assigned-to">Assign To</Label>
+                <Select value={formData.assigned_to} onValueChange={(value) => setFormData(prev => ({ ...prev, assigned_to: value }))}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select team member" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {teamMembers.map((member) => (
+                      <SelectItem key={member.user_id} value={member.user_id}>
+                        {member.user_profile?.name || 'Unknown User'} ({member.role})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
 
             <div>
               <Label>Required Response By</Label>
