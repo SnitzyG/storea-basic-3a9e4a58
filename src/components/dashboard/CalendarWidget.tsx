@@ -323,6 +323,18 @@ export const CalendarWidget = () => {
             >
               <ChevronRight className="h-4 w-4" />
             </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                const today = new Date();
+                setCurrentMonth(today);
+                setSelectedDate(today);
+              }}
+              className="h-9"
+            >
+              Today
+            </Button>
           </div>
         </div>
 

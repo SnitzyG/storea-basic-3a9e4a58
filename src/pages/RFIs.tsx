@@ -1,5 +1,6 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -31,11 +32,21 @@ const RFIs = () => {
   const currentProject = projects.find(p => p.id === selectedProject) || projects[0];
   const { rfis, loading, updateRFI } = useRFIs(currentProject?.id);
   const { teamMembers } = useProjectTeam(currentProject?.id || '');
+  const location = useLocation();
 
   // Update project users from teamMembers
   React.useEffect(() => {
     setProjectUsers(teamMembers);
   }, [teamMembers]);
+
+  // Auto-open create dialog when navigated with state
+  useEffect(() => {
+    if ((location.state as any)?.openCreate) {
+      setCreateDialogOpen(true);
+      // Clear the flag to prevent reopening on internal state changes
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state]);
 
   // Filter RFIs based on search and filters
   const filteredRFIs = useMemo(() => {

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Search, Moon, Sun, MessageSquare, FileText, Upload } from 'lucide-react';
 import { RecentActivity } from '@/components/dashboard/RecentActivity';
@@ -14,6 +15,7 @@ const Dashboard = () => {
   const [searchOpen, setSearchOpen] = useState(false);
   const { theme, toggleTheme } = useTheme();
   const { profile } = useAuth();
+  const navigate = useNavigate();
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -45,15 +47,15 @@ const Dashboard = () => {
           
           <div className="flex items-center gap-2">
             {/* Quick Action Shortcuts (non-functional placeholders) */}
-            <Button size="sm" variant="outline" className="gap-1 text-xs px-2 py-1">
+            <Button size="sm" variant="outline" className="gap-1 text-xs px-2 py-1" onClick={() => navigate('/messages')}>
               <MessageSquare className="h-4 w-4" />
               Message
             </Button>
-            <Button size="sm" variant="outline" className="gap-1 text-xs px-2 py-1">
+            <Button size="sm" variant="outline" className="gap-1 text-xs px-2 py-1" onClick={() => navigate('/rfis', { state: { openCreate: true } })}>
               <FileText className="h-4 w-4" />
               RFI
             </Button>
-            <Button size="sm" variant="outline" className="gap-1 text-xs px-2 py-1">
+            <Button size="sm" variant="outline" className="gap-1 text-xs px-2 py-1" onClick={() => navigate('/documents', { state: { openUpload: true } })}>
               <Upload className="h-4 w-4" />
               Upload
             </Button>
@@ -74,7 +76,7 @@ const Dashboard = () => {
 
       {/* Main Dashboard Content - Optimized Single Page Layout */}
       <div className="flex-1 p-4 overflow-hidden">
-        <div className="h-full grid grid-cols-1 lg:grid-cols-4 gap-4">
+        <div className="h-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
           {/* Recent Activity */}
           <div className="col-span-1 h-full">
             <RecentActivity />

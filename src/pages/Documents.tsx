@@ -1,5 +1,6 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Upload } from 'lucide-react';
+import { useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import {
@@ -33,6 +34,7 @@ const Documents = () => {
   
   const { profile } = useAuth();
   const { projects } = useProjects();
+  const location = useLocation();
   const { 
     documents, 
     loading, 
@@ -96,6 +98,15 @@ const Documents = () => {
   };
 
   const statusCounts = getStatusCounts();
+
+  // Auto-open upload dialog when navigated with state
+  useEffect(() => {
+    if ((location.state as any)?.openUpload) {
+      setUploadDialogOpen(true);
+      // Clear the flag to prevent reopening on internal state changes
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state]);
 
   if (loading) {
     return (
