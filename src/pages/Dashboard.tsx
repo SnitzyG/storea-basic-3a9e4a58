@@ -61,37 +61,41 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Main Dashboard Content - Full Height */}
-      <div className="flex-1 p-6 overflow-hidden">
-        <div className="h-full grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Column 1 - Single Full-Height Recent Activity */}
-          <div className="h-full">
+      {/* Main Dashboard Content - Compact Single Page Layout */}
+      <div className="flex-1 p-4 overflow-hidden">
+        <div className="h-full grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+          {/* Priority Section 1 - Recent Activity (Takes more space) */}
+          <div className="md:col-span-1 xl:col-span-2 h-full">
             <RecentActivity />
           </div>
           
-          {/* Column 2 - Three Equal-Height Stacked Cards */}
-          <div className="h-full flex flex-col gap-6">
-            <div className="flex-1">
-              <ActionableDocuments />
+          {/* Priority Section 2 - Right Column with Key Widgets */}
+          <div className="h-full flex flex-col gap-4">
+            <div className="flex-1 min-h-0">
+              <CalendarWidget />
             </div>
-            <div className="flex-1">
-              <OpenMessages />
-            </div>
-            <div className="flex-1">
-              <OpenRFIs />
+            <div className="flex-1 min-h-0">
+              <ToDoList />
             </div>
           </div>
           
-          {/* Column 3 - Three Equal-Height Stacked Sections */}
-          <div className="h-full flex flex-col gap-6">
-            <div className="flex-1">
+          {/* Priority Section 3 - Info Panel + Compact Secondary Items */}
+          <div className="h-full flex flex-col gap-4">
+            <div className="flex-1 min-h-0">
               <InfoPanel />
             </div>
-            <div className="flex-1">
-              <ToDoList />
-            </div>
-            <div className="flex-1">
-              <CalendarWidget />
+            
+            {/* Compact Secondary Items */}
+            <div className="flex-1 min-h-0 grid grid-cols-1 gap-2">
+              <div className="h-24 overflow-hidden">
+                <ActionableDocuments />
+              </div>
+              <div className="h-24 overflow-hidden">
+                <OpenMessages />
+              </div>
+              <div className="h-24 overflow-hidden">
+                <OpenRFIs />
+              </div>
             </div>
           </div>
         </div>
