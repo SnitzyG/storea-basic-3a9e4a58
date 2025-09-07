@@ -2,9 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Search, Moon, Sun } from 'lucide-react';
 import { RecentActivity } from '@/components/dashboard/RecentActivity';
-import { OpenRFIs } from '@/components/dashboard/OpenRFIs';
-import { OpenMessages } from '@/components/dashboard/OpenMessages';
-import { ActionableDocuments } from '@/components/dashboard/ActionableDocuments';
 import { ToDoList } from '@/components/dashboard/ToDoList';
 import { InfoPanel } from '@/components/dashboard/InfoPanel';
 import { CalendarWidget } from '@/components/dashboard/CalendarWidget';
@@ -34,7 +31,7 @@ const Dashboard = () => {
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  const userName = profile?.name || 'User';
+  const userName = profile?.name || 'username';
 
   return (
     <div className="h-full flex flex-col bg-background">
@@ -61,41 +58,26 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Main Dashboard Content - Compact Single Page Layout */}
+      {/* Main Dashboard Content - Optimized Single Page Layout */}
       <div className="flex-1 p-4 overflow-hidden">
-        <div className="h-full grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-          {/* Priority Section 1 - Recent Activity (Takes more space) */}
-          <div className="md:col-span-1 xl:col-span-2 h-full">
+        <div className="h-full grid grid-cols-1 lg:grid-cols-3 gap-4">
+          {/* Primary Section - Recent Activity */}
+          <div className="lg:col-span-1 h-full">
             <RecentActivity />
           </div>
           
-          {/* Priority Section 2 - Right Column with Key Widgets */}
-          <div className="h-full flex flex-col gap-4">
-            <div className="flex-1 min-h-0">
-              <CalendarWidget />
-            </div>
+          {/* Secondary Section - Calendar */}
+          <div className="lg:col-span-1 h-full">
+            <CalendarWidget />
+          </div>
+          
+          {/* Tertiary Section - To-Do List and Info Panel */}
+          <div className="lg:col-span-1 h-full flex flex-col gap-4">
             <div className="flex-1 min-h-0">
               <ToDoList />
             </div>
-          </div>
-          
-          {/* Priority Section 3 - Info Panel + Compact Secondary Items */}
-          <div className="h-full flex flex-col gap-4">
             <div className="flex-1 min-h-0">
               <InfoPanel />
-            </div>
-            
-            {/* Compact Secondary Items */}
-            <div className="flex-1 min-h-0 grid grid-cols-1 gap-2">
-              <div className="h-24 overflow-hidden">
-                <ActionableDocuments />
-              </div>
-              <div className="h-24 overflow-hidden">
-                <OpenMessages />
-              </div>
-              <div className="h-24 overflow-hidden">
-                <OpenRFIs />
-              </div>
             </div>
           </div>
         </div>

@@ -7,7 +7,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { CalendarDays, Plus, Clock, CheckCircle2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Textarea } from '@/components/ui/textarea';
+import { Checkbox } from '@/components/ui/checkbox';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Separator } from '@/components/ui/separator';
+import { CalendarDays, Plus, Clock, CheckCircle2, ChevronLeft, ChevronRight, Download, Users } from 'lucide-react';
 import { format, isSameDay, startOfMonth, endOfMonth, eachDayOfInterval } from 'date-fns';
 import { useTodos } from '@/hooks/useTodos';
 import { useToast } from '@/hooks/use-toast';
@@ -16,8 +20,15 @@ export const CalendarWidget = () => {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
   const [newEventTitle, setNewEventTitle] = useState('');
+  const [newEventDescription, setNewEventDescription] = useState('');
+  const [newEventTime, setNewEventTime] = useState('');
   const [newEventPriority, setNewEventPriority] = useState<'low' | 'medium' | 'high'>('medium');
+  const [isMeeting, setIsMeeting] = useState(false);
+  const [inviteCollaborators, setInviteCollaborators] = useState<string[]>([]);
+  const [collaboratorEmail, setCollaboratorEmail] = useState('');
+  const [exportFormat, setExportFormat] = useState<'day' | 'week' | 'fortnight' | 'month'>('week');
   const { todos, addTodo } = useTodos();
   const { toast } = useToast();
 
@@ -27,12 +38,6 @@ export const CalendarWidget = () => {
       todo.due_date && isSameDay(new Date(todo.due_date), date)
     );
   };
-
-  // Get all days in current month with todo counts
-  const monthDays = eachDayOfInterval({
-    start: startOfMonth(currentMonth),
-    end: endOfMonth(currentMonth)
-  });
 
   const navigateMonth = (direction: 'prev' | 'next') => {
     const newMonth = new Date(currentMonth);
@@ -44,23 +49,47 @@ export const CalendarWidget = () => {
     setCurrentMonth(newMonth);
   };
 
+  const addCollaborator = () => {
+    if (collaboratorEmail.trim() && !inviteCollaborators.includes(collaboratorEmail)) {
+      setInviteCollaborators([...inviteCollaborators, collaboratorEmail]);
+      setCollaboratorEmail('');
+    }
+  };
+
+  const removeCollaborator = (email: string) => {
+    setInviteCollaborators(inviteCollaborators.filter(e => e !== email));
+  };
+
   const handleCreateEvent = async () => {
     if (!selectedDate || !newEventTitle.trim()) return;
 
     try {
+      const eventContent = isMeeting 
+        ? `Meeting: ${newEventTitle}${newEventDescription ? ` - ${newEventDescription}` : ''}${inviteCollaborators.length > 0 ? ` (Attendees: ${inviteCollaborators.join(', ')})` : ''}`
+        : `${newEventTitle}${newEventDescription ? ` - ${newEventDescription}` : ''}`;
+
+      const eventDate = newEventTime 
+        ? new Date(`${selectedDate.toDateString()} ${newEventTime}`)
+        : selectedDate;
+
       await addTodo(
-        newEventTitle,
+        eventContent,
         newEventPriority,
-        selectedDate.toISOString()
+        eventDate.toISOString()
       );
       
+      // Reset form
       setNewEventTitle('');
+      setNewEventDescription('');
+      setNewEventTime('');
       setNewEventPriority('medium');
+      setIsMeeting(false);
+      setInviteCollaborators([]);
       setIsDialogOpen(false);
       
       toast({
         title: "Event created",
-        description: `Event "${newEventTitle}" scheduled for ${format(selectedDate, 'MMM d, yyyy')}`,
+        description: `${isMeeting ? 'Meeting' : 'Event'} "${newEventTitle}" scheduled for ${format(selectedDate, 'MMM d, yyyy')}`,
       });
     } catch (error) {
       toast({
@@ -69,6 +98,26 @@ export const CalendarWidget = () => {
         variant: "destructive",
       });
     }
+  };
+
+  const handleExport = () => {
+    const eventsForPeriod = getTodosForDate(selectedDate || new Date());
+    const dataStr = JSON.stringify(eventsForPeriod, null, 2);
+    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(dataBlob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `calendar-${exportFormat}-${format(selectedDate || new Date(), 'yyyy-MM-dd')}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    
+    toast({
+      title: "Success",
+      description: `Calendar exported for ${exportFormat}`,
+    });
+    setIsExportDialogOpen(false);
   };
 
   const selectedDateTodos = selectedDate ? getTodosForDate(selectedDate) : [];
@@ -83,61 +132,172 @@ export const CalendarWidget = () => {
             </div>
             Calendar
           </CardTitle>
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogTrigger asChild>
-              <Button variant="outline" size="sm" className="gap-2 hover:bg-primary/10 border-primary/20">
-                <Plus className="h-4 w-4" />
-                Add Event
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-md">
-              <DialogHeader>
-                <DialogTitle className="flex items-center gap-2">
-                  <CalendarDays className="h-5 w-5" />
-                  Create New Event
-                </DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4 pt-4">
-                <div className="space-y-2">
-                  <Label htmlFor="event-title">Event Title</Label>
-                  <Input
-                    id="event-title"
-                    value={newEventTitle}
-                    onChange={(e) => setNewEventTitle(e.target.value)}
-                    placeholder="Enter event title..."
-                    className="focus:ring-primary/20"
-                  />
+          <div className="flex items-center gap-1">
+            <Dialog open={isExportDialogOpen} onOpenChange={setIsExportDialogOpen}>
+              <DialogTrigger asChild>
+                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                  <Download className="h-4 w-4" />
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-sm">
+                <DialogHeader>
+                  <DialogTitle>Export Calendar</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <div>
+                    <Label>Export Period</Label>
+                    <Select value={exportFormat} onValueChange={(value: 'day' | 'week' | 'fortnight' | 'month') => setExportFormat(value)}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="day">Day</SelectItem>
+                        <SelectItem value="week">Week</SelectItem>
+                        <SelectItem value="fortnight">Fortnight</SelectItem>
+                        <SelectItem value="month">Month</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button onClick={handleExport} className="flex-1">
+                      <Download className="h-4 w-4 mr-2" />
+                      Export
+                    </Button>
+                    <Button variant="outline" onClick={() => setIsExportDialogOpen(false)}>
+                      Cancel
+                    </Button>
+                  </div>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="event-priority">Priority</Label>
-                  <Select value={newEventPriority} onValueChange={(value: 'low' | 'medium' | 'high') => setNewEventPriority(value)}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="low">Low Priority</SelectItem>
-                      <SelectItem value="medium">Medium Priority</SelectItem>
-                      <SelectItem value="high">High Priority</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="bg-muted/50 p-3 rounded-lg">
-                  <p className="text-sm text-muted-foreground">
-                    <strong>Selected Date:</strong> {selectedDate ? format(selectedDate, 'EEEE, MMMM d, yyyy') : 'No date selected'}
-                  </p>
-                </div>
-                <div className="flex gap-2 pt-2">
-                  <Button onClick={handleCreateEvent} className="flex-1 gap-2" disabled={!newEventTitle.trim()}>
-                    <Plus className="h-4 w-4" />
-                    Create Event
-                  </Button>
-                  <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
-                    Cancel
-                  </Button>
-                </div>
-              </div>
-            </DialogContent>
-          </Dialog>
+              </DialogContent>
+            </Dialog>
+            
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+              <DialogTrigger asChild>
+                <Button variant="outline" size="sm" className="gap-2 hover:bg-primary/10 border-primary/20">
+                  <Plus className="h-4 w-4" />
+                  Add Event
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle className="flex items-center gap-2">
+                    <CalendarDays className="h-5 w-5" />
+                    Create New Event
+                  </DialogTitle>
+                </DialogHeader>
+                <ScrollArea className="max-h-[70vh] pr-4">
+                  <div className="space-y-4 pt-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="event-title">Event Title</Label>
+                      <Input
+                        id="event-title"
+                        value={newEventTitle}
+                        onChange={(e) => setNewEventTitle(e.target.value)}
+                        placeholder="Enter event title..."
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="event-description">Description</Label>
+                      <Textarea
+                        id="event-description"
+                        value={newEventDescription}
+                        onChange={(e) => setNewEventDescription(e.target.value)}
+                        placeholder="Add event description (optional)"
+                        rows={3}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="event-time">Time</Label>
+                      <Input
+                        id="event-time"
+                        type="time"
+                        value={newEventTime}
+                        onChange={(e) => setNewEventTime(e.target.value)}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="event-priority">Priority</Label>
+                      <Select value={newEventPriority} onValueChange={(value: 'low' | 'medium' | 'high') => setNewEventPriority(value)}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="low">Low Priority</SelectItem>
+                          <SelectItem value="medium">Medium Priority</SelectItem>
+                          <SelectItem value="high">High Priority</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="is-meeting"
+                        checked={isMeeting}
+                        onCheckedChange={(checked) => setIsMeeting(checked as boolean)}
+                      />
+                      <Label htmlFor="is-meeting">This is a meeting</Label>
+                    </div>
+
+                    {isMeeting && (
+                      <div className="space-y-3">
+                        <Separator />
+                        <div>
+                          <Label>Invite Collaborators</Label>
+                          <div className="flex gap-2 mt-1">
+                            <Input
+                              value={collaboratorEmail}
+                              onChange={(e) => setCollaboratorEmail(e.target.value)}
+                              placeholder="Enter email address"
+                              onKeyPress={(e) => e.key === 'Enter' && addCollaborator()}
+                            />
+                            <Button type="button" onClick={addCollaborator} variant="outline" size="sm">
+                              Add
+                            </Button>
+                          </div>
+                          {inviteCollaborators.length > 0 && (
+                            <div className="mt-2 space-y-1">
+                              {inviteCollaborators.map((email) => (
+                                <div key={email} className="flex items-center justify-between bg-muted p-2 rounded">
+                                  <span className="text-sm">{email}</span>
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => removeCollaborator(email)}
+                                  >
+                                    Remove
+                                  </Button>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="bg-muted/50 p-3 rounded-lg">
+                      <p className="text-sm text-muted-foreground">
+                        <strong>Selected Date:</strong> {selectedDate ? format(selectedDate, 'EEEE, MMMM d, yyyy') : 'No date selected'}
+                      </p>
+                    </div>
+
+                    <div className="flex gap-2 pt-2">
+                      <Button onClick={handleCreateEvent} className="flex-1 gap-2" disabled={!newEventTitle.trim()}>
+                        <Plus className="h-4 w-4" />
+                        Create {isMeeting ? 'Meeting' : 'Event'}
+                      </Button>
+                      <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+                        Cancel
+                      </Button>
+                    </div>
+                  </div>
+                </ScrollArea>
+              </DialogContent>
+            </Dialog>
+          </div>
         </div>
       </CardHeader>
       <CardContent className="flex-1 flex flex-col space-y-6 p-6">
@@ -174,13 +334,13 @@ export const CalendarWidget = () => {
             onSelect={setSelectedDate}
             month={currentMonth}
             onMonthChange={setCurrentMonth}
-            className="w-full rounded-lg"
+            className="w-full rounded-lg pointer-events-auto"
             classNames={{
               months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
               month: "space-y-4 w-full",
-              caption: "hidden", // Hide default caption since we have custom navigation
+              caption: "hidden",
               caption_label: "hidden",
-              nav: "hidden", // Hide default nav since we have custom navigation
+              nav: "hidden",
               nav_button: "hidden",
               nav_button_previous: "hidden",
               nav_button_next: "hidden",
@@ -201,8 +361,6 @@ export const CalendarWidget = () => {
             components={{
               Day: ({ date, displayMonth, ...props }: any) => {
                 const todosForDate = getTodosForDate(date);
-                const isToday = isSameDay(date, new Date());
-                const isSelected = selectedDate && isSameDay(date, selectedDate);
                 
                 return (
                   <div className="relative w-full h-full">
