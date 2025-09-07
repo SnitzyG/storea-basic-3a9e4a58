@@ -63,7 +63,7 @@ const Auth = () => {
     <div className="min-h-screen flex items-center justify-center bg-background px-4">
       <div className="w-full max-w-6xl flex flex-col lg:flex-row items-center gap-8">
         {/* Animated House Illustration */}
-        <div className="w-full lg:w-1/2 flex justify-center">
+        <div className="w-full lg:w-1/2 flex justify-center lg:order-2">
           <div className="relative w-80 h-80">
             <svg viewBox="0 0 200 200" className="w-full h-full">
               {/* Foundation */}
@@ -131,7 +131,7 @@ const Auth = () => {
         </div>
 
         {/* Login Form Section */}
-        <div className="w-full lg:w-1/2 max-w-md">
+        <div className="w-full lg:w-1/2 max-w-md lg:order-1">
           <div className="text-center mb-8">
             <h1 className="text-3xl font-bold text-primary mb-2">STOREA Basic</h1>
             <p className="text-muted-foreground">Construction Management Platform</p>
