@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Search, Moon, Sun } from 'lucide-react';
+import { Search, Moon, Sun, MessageSquare, FileText, Upload } from 'lucide-react';
 import { RecentActivity } from '@/components/dashboard/RecentActivity';
 import { ToDoList } from '@/components/dashboard/ToDoList';
 import { InfoPanel } from '@/components/dashboard/InfoPanel';
@@ -44,6 +44,20 @@ const Dashboard = () => {
           </div>
           
           <div className="flex items-center gap-2">
+            {/* Quick Action Shortcuts (non-functional placeholders) */}
+            <Button size="sm" variant="outline" className="gap-1 text-xs px-2 py-1">
+              <MessageSquare className="h-4 w-4" />
+              Message
+            </Button>
+            <Button size="sm" variant="outline" className="gap-1 text-xs px-2 py-1">
+              <FileText className="h-4 w-4" />
+              RFI
+            </Button>
+            <Button size="sm" variant="outline" className="gap-1 text-xs px-2 py-1">
+              <Upload className="h-4 w-4" />
+              Upload
+            </Button>
+
             <Button variant="outline" onClick={() => setSearchOpen(true)} className="gap-2">
               <Search className="h-4 w-4" />
               Search
@@ -60,25 +74,25 @@ const Dashboard = () => {
 
       {/* Main Dashboard Content - Optimized Single Page Layout */}
       <div className="flex-1 p-4 overflow-hidden">
-        <div className="h-full grid grid-cols-1 lg:grid-cols-3 gap-4">
-          {/* Primary Section - Recent Activity */}
-          <div className="lg:col-span-1 h-full">
+        <div className="h-full grid grid-cols-1 lg:grid-cols-4 gap-4">
+          {/* Recent Activity */}
+          <div className="col-span-1 h-full">
             <RecentActivity />
           </div>
-          
-          {/* Secondary Section - Calendar */}
-          <div className="lg:col-span-1 h-full">
+
+          {/* Calendar */}
+          <div className="col-span-1 h-full">
             <CalendarWidget />
           </div>
-          
-          {/* Tertiary Section - To-Do List and Info Panel */}
-          <div className="lg:col-span-1 h-full flex flex-col gap-4">
-            <div className="flex-1 min-h-0">
-              <ToDoList />
-            </div>
-            <div className="flex-1 min-h-0">
-              <InfoPanel />
-            </div>
+
+          {/* To-Do List */}
+          <div className="col-span-1 h-full">
+            <ToDoList />
+          </div>
+
+          {/* Info Panel */}
+          <div className="col-span-1 h-full">
+            <InfoPanel />
           </div>
         </div>
       </div>
