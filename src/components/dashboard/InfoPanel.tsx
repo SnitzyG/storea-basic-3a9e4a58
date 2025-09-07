@@ -98,33 +98,6 @@ export const InfoPanel = () => {
           </div>
         </div>
 
-        {/* Quick Stats */}
-        <div className="space-y-2">
-          <h4 className="font-medium text-sm">Quick Stats</h4>
-          <div className="space-y-1 text-xs text-muted-foreground">
-            <div className="flex justify-between">
-              <span>Active Projects:</span>
-              <span className="font-medium">8</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Pending Tasks:</span>
-              <span className="font-medium text-destructive">12</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Team Members:</span>
-              <span className="font-medium">24</span>
-            </div>
-          </div>
-        </div>
-
-        {/* System Status */}
-        <div className="space-y-2">
-          <h4 className="font-medium text-sm">System Status</h4>
-          <div className="flex items-center gap-2">
-            <div className="h-2 w-2 bg-green-500 rounded-full"></div>
-            <span className="text-xs text-muted-foreground">All systems operational</span>
-          </div>
-        </div>
       </CardContent>
     </Card>
   );
