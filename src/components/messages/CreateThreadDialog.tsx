@@ -47,6 +47,11 @@ export const CreateThreadDialog: React.FC<CreateThreadDialogProps> = ({
     e.preventDefault();
     if (!title.trim()) return;
 
+    if (participants.length === 0) {
+      alert('Please select at least one participant from the project team.');
+      return;
+    }
+
     setLoading(true);
     try {
       await onCreateThread(title, participants);

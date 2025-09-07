@@ -58,7 +58,9 @@ const Messages = () => {
     sendMessage,
     markMessageAsRead,
     getUnreadCount,
-    setTypingIndicator
+    setTypingIndicator,
+    updateThread,
+    removeThread
   } = useMessages(selectedProject);
 
   // Set default project
@@ -129,8 +131,22 @@ const Messages = () => {
     await createThread(title, participants);
   };
 
-  const handleSendMessage = async (content: string, attachments?: any[]) => {
-    await sendMessage(content, currentThread || undefined, attachments);
+  const handleSendMessage = async (content: string, attachments?: any[], isInquiry?: boolean) => {
+    await sendMessage(content, currentThread || undefined, attachments, isInquiry);
+  };
+
+  const updateThreadTitle = async (threadId: string, newTitle: string) => {
+    await updateThread(threadId, { title: newTitle });
+  };
+
+  const closeThread = async (threadId: string) => {
+    await updateThread(threadId, { status: 'closed' });
+  };
+
+  const deleteThread = async (threadId: string) => {
+    if (confirm('Are you sure you want to delete this thread?')) {
+      await removeThread(threadId);
+    }
   };
 
   const isMessageConsecutive = (currentMsg: any, previousMsg: any) => {
@@ -165,13 +181,7 @@ const Messages = () => {
               <CardTitle className="text-lg font-semibold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
                 {getCurrentProjectName()}
               </CardTitle>
-              <div className="flex items-center gap-1">
-                {connectionStatus === 'connected' ? (
-                  <Wifi className="h-4 w-4 text-green-500" />
-                ) : (
-                  <WifiOff className="h-4 w-4 text-red-500" />
-                )}
-              </div>
+              {/* Removed WiFi indicator as requested */}
             </div>
             <p className="text-sm text-muted-foreground">
               Project Messages
@@ -232,15 +242,22 @@ const Messages = () => {
             {/* Thread List */}
             <ScrollArea className="flex-1">
               <div className="space-y-2">
-                {filteredThreads.map((thread) => (
-                  <ThreadCard
-                    key={thread.id}
-                    thread={thread}
-                    unreadCount={0} // TODO: Calculate unread count
-                    isSelected={currentThread === thread.id}
-                    onClick={() => setCurrentThread(thread.id)}
-                  />
-                ))}
+                {filteredThreads.map((thread) => {
+                  const isDirect = thread.participants.length === 2;
+                  return (
+                    <ThreadCard
+                      key={thread.id}
+                      thread={thread}
+                      unreadCount={0} // TODO: Calculate unread count
+                      isSelected={currentThread === thread.id}
+                      onClick={() => setCurrentThread(thread.id)}
+                      isDirect={isDirect}
+                      onEdit={(title) => updateThreadTitle(thread.id, title)}
+                      onClose={() => closeThread(thread.id)}
+                      onDelete={() => deleteThread(thread.id)}
+                    />
+                  );
+                })}
                 
                 {filteredThreads.length === 0 && selectedProject && (
                   <div className="text-center py-8">
@@ -320,6 +337,7 @@ const Messages = () => {
               supportAttachments={true}
               supportMentions={true}
               projectUsers={projectUsers}
+              projectId={selectedProject}
             />
           </CardContent>
           </>

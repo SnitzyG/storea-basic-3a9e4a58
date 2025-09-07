@@ -152,7 +152,61 @@ export const useMessages = (projectId?: string) => {
     }
   };
 
-  const sendMessage = async (content: string, threadId?: string, attachments?: any[]) => {
+  const updateThread = async (threadId: string, updates: Partial<MessageThread>) => {
+    try {
+      const { error } = await supabase
+        .from('message_threads')
+        .update(updates)
+        .eq('id', threadId);
+
+      if (error) throw error;
+      
+      await fetchThreads(projectId);
+      
+      toast({
+        title: "Success",
+        description: "Thread updated successfully",
+      });
+    } catch (error) {
+      console.error('Error updating thread:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update thread",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const removeThread = async (threadId: string) => {
+    try {
+      const { error } = await supabase
+        .from('message_threads')
+        .delete()
+        .eq('id', threadId);
+
+      if (error) throw error;
+      
+      await fetchThreads(projectId);
+      
+      if (currentThread === threadId) {
+        setCurrentThread(null);
+      }
+      
+      toast({
+        title: "Success",
+        description: "Thread deleted successfully",
+      });
+    } catch (error) {
+      console.error('Error deleting thread:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete thread",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const sendMessage = async (content: string, threadId?: string, attachments?: any[], isInquiry?: boolean) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user || !projectId) throw new Error('User not authenticated or no project selected');
@@ -162,7 +216,7 @@ export const useMessages = (projectId?: string) => {
         thread_id: threadId || null,
         sender_id: user.id,
         content,
-        message_type: 'text',
+        message_type: isInquiry ? 'inquiry' : 'text',
         attachments: attachments || []
       };
 
@@ -419,6 +473,8 @@ export const useMessages = (projectId?: string) => {
     sendMessage,
     markMessageAsRead,
     getUnreadCount,
-    setTypingIndicator
+    setTypingIndicator,
+    updateThread,
+    removeThread
   };
 };

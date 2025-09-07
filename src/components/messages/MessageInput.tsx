@@ -1,20 +1,24 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Paperclip, Smile, AtSign, X } from 'lucide-react';
+import { Send, Paperclip, Smile, AtSign, X, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
+import { FileSelector } from './FileSelector';
 import { cn } from '@/lib/utils';
 
 interface MessageInputProps {
-  onSendMessage: (content: string, attachments?: any[]) => Promise<void>;
+  onSendMessage: (content: string, attachments?: any[], isInquiry?: boolean) => Promise<void>;
   onTyping?: (isTyping: boolean) => void;
   placeholder?: string;
   disabled?: boolean;
   supportAttachments?: boolean;
   supportMentions?: boolean;
   projectUsers?: any[];
+  projectId?: string;
 }
 
 export const MessageInput: React.FC<MessageInputProps> = ({
@@ -24,16 +28,18 @@ export const MessageInput: React.FC<MessageInputProps> = ({
   disabled = false,
   supportAttachments = false,
   supportMentions = false,
-  projectUsers = []
+  projectUsers = [],
+  projectId = ''
 }) => {
   const [message, setMessage] = useState('');
   const [sending, setSending] = useState(false);
-  const [attachments, setAttachments] = useState<File[]>([]);
+  const [attachments, setAttachments] = useState<any[]>([]);
   const [showMentions, setShowMentions] = useState(false);
   const [mentionQuery, setMentionQuery] = useState('');
+  const [isInquiry, setIsInquiry] = useState(false);
+  const [showFileSelector, setShowFileSelector] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout>();
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const value = e.target.value;
@@ -83,10 +89,12 @@ export const MessageInput: React.FC<MessageInputProps> = ({
 
     setSending(true);
     try {
-      await onSendMessage(message.trim(), attachments.length > 0 ? attachments : undefined);
+      await onSendMessage(message.trim(), attachments.length > 0 ? attachments : undefined, isInquiry);
       setMessage('');
       setAttachments([]);
       setShowMentions(false);
+      setIsInquiry(false);
+      setShowFileSelector(false);
       
       // Reset textarea height
       if (textareaRef.current) {
@@ -104,9 +112,17 @@ export const MessageInput: React.FC<MessageInputProps> = ({
     }
   };
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || []);
-    setAttachments(prev => [...prev, ...files]);
+  const handleFileSelect = (file: any) => {
+    setAttachments(prev => [...prev, file]);
+  };
+
+  const handleUploadNew = (files: File[]) => {
+    const fileObjects = files.map(file => ({
+      name: file.name,
+      type: 'uploaded',
+      file: file
+    }));
+    setAttachments(prev => [...prev, ...fileObjects]);
   };
 
   const removeAttachment = (index: number) => {
@@ -145,26 +161,36 @@ export const MessageInput: React.FC<MessageInputProps> = ({
 
   return (
     <div className="border-t bg-background">
-      {/* Attachments Preview */}
-      {attachments.length > 0 && (
-        <div className="p-4 border-b bg-muted/30">
-          <div className="flex flex-wrap gap-2">
-            {attachments.map((file, index) => (
-              <Badge key={index} variant="secondary" className="flex items-center gap-2">
-                <Paperclip className="h-3 w-3" />
-                {file.name}
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="h-4 w-4 p-0 hover:bg-transparent"
-                  onClick={() => removeAttachment(index)}
-                >
-                  <X className="h-3 w-3" />
-                </Button>
-              </Badge>
-            ))}
-          </div>
+      {/* Inquiry Mode Toggle */}
+      <div className="px-4 py-2 border-b bg-muted/20">
+        <div className="flex items-center space-x-2">
+          <Switch
+            id="inquiry-mode"
+            checked={isInquiry}
+            onCheckedChange={setIsInquiry}
+          />
+          <Label htmlFor="inquiry-mode" className="text-sm flex items-center gap-2">
+            <AlertCircle className="h-4 w-4" />
+            Send as formal inquiry
+          </Label>
+        </div>
+        {isInquiry && (
+          <p className="text-xs text-muted-foreground mt-1">
+            This will send the message as a formal inquiry requiring a response
+          </p>
+        )}
+      </div>
+
+      {/* File Selector */}
+      {showFileSelector && (
+        <div className="p-4 border-b bg-muted/10">
+          <FileSelector
+            projectId={projectId}
+            selectedFiles={attachments}
+            onFileSelect={handleFileSelect}
+            onFileRemove={removeAttachment}
+            onUploadNew={handleUploadNew}
+          />
         </div>
       )}
 
@@ -172,25 +198,16 @@ export const MessageInput: React.FC<MessageInputProps> = ({
         <div className="flex gap-2 items-end">
           {/* Attachment Button */}
           {supportAttachments && (
-            <>
-              <input
-                ref={fileInputRef}
-                type="file"
-                multiple
-                className="hidden"
-                onChange={handleFileSelect}
-              />
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                className="h-10 w-10 p-0"
-                disabled={disabled || sending}
-                onClick={() => fileInputRef.current?.click()}
-              >
-                <Paperclip className="h-4 w-4" />
-              </Button>
-            </>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="h-10 w-10 p-0"
+              disabled={disabled || sending}
+              onClick={() => setShowFileSelector(!showFileSelector)}
+            >
+              <Paperclip className="h-4 w-4" />
+            </Button>
           )}
           
           {/* Message Input with Mentions */}
