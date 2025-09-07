@@ -3,14 +3,23 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Badge } from '@/components/ui/badge';
-import { CalendarDays, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { CalendarDays, Plus, Clock, CheckCircle2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { format, isSameDay, startOfMonth, endOfMonth, eachDayOfInterval } from 'date-fns';
 import { useTodos } from '@/hooks/useTodos';
+import { useToast } from '@/hooks/use-toast';
 
 export const CalendarWidget = () => {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [currentMonth, setCurrentMonth] = useState(new Date());
-  const { todos } = useTodos();
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [newEventTitle, setNewEventTitle] = useState('');
+  const [newEventPriority, setNewEventPriority] = useState<'low' | 'medium' | 'high'>('medium');
+  const { todos, addTodo } = useTodos();
+  const { toast } = useToast();
 
   // Get todos for a specific date
   const getTodosForDate = (date: Date) => {
@@ -35,34 +44,122 @@ export const CalendarWidget = () => {
     setCurrentMonth(newMonth);
   };
 
+  const handleCreateEvent = async () => {
+    if (!selectedDate || !newEventTitle.trim()) return;
+
+    try {
+      await addTodo(
+        newEventTitle,
+        newEventPriority,
+        selectedDate.toISOString()
+      );
+      
+      setNewEventTitle('');
+      setNewEventPriority('medium');
+      setIsDialogOpen(false);
+      
+      toast({
+        title: "Event created",
+        description: `Event "${newEventTitle}" scheduled for ${format(selectedDate, 'MMM d, yyyy')}`,
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to create event. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const selectedDateTodos = selectedDate ? getTodosForDate(selectedDate) : [];
 
   return (
-    <Card className="h-full flex flex-col">
-      <CardHeader className="pb-3 flex-shrink-0">
-        <CardTitle className="text-lg flex items-center gap-2">
-          <CalendarDays className="h-5 w-5" />
-          Calendar
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="flex-1 flex flex-col space-y-4">
-        {/* Month Navigation */}
+    <Card className="h-full flex flex-col bg-gradient-to-br from-background to-muted/20 border-0 shadow-lg">
+      <CardHeader className="pb-4 flex-shrink-0 bg-gradient-to-r from-primary/5 to-secondary/5 rounded-t-lg">
         <div className="flex items-center justify-between">
-          <h3 className="font-semibold text-lg">
+          <CardTitle className="text-xl flex items-center gap-3 font-semibold">
+            <div className="p-2 bg-primary/10 rounded-full">
+              <CalendarDays className="h-5 w-5 text-primary" />
+            </div>
+            Calendar
+          </CardTitle>
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline" size="sm" className="gap-2 hover:bg-primary/10 border-primary/20">
+                <Plus className="h-4 w-4" />
+                Add Event
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">
+                  <CalendarDays className="h-5 w-5" />
+                  Create New Event
+                </DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4 pt-4">
+                <div className="space-y-2">
+                  <Label htmlFor="event-title">Event Title</Label>
+                  <Input
+                    id="event-title"
+                    value={newEventTitle}
+                    onChange={(e) => setNewEventTitle(e.target.value)}
+                    placeholder="Enter event title..."
+                    className="focus:ring-primary/20"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="event-priority">Priority</Label>
+                  <Select value={newEventPriority} onValueChange={(value: 'low' | 'medium' | 'high') => setNewEventPriority(value)}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="low">Low Priority</SelectItem>
+                      <SelectItem value="medium">Medium Priority</SelectItem>
+                      <SelectItem value="high">High Priority</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="bg-muted/50 p-3 rounded-lg">
+                  <p className="text-sm text-muted-foreground">
+                    <strong>Selected Date:</strong> {selectedDate ? format(selectedDate, 'EEEE, MMMM d, yyyy') : 'No date selected'}
+                  </p>
+                </div>
+                <div className="flex gap-2 pt-2">
+                  <Button onClick={handleCreateEvent} className="flex-1 gap-2" disabled={!newEventTitle.trim()}>
+                    <Plus className="h-4 w-4" />
+                    Create Event
+                  </Button>
+                  <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
+        </div>
+      </CardHeader>
+      <CardContent className="flex-1 flex flex-col space-y-6 p-6">
+        {/* Month Navigation */}
+        <div className="flex items-center justify-between bg-muted/30 p-4 rounded-xl">
+          <h3 className="font-bold text-xl text-foreground">
             {format(currentMonth, 'MMMM yyyy')}
           </h3>
-          <div className="flex gap-1">
+          <div className="flex gap-2">
             <Button
-              variant="outline"
+              variant="ghost"
               size="sm"
               onClick={() => navigateMonth('prev')}
+              className="hover:bg-primary/10 h-9 w-9 p-0"
             >
               <ChevronLeft className="h-4 w-4" />
             </Button>
             <Button
-              variant="outline"
+              variant="ghost"
               size="sm"
               onClick={() => navigateMonth('next')}
+              className="hover:bg-primary/10 h-9 w-9 p-0"
             >
               <ChevronRight className="h-4 w-4" />
             </Button>
@@ -70,46 +167,65 @@ export const CalendarWidget = () => {
         </div>
 
         {/* Calendar Grid */}
-        <div className="flex-1">
+        <div className="flex-1 bg-card rounded-xl border border-border/40 p-4 shadow-sm">
           <Calendar
             mode="single"
             selected={selectedDate}
             onSelect={setSelectedDate}
             month={currentMonth}
             onMonthChange={setCurrentMonth}
-            className="rounded-md border w-full"
+            className="w-full rounded-lg"
             classNames={{
               months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
               month: "space-y-4 w-full",
-              caption: "flex justify-center pt-1 relative items-center",
-              caption_label: "text-sm font-medium",
-              nav: "space-x-1 flex items-center",
-              nav_button: "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100",
-              nav_button_previous: "absolute left-1",
-              nav_button_next: "absolute right-1",
-              table: "w-full border-collapse space-y-1",
-              head_row: "flex",
-              head_cell: "text-muted-foreground rounded-md w-8 font-normal text-[0.8rem]",
-              row: "flex w-full mt-2",
-              cell: "relative p-0 text-center text-sm focus-within:relative focus-within:z-20",
-              day: "h-8 w-8 p-0 font-normal aria-selected:opacity-100 hover:bg-accent hover:text-accent-foreground rounded-md",
+              caption: "hidden", // Hide default caption since we have custom navigation
+              caption_label: "hidden",
+              nav: "hidden", // Hide default nav since we have custom navigation
+              nav_button: "hidden",
+              nav_button_previous: "hidden",
+              nav_button_next: "hidden",
+              table: "w-full border-collapse",
+              head_row: "flex mb-2",
+              head_cell: "text-muted-foreground text-center font-medium text-sm w-full p-2 rounded-md bg-muted/20",
+              row: "flex w-full",
+              cell: "relative p-1 text-center text-sm focus-within:relative focus-within:z-20 flex-1",
+              day: "h-10 w-full p-0 font-medium aria-selected:opacity-100 hover:bg-primary/10 hover:text-primary rounded-lg transition-all duration-200 cursor-pointer border border-transparent hover:border-primary/20",
               day_range_end: "day-range-end",
-              day_selected: "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
-              day_today: "bg-accent text-accent-foreground",
-              day_outside: "text-muted-foreground opacity-50",
-              day_disabled: "text-muted-foreground opacity-50",
+              day_selected: "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground shadow-md border-primary",
+              day_today: "bg-secondary/50 text-secondary-foreground font-bold ring-2 ring-primary/30",
+              day_outside: "text-muted-foreground/40 opacity-50",
+              day_disabled: "text-muted-foreground opacity-30 cursor-not-allowed hover:bg-transparent",
               day_range_middle: "aria-selected:bg-accent aria-selected:text-accent-foreground",
               day_hidden: "invisible",
             }}
             components={{
-              Day: ({ date, displayMonth, ...props }) => {
+              Day: ({ date, displayMonth, ...props }: any) => {
                 const todosForDate = getTodosForDate(date);
+                const isToday = isSameDay(date, new Date());
+                const isSelected = selectedDate && isSameDay(date, selectedDate);
+                
                 return (
-                  <div className="relative">
-                    <button {...props}>
-                      {date.getDate()}
+                  <div className="relative w-full h-full">
+                    <button {...props} className={`${props.className || ''} relative w-full h-full flex flex-col items-center justify-center gap-1`}>
+                      <span className="text-sm">{date.getDate()}</span>
                       {todosForDate.length > 0 && (
-                        <div className="absolute -top-1 -right-1 h-2 w-2 bg-primary rounded-full"></div>
+                        <div className="flex gap-0.5 absolute bottom-1">
+                          {todosForDate.slice(0, 3).map((todo, index) => (
+                            <div
+                              key={index}
+                              className={`h-1.5 w-1.5 rounded-full ${
+                                todo.priority === 'high' 
+                                  ? 'bg-red-500' 
+                                  : todo.priority === 'medium' 
+                                  ? 'bg-yellow-500' 
+                                  : 'bg-green-500'
+                              }`}
+                            />
+                          ))}
+                          {todosForDate.length > 3 && (
+                            <div className="h-1.5 w-1.5 rounded-full bg-muted-foreground" />
+                          )}
+                        </div>
                       )}
                     </button>
                   </div>
@@ -119,27 +235,68 @@ export const CalendarWidget = () => {
           />
         </div>
 
-        {/* Selected Date Todos */}
+        {/* Selected Date Events */}
         {selectedDate && (
-          <div className="space-y-2 flex-shrink-0">
-            <h4 className="font-medium text-sm">
-              {format(selectedDate, 'EEEE, MMMM d')}
-            </h4>
+          <div className="space-y-3 flex-shrink-0 bg-muted/30 p-4 rounded-xl border border-border/20">
+            <div className="flex items-center justify-between">
+              <h4 className="font-semibold text-base flex items-center gap-2">
+                <Clock className="h-4 w-4 text-primary" />
+                {format(selectedDate, 'EEEE, MMMM d')}
+              </h4>
+              <Badge variant="secondary" className="text-xs">
+                {selectedDateTodos.length} event{selectedDateTodos.length !== 1 ? 's' : ''}
+              </Badge>
+            </div>
+            
             {selectedDateTodos.length > 0 ? (
-              <div className="space-y-1 max-h-24 overflow-y-auto">
+              <div className="space-y-2 max-h-32 overflow-y-auto">
                 {selectedDateTodos.map((todo) => (
-                  <div key={todo.id} className="flex items-center gap-2 p-2 border rounded text-xs">
-                    <Badge variant="outline" className="text-xs">
-                      {todo.priority}
-                    </Badge>
-                    <span className={todo.completed ? 'line-through text-muted-foreground' : ''}>
-                      {todo.content}
-                    </span>
+                  <div 
+                    key={todo.id} 
+                    className="flex items-center gap-3 p-3 bg-card rounded-lg border border-border/40 shadow-sm hover:shadow-md transition-all duration-200"
+                  >
+                    <div className={`p-1.5 rounded-full ${
+                      todo.priority === 'high' 
+                        ? 'bg-red-100 text-red-600' 
+                        : todo.priority === 'medium' 
+                        ? 'bg-yellow-100 text-yellow-600' 
+                        : 'bg-green-100 text-green-600'
+                    }`}>
+                      {todo.completed ? (
+                        <CheckCircle2 className="h-3 w-3" />
+                      ) : (
+                        <Clock className="h-3 w-3" />
+                      )}
+                    </div>
+                    
+                    <div className="flex-1 min-w-0">
+                      <p className={`text-sm font-medium ${
+                        todo.completed ? 'line-through text-muted-foreground' : 'text-foreground'
+                      }`}>
+                        {todo.content}
+                      </p>
+                      <Badge 
+                        variant="outline" 
+                        className={`text-xs mt-1 ${
+                          todo.priority === 'high' 
+                            ? 'border-red-300 text-red-600' 
+                            : todo.priority === 'medium' 
+                            ? 'border-yellow-300 text-yellow-600' 
+                            : 'border-green-300 text-green-600'
+                        }`}
+                      >
+                        {todo.priority} priority
+                      </Badge>
+                    </div>
                   </div>
                 ))}
               </div>
             ) : (
-              <p className="text-xs text-muted-foreground">No tasks scheduled</p>
+              <div className="text-center py-6">
+                <Clock className="h-8 w-8 text-muted-foreground/50 mx-auto mb-2" />
+                <p className="text-sm text-muted-foreground">No events scheduled</p>
+                <p className="text-xs text-muted-foreground/70 mt-1">Click "Add Event" to create your first event</p>
+              </div>
             )}
           </div>
         )}
