@@ -61,11 +61,11 @@ const Auth = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background px-4">
-      <div className="w-full max-w-6xl flex flex-col lg:flex-row items-center gap-8">
+      <div className="w-full max-w-6xl flex flex-col lg:flex-row items-center lg:justify-between gap-8">
         {/* Animated House Illustration */}
         <div className="w-full lg:w-1/2 flex justify-center lg:order-2">
-          <div className="relative w-80 h-80">
-            <svg viewBox="0 0 200 200" className="w-full h-full">
+          <div className="relative w-full max-w-md">
+            <svg viewBox="0 0 200 200" className="w-full h-auto">
               {/* Foundation */}
               <rect 
                 x="40" y="160" width="120" height="30" 
@@ -127,14 +127,16 @@ const Auth = () => {
               <circle cx="131" cy="75" r="1.5" className="fill-muted-foreground/30 animate-[smokeFloat_2s_ease-in-out_3.4s_infinite]" />
               <circle cx="127" cy="72" r="1" className="fill-muted-foreground/20 animate-[smokeFloat_2s_ease-in-out_3.6s_infinite]" />
             </svg>
+            {/* STOREA Logo/Text under animation */}
+            <div className="mt-6 text-center">
+              <h1 className="text-3xl font-bold text-primary">STOREA</h1>
+            </div>
           </div>
         </div>
 
         {/* Login Form Section */}
         <div className="w-full lg:w-1/2 max-w-md lg:order-1">
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-primary mb-2">STOREA Basic</h1>
-            <p className="text-muted-foreground">Construction Management Platform</p>
             {emailConfirmed && (
               <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
                 <p className="text-green-800 text-sm">
