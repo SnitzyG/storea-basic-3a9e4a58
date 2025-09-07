@@ -10,6 +10,7 @@ export interface MessageThread {
   created_by: string;
   created_at: string;
   updated_at: string;
+  status?: string;
 }
 
 export interface Message {

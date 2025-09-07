@@ -418,6 +418,7 @@ export type Database = {
           id: string
           participants: string[] | null
           project_id: string
+          status: string | null
           title: string
           updated_at: string
         }
@@ -427,6 +428,7 @@ export type Database = {
           id?: string
           participants?: string[] | null
           project_id: string
+          status?: string | null
           title: string
           updated_at?: string
         }
@@ -436,6 +438,7 @@ export type Database = {
           id?: string
           participants?: string[] | null
           project_id?: string
+          status?: string | null
           title?: string
           updated_at?: string
         }
@@ -455,6 +458,7 @@ export type Database = {
           content: string
           created_at: string
           id: string
+          inquiry_status: string | null
           message_type: string | null
           project_id: string
           sender_id: string
@@ -466,6 +470,7 @@ export type Database = {
           content: string
           created_at?: string
           id?: string
+          inquiry_status?: string | null
           message_type?: string | null
           project_id: string
           sender_id: string
@@ -477,6 +482,7 @@ export type Database = {
           content?: string
           created_at?: string
           id?: string
+          inquiry_status?: string | null
           message_type?: string | null
           project_id?: string
           sender_id?: string

@@ -135,17 +135,17 @@ const Messages = () => {
     await sendMessage(content, currentThread || undefined, attachments, isInquiry);
   };
 
-  const updateThreadTitle = async (threadId: string, newTitle: string) => {
-    await updateThread(threadId, { title: newTitle });
+  const updateThreadTitle = (threadId: string, newTitle: string) => {
+    updateThread(threadId, { title: newTitle });
   };
 
-  const closeThread = async (threadId: string) => {
-    await updateThread(threadId, { status: 'closed' });
+  const closeThread = (threadId: string) => {
+    updateThread(threadId, { status: 'closed' });
   };
 
-  const deleteThread = async (threadId: string) => {
+  const deleteThread = (threadId: string) => {
     if (confirm('Are you sure you want to delete this thread?')) {
-      await removeThread(threadId);
+      removeThread(threadId);
     }
   };
 
