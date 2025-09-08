@@ -8,7 +8,7 @@ import { Plus } from 'lucide-react';
 import { useRFIs, RFI } from '@/hooks/useRFIs';
 import { useProjects } from '@/hooks/useProjects';
 import { useAuth } from '@/hooks/useAuth';
-import { RFICard } from '@/components/rfis/RFICard';
+// Cards view removed for RFIs
 import { CreateRFIDialog } from '@/components/rfis/CreateRFIDialog';
 import { RFIDetailsDialog } from '@/components/rfis/RFIDetailsDialog';
 import { RFIFilters } from '@/components/rfis/RFIFilters';
@@ -225,20 +225,6 @@ const RFIs = () => {
           </p>
         </div>
         <div className="flex items-center space-x-2">
-          <Button
-            variant={'outline'}
-            size="sm"
-            disabled
-          >
-            Cards
-          </Button>
-          <Button
-            variant={'default'}
-            size="sm"
-            disabled
-          >
-            List
-          </Button>
           <Button onClick={() => setCreateDialogOpen(true)}>
             <Plus className="w-4 h-4 mr-2" />
             New RFI
