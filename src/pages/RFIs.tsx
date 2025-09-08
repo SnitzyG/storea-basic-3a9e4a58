@@ -20,7 +20,7 @@ const RFIs = () => {
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
   const [selectedRFI, setSelectedRFI] = useState<RFI | null>(null);
-  const [viewMode, setViewMode] = useState<'cards' | 'list'>('cards');
+  const [viewMode, setViewMode] = useState<'cards' | 'list'>('list');
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [priorityFilter, setPriorityFilter] = useState('all');
@@ -226,16 +226,16 @@ const RFIs = () => {
         </div>
         <div className="flex items-center space-x-2">
           <Button
-            variant={viewMode === 'cards' ? 'default' : 'outline'}
+            variant={'outline'}
             size="sm"
-            onClick={() => setViewMode('cards')}
+            disabled
           >
             Cards
           </Button>
           <Button
-            variant={viewMode === 'list' ? 'default' : 'outline'}
+            variant={'default'}
             size="sm"
-            onClick={() => setViewMode('list')}
+            disabled
           >
             List
           </Button>
@@ -281,25 +281,11 @@ const RFIs = () => {
 
         {/* RFI Display */}
         {filteredRFIs.length > 0 ? (
-          viewMode === 'list' ? (
-            <RFIListView
-              rfis={filteredRFIs}
-              onView={handleViewRFI}
-              onExportPDF={handleExportPDF}
-            />
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredRFIs.map((rfi) => (
-                <RFICard
-                  key={rfi.id}
-                  rfi={rfi}
-                  onView={handleViewRFI}
-                  onEdit={profile?.role === 'architect' ? handleEditRFI : undefined}
-                  onAssign={profile?.role === 'architect' ? handleAssignRFI : undefined}
-                />
-              ))}
-            </div>
-          )
+          <RFIListView
+            rfis={filteredRFIs}
+            onView={handleViewRFI}
+            onExportPDF={handleExportPDF}
+          />
         ) : (
           <Card>
             <CardContent className="text-center py-12">

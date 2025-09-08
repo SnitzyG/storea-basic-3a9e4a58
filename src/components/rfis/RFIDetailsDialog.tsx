@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -58,6 +59,41 @@ export const RFIDetailsDialog = ({ open, onOpenChange, rfi }: RFIDetailsDialogPr
     }
   }, [rfi, open, getRFIActivities]);
 
+  // Real-time subscription for activity timeline
+  useEffect(() => {
+    if (!open || !rfi) return;
+
+    const channel = supabase
+      .channel(`rfi-activities-${rfi.id}`)
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'rfi_activities', filter: `rfi_id=eq.${rfi.id}` },
+        async (payload: any) => {
+          const newActivity = payload.new;
+          // Fetch profile for the activity user to enrich
+          const { data: profiles } = await supabase
+            .from('profiles')
+            .select('user_id, name, role')
+            .eq('user_id', newActivity.user_id)
+            .limit(1)
+            .maybeSingle();
+
+          setActivities(prev => [
+            {
+              ...newActivity,
+              user_profile: profiles || undefined,
+            },
+            ...prev,
+          ]);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [open, rfi]);
+
   const handleSubmitResponse = async () => {
     if (!rfi || !response.trim()) return;
 
@@ -65,6 +101,9 @@ export const RFIDetailsDialog = ({ open, onOpenChange, rfi }: RFIDetailsDialogPr
     const updates: Partial<RFI> = {
       response: response.trim(),
       status: 'responded',
+      responder_name: profile?.name,
+      responder_position: profile?.role,
+      response_date: new Date().toISOString(),
     };
 
     await updateRFI(rfi.id, updates);

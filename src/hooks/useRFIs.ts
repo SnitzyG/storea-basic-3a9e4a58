@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { useToast } from '@/hooks/use-toast';
+import { Todo } from './useTodos';
 
 export interface RFI {
   id: string;
@@ -171,6 +172,34 @@ export const useRFIs = (projectId?: string) => {
           details: `RFI created with priority: ${rfiData.priority}`,
         });
 
+      // Calendar sync: create todos for creator and assignee when required date is present
+      if (rfiData.required_response_by) {
+        const todoRows: Partial<Todo>[] = [];
+        const content = `RFI response required: ${rfiData.subject || rfiData.question.substring(0, 50)}`;
+        // Creator
+        todoRows.push({
+          user_id: user.id,
+          project_id: rfiData.project_id,
+          content,
+          priority: rfiData.priority === 'critical' ? 'high' : rfiData.priority === 'high' ? 'high' : 'medium',
+          due_date: rfiData.required_response_by,
+        } as any);
+        // Assignee
+        if (rfiData.assigned_to) {
+          todoRows.push({
+            user_id: rfiData.assigned_to,
+            project_id: rfiData.project_id,
+            content,
+            priority: rfiData.priority === 'critical' ? 'high' : rfiData.priority === 'high' ? 'high' : 'medium',
+            due_date: rfiData.required_response_by,
+          } as any);
+        }
+
+        if (todoRows.length > 0) {
+          await supabase.from('todos').insert(todoRows as any);
+        }
+      }
+
       toast({
         title: "Success",
         description: "RFI created successfully",
@@ -217,6 +246,29 @@ export const useRFIs = (projectId?: string) => {
             action: 'updated',
             details: actions.join(', '),
           });
+      }
+
+      // If response was added now and there is a due date, optionally complete creator's todo
+      if (updates.response) {
+        try {
+          const { data: rfiRow } = await supabase
+            .from('rfis')
+            .select('required_response_by, raised_by')
+            .eq('id', id)
+            .single();
+          if (rfiRow?.required_response_by) {
+            await supabase
+              .from('todos')
+              .update({ completed: true })
+              .match({
+                project_id: (data as any)?.project_id,
+                user_id: rfiRow.raised_by,
+              })
+              .ilike('content', '%RFI response required:%');
+          }
+        } catch (e) {
+          console.debug('Optional todo completion skipped or failed', e);
+        }
       }
 
       toast({
