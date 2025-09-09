@@ -11,7 +11,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
-import { CalendarDays, Plus, Clock, CheckCircle2, ChevronLeft, ChevronRight, Download, Users, X } from 'lucide-react';
+import { CalendarDays, Plus, Clock, CheckCircle2, ChevronLeft, ChevronRight, Download, Users, X, Pencil, Trash2 } from 'lucide-react';
 import { format, isSameDay } from 'date-fns';
 import { useCalendarEvents } from '@/hooks/useCalendarEvents';
 import { useProjectSwitcher } from '@/hooks/useProjectSwitcher';
@@ -34,12 +34,19 @@ export const CalendarWidget = () => {
   const [externalEmail, setExternalEmail] = useState('');
   const [exportFormat, setExportFormat] = useState<'day' | 'week' | 'fortnight' | 'month'>('week');
 
-  const { events, addEvent, loading } = useCalendarEvents();
+  const { events, addEvent, updateEvent, deleteEvent, loading } = useCalendarEvents();
   const { currentProject } = useProjectSwitcher();
   const { getProjectUsers } = useProjects();
   const { toast } = useToast();
 
   const [projectUsers, setProjectUsers] = useState<any[]>([]);
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [editingEventId, setEditingEventId] = useState<string | null>(null);
+  const [editTitle, setEditTitle] = useState('');
+  const [editDescription, setEditDescription] = useState('');
+  const [editDate, setEditDate] = useState('');
+  const [editTime, setEditTime] = useState('');
+  const [editPriority, setEditPriority] = useState<'low' | 'medium' | 'high'>('medium');
 
   React.useEffect(() => {
     if (currentProject) {
@@ -198,6 +205,32 @@ export const CalendarWidget = () => {
       description: `Events for ${exportFormat} exported successfully`,
     });
     setIsExportDialogOpen(false);
+  };
+
+  const openEditEvent = (eventId: string) => {
+    const ev = events.find(e => e.id === eventId);
+    if (!ev) return;
+    setEditingEventId(ev.id);
+    setEditTitle(ev.title);
+    setEditDescription(ev.description || '');
+    const d = new Date(ev.start_datetime);
+    setEditDate(d.toISOString().slice(0,10));
+    setEditTime(d.toISOString().slice(11,16));
+    setEditPriority((ev.priority as 'low'|'medium'|'high') || 'medium');
+    setIsEditOpen(true);
+  };
+
+  const handleUpdateEvent = async () => {
+    if (!editingEventId || !editDate || !editTime) return;
+    const startDateTime = new Date(`${editDate}T${editTime}`).toISOString();
+    await updateEvent(editingEventId, {
+      title: editTitle.trim(),
+      description: editDescription.trim() || null,
+      start_datetime: startDateTime,
+      priority: editPriority
+    } as any);
+    setIsEditOpen(false);
+    setEditingEventId(null);
   };
 
   const todayEvents = selectedDate ? getEventsForDate(selectedDate) : [];
@@ -478,6 +511,14 @@ export const CalendarWidget = () => {
                           </Badge>
                         </div>
                       </div>
+                      <div className="flex items-center gap-1">
+                        <Button variant="ghost" size="sm" onClick={() => openEditEvent(event.id)}>
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="sm" className="text-destructive" onClick={() => deleteEvent(event.id)}>
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </div>
                     {event.description && (
                       <p className="text-xs text-muted-foreground mt-1">{event.description}</p>
@@ -493,6 +534,51 @@ export const CalendarWidget = () => {
           </div>
         )}
       </CardContent>
+      {/* Edit Event Dialog */}
+      <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Edit Event</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="edit-event-title">Title</Label>
+              <Input id="edit-event-title" value={editTitle} onChange={(e) => setEditTitle(e.target.value)} />
+            </div>
+            <div>
+              <Label htmlFor="edit-event-desc">Description</Label>
+              <Textarea id="edit-event-desc" rows={3} value={editDescription} onChange={(e) => setEditDescription(e.target.value)} />
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <Label htmlFor="edit-event-date">Date</Label>
+                <Input id="edit-event-date" type="date" value={editDate} onChange={(e) => setEditDate(e.target.value)} />
+              </div>
+              <div>
+                <Label htmlFor="edit-event-time">Time</Label>
+                <Input id="edit-event-time" type="time" value={editTime} onChange={(e) => setEditTime(e.target.value)} />
+              </div>
+            </div>
+            <div>
+              <Label>Priority</Label>
+              <Select value={editPriority} onValueChange={(v: 'low'|'medium'|'high') => setEditPriority(v)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="low">Low</SelectItem>
+                  <SelectItem value="medium">Medium</SelectItem>
+                  <SelectItem value="high">High</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex gap-2">
+              <Button className="flex-1" onClick={handleUpdateEvent}>Save</Button>
+              <Button variant="outline" onClick={() => setIsEditOpen(false)}>Cancel</Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 };
