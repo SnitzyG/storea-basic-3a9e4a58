@@ -268,7 +268,7 @@ export const ToDoList = () => {
 
   return (
     <Card className="h-full">
-      <CardHeader className="pb-3">
+      <CardHeader className="py-2">
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2">
             <CheckSquare className="h-5 w-5" />
@@ -318,7 +318,7 @@ export const ToDoList = () => {
           </div>
         </div>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-3 p-3">
         {/* Quick add section */}
         <div className="flex gap-2">
           <div className="flex-1">
@@ -352,7 +352,7 @@ export const ToDoList = () => {
               Add Detailed Task
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+          <DialogContent className="max-w-sm max-h-[80vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Create Detailed Task</DialogTitle>
             </DialogHeader>
@@ -473,7 +473,7 @@ export const ToDoList = () => {
           </DialogContent>
         </Dialog>
 
-        <ScrollArea className="h-80">
+        <ScrollArea className="h-60">
           <div className="space-y-2">
             {pendingTodos.map((todo) => (
               <div key={todo.id} className="flex items-center justify-between p-3 border rounded-lg">

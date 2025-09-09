@@ -250,7 +250,7 @@ export const CalendarWidget = () => {
 
   return (
     <Card className="h-full">
-      <CardHeader className="pb-3">
+      <CardHeader className="py-2">
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2">
             <CalendarDays className="h-5 w-5" />
@@ -297,7 +297,7 @@ export const CalendarWidget = () => {
           </div>
         </div>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-3 p-3">
         <div className="space-y-2">
           <Calendar
             mode="single"
@@ -314,7 +314,7 @@ export const CalendarWidget = () => {
               Add Event
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+          <DialogContent className="max-w-sm max-h-[80vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Create New Event</DialogTitle>
             </DialogHeader>
@@ -482,7 +482,7 @@ export const CalendarWidget = () => {
             <h4 className="font-medium">
               Events for {format(selectedDate, 'MMMM d, yyyy')}
             </h4>
-            <ScrollArea className="h-32">
+            <ScrollArea className="h-24">
               {todayEvents.length > 0 ? (
                 todayEvents.map((event) => (
                   <div key={event.id} className="p-2 border rounded-lg mb-2">
@@ -536,7 +536,7 @@ export const CalendarWidget = () => {
       </CardContent>
       {/* Edit Event Dialog */}
       <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-sm">
           <DialogHeader>
             <DialogTitle>Edit Event</DialogTitle>
           </DialogHeader>

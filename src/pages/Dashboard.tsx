@@ -36,7 +36,7 @@ const Dashboard = () => {
   const userName = profile?.name || 'username';
 
   return (
-    <div className="h-screen flex flex-col bg-background overflow-hidden">
+    <div className="h-screen flex flex-col bg-background overflow-hidden text-sm">
       {/* Header */}
       <div className="flex-shrink-0 border-b bg-card px-6 py-4">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -75,8 +75,8 @@ const Dashboard = () => {
       </div>
 
       {/* Main Dashboard Content - Single Screen Responsive Grid */}
-      <div className="flex-1 p-3 overflow-hidden">
-        <div className="h-full grid grid-cols-12 gap-3 auto-rows-fr">
+      <div className="flex-1 p-2 overflow-hidden">
+        <div className="h-full grid grid-cols-12 gap-2 auto-rows-fr">
           {/* Recent Activity (Top priority, wider) */}
           <div className="col-span-12 lg:col-span-6 xl:col-span-7 min-h-0">
             <div className="h-full">

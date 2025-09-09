@@ -321,7 +321,7 @@ export const useProjects = () => {
           role,
           joined_at,
           permissions,
-          profiles!inner (
+          profiles!project_users_user_id_profiles_fkey (
             user_id,
             name,
             phone,
