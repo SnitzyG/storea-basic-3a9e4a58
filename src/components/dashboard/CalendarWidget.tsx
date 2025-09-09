@@ -256,7 +256,17 @@ export const CalendarWidget = () => {
             <CalendarDays className="h-5 w-5" />
             Calendar
           </CardTitle>
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-2">
+            {/* Always-visible Add Event */}
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+              <DialogTrigger asChild>
+                <Button size="sm">
+                  <Plus className="h-4 w-4 mr-1" />
+                  Add Event
+                </Button>
+              </DialogTrigger>
+              <!-- existing create dialog content below remains unchanged -->
+            </Dialog>
             <Dialog open={isExportDialogOpen} onOpenChange={setIsExportDialogOpen}>
               <DialogTrigger asChild>
                 <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
@@ -298,22 +308,70 @@ export const CalendarWidget = () => {
         </div>
       </CardHeader>
       <CardContent className="space-y-3 p-3">
-        <div className="space-y-2">
+        <div className="flex items-start gap-3">
           <Calendar
             mode="single"
             selected={selectedDate}
             onSelect={setSelectedDate}
             className="rounded-md border"
           />
+          <div className="flex-1">
+            {selectedDate && (
+              <div className="space-y-2">
+                <h4 className="font-medium">Events for {format(selectedDate, 'MMMM d, yyyy')}</h4>
+                <ScrollArea className="h-24">
+                  {getEventsForDate(selectedDate).length > 0 ? (
+                    getEventsForDate(selectedDate).map((event) => (
+                      <div key={event.id} className="p-2 border rounded-lg mb-2">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="font-medium text-sm">{event.title}</p>
+                            <div className="flex items-center gap-2 mt-1">
+                              <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                                <Clock className="h-3 w-3" />
+                                {format(new Date(event.start_datetime), 'h:mm a')}
+                              </div>
+                              {event.is_meeting && (
+                                <Badge variant="secondary" className="text-xs">
+                                  <Users className="h-3 w-3 mr-1" />
+                                  Meeting
+                                </Badge>
+                              )}
+                              <Badge 
+                                variant={
+                                  event.priority === 'high' ? 'destructive' : 
+                                  event.priority === 'medium' ? 'default' : 'secondary'
+                                } 
+                                className="text-xs"
+                              >
+                                {event.priority}
+                              </Badge>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <Button variant="ghost" size="sm" onClick={() => openEditEvent(event.id)}>
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                            <Button variant="ghost" size="sm" className="text-destructive" onClick={() => deleteEvent(event.id)}>
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                        {event.description && (
+                          <p className="text-xs text-muted-foreground mt-1">{event.description}</p>
+                        )}
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-muted-foreground text-sm">No events for this date</p>
+                  )}
+                </ScrollArea>
+              </div>
+            )}
+          </div>
         </div>
 
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="w-full">
-              <Plus className="h-4 w-4 mr-2" />
-              Add Event
-            </Button>
-          </DialogTrigger>
           <DialogContent className="max-w-sm max-h-[80vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Create New Event</DialogTitle>

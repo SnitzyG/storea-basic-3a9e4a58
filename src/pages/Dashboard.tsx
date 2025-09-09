@@ -76,29 +76,26 @@ const Dashboard = () => {
 
       {/* Main Dashboard Content - Single Screen Responsive Grid */}
       <div className="flex-1 p-2 overflow-hidden">
-        <div className="h-full grid grid-cols-12 gap-2 auto-rows-fr">
-          {/* Recent Activity (Top priority, wider) */}
-          <div className="col-span-12 lg:col-span-6 xl:col-span-7 min-h-0">
+        <div className="h-full grid grid-cols-12 gap-2 auto-rows-[1fr]">
+          {/* Standardized 2x2 equal sizing */}
+          <div className="col-span-12 md:col-span-6 min-h-0">
             <div className="h-full">
               <RecentActivity />
             </div>
           </div>
 
-          {/* Calendar (reduce width to prevent overflow) */}
-          <div className="col-span-12 lg:col-span-6 xl:col-span-5 min-h-0">
+          <div className="col-span-12 md:col-span-6 min-h-0">
             <div className="h-full">
               <CalendarWidget />
             </div>
           </div>
 
-          {/* To-Do List (extend height) */}
           <div className="col-span-12 md:col-span-6 min-h-0">
             <div className="h-full">
               <ToDoList />
             </div>
           </div>
 
-          {/* Info Panel (extend height) */}
           <div className="col-span-12 md:col-span-6 min-h-0">
             <div className="h-full">
               <InfoPanel />
