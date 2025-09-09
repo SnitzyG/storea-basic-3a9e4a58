@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
-import { CheckSquare, Trash2, Plus, Calendar, FileText, MessageSquare, HelpCircle, Users, Download } from 'lucide-react';
+import { CheckSquare, Trash2, Plus, Calendar, FileText, MessageSquare, HelpCircle, Users, Download, Pencil } from 'lucide-react';
 import { useTodos, Todo } from '@/hooks/useTodos';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
@@ -27,8 +27,14 @@ export const ToDoList = () => {
   const [collaborators, setCollaborators] = useState<string[]>([]);
   const [collaboratorEmail, setCollaboratorEmail] = useState('');
   const [exportFormat, setExportFormat] = useState<'day' | 'week' | 'fortnight' | 'month'>('week');
-  const { todos, addTodo: createTodo, toggleTodo, deleteTodo, loading } = useTodos();
+  const { todos, addTodo: createTodo, toggleTodo, deleteTodo, updateTodo, loading } = useTodos();
   const { toast } = useToast();
+
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [editingTodo, setEditingTodo] = useState<Todo | null>(null);
+  const [editContent, setEditContent] = useState('');
+  const [editPriority, setEditPriority] = useState<'low' | 'medium' | 'high'>('medium');
+  const [editDueDate, setEditDueDate] = useState('');
 
   const addCollaborator = () => {
     if (collaboratorEmail.trim() && !collaborators.includes(collaboratorEmail)) {
@@ -205,6 +211,30 @@ export const ToDoList = () => {
     setIsExportDialogOpen(false);
   };
 
+  const openEdit = (todo: Todo) => {
+    setEditingTodo(todo);
+    setEditContent(todo.content);
+    setEditPriority(todo.priority);
+    setEditDueDate(todo.due_date ? new Date(todo.due_date).toISOString().slice(0,16) : '');
+    setIsEditOpen(true);
+  };
+
+  const handleUpdateTodo = async () => {
+    if (!editingTodo) return;
+    try {
+      await updateTodo(editingTodo.id, {
+        content: editContent.trim(),
+        priority: editPriority,
+        due_date: editDueDate ? new Date(editDueDate).toISOString() : null,
+      } as Partial<Todo>);
+      setIsEditOpen(false);
+      setEditingTodo(null);
+      toast({ title: 'Updated', description: 'Task updated successfully' });
+    } catch (_) {
+      toast({ title: 'Error', description: 'Failed to update task', variant: 'destructive' });
+    }
+  };
+
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
       handleQuickAdd();
@@ -238,7 +268,7 @@ export const ToDoList = () => {
 
   return (
     <Card className="h-full">
-      <CardHeader className="pb-3">
+      <CardHeader className="py-2">
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2">
             <CheckSquare className="h-5 w-5" />
@@ -288,7 +318,7 @@ export const ToDoList = () => {
           </div>
         </div>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-3 p-3">
         {/* Quick add section */}
         <div className="flex gap-2">
           <div className="flex-1">
@@ -322,7 +352,7 @@ export const ToDoList = () => {
               Add Detailed Task
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+          <DialogContent className="max-w-sm max-h-[80vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Create Detailed Task</DialogTitle>
             </DialogHeader>
@@ -443,7 +473,7 @@ export const ToDoList = () => {
           </DialogContent>
         </Dialog>
 
-        <ScrollArea className="h-64">
+        <ScrollArea className="h-60">
           <div className="space-y-2">
             {pendingTodos.map((todo) => (
               <div key={todo.id} className="flex items-center justify-between p-3 border rounded-lg">
@@ -467,14 +497,23 @@ export const ToDoList = () => {
                     </div>
                   </div>
                 </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => deleteTodo(todo.id)}
-                  className="text-destructive hover:text-destructive"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
+                <div className="flex items-center gap-1">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => openEdit(todo)}
+                  >
+                    <Pencil className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => deleteTodo(todo.id)}
+                    className="text-destructive hover:text-destructive"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
             ))}
             
@@ -493,14 +532,23 @@ export const ToDoList = () => {
                           <p className="text-sm line-through text-muted-foreground">{todo.content}</p>
                         </div>
                       </div>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => deleteTodo(todo.id)}
-                        className="text-destructive hover:text-destructive"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                      <div className="flex items-center gap-1">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => openEdit(todo)}
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => deleteTodo(todo.id)}
+                          className="text-destructive hover:text-destructive"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -515,6 +563,51 @@ export const ToDoList = () => {
           </div>
         </ScrollArea>
       </CardContent>
+      {/* Edit Task Dialog */}
+      <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Edit Task</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="edit-content">Task</Label>
+              <Textarea
+                id="edit-content"
+                value={editContent}
+                onChange={(e) => setEditContent(e.target.value)}
+                rows={3}
+              />
+            </div>
+            <div>
+              <Label>Priority</Label>
+              <Select value={editPriority} onValueChange={(v: 'low' | 'medium' | 'high') => setEditPriority(v)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="low">Low</SelectItem>
+                  <SelectItem value="medium">Medium</SelectItem>
+                  <SelectItem value="high">High</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label htmlFor="edit-due">Due Date & Time</Label>
+              <Input
+                id="edit-due"
+                type="datetime-local"
+                value={editDueDate}
+                onChange={(e) => setEditDueDate(e.target.value)}
+              />
+            </div>
+            <div className="flex gap-2">
+              <Button className="flex-1" onClick={handleUpdateTodo}>Save</Button>
+              <Button variant="outline" onClick={() => setIsEditOpen(false)}>Cancel</Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 };

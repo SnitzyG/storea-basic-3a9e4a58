@@ -11,7 +11,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
-import { CalendarDays, Plus, Clock, CheckCircle2, ChevronLeft, ChevronRight, Download, Users, X } from 'lucide-react';
+import { CalendarDays, Plus, Clock, CheckCircle2, ChevronLeft, ChevronRight, Download, Users, X, Pencil, Trash2 } from 'lucide-react';
 import { format, isSameDay } from 'date-fns';
 import { useCalendarEvents } from '@/hooks/useCalendarEvents';
 import { useProjectSwitcher } from '@/hooks/useProjectSwitcher';
@@ -34,12 +34,19 @@ export const CalendarWidget = () => {
   const [externalEmail, setExternalEmail] = useState('');
   const [exportFormat, setExportFormat] = useState<'day' | 'week' | 'fortnight' | 'month'>('week');
 
-  const { events, addEvent, loading } = useCalendarEvents();
+  const { events, addEvent, updateEvent, deleteEvent, loading } = useCalendarEvents();
   const { currentProject } = useProjectSwitcher();
   const { getProjectUsers } = useProjects();
   const { toast } = useToast();
 
   const [projectUsers, setProjectUsers] = useState<any[]>([]);
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [editingEventId, setEditingEventId] = useState<string | null>(null);
+  const [editTitle, setEditTitle] = useState('');
+  const [editDescription, setEditDescription] = useState('');
+  const [editDate, setEditDate] = useState('');
+  const [editTime, setEditTime] = useState('');
+  const [editPriority, setEditPriority] = useState<'low' | 'medium' | 'high'>('medium');
 
   React.useEffect(() => {
     if (currentProject) {
@@ -200,6 +207,32 @@ export const CalendarWidget = () => {
     setIsExportDialogOpen(false);
   };
 
+  const openEditEvent = (eventId: string) => {
+    const ev = events.find(e => e.id === eventId);
+    if (!ev) return;
+    setEditingEventId(ev.id);
+    setEditTitle(ev.title);
+    setEditDescription(ev.description || '');
+    const d = new Date(ev.start_datetime);
+    setEditDate(d.toISOString().slice(0,10));
+    setEditTime(d.toISOString().slice(11,16));
+    setEditPriority((ev.priority as 'low'|'medium'|'high') || 'medium');
+    setIsEditOpen(true);
+  };
+
+  const handleUpdateEvent = async () => {
+    if (!editingEventId || !editDate || !editTime) return;
+    const startDateTime = new Date(`${editDate}T${editTime}`).toISOString();
+    await updateEvent(editingEventId, {
+      title: editTitle.trim(),
+      description: editDescription.trim() || null,
+      start_datetime: startDateTime,
+      priority: editPriority
+    } as any);
+    setIsEditOpen(false);
+    setEditingEventId(null);
+  };
+
   const todayEvents = selectedDate ? getEventsForDate(selectedDate) : [];
 
   if (loading) {
@@ -217,13 +250,23 @@ export const CalendarWidget = () => {
 
   return (
     <Card className="h-full">
-      <CardHeader className="pb-3">
+      <CardHeader className="py-2">
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2">
             <CalendarDays className="h-5 w-5" />
             Calendar
           </CardTitle>
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-2">
+            {/* Always-visible Add Event */}
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+              <DialogTrigger asChild>
+                <Button size="sm">
+                  <Plus className="h-4 w-4 mr-1" />
+                  Add Event
+                </Button>
+              </DialogTrigger>
+              <!-- existing create dialog content below remains unchanged -->
+            </Dialog>
             <Dialog open={isExportDialogOpen} onOpenChange={setIsExportDialogOpen}>
               <DialogTrigger asChild>
                 <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
@@ -264,24 +307,72 @@ export const CalendarWidget = () => {
           </div>
         </div>
       </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="space-y-2">
+      <CardContent className="space-y-3 p-3">
+        <div className="flex items-start gap-3">
           <Calendar
             mode="single"
             selected={selectedDate}
             onSelect={setSelectedDate}
             className="rounded-md border"
           />
+          <div className="flex-1">
+            {selectedDate && (
+              <div className="space-y-2">
+                <h4 className="font-medium">Events for {format(selectedDate, 'MMMM d, yyyy')}</h4>
+                <ScrollArea className="h-24">
+                  {getEventsForDate(selectedDate).length > 0 ? (
+                    getEventsForDate(selectedDate).map((event) => (
+                      <div key={event.id} className="p-2 border rounded-lg mb-2">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="font-medium text-sm">{event.title}</p>
+                            <div className="flex items-center gap-2 mt-1">
+                              <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                                <Clock className="h-3 w-3" />
+                                {format(new Date(event.start_datetime), 'h:mm a')}
+                              </div>
+                              {event.is_meeting && (
+                                <Badge variant="secondary" className="text-xs">
+                                  <Users className="h-3 w-3 mr-1" />
+                                  Meeting
+                                </Badge>
+                              )}
+                              <Badge 
+                                variant={
+                                  event.priority === 'high' ? 'destructive' : 
+                                  event.priority === 'medium' ? 'default' : 'secondary'
+                                } 
+                                className="text-xs"
+                              >
+                                {event.priority}
+                              </Badge>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <Button variant="ghost" size="sm" onClick={() => openEditEvent(event.id)}>
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                            <Button variant="ghost" size="sm" className="text-destructive" onClick={() => deleteEvent(event.id)}>
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                        {event.description && (
+                          <p className="text-xs text-muted-foreground mt-1">{event.description}</p>
+                        )}
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-muted-foreground text-sm">No events for this date</p>
+                  )}
+                </ScrollArea>
+              </div>
+            )}
+          </div>
         </div>
 
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="w-full">
-              <Plus className="h-4 w-4 mr-2" />
-              Add Event
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+          <DialogContent className="max-w-sm max-h-[80vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Create New Event</DialogTitle>
             </DialogHeader>
@@ -449,7 +540,7 @@ export const CalendarWidget = () => {
             <h4 className="font-medium">
               Events for {format(selectedDate, 'MMMM d, yyyy')}
             </h4>
-            <ScrollArea className="h-32">
+            <ScrollArea className="h-24">
               {todayEvents.length > 0 ? (
                 todayEvents.map((event) => (
                   <div key={event.id} className="p-2 border rounded-lg mb-2">
@@ -478,6 +569,14 @@ export const CalendarWidget = () => {
                           </Badge>
                         </div>
                       </div>
+                      <div className="flex items-center gap-1">
+                        <Button variant="ghost" size="sm" onClick={() => openEditEvent(event.id)}>
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="sm" className="text-destructive" onClick={() => deleteEvent(event.id)}>
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </div>
                     {event.description && (
                       <p className="text-xs text-muted-foreground mt-1">{event.description}</p>
@@ -493,6 +592,51 @@ export const CalendarWidget = () => {
           </div>
         )}
       </CardContent>
+      {/* Edit Event Dialog */}
+      <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Edit Event</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="edit-event-title">Title</Label>
+              <Input id="edit-event-title" value={editTitle} onChange={(e) => setEditTitle(e.target.value)} />
+            </div>
+            <div>
+              <Label htmlFor="edit-event-desc">Description</Label>
+              <Textarea id="edit-event-desc" rows={3} value={editDescription} onChange={(e) => setEditDescription(e.target.value)} />
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <Label htmlFor="edit-event-date">Date</Label>
+                <Input id="edit-event-date" type="date" value={editDate} onChange={(e) => setEditDate(e.target.value)} />
+              </div>
+              <div>
+                <Label htmlFor="edit-event-time">Time</Label>
+                <Input id="edit-event-time" type="time" value={editTime} onChange={(e) => setEditTime(e.target.value)} />
+              </div>
+            </div>
+            <div>
+              <Label>Priority</Label>
+              <Select value={editPriority} onValueChange={(v: 'low'|'medium'|'high') => setEditPriority(v)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="low">Low</SelectItem>
+                  <SelectItem value="medium">Medium</SelectItem>
+                  <SelectItem value="high">High</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex gap-2">
+              <Button className="flex-1" onClick={handleUpdateEvent}>Save</Button>
+              <Button variant="outline" onClick={() => setIsEditOpen(false)}>Cancel</Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 };

@@ -36,7 +36,7 @@ const Dashboard = () => {
   const userName = profile?.name || 'username';
 
   return (
-    <div className="h-screen flex flex-col bg-background overflow-hidden">
+    <div className="h-screen flex flex-col bg-background overflow-hidden text-sm">
       {/* Header */}
       <div className="flex-shrink-0 border-b bg-card px-6 py-4">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -74,27 +74,32 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Main Dashboard Content - Single Page Layout */}
-      <div className="flex-1 p-4 overflow-hidden">
-        <div className="h-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
-          {/* Recent Activity */}
-          <div className="col-span-1 h-full">
-            <RecentActivity />
+      {/* Main Dashboard Content - Single Screen Responsive Grid */}
+      <div className="flex-1 p-2 overflow-hidden">
+        <div className="h-full grid grid-cols-12 gap-2 auto-rows-[1fr]">
+          {/* Standardized 2x2 equal sizing */}
+          <div className="col-span-12 md:col-span-6 min-h-0">
+            <div className="h-full">
+              <RecentActivity />
+            </div>
           </div>
 
-          {/* Calendar */}
-          <div className="col-span-1 h-full">
-            <CalendarWidget />
+          <div className="col-span-12 md:col-span-6 min-h-0">
+            <div className="h-full">
+              <CalendarWidget />
+            </div>
           </div>
 
-          {/* To-Do List */}
-          <div className="col-span-1 h-full">
-            <ToDoList />
+          <div className="col-span-12 md:col-span-6 min-h-0">
+            <div className="h-full">
+              <ToDoList />
+            </div>
           </div>
 
-          {/* Info Panel */}
-          <div className="col-span-1 h-full">
-            <InfoPanel />
+          <div className="col-span-12 md:col-span-6 min-h-0">
+            <div className="h-full">
+              <InfoPanel />
+            </div>
           </div>
         </div>
       </div>
