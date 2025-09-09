@@ -10,6 +10,9 @@ export interface Todo {
   completed: boolean;
   priority: 'low' | 'medium' | 'high';
   due_date?: string;
+  title?: string;
+  description?: string;
+  collaborators?: string[];
   created_at: string;
   updated_at: string;
 }
@@ -45,7 +48,7 @@ export const useTodos = (projectId?: string) => {
     }
   };
 
-  const addTodo = async (content: string, priority: 'low' | 'medium' | 'high' = 'medium', dueDate?: string) => {
+  const addTodo = async (content: string, priority: 'low' | 'medium' | 'high' = 'medium', dueDate?: string, extra?: { title?: string; description?: string; collaborators?: string[] }) => {
     if (!user) return;
 
     try {
@@ -55,6 +58,9 @@ export const useTodos = (projectId?: string) => {
         content,
         priority,
         due_date: dueDate,
+        title: extra?.title,
+        description: extra?.description,
+        collaborators: extra?.collaborators,
       };
 
       const { data, error } = await supabase

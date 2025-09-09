@@ -74,27 +74,40 @@ const Dashboard = () => {
         </div>
       </div>
 
+<<<<<<< HEAD
       {/* Main Dashboard Content - Single Page Layout */}
       <div className="flex-1 p-4 overflow-hidden">
         <div className="h-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
           {/* Recent Activity */}
           <div className="col-span-1 h-full">
             <RecentActivity />
+=======
+      {/* Main Dashboard Content - Single screen, no scroll */}
+      <div className="flex-1 p-3 overflow-hidden">
+        <div className="h-full grid grid-cols-1 lg:grid-cols-2 gap-3 auto-rows-fr">
+          {/* Top row: Recent Activity (left), Calendar (right) */}
+          <div className="min-h-0">
+            <div className="h-full min-h-0">
+              <RecentActivity />
+            </div>
+          </div>
+          <div className="min-h-0">
+            <div className="h-full min-h-0">
+              <CalendarWidget />
+            </div>
+>>>>>>> 143a2fe (xxxx)
           </div>
 
-          {/* Calendar */}
-          <div className="col-span-1 h-full">
-            <CalendarWidget />
+          {/* Bottom row: To-Do (left), Info Panel (right) */}
+          <div className="min-h-0">
+            <div className="h-full min-h-0">
+              <ToDoList />
+            </div>
           </div>
-
-          {/* To-Do List */}
-          <div className="col-span-1 h-full">
-            <ToDoList />
-          </div>
-
-          {/* Info Panel */}
-          <div className="col-span-1 h-full">
-            <InfoPanel />
+          <div className="min-h-0">
+            <div className="h-full min-h-0">
+              <InfoPanel />
+            </div>
           </div>
         </div>
       </div>

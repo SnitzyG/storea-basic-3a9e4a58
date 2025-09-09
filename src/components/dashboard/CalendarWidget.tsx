@@ -21,6 +21,7 @@ import { useToast } from '@/hooks/use-toast';
 export const CalendarWidget = () => {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
   const [newEventTitle, setNewEventTitle] = useState('');
   const [newEventDescription, setNewEventDescription] = useState('');
@@ -30,6 +31,7 @@ export const CalendarWidget = () => {
   const [isMeeting, setIsMeeting] = useState(false);
   const [inviteCollaborators, setInviteCollaborators] = useState<string[]>([]);
   const [collaboratorEmail, setCollaboratorEmail] = useState('');
+<<<<<<< HEAD
   const [externalEmails, setExternalEmails] = useState<string[]>([]);
   const [externalEmail, setExternalEmail] = useState('');
   const [exportFormat, setExportFormat] = useState<'day' | 'week' | 'fortnight' | 'month'>('week');
@@ -37,6 +39,18 @@ export const CalendarWidget = () => {
   const { events, addEvent, loading } = useCalendarEvents();
   const { currentProject } = useProjectSwitcher();
   const { getProjectUsers } = useProjects();
+=======
+  // Edit state
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editTitle, setEditTitle] = useState('');
+  const [editDescription, setEditDescription] = useState('');
+  const [editTime, setEditTime] = useState('');
+  const [editPriority, setEditPriority] = useState<'low' | 'medium' | 'high'>('medium');
+  const [editCollaborators, setEditCollaborators] = useState<string[]>([]);
+  const [editCollaboratorEmail, setEditCollaboratorEmail] = useState('');
+  const [exportFormat, setExportFormat] = useState<'day' | 'week' | 'fortnight' | 'month'>('week');
+  const { todos, addTodo, updateTodo } = useTodos();
+>>>>>>> 143a2fe (xxxx)
   const { toast } = useToast();
 
   const [projectUsers, setProjectUsers] = useState<any[]>([]);
@@ -65,6 +79,7 @@ export const CalendarWidget = () => {
     setInviteCollaborators(inviteCollaborators.filter(e => e !== email));
   };
 
+<<<<<<< HEAD
   const addExternalEmail = () => {
     if (externalEmail.trim() && !externalEmails.includes(externalEmail)) {
       setExternalEmails([...externalEmails, externalEmail]);
@@ -185,6 +200,113 @@ export const CalendarWidget = () => {
 
     const blob = new Blob([content], { type: 'text/html' });
     const url = URL.createObjectURL(blob);
+=======
+  const addEditCollaborator = () => {
+    if (editCollaboratorEmail.trim() && !editCollaborators.includes(editCollaboratorEmail)) {
+      setEditCollaborators([...editCollaborators, editCollaboratorEmail]);
+      setEditCollaboratorEmail('');
+    }
+  };
+
+  const removeEditCollaborator = (email: string) => {
+    setEditCollaborators(editCollaborators.filter(e => e !== email));
+  };
+
+  const handleCreateEvent = async () => {
+    if (!selectedDate || !newEventTitle.trim()) return;
+
+    try {
+      const eventContent = isMeeting 
+        ? `Meeting: ${newEventTitle}${newEventDescription ? ` - ${newEventDescription}` : ''}${inviteCollaborators.length > 0 ? ` (Attendees: ${inviteCollaborators.join(', ')})` : ''}`
+        : `${newEventTitle}${newEventDescription ? ` - ${newEventDescription}` : ''}`;
+
+      const eventDate = newEventTime 
+        ? new Date(`${selectedDate.toDateString()} ${newEventTime}`)
+        : selectedDate;
+
+      await addTodo(
+        eventContent,
+        newEventPriority,
+        eventDate.toISOString()
+      );
+      
+      // Reset form
+      setNewEventTitle('');
+      setNewEventDescription('');
+      setNewEventTime('');
+      setNewEventPriority('medium');
+      setIsMeeting(false);
+      setInviteCollaborators([]);
+      setIsDialogOpen(false);
+      
+      toast({
+        title: "Event created",
+        description: `${isMeeting ? 'Meeting' : 'Event'} "${newEventTitle}" scheduled for ${format(selectedDate, 'MMM d, yyyy')}`,
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to create event. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const openEditEvent = (todo: any) => {
+    setEditingId(todo.id);
+    setEditTitle(todo.title || '');
+    setEditDescription(todo.description || '');
+    setEditPriority(todo.priority || 'medium');
+    setEditCollaborators(todo.collaborators || []);
+    // Derive time string from due_date
+    if (todo.due_date) {
+      const d = new Date(todo.due_date);
+      const hh = String(d.getHours()).padStart(2, '0');
+      const mm = String(d.getMinutes()).padStart(2, '0');
+      setEditTime(`${hh}:${mm}`);
+      setSelectedDate(new Date(d.getFullYear(), d.getMonth(), d.getDate()));
+    } else {
+      setEditTime('');
+    }
+    setIsEditDialogOpen(true);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editingId) return;
+    try {
+      let dueIso: string | null = null;
+      const baseDate = selectedDate || new Date();
+      if (editTime) {
+        const [hh, mm] = editTime.split(':');
+        const composed = new Date(baseDate);
+        composed.setHours(Number(hh), Number(mm), 0, 0);
+        dueIso = composed.toISOString();
+      } else if (selectedDate) {
+        const d = new Date(selectedDate);
+        d.setHours(0, 0, 0, 0);
+        dueIso = d.toISOString();
+      }
+      const updates: any = {
+        title: editTitle || null,
+        description: editDescription || null,
+        collaborators: editCollaborators,
+        priority: editPriority,
+        due_date: dueIso,
+      };
+      await updateTodo(editingId, updates);
+      setIsEditDialogOpen(false);
+      setEditingId(null);
+    } catch (e) {
+      // swallow; toast already at hook consumer if needed
+    }
+  };
+
+  const handleExport = () => {
+    const eventsForPeriod = getTodosForDate(selectedDate || new Date());
+    const dataStr = JSON.stringify(eventsForPeriod, null, 2);
+    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(dataBlob);
+>>>>>>> 143a2fe (xxxx)
     const link = document.createElement('a');
     link.href = url;
     link.download = `calendar-events-${exportFormat}-${format(now, 'yyyy-MM-dd')}.html`;
@@ -396,6 +518,7 @@ export const CalendarWidget = () => {
                         </div>
                       )}
                     </div>
+<<<<<<< HEAD
 
                     <div>
                       <Label>External Attendees</Label>
@@ -482,6 +605,37 @@ export const CalendarWidget = () => {
                     {event.description && (
                       <p className="text-xs text-muted-foreground mt-1">{event.description}</p>
                     )}
+=======
+                    
+                    <div className="flex-1 min-w-0">
+                      <p className={`text-sm font-medium ${
+                        todo.completed ? 'line-through text-muted-foreground' : 'text-foreground'
+                      }`}>
+                        {todo.title || todo.content}
+                      </p>
+                      {todo.description && (
+                        <p className="text-xs text-muted-foreground truncate">{todo.description}</p>
+                      )}
+                      <Badge 
+                        variant="outline" 
+                        className={`text-xs mt-1 ${
+                          todo.priority === 'high' 
+                            ? 'border-red-300 text-red-600' 
+                            : todo.priority === 'medium' 
+                            ? 'border-yellow-300 text-yellow-600' 
+                            : 'border-green-300 text-green-600'
+                        }`}
+                      >
+                        {todo.priority} priority
+                      </Badge>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button size="sm" variant="outline" onClick={() => updateTodo(todo.id, { completed: !todo.completed })}>
+                        {todo.completed ? 'Reopen' : 'Done'}
+                      </Button>
+                      <Button size="sm" variant="ghost" onClick={() => openEditEvent(todo)}>Edit</Button>
+                    </div>
+>>>>>>> 143a2fe (xxxx)
                   </div>
                 ))
               ) : (
@@ -493,6 +647,64 @@ export const CalendarWidget = () => {
           </div>
         )}
       </CardContent>
+      {/* Edit Event Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Edit Event</DialogTitle>
+          </DialogHeader>
+          <ScrollArea className="max-h-[70vh] pr-4">
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="edit-title">Title</Label>
+                <Input id="edit-title" value={editTitle} onChange={(e) => setEditTitle(e.target.value)} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-description">Description</Label>
+                <Textarea id="edit-description" rows={3} value={editDescription} onChange={(e) => setEditDescription(e.target.value)} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-time">Time</Label>
+                <Input id="edit-time" type="time" value={editTime} onChange={(e) => setEditTime(e.target.value)} />
+              </div>
+              <div className="space-y-2">
+                <Label>Priority</Label>
+                <Select value={editPriority} onValueChange={(v: 'low' | 'medium' | 'high') => setEditPriority(v)}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="low">Low</SelectItem>
+                    <SelectItem value="medium">Medium</SelectItem>
+                    <SelectItem value="high">High</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Collaborators</Label>
+                <div className="flex gap-2 mt-1">
+                  <Input value={editCollaboratorEmail} onChange={(e) => setEditCollaboratorEmail(e.target.value)} placeholder="Enter email address" onKeyPress={(e) => e.key === 'Enter' && addEditCollaborator()} />
+                  <Button type="button" onClick={addEditCollaborator} variant="outline" size="sm">Add</Button>
+                </div>
+                {editCollaborators.length > 0 && (
+                  <div className="mt-2 space-y-1">
+                    {editCollaborators.map((email) => (
+                      <div key={email} className="flex items-center justify-between bg-muted p-2 rounded">
+                        <span className="text-sm">{email}</span>
+                        <Button type="button" variant="ghost" size="sm" onClick={() => removeEditCollaborator(email)}>Remove</Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <div className="flex gap-2">
+                <Button onClick={handleSaveEdit} className="flex-1">Save Changes</Button>
+                <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>Cancel</Button>
+              </div>
+            </div>
+          </ScrollArea>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 };

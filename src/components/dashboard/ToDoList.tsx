@@ -19,15 +19,19 @@ export const ToDoList = () => {
   const [newTodo, setNewTodo] = useState('');
   const [priority, setPriority] = useState<'low' | 'medium' | 'high'>('medium');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [editingTodo, setEditingTodo] = useState<Todo | null>(null);
   const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
   const [attachToCalendar, setAttachToCalendar] = useState(false);
   const [dueDate, setDueDate] = useState('');
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
   const [relatedInfo, setRelatedInfo] = useState('');
   const [relatedType, setRelatedType] = useState<'document' | 'rfi' | 'message' | ''>('');
   const [collaborators, setCollaborators] = useState<string[]>([]);
   const [collaboratorEmail, setCollaboratorEmail] = useState('');
   const [exportFormat, setExportFormat] = useState<'day' | 'week' | 'fortnight' | 'month'>('week');
-  const { todos, addTodo: createTodo, toggleTodo, deleteTodo, loading } = useTodos();
+  const { todos, addTodo: createTodo, updateTodo, toggleTodo, deleteTodo, loading } = useTodos();
   const { toast } = useToast();
 
   const addCollaborator = () => {
@@ -56,7 +60,7 @@ export const ToDoList = () => {
 
         const dueDateTime = attachToCalendar && dueDate ? new Date(dueDate).toISOString() : undefined;
         
-        await createTodo(todoContent, priority, dueDateTime);
+        await createTodo(todoContent, priority, dueDateTime, { title, description, collaborators });
         
         // Reset form
         setNewTodo('');
@@ -66,6 +70,8 @@ export const ToDoList = () => {
         setRelatedInfo('');
         setRelatedType('');
         setCollaborators([]);
+        setTitle('');
+        setDescription('');
         setIsDialogOpen(false);
         
         toast({
@@ -223,6 +229,40 @@ export const ToDoList = () => {
   const pendingTodos = todos.filter(todo => !todo.completed);
   const completedTodos = todos.filter(todo => todo.completed);
 
+  const openEdit = (todo: Todo) => {
+    setEditingTodo(todo);
+    setNewTodo(todo.content);
+    setTitle(todo.title || '');
+    setDescription(todo.description || '');
+    setDueDate(todo.due_date ? new Date(todo.due_date).toISOString().slice(0,16) : '');
+    setPriority(todo.priority);
+    setCollaborators(todo.collaborators || []);
+    setIsEditDialogOpen(true);
+  };
+
+  const handleUpdateTodo = async () => {
+    if (!editingTodo) return;
+    try {
+      const updates: any = {
+        content: newTodo,
+        priority,
+        due_date: dueDate ? new Date(dueDate).toISOString() : null,
+        title,
+        description,
+        collaborators,
+      };
+      const updated = await updateTodo(editingTodo.id, updates);
+      if (updated) {
+        toast({ title: 'Updated', description: 'Task updated successfully' });
+        setIsEditDialogOpen(false);
+        setEditingTodo(null);
+        setNewTodo('');
+      }
+    } catch (e) {
+      toast({ title: 'Error', description: 'Failed to update task', variant: 'destructive' });
+    }
+  };
+
   if (loading) {
     return (
       <Card className="h-full">
@@ -329,6 +369,10 @@ export const ToDoList = () => {
             <ScrollArea className="max-h-[70vh] pr-4">
               <div className="space-y-4">
                 <div>
+                  <Label htmlFor="task-title">Title</Label>
+                  <Input id="task-title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Short title" />
+                </div>
+                <div>
                   <Label htmlFor="task-content">Task</Label>
                   <Textarea
                     id="task-content"
@@ -337,6 +381,10 @@ export const ToDoList = () => {
                     placeholder="Enter task description"
                     rows={3}
                   />
+                </div>
+                <div>
+                  <Label htmlFor="task-description">Description</Label>
+                  <Textarea id="task-description" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Optional details" rows={3} />
                 </div>
 
                 <div>
@@ -443,6 +491,68 @@ export const ToDoList = () => {
           </DialogContent>
         </Dialog>
 
+        <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+          <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Edit Task</DialogTitle>
+            </DialogHeader>
+            <ScrollArea className="max-h-[70vh] pr-4">
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="edit-title">Title</Label>
+                  <Input id="edit-title" value={title} onChange={(e) => setTitle(e.target.value)} />
+                </div>
+                <div>
+                  <Label htmlFor="edit-content">Task</Label>
+                  <Textarea id="edit-content" value={newTodo} onChange={(e) => setNewTodo(e.target.value)} rows={3} />
+                </div>
+                <div>
+                  <Label htmlFor="edit-description">Description</Label>
+                  <Textarea id="edit-description" value={description} onChange={(e) => setDescription(e.target.value)} rows={3} />
+                </div>
+                <div>
+                  <Label>Priority</Label>
+                  <Select value={priority} onValueChange={(value: 'low' | 'medium' | 'high') => setPriority(value)}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="low">Low</SelectItem>
+                      <SelectItem value="medium">Medium</SelectItem>
+                      <SelectItem value="high">High</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="edit-due-date">Due Date & Time</Label>
+                  <Input id="edit-due-date" type="datetime-local" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
+                </div>
+                <div>
+                  <Label>Collaborators</Label>
+                  <div className="flex gap-2 mt-1">
+                    <Input value={collaboratorEmail} onChange={(e) => setCollaboratorEmail(e.target.value)} placeholder="Enter email address" onKeyPress={(e) => e.key === 'Enter' && addCollaborator()} />
+                    <Button type="button" onClick={addCollaborator} variant="outline" size="sm">Add</Button>
+                  </div>
+                  {collaborators.length > 0 && (
+                    <div className="mt-2 space-y-1">
+                      {collaborators.map((email) => (
+                        <div key={email} className="flex items-center justify-between bg-muted p-2 rounded">
+                          <span className="text-sm">{email}</span>
+                          <Button type="button" variant="ghost" size="sm" onClick={() => removeCollaborator(email)}>Remove</Button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <div className="flex gap-2">
+                  <Button onClick={handleUpdateTodo} className="flex-1">Save Changes</Button>
+                  <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>Cancel</Button>
+                </div>
+              </div>
+            </ScrollArea>
+          </DialogContent>
+        </Dialog>
+
         <ScrollArea className="h-64">
           <div className="space-y-2">
             {pendingTodos.map((todo) => (
@@ -453,7 +563,8 @@ export const ToDoList = () => {
                     onCheckedChange={() => toggleTodo(todo.id)}
                   />
                   <div className="flex-1">
-                    <p className="text-sm">{todo.content}</p>
+                    <p className="text-sm font-medium">{todo.title || todo.content}</p>
+                    {todo.description && <p className="text-xs text-muted-foreground">{todo.description}</p>}
                     <div className="flex items-center gap-2 mt-1">
                       <Badge variant={getPriorityColor(todo.priority)} className="text-xs">
                         {todo.priority}
@@ -467,14 +578,17 @@ export const ToDoList = () => {
                     </div>
                   </div>
                 </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => deleteTodo(todo.id)}
-                  className="text-destructive hover:text-destructive"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
+                <div className="flex items-center gap-1">
+                  <Button variant="ghost" size="sm" onClick={() => openEdit(todo)}>Edit</Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => deleteTodo(todo.id)}
+                    className="text-destructive hover:text-destructive"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
             ))}
             
