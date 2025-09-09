@@ -11,11 +11,10 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useAuth } from '@/hooks/useAuth';
-import { LogOut, User as UserIcon, Bell, Search, FolderOpen } from 'lucide-react';
+import { LogOut, User as UserIcon, Bell, Search } from 'lucide-react';
 import { useNotifications } from '@/hooks/useNotifications';
 import { useTheme } from '@/context/ThemeContext';
 import { Badge } from '@/components/ui/badge';
-import { useProjectSwitcher } from '@/hooks/useProjectSwitcher';
 
 interface HeaderProps {
   user: User;
@@ -26,7 +25,6 @@ export const Header = ({ user, profile }: HeaderProps) => {
   const { signOut } = useAuth();
   const { unreadCount } = useNotifications();
   const { theme, toggleTheme } = useTheme();
-  const { currentProject, switchProject, getCurrentProject, projects } = useProjectSwitcher();
 
   const initials = profile.name
     .split(' ')
@@ -37,32 +35,9 @@ export const Header = ({ user, profile }: HeaderProps) => {
   return (
     <header className="h-16 border-b border-border bg-card px-6 flex items-center justify-between">
       <div className="flex items-center gap-4">
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="gap-2">
-              <FolderOpen className="h-4 w-4" />
-              {getCurrentProject()?.name || 'Select Project'}
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent className="w-64" align="start">
-            <DropdownMenuLabel>Switch Project</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            {projects.map(project => (
-              <DropdownMenuItem 
-                key={project.id}
-                onClick={() => switchProject(project.id)}
-                className={currentProject === project.id ? 'bg-accent' : ''}
-              >
-                <div className="flex flex-col gap-1">
-                  <span className="font-medium">{project.name}</span>
-                  {project.address && (
-                    <span className="text-xs text-muted-foreground">{project.address}</span>
-                  )}
-                </div>
-              </DropdownMenuItem>
-            ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <h2 className="text-lg font-semibold text-card-foreground">
+          Welcome back, {profile.name}
+        </h2>
       </div>
 
       <div className="flex items-center gap-4">

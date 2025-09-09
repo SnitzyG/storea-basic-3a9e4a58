@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
-import { CheckSquare, Trash2, Plus, Calendar, FileText, MessageSquare, HelpCircle, Users, Download, Pencil } from 'lucide-react';
+import { CheckSquare, Trash2, Plus, Calendar, FileText, MessageSquare, HelpCircle, Users, Download } from 'lucide-react';
 import { useTodos, Todo } from '@/hooks/useTodos';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
@@ -27,14 +27,8 @@ export const ToDoList = () => {
   const [collaborators, setCollaborators] = useState<string[]>([]);
   const [collaboratorEmail, setCollaboratorEmail] = useState('');
   const [exportFormat, setExportFormat] = useState<'day' | 'week' | 'fortnight' | 'month'>('week');
-  const { todos, addTodo: createTodo, toggleTodo, deleteTodo, updateTodo, loading } = useTodos();
+  const { todos, addTodo: createTodo, toggleTodo, deleteTodo, loading } = useTodos();
   const { toast } = useToast();
-
-  const [isEditOpen, setIsEditOpen] = useState(false);
-  const [editingTodo, setEditingTodo] = useState<Todo | null>(null);
-  const [editContent, setEditContent] = useState('');
-  const [editPriority, setEditPriority] = useState<'low' | 'medium' | 'high'>('medium');
-  const [editDueDate, setEditDueDate] = useState('');
 
   const addCollaborator = () => {
     if (collaboratorEmail.trim() && !collaborators.includes(collaboratorEmail)) {
@@ -111,94 +105,12 @@ export const ToDoList = () => {
   };
 
   const handleExport = () => {
-    // Filter todos based on export format
-    const now = new Date();
-    let filteredTodos = todos;
-
-    switch (exportFormat) {
-      case 'day':
-        filteredTodos = todos.filter(todo => 
-          todo.due_date && format(new Date(todo.due_date), 'yyyy-MM-dd') === format(now, 'yyyy-MM-dd')
-        );
-        break;
-      case 'week':
-        const weekStart = new Date(now);
-        weekStart.setDate(now.getDate() - now.getDay());
-        const weekEnd = new Date(weekStart);
-        weekEnd.setDate(weekStart.getDate() + 6);
-        filteredTodos = todos.filter(todo => {
-          if (!todo.due_date) return false;
-          const todoDate = new Date(todo.due_date);
-          return todoDate >= weekStart && todoDate <= weekEnd;
-        });
-        break;
-      case 'fortnight':
-        const fortnightStart = new Date(now);
-        fortnightStart.setDate(now.getDate() - now.getDay());
-        const fortnightEnd = new Date(fortnightStart);
-        fortnightEnd.setDate(fortnightStart.getDate() + 13);
-        filteredTodos = todos.filter(todo => {
-          if (!todo.due_date) return false;
-          const todoDate = new Date(todo.due_date);
-          return todoDate >= fortnightStart && todoDate <= fortnightEnd;
-        });
-        break;
-      case 'month':
-        const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-        const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-        filteredTodos = todos.filter(todo => {
-          if (!todo.due_date) return false;
-          const todoDate = new Date(todo.due_date);
-          return todoDate >= monthStart && todoDate <= monthEnd;
-        });
-        break;
-    }
-
-    // Create PDF content as HTML
-    const content = `
-<!DOCTYPE html>
-<html>
-<head>
-    <title>To-Do List - ${exportFormat}</title>
-    <style>
-        body { font-family: Arial, sans-serif; margin: 20px; }
-        h1 { color: #333; }
-        .todo { margin: 10px 0; padding: 10px; border: 1px solid #ddd; border-radius: 5px; }
-        .todo-content { font-weight: bold; font-size: 16px; }
-        .todo-due { color: #666; }
-        .todo-completed { text-decoration: line-through; opacity: 0.6; }
-        .priority-high { border-left: 4px solid #f44336; }
-        .priority-medium { border-left: 4px solid #ff9800; }
-        .priority-low { border-left: 4px solid #4caf50; }
-        .status { font-size: 12px; padding: 2px 8px; border-radius: 12px; }
-        .completed { background: #e8f5e8; color: #2e7d32; }
-        .pending { background: #fff3e0; color: #f57c00; }
-    </style>
-</head>
-<body>
-    <h1>To-Do List - ${exportFormat.charAt(0).toUpperCase() + exportFormat.slice(1)}</h1>
-    <p>Generated on: ${format(now, 'PPPp')}</p>
-    <p>Total tasks: ${filteredTodos.length}</p>
-    <p>Completed: ${filteredTodos.filter(t => t.completed).length}</p>
-    <p>Pending: ${filteredTodos.filter(t => !t.completed).length}</p>
-    ${filteredTodos.map(todo => `
-        <div class="todo priority-${todo.priority} ${todo.completed ? 'todo-completed' : ''}">
-            <div class="todo-content">${todo.content}</div>
-            ${todo.due_date ? `<div class="todo-due">Due: ${format(new Date(todo.due_date), 'PPPp')}</div>` : ''}
-            <span class="status ${todo.completed ? 'completed' : 'pending'}">
-                ${todo.completed ? 'Completed' : 'Pending'} - ${todo.priority} priority
-            </span>
-        </div>
-    `).join('')}
-</body>
-</html>
-    `;
-
-    const blob = new Blob([content], { type: 'text/html' });
-    const url = URL.createObjectURL(blob);
+    const dataStr = JSON.stringify(todos, null, 2);
+    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(dataBlob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `todos-${exportFormat}-${format(now, 'yyyy-MM-dd')}.html`;
+    link.download = `todos-${exportFormat}-${format(new Date(), 'yyyy-MM-dd')}.json`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -209,30 +121,6 @@ export const ToDoList = () => {
       description: `To-Do list exported for ${exportFormat}`,
     });
     setIsExportDialogOpen(false);
-  };
-
-  const openEdit = (todo: Todo) => {
-    setEditingTodo(todo);
-    setEditContent(todo.content);
-    setEditPriority(todo.priority);
-    setEditDueDate(todo.due_date ? new Date(todo.due_date).toISOString().slice(0,16) : '');
-    setIsEditOpen(true);
-  };
-
-  const handleUpdateTodo = async () => {
-    if (!editingTodo) return;
-    try {
-      await updateTodo(editingTodo.id, {
-        content: editContent.trim(),
-        priority: editPriority,
-        due_date: editDueDate ? new Date(editDueDate).toISOString() : null,
-      } as Partial<Todo>);
-      setIsEditOpen(false);
-      setEditingTodo(null);
-      toast({ title: 'Updated', description: 'Task updated successfully' });
-    } catch (_) {
-      toast({ title: 'Error', description: 'Failed to update task', variant: 'destructive' });
-    }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -268,7 +156,7 @@ export const ToDoList = () => {
 
   return (
     <Card className="h-full">
-      <CardHeader className="py-2">
+      <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2">
             <CheckSquare className="h-5 w-5" />
@@ -318,7 +206,7 @@ export const ToDoList = () => {
           </div>
         </div>
       </CardHeader>
-      <CardContent className="space-y-3 p-3">
+      <CardContent className="space-y-4">
         {/* Quick add section */}
         <div className="flex gap-2">
           <div className="flex-1">
@@ -352,7 +240,7 @@ export const ToDoList = () => {
               Add Detailed Task
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-sm max-h-[80vh] overflow-y-auto">
+          <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Create Detailed Task</DialogTitle>
             </DialogHeader>
@@ -473,7 +361,7 @@ export const ToDoList = () => {
           </DialogContent>
         </Dialog>
 
-        <ScrollArea className="h-60">
+        <ScrollArea className="h-64">
           <div className="space-y-2">
             {pendingTodos.map((todo) => (
               <div key={todo.id} className="flex items-center justify-between p-3 border rounded-lg">
@@ -497,23 +385,14 @@ export const ToDoList = () => {
                     </div>
                   </div>
                 </div>
-                <div className="flex items-center gap-1">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => openEdit(todo)}
-                  >
-                    <Pencil className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => deleteTodo(todo.id)}
-                    className="text-destructive hover:text-destructive"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => deleteTodo(todo.id)}
+                  className="text-destructive hover:text-destructive"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
               </div>
             ))}
             
@@ -532,23 +411,14 @@ export const ToDoList = () => {
                           <p className="text-sm line-through text-muted-foreground">{todo.content}</p>
                         </div>
                       </div>
-                      <div className="flex items-center gap-1">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => openEdit(todo)}
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => deleteTodo(todo.id)}
-                          className="text-destructive hover:text-destructive"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => deleteTodo(todo.id)}
+                        className="text-destructive hover:text-destructive"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     </div>
                   ))}
                 </div>
@@ -563,51 +433,6 @@ export const ToDoList = () => {
           </div>
         </ScrollArea>
       </CardContent>
-      {/* Edit Task Dialog */}
-      <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Edit Task</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="edit-content">Task</Label>
-              <Textarea
-                id="edit-content"
-                value={editContent}
-                onChange={(e) => setEditContent(e.target.value)}
-                rows={3}
-              />
-            </div>
-            <div>
-              <Label>Priority</Label>
-              <Select value={editPriority} onValueChange={(v: 'low' | 'medium' | 'high') => setEditPriority(v)}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="low">Low</SelectItem>
-                  <SelectItem value="medium">Medium</SelectItem>
-                  <SelectItem value="high">High</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label htmlFor="edit-due">Due Date & Time</Label>
-              <Input
-                id="edit-due"
-                type="datetime-local"
-                value={editDueDate}
-                onChange={(e) => setEditDueDate(e.target.value)}
-              />
-            </div>
-            <div className="flex gap-2">
-              <Button className="flex-1" onClick={handleUpdateTodo}>Save</Button>
-              <Button variant="outline" onClick={() => setIsEditOpen(false)}>Cancel</Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
     </Card>
   );
 };

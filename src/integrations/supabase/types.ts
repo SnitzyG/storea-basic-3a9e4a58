@@ -50,65 +50,6 @@ export type Database = {
         }
         Relationships: []
       }
-      calendar_events: {
-        Row: {
-          attendees: Json | null
-          created_at: string
-          created_by: string
-          description: string | null
-          end_datetime: string | null
-          external_attendees: string[] | null
-          id: string
-          is_meeting: boolean | null
-          priority: string | null
-          project_id: string | null
-          start_datetime: string
-          status: string | null
-          title: string
-          updated_at: string
-        }
-        Insert: {
-          attendees?: Json | null
-          created_at?: string
-          created_by: string
-          description?: string | null
-          end_datetime?: string | null
-          external_attendees?: string[] | null
-          id?: string
-          is_meeting?: boolean | null
-          priority?: string | null
-          project_id?: string | null
-          start_datetime: string
-          status?: string | null
-          title: string
-          updated_at?: string
-        }
-        Update: {
-          attendees?: Json | null
-          created_at?: string
-          created_by?: string
-          description?: string | null
-          end_datetime?: string | null
-          external_attendees?: string[] | null
-          id?: string
-          is_meeting?: boolean | null
-          priority?: string | null
-          project_id?: string | null
-          start_datetime?: string
-          status?: string | null
-          title?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "calendar_events_project_id_fkey"
-            columns: ["project_id"]
-            isOneToOne: false
-            referencedRelation: "projects"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       companies: {
         Row: {
           address: string | null

@@ -314,16 +314,14 @@ export const useProjects = () => {
 
   const getProjectUsers = async (projectId: string) => {
     try {
-      // First, try a direct join using the foreign key alias. If the schema cache
-      // doesn't recognize the relationship, fall back to a two-step fetch.
-      const joinResult = await supabase
+      const { data, error } = await supabase
         .from('project_users')
         .select(`
           user_id,
           role,
           joined_at,
           permissions,
-          profiles!project_users_user_id_profiles_fkey (
+          profiles!inner (
             user_id,
             name,
             phone,
@@ -332,35 +330,8 @@ export const useProjects = () => {
         `)
         .eq('project_id', projectId);
 
-      if (!joinResult.error && joinResult.data) {
-        return joinResult.data as any[];
-      }
-
-      // Fallback: two-step query to avoid schema relationship dependency
-      const { data: puData, error: puError } = await supabase
-        .from('project_users')
-        .select('user_id, role, joined_at, permissions')
-        .eq('project_id', projectId);
-      if (puError) throw puError;
-
-      const userIds = Array.from(new Set((puData || []).map(u => u.user_id)));
-      let profileMap = new Map<string, any>();
-      if (userIds.length > 0) {
-        const { data: profs, error: profErr } = await supabase
-          .from('profiles')
-          .select('user_id, name, phone, avatar_url')
-          .in('user_id', userIds);
-        if (profErr) throw profErr;
-        profileMap = new Map((profs || []).map(p => [p.user_id, p]));
-      }
-
-      return (puData || []).map(u => ({
-        user_id: u.user_id,
-        role: u.role,
-        joined_at: u.joined_at,
-        permissions: u.permissions,
-        profiles: profileMap.get(u.user_id) || null,
-      }));
+      if (error) throw error;
+      return data || [];
     } catch (error: any) {
       console.error('Error fetching project users:', error);
       toast({
