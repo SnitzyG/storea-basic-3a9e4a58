@@ -105,12 +105,94 @@ export const ToDoList = () => {
   };
 
   const handleExport = () => {
-    const dataStr = JSON.stringify(todos, null, 2);
-    const dataBlob = new Blob([dataStr], { type: 'application/json' });
-    const url = URL.createObjectURL(dataBlob);
+    // Filter todos based on export format
+    const now = new Date();
+    let filteredTodos = todos;
+
+    switch (exportFormat) {
+      case 'day':
+        filteredTodos = todos.filter(todo => 
+          todo.due_date && format(new Date(todo.due_date), 'yyyy-MM-dd') === format(now, 'yyyy-MM-dd')
+        );
+        break;
+      case 'week':
+        const weekStart = new Date(now);
+        weekStart.setDate(now.getDate() - now.getDay());
+        const weekEnd = new Date(weekStart);
+        weekEnd.setDate(weekStart.getDate() + 6);
+        filteredTodos = todos.filter(todo => {
+          if (!todo.due_date) return false;
+          const todoDate = new Date(todo.due_date);
+          return todoDate >= weekStart && todoDate <= weekEnd;
+        });
+        break;
+      case 'fortnight':
+        const fortnightStart = new Date(now);
+        fortnightStart.setDate(now.getDate() - now.getDay());
+        const fortnightEnd = new Date(fortnightStart);
+        fortnightEnd.setDate(fortnightStart.getDate() + 13);
+        filteredTodos = todos.filter(todo => {
+          if (!todo.due_date) return false;
+          const todoDate = new Date(todo.due_date);
+          return todoDate >= fortnightStart && todoDate <= fortnightEnd;
+        });
+        break;
+      case 'month':
+        const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+        const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+        filteredTodos = todos.filter(todo => {
+          if (!todo.due_date) return false;
+          const todoDate = new Date(todo.due_date);
+          return todoDate >= monthStart && todoDate <= monthEnd;
+        });
+        break;
+    }
+
+    // Create PDF content as HTML
+    const content = `
+<!DOCTYPE html>
+<html>
+<head>
+    <title>To-Do List - ${exportFormat}</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        h1 { color: #333; }
+        .todo { margin: 10px 0; padding: 10px; border: 1px solid #ddd; border-radius: 5px; }
+        .todo-content { font-weight: bold; font-size: 16px; }
+        .todo-due { color: #666; }
+        .todo-completed { text-decoration: line-through; opacity: 0.6; }
+        .priority-high { border-left: 4px solid #f44336; }
+        .priority-medium { border-left: 4px solid #ff9800; }
+        .priority-low { border-left: 4px solid #4caf50; }
+        .status { font-size: 12px; padding: 2px 8px; border-radius: 12px; }
+        .completed { background: #e8f5e8; color: #2e7d32; }
+        .pending { background: #fff3e0; color: #f57c00; }
+    </style>
+</head>
+<body>
+    <h1>To-Do List - ${exportFormat.charAt(0).toUpperCase() + exportFormat.slice(1)}</h1>
+    <p>Generated on: ${format(now, 'PPPp')}</p>
+    <p>Total tasks: ${filteredTodos.length}</p>
+    <p>Completed: ${filteredTodos.filter(t => t.completed).length}</p>
+    <p>Pending: ${filteredTodos.filter(t => !t.completed).length}</p>
+    ${filteredTodos.map(todo => `
+        <div class="todo priority-${todo.priority} ${todo.completed ? 'todo-completed' : ''}">
+            <div class="todo-content">${todo.content}</div>
+            ${todo.due_date ? `<div class="todo-due">Due: ${format(new Date(todo.due_date), 'PPPp')}</div>` : ''}
+            <span class="status ${todo.completed ? 'completed' : 'pending'}">
+                ${todo.completed ? 'Completed' : 'Pending'} - ${todo.priority} priority
+            </span>
+        </div>
+    `).join('')}
+</body>
+</html>
+    `;
+
+    const blob = new Blob([content], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `todos-${exportFormat}-${format(new Date(), 'yyyy-MM-dd')}.json`;
+    link.download = `todos-${exportFormat}-${format(now, 'yyyy-MM-dd')}.html`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);

@@ -36,7 +36,7 @@ const Dashboard = () => {
   const userName = profile?.name || 'username';
 
   return (
-    <div className="h-full flex flex-col bg-background">
+    <div className="h-screen flex flex-col bg-background overflow-hidden">
       {/* Header */}
       <div className="flex-shrink-0 border-b bg-card px-6 py-4">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -46,7 +46,7 @@ const Dashboard = () => {
           </div>
           
           <div className="flex items-center gap-2">
-            {/* Quick Action Shortcuts (non-functional placeholders) */}
+            {/* Quick Action Shortcuts */}
             <Button size="sm" variant="outline" className="gap-1 text-xs px-2 py-1" onClick={() => navigate('/messages')}>
               <MessageSquare className="h-4 w-4" />
               Message
@@ -74,7 +74,7 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Main Dashboard Content - Optimized Single Page Layout */}
+      {/* Main Dashboard Content - Single Page Layout */}
       <div className="flex-1 p-4 overflow-hidden">
         <div className="h-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
           {/* Recent Activity */}
