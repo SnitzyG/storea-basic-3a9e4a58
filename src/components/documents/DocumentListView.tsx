@@ -202,7 +202,7 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
             </TableHead>
             <TableHead className="w-12">File Type</TableHead>
             <TableHead className="w-12">Lock</TableHead>
-            <TableHead className="w-24">Project No.</TableHead>
+            
             <TableHead className="w-32">Document No.</TableHead>
             <TableHead className="min-w-[200px]">Title</TableHead>
             <TableHead className="w-16">Rev</TableHead>
@@ -232,9 +232,7 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
                 {document.is_locked ? <Lock className="h-4 w-4 text-destructive" /> : <Unlock className="h-4 w-4 text-muted-foreground" />}
               </TableCell>
               
-              <TableCell className="font-mono text-xs">
-                {canEdit ? getProjectNumber(document.project_id) : '-'}
-              </TableCell>
+              
               
               <TableCell className="font-mono text-xs">
                 {canEdit ? document.document_number || 'N/A' : '-'}
