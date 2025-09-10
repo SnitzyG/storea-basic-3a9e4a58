@@ -139,9 +139,7 @@ const Tenders = () => {
 
       {/* Tab Navigation */}
       <div className="flex gap-1 mb-6 bg-muted/30 p-1 rounded-lg w-fit">
-        <Button variant={activeTab === 'tenders' ? 'default' : 'ghost'} size="sm" onClick={() => setActiveTab('tenders')}>
-          Tender Management
-        </Button>
+        
         {userRole === 'architect'}
       </div>
 
