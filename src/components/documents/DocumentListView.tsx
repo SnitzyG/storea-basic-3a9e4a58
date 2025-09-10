@@ -200,7 +200,7 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
             <TableHead className="w-12">
               <Checkbox checked={selectedDocuments.size === documents.length && documents.length > 0} onCheckedChange={handleSelectAll} />
             </TableHead>
-            <TableHead className="w-12">File Type</TableHead>
+            <TableHead className="w-12"> Type</TableHead>
             <TableHead className="w-12">Lock</TableHead>
             
             <TableHead className="w-32">Document No.</TableHead>
@@ -209,7 +209,7 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
             <TableHead className="w-24">Status</TableHead>
             <TableHead className="w-24">Created</TableHead>
             <TableHead className="w-32">Created By</TableHead>
-            <TableHead className="w-32">Type</TableHead>
+            <TableHead className="w-32">File Type</TableHead>
             <TableHead className="w-32">Assigned To</TableHead>
             <TableHead className="w-16">Preview</TableHead>
             <TableHead className="w-16">History</TableHead>
