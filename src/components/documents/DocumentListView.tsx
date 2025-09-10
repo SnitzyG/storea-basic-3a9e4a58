@@ -60,8 +60,7 @@ interface DocumentListViewProps {
   onAssignedToChange?: (documentId: string, assignedTo: string) => void;
   onPreview?: (document: Document) => void;
   onViewDetails?: (document: Document) => void;
-  onViewEvents?: (document: Document) => void;
-  onViewTransmittals?: (document: Document) => void;
+  onEditTitle?: (document: Document) => void;
   canEdit: boolean;
   canApprove: boolean;
   selectedProject?: string;
@@ -76,8 +75,7 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
   onAssignedToChange,
   onPreview,
   onViewDetails,
-  onViewEvents,
-  onViewTransmittals,
+  onEditTitle,
   canEdit,
   canApprove,
   selectedProject
@@ -219,7 +217,7 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
             </TableHead>
             <TableHead className="w-12">Type</TableHead>
             <TableHead className="w-12">Lock</TableHead>
-            <TableHead className="w-24">Project No.</TableHead>
+            
             <TableHead className="w-32">Document No.</TableHead>
             <TableHead className="min-w-[200px]">Title</TableHead>
             <TableHead className="w-16">Rev</TableHead>
@@ -262,12 +260,9 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
                 )}
               </TableCell>
               
-              <TableCell className="font-mono text-xs">
-                {canEdit ? getProjectNumber(document.project_id) : '-'}
-              </TableCell>
               
               <TableCell className="font-mono text-xs">
-                {canEdit ? document.document_number || 'N/A' : '-'}
+                {(document as any).custom_document_number || 'N/A'}
               </TableCell>
               
               <TableCell className="font-medium">
@@ -361,6 +356,7 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
                 </Button>
               </TableCell>
               
+              
               <TableCell>
                 <Button
                   variant="ghost"
@@ -368,29 +364,7 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
                   className="h-7 w-7 p-0"
                   onClick={() => onViewDetails?.(document)}
                 >
-                  <Settings className="h-3 w-3" />
-                </Button>
-              </TableCell>
-              
-              <TableCell>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-7 w-7 p-0"
-                  onClick={() => onViewEvents?.(document)}
-                >
                   <History className="h-3 w-3" />
-                </Button>
-              </TableCell>
-              
-              <TableCell>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-7 w-7 p-0"
-                  onClick={() => onViewTransmittals?.(document)}
-                >
-                  <Send className="h-3 w-3" />
                 </Button>
               </TableCell>
               
@@ -410,7 +384,7 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
                     </DropdownMenuItem>
                     
                     {canEdit && (
-                      <DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => onEditTitle?.(document)}>
                         <Edit className="h-3 w-3 mr-2" />
                         Edit Title
                       </DropdownMenuItem>

@@ -16,6 +16,7 @@ import { useDocuments, Document } from '@/hooks/useDocuments';
 import { useProjects } from '@/hooks/useProjects';
 import { useAuth } from '@/hooks/useAuth';
 import { DocumentUpload } from '@/components/documents/DocumentUpload';
+import { DocumentTitleEditDialog } from '@/components/documents/DocumentTitleEditDialog';
 import { DocumentPreview } from '@/components/documents/DocumentPreview';
 import { DocumentDetailsDialog } from '@/components/documents/DocumentDetailsDialog';
 import { DocumentFilters } from '@/components/documents/DocumentFilters';
@@ -31,6 +32,7 @@ const Documents = () => {
   const [detailsDocument, setDetailsDocument] = useState<Document | null>(null);
   const [eventsDocument, setEventsDocument] = useState<Document | null>(null);
   const [transmittalsDocument, setTransmittalsDocument] = useState<Document | null>(null);
+  const [editTitleDocument, setEditTitleDocument] = useState<Document | null>(null);
   
   const { profile } = useAuth();
   const { projects } = useProjects();
@@ -43,7 +45,8 @@ const Documents = () => {
     updateDocumentStatus,
     updateDocumentType,
     updateDocumentAssignment,
-    requestApproval 
+    requestApproval,
+    updateDocumentTitle
   } = useDocuments(selectedProject === 'all' ? undefined : selectedProject);
 
   const filteredDocuments = useMemo(() => {
@@ -79,6 +82,11 @@ const Documents = () => {
 
   const handleAssignedToChange = async (documentId: string, assignedTo: string) => {
     await updateDocumentAssignment(documentId, assignedTo);
+  };
+
+  const handleTitleUpdate = async (documentId: string, newTitle: string) => {
+    await updateDocumentTitle(documentId, newTitle);
+    setEditTitleDocument(null);
   };
 
   const getStatusCounts = () => {
@@ -218,8 +226,7 @@ const Documents = () => {
           onAssignedToChange={handleAssignedToChange}
           onPreview={setPreviewDocument}
           onViewDetails={setDetailsDocument}
-          onViewEvents={setEventsDocument}
-          onViewTransmittals={setTransmittalsDocument}
+          onEditTitle={setEditTitleDocument}
           canEdit={filteredDocuments.some(doc => canEditDocument(doc))}
           canApprove={canApproveDocument()}
           selectedProject={selectedProject}
@@ -243,8 +250,13 @@ const Documents = () => {
         onClose={() => setDetailsDocument(null)}
       />
 
-      {/* TODO: Add Event History Dialog */}
-      {/* TODO: Add Transmittal History Dialog */}
+      {/* Document Title Edit Dialog */}
+      <DocumentTitleEditDialog
+        document={editTitleDocument}
+        isOpen={!!editTitleDocument}
+        onClose={() => setEditTitleDocument(null)}
+        onSave={handleTitleUpdate}
+      />
     </div>
   );
 };
