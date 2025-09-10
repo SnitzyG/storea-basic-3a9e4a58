@@ -163,8 +163,7 @@ export const useDocuments = (projectId?: string) => {
   const uploadDocument = async (
     file: File,
     projectId: string,
-    name?: string,
-    metadata?: any
+    name?: string
   ): Promise<Document | null> => {
     try {
       // Validate inputs
@@ -221,14 +220,10 @@ export const useDocuments = (projectId?: string) => {
         file_type: fileType,
         file_size: fileSize,
         file_extension: fileExt,
-        category: metadata?.fileTypeCategory || 'general',
+        category: 'general',
         tags: [],
         uploaded_by: user.id,
-        status: 'draft' as const,
-        custom_document_number: metadata?.documentNumber || null,
-        title: name || fileName,
-        status_category: metadata?.statusCategory || 'For Information',
-        file_type_category: metadata?.fileTypeCategory || 'Architectural'
+        status: 'draft' as const
       };
 
       console.log('Creating document record:', documentData);
@@ -551,32 +546,6 @@ export const useDocuments = (projectId?: string) => {
     }
   };
 
-  const updateDocumentTitle = async (documentId: string, title: string) => {
-    try {
-      const { error } = await supabase
-        .from('documents')
-        .update({ title })
-        .eq('id', documentId);
-
-      if (error) throw error;
-      
-      toast({
-        title: "Success",
-        description: "Document title updated successfully",
-      });
-      
-      // Refresh the documents
-      await fetchDocuments(projectId);
-    } catch (error) {
-      console.error('Error updating document title:', error);
-      toast({
-        title: "Error",
-        description: "Failed to update document title",
-        variant: "destructive",
-      });
-    }
-  };
-
   return {
     documents,
     loading,
@@ -591,7 +560,6 @@ export const useDocuments = (projectId?: string) => {
     getDocumentVersions,
     revertToVersion,
     requestApproval,
-    approveDocument,
-    updateDocumentTitle
+    approveDocument
   };
 };

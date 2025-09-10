@@ -50,65 +50,6 @@ export type Database = {
         }
         Relationships: []
       }
-      calendar_events: {
-        Row: {
-          attendees: Json | null
-          created_at: string
-          created_by: string
-          description: string | null
-          end_datetime: string | null
-          external_attendees: string[] | null
-          id: string
-          is_meeting: boolean | null
-          priority: string | null
-          project_id: string | null
-          start_datetime: string
-          status: string | null
-          title: string
-          updated_at: string
-        }
-        Insert: {
-          attendees?: Json | null
-          created_at?: string
-          created_by: string
-          description?: string | null
-          end_datetime?: string | null
-          external_attendees?: string[] | null
-          id?: string
-          is_meeting?: boolean | null
-          priority?: string | null
-          project_id?: string | null
-          start_datetime: string
-          status?: string | null
-          title: string
-          updated_at?: string
-        }
-        Update: {
-          attendees?: Json | null
-          created_at?: string
-          created_by?: string
-          description?: string | null
-          end_datetime?: string | null
-          external_attendees?: string[] | null
-          id?: string
-          is_meeting?: boolean | null
-          priority?: string | null
-          project_id?: string | null
-          start_datetime?: string
-          status?: string | null
-          title?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "calendar_events_project_id_fkey"
-            columns: ["project_id"]
-            isOneToOne: false
-            referencedRelation: "projects"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       companies: {
         Row: {
           address: string | null
@@ -363,13 +304,11 @@ export type Database = {
           assigned_to: string | null
           category: string | null
           created_at: string
-          custom_document_number: string | null
           document_number: string | null
           file_extension: string | null
           file_path: string
           file_size: number | null
           file_type: string
-          file_type_category: string | null
           id: string
           is_locked: boolean | null
           locked_at: string | null
@@ -377,7 +316,6 @@ export type Database = {
           name: string
           project_id: string
           status: Database["public"]["Enums"]["document_status"]
-          status_category: string | null
           tags: string[] | null
           title: string | null
           updated_at: string
@@ -389,13 +327,11 @@ export type Database = {
           assigned_to?: string | null
           category?: string | null
           created_at?: string
-          custom_document_number?: string | null
           document_number?: string | null
           file_extension?: string | null
           file_path: string
           file_size?: number | null
           file_type: string
-          file_type_category?: string | null
           id?: string
           is_locked?: boolean | null
           locked_at?: string | null
@@ -403,7 +339,6 @@ export type Database = {
           name: string
           project_id: string
           status?: Database["public"]["Enums"]["document_status"]
-          status_category?: string | null
           tags?: string[] | null
           title?: string | null
           updated_at?: string
@@ -415,13 +350,11 @@ export type Database = {
           assigned_to?: string | null
           category?: string | null
           created_at?: string
-          custom_document_number?: string | null
           document_number?: string | null
           file_extension?: string | null
           file_path?: string
           file_size?: number | null
           file_type?: string
-          file_type_category?: string | null
           id?: string
           is_locked?: boolean | null
           locked_at?: string | null
@@ -429,7 +362,6 @@ export type Database = {
           name?: string
           project_id?: string
           status?: Database["public"]["Enums"]["document_status"]
-          status_category?: string | null
           tags?: string[] | null
           title?: string | null
           updated_at?: string

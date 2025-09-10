@@ -137,8 +137,11 @@ export const DocumentDetailsDialog: React.FC<DocumentDetailsDialogProps> = ({
 
         <div className="flex-1 min-h-0">
           <Tabs defaultValue="versions" className="h-full flex flex-col">
-            <TabsList className="grid w-full grid-cols-1">
-              <TabsTrigger value="versions">History</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-4">
+              <TabsTrigger value="versions">Version History</TabsTrigger>
+              <TabsTrigger value="comments">Comments</TabsTrigger>
+              <TabsTrigger value="collaboration">Collaboration</TabsTrigger>
+              <TabsTrigger value="analytics">Analytics</TabsTrigger>
             </TabsList>
             
             <div className="flex-1 min-h-0 pt-4">
@@ -149,6 +152,29 @@ export const DocumentDetailsDialog: React.FC<DocumentDetailsDialogProps> = ({
                   onDownloadVersion={downloadDocument}
                   onRevertToVersion={handleRevertToVersion}
                   currentVersion={document.version}
+                />
+              </TabsContent>
+
+              <TabsContent value="comments" className="h-full">
+                <DocumentComments
+                  documentId={document.id}
+                  comments={mockComments}
+                  onAddComment={handleAddComment}
+                />
+              </TabsContent>
+
+              <TabsContent value="collaboration" className="h-full">
+                <DocumentCollaboration
+                  documentId={document.id}
+                  collaborators={mockCollaborators}
+                  currentUserId="current-user"
+                />
+              </TabsContent>
+
+              <TabsContent value="analytics" className="h-full">
+                <DocumentAnalytics
+                  documentId={document.id}
+                  data={mockAnalytics}
                 />
               </TabsContent>
             </div>
