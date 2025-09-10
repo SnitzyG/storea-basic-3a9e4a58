@@ -213,7 +213,7 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
             <TableHead className="w-32">Assigned To</TableHead>
             <TableHead className="w-16">Preview</TableHead>
             <TableHead className="w-16">Properties</TableHead>
-            <TableHead className="w-16">Events</TableHead>
+            <TableHead className="w-16">History</TableHead>
             <TableHead className="w-16">Transmittals</TableHead>
             <TableHead className="w-12">Actions</TableHead>
           </TableRow>
