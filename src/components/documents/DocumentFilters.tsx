@@ -4,7 +4,6 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-
 interface DocumentFiltersProps {
   searchTerm: string;
   onSearchChange: (value: string) => void;
@@ -16,7 +15,10 @@ interface DocumentFiltersProps {
   onStatusChange: (value: string) => void;
   viewMode: 'grid' | 'list';
   onViewModeChange: (mode: 'grid' | 'list') => void;
-  projects: Array<{ id: string; name: string }>;
+  projects: Array<{
+    id: string;
+    name: string;
+  }>;
   documentCounts: {
     total: number;
     draft: number;
@@ -25,18 +27,31 @@ interface DocumentFiltersProps {
     rejected: number;
   };
 }
-
-const categories = [
-  { value: 'all', label: 'All Categories' },
-  { value: 'general', label: 'General' },
-  { value: 'drawings', label: 'Drawings' },
-  { value: 'contracts', label: 'Contracts' },
-  { value: 'reports', label: 'Reports' },
-  { value: 'specifications', label: 'Specifications' },
-  { value: 'permits', label: 'Permits' },
-  { value: 'safety', label: 'Safety' }
-];
-
+const categories = [{
+  value: 'all',
+  label: 'All Categories'
+}, {
+  value: 'general',
+  label: 'General'
+}, {
+  value: 'drawings',
+  label: 'Drawings'
+}, {
+  value: 'contracts',
+  label: 'Contracts'
+}, {
+  value: 'reports',
+  label: 'Reports'
+}, {
+  value: 'specifications',
+  label: 'Specifications'
+}, {
+  value: 'permits',
+  label: 'Permits'
+}, {
+  value: 'safety',
+  label: 'Safety'
+}];
 export const DocumentFilters: React.FC<DocumentFiltersProps> = ({
   searchTerm,
   onSearchChange,
@@ -51,33 +66,17 @@ export const DocumentFilters: React.FC<DocumentFiltersProps> = ({
   projects,
   documentCounts
 }) => {
-  return (
-    <div className="space-y-4">
+  return <div className="space-y-4">
       {/* Search and View Toggle */}
       <div className="flex items-center gap-4">
         <div className="relative flex-1 max-w-md">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-          <Input
-            placeholder="Search documents..."
-            value={searchTerm}
-            onChange={(e) => onSearchChange(e.target.value)}
-            className="pl-10"
-          />
+          <Input placeholder="Search documents..." value={searchTerm} onChange={e => onSearchChange(e.target.value)} className="pl-10" />
         </div>
         
         <div className="flex items-center gap-2">
-          <Button
-            variant={viewMode === 'grid' ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => onViewModeChange('grid')}
-          >
-            <Grid className="h-4 w-4" />
-          </Button>
-          <Button
-            variant={viewMode === 'list' ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => onViewModeChange('list')}
-          >
+          
+          <Button variant={viewMode === 'list' ? 'default' : 'outline'} size="sm" onClick={() => onViewModeChange('list')}>
             <List className="h-4 w-4" />
           </Button>
         </div>
@@ -91,11 +90,9 @@ export const DocumentFilters: React.FC<DocumentFiltersProps> = ({
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Projects</SelectItem>
-            {projects.map((project) => (
-              <SelectItem key={project.id} value={project.id}>
+            {projects.map(project => <SelectItem key={project.id} value={project.id}>
                 {project.name}
-              </SelectItem>
-            ))}
+              </SelectItem>)}
           </SelectContent>
         </Select>
 
@@ -104,11 +101,9 @@ export const DocumentFilters: React.FC<DocumentFiltersProps> = ({
             <SelectValue placeholder="All Categories" />
           </SelectTrigger>
           <SelectContent>
-            {categories.map((category) => (
-              <SelectItem key={category.value} value={category.value}>
+            {categories.map(category => <SelectItem key={category.value} value={category.value}>
                 {category.label}
-              </SelectItem>
-            ))}
+              </SelectItem>)}
           </SelectContent>
         </Select>
 
@@ -144,6 +139,5 @@ export const DocumentFilters: React.FC<DocumentFiltersProps> = ({
           Rejected: {documentCounts.rejected}
         </Badge>
       </div>
-    </div>
-  );
+    </div>;
 };
