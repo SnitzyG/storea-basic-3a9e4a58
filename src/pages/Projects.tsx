@@ -10,67 +10,69 @@ import { ProjectDetailsDialog } from '@/components/projects/ProjectDetailsDialog
 import { useProjects, Project } from '@/hooks/useProjects';
 import { useAuth } from '@/hooks/useAuth';
 import { Search, Grid, List, Plus, Filter } from 'lucide-react';
-
 const Projects = () => {
-  const { projects, loading, deleteProject } = useProjects();
-  const { profile } = useAuth();
+  const {
+    projects,
+    loading,
+    deleteProject
+  } = useProjects();
+  const {
+    profile
+  } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [detailsMode, setDetailsMode] = useState<'view' | 'edit'>('view');
   const [detailsOpen, setDetailsOpen] = useState(false);
-  const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; project: Project | null }>({
+  const [deleteDialog, setDeleteDialog] = useState<{
+    open: boolean;
+    project: Project | null;
+  }>({
     open: false,
     project: null
   });
-
   const isArchitect = profile?.role === 'architect';
 
   // Filter projects based on search and status
   const filteredProjects = projects.filter(project => {
-    const matchesSearch = project.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         project.address?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         project.description?.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesSearch = project.name.toLowerCase().includes(searchQuery.toLowerCase()) || project.address?.toLowerCase().includes(searchQuery.toLowerCase()) || project.description?.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesStatus = statusFilter === 'all' || project.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
-
   const handleView = (project: Project) => {
     setSelectedProject(project);
     setDetailsMode('view');
     setDetailsOpen(true);
   };
-
   const handleEdit = (project: Project) => {
     setSelectedProject(project);
     setDetailsMode('edit');
     setDetailsOpen(true);
   };
-
   const handleDelete = (project: Project) => {
-    setDeleteDialog({ open: true, project });
+    setDeleteDialog({
+      open: true,
+      project
+    });
   };
-
   const confirmDelete = async () => {
     if (deleteDialog.project) {
       await deleteProject(deleteDialog.project.id);
-      setDeleteDialog({ open: false, project: null });
+      setDeleteDialog({
+        open: false,
+        project: null
+      });
     }
   };
-
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
+    return <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center">
           <div className="text-lg">Loading projects...</div>
         </div>
-      </div>
-    );
+      </div>;
   }
-
-  return (
-    <div className="max-w-7xl mx-auto space-y-6">
+  return <div className="max-w-7xl space-y-6 mx-[25px]">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
@@ -79,14 +81,12 @@ const Projects = () => {
               Manage your construction projects and track their progress
             </p>
           </div>
-          {isArchitect && (
-            <CreateProjectDialog>
+          {isArchitect && <CreateProjectDialog>
               <Button>
                 <Plus className="h-4 w-4 mr-2" />
                 Create Project
               </Button>
-            </CreateProjectDialog>
-          )}
+            </CreateProjectDialog>}
         </div>
 
         {/* Filters and Search */}
@@ -94,12 +94,7 @@ const Projects = () => {
           <div className="flex flex-1 gap-4 items-center">
             <div className="relative flex-1 max-w-sm">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search projects..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10"
-              />
+              <Input placeholder="Search projects..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="pl-10" />
             </div>
             
             <Select value={statusFilter} onValueChange={setStatusFilter}>
@@ -119,82 +114,46 @@ const Projects = () => {
           </div>
 
           <div className="flex gap-2">
-            <Button
-              variant={viewMode === 'grid' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setViewMode('grid')}
-            >
+            <Button variant={viewMode === 'grid' ? 'default' : 'outline'} size="sm" onClick={() => setViewMode('grid')}>
               <Grid className="h-4 w-4" />
             </Button>
-            <Button
-              variant={viewMode === 'list' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setViewMode('list')}
-            >
+            <Button variant={viewMode === 'list' ? 'default' : 'outline'} size="sm" onClick={() => setViewMode('list')}>
               <List className="h-4 w-4" />
             </Button>
           </div>
         </div>
 
         {/* Projects Grid/List */}
-        {filteredProjects.length === 0 ? (
-          <div className="text-center py-12">
-            {projects.length === 0 ? (
-              <div className="space-y-4">
+        {filteredProjects.length === 0 ? <div className="text-center py-12">
+            {projects.length === 0 ? <div className="space-y-4">
                 <h3 className="text-lg font-medium">No projects yet</h3>
                 <p className="text-muted-foreground">
-                  {isArchitect 
-                    ? "Create your first project to get started with project management."
-                    : "You haven't been assigned to any projects yet."
-                  }
+                  {isArchitect ? "Create your first project to get started with project management." : "You haven't been assigned to any projects yet."}
                 </p>
-                {isArchitect && (
-                  <CreateProjectDialog>
+                {isArchitect && <CreateProjectDialog>
                     <Button>
                       <Plus className="h-4 w-4 mr-2" />
                       Create Your First Project
                     </Button>
-                  </CreateProjectDialog>
-                )}
-              </div>
-            ) : (
-              <div className="space-y-4">
+                  </CreateProjectDialog>}
+              </div> : <div className="space-y-4">
                 <h3 className="text-lg font-medium">No projects match your search</h3>
                 <p className="text-muted-foreground">
                   Try adjusting your search terms or filters to find what you're looking for.
                 </p>
-              </div>
-            )}
-          </div>
-        ) : (
-          <div className={
-            viewMode === 'grid' 
-              ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-              : "space-y-4"
-          }>
-            {filteredProjects.map((project) => (
-              <ProjectCard
-                key={project.id}
-                project={project}
-                onView={handleView}
-                onEdit={handleEdit}
-                onDelete={handleDelete}
-              />
-            ))}
-          </div>
-        )}
+              </div>}
+          </div> : <div className={viewMode === 'grid' ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" : "space-y-4"}>
+            {filteredProjects.map(project => <ProjectCard key={project.id} project={project} onView={handleView} onEdit={handleEdit} onDelete={handleDelete} />)}
+          </div>}
 
         {/* Project Details Dialog */}
-        <ProjectDetailsDialog
-          project={selectedProject}
-          open={detailsOpen}
-          onOpenChange={setDetailsOpen}
-          mode={detailsMode}
-          onModeChange={setDetailsMode}
-        />
+        <ProjectDetailsDialog project={selectedProject} open={detailsOpen} onOpenChange={setDetailsOpen} mode={detailsMode} onModeChange={setDetailsMode} />
 
         {/* Delete Confirmation Dialog */}
-        <AlertDialog open={deleteDialog.open} onOpenChange={(open) => setDeleteDialog({ open, project: null })}>
+        <AlertDialog open={deleteDialog.open} onOpenChange={open => setDeleteDialog({
+      open,
+      project: null
+    })}>
           <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle>Delete Project</AlertDialogTitle>
@@ -210,8 +169,6 @@ const Projects = () => {
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
-      </div>
-  );
+      </div>;
 };
-
 export default Projects;
