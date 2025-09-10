@@ -15,26 +15,33 @@ import { useProjectTeam } from '@/hooks/useProjectTeam';
 import { useProjects } from '@/hooks/useProjects';
 import { useAuth } from '@/hooks/useAuth';
 import { useDocuments } from '@/hooks/useDocuments';
-
 interface CreateRFIDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   projectId: string;
 }
-
 export const CreateRFIDialog: React.FC<CreateRFIDialogProps> = ({
   open,
   onOpenChange,
-  projectId,
+  projectId
 }) => {
-  const { createRFI } = useRFIs(projectId);
-  const { teamMembers } = useProjectTeam(projectId);
-  const { projects } = useProjects();
-  const { profile, user } = useAuth();
-  const { documents } = useDocuments(projectId);
-  
+  const {
+    createRFI
+  } = useRFIs(projectId);
+  const {
+    teamMembers
+  } = useProjectTeam(projectId);
+  const {
+    projects
+  } = useProjects();
+  const {
+    profile,
+    user
+  } = useAuth();
+  const {
+    documents
+  } = useDocuments(projectId);
   const currentProject = projects.find(p => p.id === projectId);
-  
   const [formData, setFormData] = useState({
     project_name: '',
     project_number: '',
@@ -53,9 +60,8 @@ export const CreateRFIDialog: React.FC<CreateRFIDialogProps> = ({
     required_response_by: undefined as Date | undefined,
     priority: 'medium' as const,
     category: '',
-    assigned_to: '',
+    assigned_to: ''
   });
-
   const [requiredResponseDate, setRequiredResponseDate] = useState<Date>();
   const [loading, setLoading] = useState(false);
   const [selectedRecipient, setSelectedRecipient] = useState<string>('');
@@ -71,32 +77,22 @@ export const CreateRFIDialog: React.FC<CreateRFIDialogProps> = ({
         project_name: currentProject.name || '',
         project_number: currentProject.id || '',
         sender_name: profile.name || '',
-        sender_email: user.email || '',
+        sender_email: user.email || ''
       }));
     }
   }, [open, currentProject, profile, user]);
-
-  const rfiCategories = [
-    'General',
-    'Structural',
-    'Mechanical',
-    'Electrical',
-    'Plumbing',
-    'HVAC',
-    'Fire Safety',
-    'Code Compliance',
-    'Materials',
-    'Schedule',
-    'Other'
-  ];
+  const rfiCategories = ['General', 'Structural', 'Mechanical', 'Electrical', 'Plumbing', 'HVAC', 'Fire Safety', 'Code Compliance', 'Materials', 'Schedule', 'Other'];
 
   // Handle recipient selection
   const handleRecipientChange = (value: string) => {
     setSelectedRecipient(value);
-    
     if (value === 'other') {
       setIsOtherRecipient(true);
-      setFormData(prev => ({ ...prev, recipient_name: '', recipient_email: '' }));
+      setFormData(prev => ({
+        ...prev,
+        recipient_name: '',
+        recipient_email: ''
+      }));
     } else {
       setIsOtherRecipient(false);
       const member = teamMembers.find(m => m.user_id === value);
@@ -104,7 +100,8 @@ export const CreateRFIDialog: React.FC<CreateRFIDialogProps> = ({
         setFormData(prev => ({
           ...prev,
           recipient_name: member.user_profile?.name || '',
-          recipient_email: '', // Email needs to be filled manually or from auth
+          recipient_email: '',
+          // Email needs to be filled manually or from auth
           assigned_to: value
         }));
       }
@@ -116,31 +113,29 @@ export const CreateRFIDialog: React.FC<CreateRFIDialogProps> = ({
     if (selectedDocuments.includes(documentId)) {
       setSelectedDocuments(prev => prev.filter(id => id !== documentId));
       setDocumentNames(prev => {
-        const { [documentId]: removed, ...rest } = prev;
+        const {
+          [documentId]: removed,
+          ...rest
+        } = prev;
         return rest;
       });
     } else {
       const doc = documents.find(d => d.id === documentId);
       if (doc) {
         setSelectedDocuments(prev => [...prev, documentId]);
-        setDocumentNames(prev => ({ ...prev, [documentId]: doc.name }));
+        setDocumentNames(prev => ({
+          ...prev,
+          [documentId]: doc.name
+        }));
       }
     }
   };
-
   const handleSubmit = async () => {
     if (!formData.question || !formData.subject) return;
-    
+
     // Build reference documents string from selected documents
-    const referenceDocsFromSelection = selectedDocuments
-      .map(id => documentNames[id])
-      .filter(Boolean)
-      .join(', ');
-    
-    const otherRef = [formData.other_reference, referenceDocsFromSelection]
-      .filter(Boolean)
-      .join(', ');
-    
+    const referenceDocsFromSelection = selectedDocuments.map(id => documentNames[id]).filter(Boolean).join(', ');
+    const otherRef = [formData.other_reference, referenceDocsFromSelection].filter(Boolean).join(', ');
     setLoading(true);
     try {
       await createRFI({
@@ -163,9 +158,9 @@ export const CreateRFIDialog: React.FC<CreateRFIDialogProps> = ({
         contract_clause: formData.contract_clause,
         other_reference: otherRef,
         proposed_solution: formData.proposed_solution,
-        required_response_by: requiredResponseDate?.toISOString(),
+        required_response_by: requiredResponseDate?.toISOString()
       });
-      
+
       // Reset form
       setFormData({
         project_name: currentProject?.name || '',
@@ -185,7 +180,7 @@ export const CreateRFIDialog: React.FC<CreateRFIDialogProps> = ({
         required_response_by: undefined,
         priority: 'medium',
         category: '',
-        assigned_to: '',
+        assigned_to: ''
       });
       setRequiredResponseDate(undefined);
       setSelectedRecipient('');
@@ -199,9 +194,7 @@ export const CreateRFIDialog: React.FC<CreateRFIDialogProps> = ({
       setLoading(false);
     }
   };
-
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+  return <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Create New RFI</DialogTitle>
@@ -212,30 +205,26 @@ export const CreateRFIDialog: React.FC<CreateRFIDialogProps> = ({
           <div className="space-y-4">
             <div>
               <Label htmlFor="project-name">Project Name</Label>
-              <Input
-                id="project-name"
-                value={formData.project_name}
-                onChange={(e) => setFormData(prev => ({ ...prev, project_name: e.target.value }))}
-              />
+              <Input id="project-name" value={formData.project_name} onChange={e => setFormData(prev => ({
+              ...prev,
+              project_name: e.target.value
+            }))} />
             </div>
 
             <div>
               <Label htmlFor="project-number">Project Number</Label>
-              <Input
-                id="project-number"
-                value={formData.project_number}
-                onChange={(e) => setFormData(prev => ({ ...prev, project_number: e.target.value }))}
-              />
+              <Input id="project-number" value={formData.project_number} onChange={e => setFormData(prev => ({
+              ...prev,
+              project_number: e.target.value
+            }))} />
             </div>
 
             <div>
               <Label htmlFor="date">Date</Label>
-              <Input
-                id="date"
-                type="date"
-                value={format(formData.date, 'yyyy-MM-dd')}
-                onChange={(e) => setFormData(prev => ({ ...prev, date: new Date(e.target.value) }))}
-              />
+              <Input id="date" type="date" value={format(formData.date, 'yyyy-MM-dd')} onChange={e => setFormData(prev => ({
+              ...prev,
+              date: new Date(e.target.value)
+            }))} />
             </div>
 
             <div>
@@ -245,69 +234,54 @@ export const CreateRFIDialog: React.FC<CreateRFIDialogProps> = ({
                   <SelectValue placeholder="Select recipient" />
                 </SelectTrigger>
                 <SelectContent>
-                  {teamMembers.map((member) => (
-                    <SelectItem key={member.user_id} value={member.user_id}>
+                  {teamMembers.map(member => <SelectItem key={member.user_id} value={member.user_id}>
                       {member.user_profile?.name || 'Unknown User'} ({member.role})
-                    </SelectItem>
-                  ))}
+                    </SelectItem>)}
                   <SelectItem value="other">Other recipient</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
-            {isOtherRecipient && (
-              <>
+            {isOtherRecipient && <>
                 <div>
                   <Label htmlFor="recipient-name">Recipient Name</Label>
-                  <Input
-                    id="recipient-name"
-                    value={formData.recipient_name}
-                    onChange={(e) => setFormData(prev => ({ ...prev, recipient_name: e.target.value }))}
-                    placeholder="Enter recipient name"
-                  />
+                  <Input id="recipient-name" value={formData.recipient_name} onChange={e => setFormData(prev => ({
+                ...prev,
+                recipient_name: e.target.value
+              }))} placeholder="Enter recipient name" />
                 </div>
 
                 <div>
                   <Label htmlFor="recipient-email">Recipient Email</Label>
-                  <Input
-                    id="recipient-email"
-                    type="email"
-                    value={formData.recipient_email}
-                    onChange={(e) => setFormData(prev => ({ ...prev, recipient_email: e.target.value }))}
-                    placeholder="recipient@company.com"
-                  />
+                  <Input id="recipient-email" type="email" value={formData.recipient_email} onChange={e => setFormData(prev => ({
+                ...prev,
+                recipient_email: e.target.value
+              }))} placeholder="recipient@company.com" />
                 </div>
-              </>
-            )}
+              </>}
 
             <div>
               <Label htmlFor="sender-name">From (Sender Name)</Label>
-              <Input
-                id="sender-name"
-                value={formData.sender_name}
-                onChange={(e) => setFormData(prev => ({ ...prev, sender_name: e.target.value }))}
-              />
+              <Input id="sender-name" value={formData.sender_name} onChange={e => setFormData(prev => ({
+              ...prev,
+              sender_name: e.target.value
+            }))} />
             </div>
 
             <div>
               <Label htmlFor="sender-email">From (Sender Email)</Label>
-              <Input
-                id="sender-email"
-                type="email"
-                value={formData.sender_email}
-                onChange={(e) => setFormData(prev => ({ ...prev, sender_email: e.target.value }))}
-                placeholder="sender@company.com"
-              />
+              <Input id="sender-email" type="email" value={formData.sender_email} onChange={e => setFormData(prev => ({
+              ...prev,
+              sender_email: e.target.value
+            }))} placeholder="sender@company.com" />
             </div>
 
             <div>
               <Label htmlFor="subject">Subject / Title</Label>
-              <Input
-                id="subject"
-                value={formData.subject}
-                onChange={(e) => setFormData(prev => ({ ...prev, subject: e.target.value }))}
-                placeholder="Brief description of the RFI"
-              />
+              <Input id="subject" value={formData.subject} onChange={e => setFormData(prev => ({
+              ...prev,
+              subject: e.target.value
+            }))} placeholder="Brief description of the RFI" />
             </div>
           </div>
 
@@ -316,94 +290,42 @@ export const CreateRFIDialog: React.FC<CreateRFIDialogProps> = ({
             <div className="space-y-3">
               <Label>Reference Documents</Label>
               
-              <div>
-                <Label htmlFor="drawing-no" className="text-sm text-muted-foreground">Drawing No.</Label>
-                <Input
-                  id="drawing-no"
-                  value={formData.drawing_no}
-                  onChange={(e) => setFormData(prev => ({ ...prev, drawing_no: e.target.value }))}
-                  placeholder="A-101, S-201, etc."
-                />
-              </div>
+              
 
-              <div>
-                <Label htmlFor="spec-section" className="text-sm text-muted-foreground">Specification Section</Label>
-                <Input
-                  id="spec-section"
-                  value={formData.specification_section}
-                  onChange={(e) => setFormData(prev => ({ ...prev, specification_section: e.target.value }))}
-                  placeholder="Section 03 30 00"
-                />
-              </div>
+              
 
-              <div>
-                <Label htmlFor="contract-clause" className="text-sm text-muted-foreground">Contract Clause</Label>
-                <Input
-                  id="contract-clause"
-                  value={formData.contract_clause}
-                  onChange={(e) => setFormData(prev => ({ ...prev, contract_clause: e.target.value }))}
-                  placeholder="Article 3.2.1"
-                />
-              </div>
+              
 
               <div>
                 <Label className="text-sm text-muted-foreground">Attach Project Documents</Label>
-                {documents.length > 0 ? (
-                  <div className="max-h-32 overflow-y-auto border rounded-md p-2 space-y-1">
-                    {documents.map((doc) => (
-                      <div
-                        key={doc.id}
-                        className={cn(
-                          "flex items-center space-x-2 p-2 rounded cursor-pointer hover:bg-muted",
-                          selectedDocuments.includes(doc.id) && "bg-primary/10"
-                        )}
-                        onClick={() => handleDocumentSelect(doc.id)}
-                      >
+                {documents.length > 0 ? <div className="max-h-32 overflow-y-auto border rounded-md p-2 space-y-1">
+                    {documents.map(doc => <div key={doc.id} className={cn("flex items-center space-x-2 p-2 rounded cursor-pointer hover:bg-muted", selectedDocuments.includes(doc.id) && "bg-primary/10")} onClick={() => handleDocumentSelect(doc.id)}>
                         <FileText className="h-4 w-4" />
                         <span className="text-sm flex-1 truncate">{doc.name}</span>
-                        {selectedDocuments.includes(doc.id) && (
-                          <div className="text-primary">✓</div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-sm text-muted-foreground">No documents available in this project</p>
-                )}
+                        {selectedDocuments.includes(doc.id) && <div className="text-primary">✓</div>}
+                      </div>)}
+                  </div> : <p className="text-sm text-muted-foreground">No documents available in this project</p>}
                 
-                {selectedDocuments.length > 0 && (
-                  <div className="space-y-1">
+                {selectedDocuments.length > 0 && <div className="space-y-1">
                     <Label className="text-sm text-muted-foreground">Selected Documents:</Label>
-                    {selectedDocuments.map(docId => (
-                      <div key={docId} className="flex items-center justify-between bg-muted p-2 rounded text-sm">
+                    {selectedDocuments.map(docId => <div key={docId} className="flex items-center justify-between bg-muted p-2 rounded text-sm">
                         <span className="truncate flex-1">{documentNames[docId]}</span>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleDocumentSelect(docId)}
-                        >
+                        <Button variant="ghost" size="sm" onClick={() => handleDocumentSelect(docId)}>
                           <X className="h-3 w-3" />
                         </Button>
-                      </div>
-                    ))}
-                  </div>
-                )}
+                      </div>)}
+                  </div>}
               </div>
 
-              <div>
-                <Label htmlFor="other-ref" className="text-sm text-muted-foreground">Other Reference</Label>
-                <Input
-                  id="other-ref"
-                  value={formData.other_reference}
-                  onChange={(e) => setFormData(prev => ({ ...prev, other_reference: e.target.value }))}
-                  placeholder="Additional references"
-                />
-              </div>
+              
             </div>
 
             <div>
               <Label htmlFor="priority">Priority</Label>
-              <Select value={formData.priority} onValueChange={(value: any) => setFormData(prev => ({ ...prev, priority: value }))}>
+              <Select value={formData.priority} onValueChange={(value: any) => setFormData(prev => ({
+              ...prev,
+              priority: value
+            }))}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select priority" />
                 </SelectTrigger>
@@ -416,63 +338,36 @@ export const CreateRFIDialog: React.FC<CreateRFIDialogProps> = ({
               </Select>
             </div>
 
-            <div>
-              <Label htmlFor="category">Category</Label>
-              <Select value={formData.category} onValueChange={(value) => setFormData(prev => ({ ...prev, category: value }))}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select category" />
-                </SelectTrigger>
-                <SelectContent>
-                  {rfiCategories.map((category) => (
-                    <SelectItem key={category} value={category.toLowerCase()}>
-                      {category}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            
 
-            {!isOtherRecipient && (
-              <div>
+            {!isOtherRecipient && <div>
                 <Label htmlFor="assigned-to">Assign To</Label>
-                <Select value={formData.assigned_to} onValueChange={(value) => setFormData(prev => ({ ...prev, assigned_to: value }))}>
+                <Select value={formData.assigned_to} onValueChange={value => setFormData(prev => ({
+              ...prev,
+              assigned_to: value
+            }))}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select team member" />
                   </SelectTrigger>
                   <SelectContent>
-                    {teamMembers.map((member) => (
-                      <SelectItem key={member.user_id} value={member.user_id}>
+                    {teamMembers.map(member => <SelectItem key={member.user_id} value={member.user_id}>
                         {member.user_profile?.name || 'Unknown User'} ({member.role})
-                      </SelectItem>
-                    ))}
+                      </SelectItem>)}
                   </SelectContent>
                 </Select>
-              </div>
-            )}
+              </div>}
 
             <div>
               <Label>Required Response By</Label>
               <Popover>
                 <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      "w-full justify-start text-left font-normal",
-                      !requiredResponseDate && "text-muted-foreground"
-                    )}
-                  >
+                  <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !requiredResponseDate && "text-muted-foreground")}>
                     <CalendarIcon className="mr-2 h-4 w-4" />
                     {requiredResponseDate ? format(requiredResponseDate, "PPP") : <span>Pick a date</span>}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={requiredResponseDate}
-                    onSelect={setRequiredResponseDate}
-                    initialFocus
-                    className={cn("p-3 pointer-events-auto")}
-                  />
+                  <Calendar mode="single" selected={requiredResponseDate} onSelect={setRequiredResponseDate} initialFocus className={cn("p-3 pointer-events-auto")} />
                 </PopoverContent>
               </Popover>
             </div>
@@ -483,39 +378,23 @@ export const CreateRFIDialog: React.FC<CreateRFIDialogProps> = ({
         <div className="space-y-4">
           <div>
             <Label htmlFor="question">Request / Question</Label>
-            <Textarea
-              id="question"
-              placeholder="Describe your request or question in detail..."
-              value={formData.question}
-              onChange={(e) => setFormData(prev => ({ ...prev, question: e.target.value }))}
-              className="min-h-[100px]"
-            />
+            <Textarea id="question" placeholder="Describe your request or question in detail..." value={formData.question} onChange={e => setFormData(prev => ({
+            ...prev,
+            question: e.target.value
+          }))} className="min-h-[100px]" />
           </div>
 
-          <div>
-            <Label htmlFor="proposed-solution">Proposed Solution (Optional)</Label>
-            <Textarea
-              id="proposed-solution"
-              placeholder="If you have a proposed solution, describe it here..."
-              value={formData.proposed_solution}
-              onChange={(e) => setFormData(prev => ({ ...prev, proposed_solution: e.target.value }))}
-              className="min-h-[80px]"
-            />
-          </div>
+          
         </div>
 
         <div className="flex justify-end space-x-2">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
-          <Button 
-            onClick={handleSubmit} 
-            disabled={loading || !formData.question || !formData.subject}
-          >
+          <Button onClick={handleSubmit} disabled={loading || !formData.question || !formData.subject}>
             {loading ? 'Creating...' : 'Create RFI'}
           </Button>
         </div>
       </DialogContent>
-    </Dialog>
-  );
+    </Dialog>;
 };
