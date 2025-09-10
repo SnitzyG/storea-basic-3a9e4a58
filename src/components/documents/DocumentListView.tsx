@@ -214,7 +214,7 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
             <TableHead className="w-16">Preview</TableHead>
             <TableHead className="w-16">Properties</TableHead>
             <TableHead className="w-16">History</TableHead>
-            <TableHead className="w-16">Transmittals</TableHead>
+            
             <TableHead className="w-12">Actions</TableHead>
           </TableRow>
         </TableHeader>
@@ -314,11 +314,7 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
                 </Button>
               </TableCell>
               
-              <TableCell>
-                <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={() => onViewTransmittals?.(document)}>
-                  <Send className="h-3 w-3" />
-                </Button>
-              </TableCell>
+              
               
               <TableCell>
                 <DropdownMenu>
