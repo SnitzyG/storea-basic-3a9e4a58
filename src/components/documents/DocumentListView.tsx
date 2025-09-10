@@ -1,56 +1,16 @@
 import React, { useState, useMemo } from 'react';
-import { 
-  FileText, 
-  Lock, 
-  Unlock, 
-  Eye, 
-  Settings, 
-  History, 
-  Send,
-  Check,
-  X,
-  MoreHorizontal,
-  Download,
-  Edit,
-  Image,
-  FileCheck,
-  Building,
-  Zap,
-  Wrench,
-  FileBarChart,
-  Mail,
-  Camera
-} from 'lucide-react';
+import { FileText, Lock, Unlock, Eye, Settings, History, Send, Check, X, MoreHorizontal, Download, Edit, Image, FileCheck, Building, Zap, Wrench, FileBarChart, Mail, Camera } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Document } from '@/hooks/useDocuments';
 import { useProjects } from '@/hooks/useProjects';
 import { useProjectTeam } from '@/hooks/useProjectTeam';
 import { format } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
-
 interface DocumentListViewProps {
   documents: Document[];
   onDownload: (filePath: string, fileName: string) => void;
@@ -66,7 +26,6 @@ interface DocumentListViewProps {
   canApprove: boolean;
   selectedProject?: string;
 }
-
 export const DocumentListView: React.FC<DocumentListViewProps> = ({
   documents,
   onDownload,
@@ -83,9 +42,12 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
   selectedProject
 }) => {
   const [selectedDocuments, setSelectedDocuments] = useState<Set<string>>(new Set());
-  const { projects } = useProjects();
-  const { teamMembers } = useProjectTeam(selectedProject);
-
+  const {
+    projects
+  } = useProjects();
+  const {
+    teamMembers
+  } = useProjectTeam(selectedProject);
   const getFileTypeIcon = (category: string) => {
     const iconMap = {
       'architectural_drawings': <Building className="h-4 w-4 text-blue-500" />,
@@ -101,7 +63,6 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
     };
     return iconMap[category as keyof typeof iconMap] || <FileText className="h-4 w-4 text-muted-foreground" />;
   };
-
   const getProjectNumber = (projectId: string) => {
     const project = projects.find(p => p.id === projectId);
     if (!project) return 'N/A';
@@ -110,20 +71,25 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
     const year = new Date(project.created_at).getFullYear();
     return `${code}-${year}`;
   };
-
   const getStatusBadgeColor = (status: string) => {
     switch (status.toLowerCase()) {
-      case 'draft': return 'secondary';
+      case 'draft':
+        return 'secondary';
       case 'for review':
-      case 'under review': return 'outline';
-      case 'approved': return 'default';
-      case 'superseded': return 'outline';
-      case 'void': return 'destructive';
-      case 'final': return 'default';
-      default: return 'secondary';
+      case 'under review':
+        return 'outline';
+      case 'approved':
+        return 'default';
+      case 'superseded':
+        return 'outline';
+      case 'void':
+        return 'destructive';
+      case 'final':
+        return 'default';
+      default:
+        return 'secondary';
     }
   };
-
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
       setSelectedDocuments(new Set(documents.map(doc => doc.id)));
@@ -131,7 +97,6 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
       setSelectedDocuments(new Set());
     }
   };
-
   const handleSelectDocument = (documentId: string, checked: boolean) => {
     const newSelected = new Set(selectedDocuments);
     if (checked) {
@@ -141,30 +106,59 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
     }
     setSelectedDocuments(newSelected);
   };
-
-  const statusOptions = [
-    { value: "draft", label: "Draft" },
-    { value: "for_review", label: "For Review" },
-    { value: "under_review", label: "Under Review" },
-    { value: "approved", label: "Approved" },
-    { value: "superseded", label: "Superseded" },
-    { value: "void", label: "Void" },
-    { value: "final", label: "Final" }
-  ];
-
-  const typeOptions = [
-    { value: "architectural_drawings", label: "Architectural Drawings" },
-    { value: "structural_plans", label: "Structural Plans" },
-    { value: "electrical_plans", label: "Electrical Plans" },
-    { value: "plumbing_plans", label: "Plumbing Plans" },
-    { value: "specifications", label: "Specifications" },
-    { value: "contracts", label: "Contracts" },
-    { value: "permits", label: "Permits" },
-    { value: "reports", label: "Reports" },
-    { value: "correspondence", label: "Correspondence" },
-    { value: "photographs", label: "Photographs" }
-  ];
-
+  const statusOptions = [{
+    value: "draft",
+    label: "Draft"
+  }, {
+    value: "for_review",
+    label: "For Review"
+  }, {
+    value: "under_review",
+    label: "Under Review"
+  }, {
+    value: "approved",
+    label: "Approved"
+  }, {
+    value: "superseded",
+    label: "Superseded"
+  }, {
+    value: "void",
+    label: "Void"
+  }, {
+    value: "final",
+    label: "Final"
+  }];
+  const typeOptions = [{
+    value: "architectural_drawings",
+    label: "Architectural Drawings"
+  }, {
+    value: "structural_plans",
+    label: "Structural Plans"
+  }, {
+    value: "electrical_plans",
+    label: "Electrical Plans"
+  }, {
+    value: "plumbing_plans",
+    label: "Plumbing Plans"
+  }, {
+    value: "specifications",
+    label: "Specifications"
+  }, {
+    value: "contracts",
+    label: "Contracts"
+  }, {
+    value: "permits",
+    label: "Permits"
+  }, {
+    value: "reports",
+    label: "Reports"
+  }, {
+    value: "correspondence",
+    label: "Correspondence"
+  }, {
+    value: "photographs",
+    label: "Photographs"
+  }];
   const assignedToOptions = useMemo(() => {
     return teamMembers.map(member => ({
       value: member.user_id,
@@ -175,17 +169,14 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
   // Get user name from user ID
   const getUserName = async (userId: string) => {
     try {
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('name')
-        .eq('user_id', userId)
-        .single();
+      const {
+        data: profile
+      } = await supabase.from('profiles').select('name').eq('user_id', userId).single();
       return profile?.name || 'Unknown User';
     } catch (error) {
       return 'Unknown User';
     }
   };
-
   const [userNames, setUserNames] = useState<Record<string, string>>({});
 
   // Load user names for all documents
@@ -193,31 +184,23 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
     const loadUserNames = async () => {
       const uniqueUserIds = [...new Set(documents.map(doc => doc.uploaded_by))];
       const names: Record<string, string> = {};
-      
       for (const userId of uniqueUserIds) {
         names[userId] = await getUserName(userId);
       }
-      
       setUserNames(names);
     };
-
     if (documents.length > 0) {
       loadUserNames();
     }
   }, [documents]);
-
-  return (
-    <div className="border rounded-lg">
+  return <div className="border rounded-lg">
       <Table>
         <TableHeader>
           <TableRow className="bg-muted/50">
             <TableHead className="w-12">
-              <Checkbox
-                checked={selectedDocuments.size === documents.length && documents.length > 0}
-                onCheckedChange={handleSelectAll}
-              />
+              <Checkbox checked={selectedDocuments.size === documents.length && documents.length > 0} onCheckedChange={handleSelectAll} />
             </TableHead>
-            <TableHead className="w-12">Type</TableHead>
+            <TableHead className="w-12">File Type</TableHead>
             <TableHead className="w-12">Lock</TableHead>
             <TableHead className="w-24">Project No.</TableHead>
             <TableHead className="w-32">Document No.</TableHead>
@@ -236,18 +219,9 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
           </TableRow>
         </TableHeader>
         <TableBody>
-          {documents.map((document) => (
-            <TableRow 
-              key={document.id}
-              className="hover:bg-muted/50 border-b"
-            >
+          {documents.map(document => <TableRow key={document.id} className="hover:bg-muted/50 border-b">
               <TableCell>
-                <Checkbox
-                  checked={selectedDocuments.has(document.id)}
-                  onCheckedChange={(checked) => 
-                    handleSelectDocument(document.id, checked as boolean)
-                  }
-                />
+                <Checkbox checked={selectedDocuments.has(document.id)} onCheckedChange={checked => handleSelectDocument(document.id, checked as boolean)} />
               </TableCell>
               
               <TableCell>
@@ -255,11 +229,7 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
               </TableCell>
               
               <TableCell>
-                {document.is_locked ? (
-                  <Lock className="h-4 w-4 text-destructive" />
-                ) : (
-                  <Unlock className="h-4 w-4 text-muted-foreground" />
-                )}
+                {document.is_locked ? <Lock className="h-4 w-4 text-destructive" /> : <Unlock className="h-4 w-4 text-muted-foreground" />}
               </TableCell>
               
               <TableCell className="font-mono text-xs">
@@ -279,28 +249,18 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
               </TableCell>
               
               <TableCell>
-                {onStatusChange && !document.is_locked ? (
-                  <Select 
-                    value={document.status} 
-                    onValueChange={(value) => onStatusChange(document.id, value)}
-                    disabled={document.is_locked}
-                  >
+                {onStatusChange && !document.is_locked ? <Select value={document.status} onValueChange={value => onStatusChange(document.id, value)} disabled={document.is_locked}>
                     <SelectTrigger className="h-7 text-xs">
                       <SelectValue placeholder="Select Status" />
                     </SelectTrigger>
                     <SelectContent>
-                      {statusOptions.map((option) => (
-                        <SelectItem key={option.value} value={option.value}>
+                      {statusOptions.map(option => <SelectItem key={option.value} value={option.value}>
                           {option.label}
-                        </SelectItem>
-                      ))}
+                        </SelectItem>)}
                     </SelectContent>
-                  </Select>
-                ) : (
-                  <Badge variant={getStatusBadgeColor(document.status)} className="text-xs">
+                  </Select> : <Badge variant={getStatusBadgeColor(document.status)} className="text-xs">
                     {document.status.replace('_', ' ')}
-                  </Badge>
-                )}
+                  </Badge>}
               </TableCell>
               
               <TableCell className="text-xs text-muted-foreground">
@@ -312,84 +272,52 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
               </TableCell>
               
               <TableCell>
-                <Select 
-                  value={document.category || 'general'} 
-                  onValueChange={(value) => onTypeChange?.(document.id, value)}
-                  disabled={!canEdit || document.is_locked}
-                >
+                <Select value={document.category || 'general'} onValueChange={value => onTypeChange?.(document.id, value)} disabled={!canEdit || document.is_locked}>
                   <SelectTrigger className="h-7 text-xs">
                     <SelectValue placeholder="Select Type" />
                   </SelectTrigger>
                   <SelectContent>
-                    {typeOptions.map((option) => (
-                      <SelectItem key={option.value} value={option.value}>
+                    {typeOptions.map(option => <SelectItem key={option.value} value={option.value}>
                         {option.label}
-                      </SelectItem>
-                    ))}
+                      </SelectItem>)}
                   </SelectContent>
                 </Select>
               </TableCell>
               
               <TableCell>
-                <Select 
-                  value={document.assigned_to || 'unassigned'} 
-                  onValueChange={(value) => onAssignedToChange?.(document.id, value === 'unassigned' ? '' : value)}
-                  disabled={!canEdit || document.is_locked}
-                >
+                <Select value={document.assigned_to || 'unassigned'} onValueChange={value => onAssignedToChange?.(document.id, value === 'unassigned' ? '' : value)} disabled={!canEdit || document.is_locked}>
                   <SelectTrigger className="h-7 text-xs">
                     <SelectValue placeholder="Select Team Member" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="unassigned">Unassigned</SelectItem>
-                    {assignedToOptions.map((option) => (
-                      <SelectItem key={option.value} value={option.value}>
+                    {assignedToOptions.map(option => <SelectItem key={option.value} value={option.value}>
                         {option.label}
-                      </SelectItem>
-                    ))}
+                      </SelectItem>)}
                   </SelectContent>
                 </Select>
               </TableCell>
               
               <TableCell>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-7 w-7 p-0"
-                  onClick={() => onPreview?.(document)}
-                >
+                <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={() => onPreview?.(document)}>
                   <Eye className="h-3 w-3" />
                 </Button>
               </TableCell>
               
               <TableCell>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-7 w-7 p-0"
-                  onClick={() => onViewDetails?.(document)}
-                >
+                <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={() => onViewDetails?.(document)}>
                   <Settings className="h-3 w-3" />
                 </Button>
               </TableCell>
               
               <TableCell>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-7 w-7 p-0"
-                  onClick={() => onViewEvents?.(document)}
-                >
+                <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={() => onViewEvents?.(document)}>
                   <History className="h-3 w-3" />
                 </Button>
               </TableCell>
               
               <TableCell>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-7 w-7 p-0"
-                  onClick={() => onViewTransmittals?.(document)}
-                >
+                <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={() => onViewTransmittals?.(document)}>
                   <Send className="h-3 w-3" />
                 </Button>
               </TableCell>
@@ -402,43 +330,30 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="bg-background border">
-                    <DropdownMenuItem 
-                      onClick={() => onDownload(document.file_path, document.name)}
-                    >
+                    <DropdownMenuItem onClick={() => onDownload(document.file_path, document.name)}>
                       <Download className="h-3 w-3 mr-2" />
                       Download
                     </DropdownMenuItem>
                     
-                    {canEdit && (
-                      <DropdownMenuItem>
+                    {canEdit && <DropdownMenuItem>
                         <Edit className="h-3 w-3 mr-2" />
                         Edit Title
-                      </DropdownMenuItem>
-                    )}
+                      </DropdownMenuItem>}
                     
-                    {canEdit && onDelete && (
-                      <DropdownMenuItem 
-                        onClick={() => onDelete(document.id, document.file_path)}
-                        className="text-destructive"
-                      >
+                    {canEdit && onDelete && <DropdownMenuItem onClick={() => onDelete(document.id, document.file_path)} className="text-destructive">
                         <X className="h-3 w-3 mr-2" />
                         Delete
-                      </DropdownMenuItem>
-                    )}
+                      </DropdownMenuItem>}
                   </DropdownMenuContent>
                 </DropdownMenu>
               </TableCell>
-            </TableRow>
-          ))}
+            </TableRow>)}
         </TableBody>
       </Table>
       
-      {documents.length === 0 && (
-        <div className="text-center py-12 text-muted-foreground">
+      {documents.length === 0 && <div className="text-center py-12 text-muted-foreground">
           <FileText className="h-12 w-12 mx-auto mb-2 opacity-50" />
           <p>No documents found</p>
-        </div>
-      )}
-    </div>
-  );
+        </div>}
+    </div>;
 };
