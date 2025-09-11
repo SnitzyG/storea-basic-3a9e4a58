@@ -52,11 +52,12 @@ export const useProjectTeam = (projectId: string): UseProjectTeamReturn => {
       setLoading(true);
       setError(null);
 
-      // Fetch team members from project_users
+      // Fetch team members from project_users with better ordering
       const { data: projectUsersData, error: projectUsersError } = await supabase
         .from('project_users')
         .select('id, project_id, user_id, role, joined_at, invited_by')
-        .eq('project_id', projectId);
+        .eq('project_id', projectId)
+        .order('joined_at', { ascending: false }); // Show newest members first
 
       if (projectUsersError) {
         console.error('Error fetching project users:', projectUsersError);
@@ -69,11 +70,11 @@ export const useProjectTeam = (projectId: string): UseProjectTeamReturn => {
         return;
       }
 
-      // Get user profiles for these users
+      // Get user profiles for these users with better selection
       const userIds = projectUsersData.map(user => user.user_id);
       const { data: profilesData, error: profilesError } = await supabase
         .from('profiles')
-        .select('user_id, name, full_name, avatar_url, online_status, last_seen, role, phone')
+        .select('user_id, name, full_name, avatar_url, online_status, last_seen, role, phone, updated_at')
         .in('user_id', userIds);
 
       if (profilesError) {
@@ -82,8 +83,9 @@ export const useProjectTeam = (projectId: string): UseProjectTeamReturn => {
         return;
       }
 
-      // Get user emails from auth
+      // Get user emails from auth (only if we have profiles)
       const { data: authUsers } = await supabase.auth.admin.listUsers();
+      console.log(`Found ${projectUsersData.length} project users and ${profilesData?.length || 0} profiles`);
       
       // Transform data to match interface
       const transformedMembers: TeamMember[] = projectUsersData.map(member => {
@@ -114,7 +116,20 @@ export const useProjectTeam = (projectId: string): UseProjectTeamReturn => {
         };
       }).filter(member => member.user_profile !== null);
 
+      console.log(`Transformed ${transformedMembers.length} team members for project ${projectId}`);
       setTeamMembers(transformedMembers);
+      
+      // Also fetch pending invitations to show invited users
+      const { data: pendingInvitations } = await supabase
+        .from('project_pending_invitations')
+        .select('email, role, created_at, invited_by')
+        .eq('project_id', projectId)
+        .gt('expires_at', new Date().toISOString());
+      
+      if (pendingInvitations && pendingInvitations.length > 0) {
+        console.log(`Found ${pendingInvitations.length} pending invitations`);
+        // You could emit these as a separate state if needed for UI display
+      }
     } catch (error) {
       console.error('Error in fetchTeamMembers:', error);
       setError('An unexpected error occurred');
@@ -327,7 +342,7 @@ export const useProjectTeam = (projectId: string): UseProjectTeamReturn => {
     await fetchTeamMembers();
   }, [fetchTeamMembers]);
 
-  // Real-time subscription for team changes
+  // Real-time subscription for team changes with enhanced monitoring
   useEffect(() => {
     fetchTeamMembers();
 
@@ -341,8 +356,10 @@ export const useProjectTeam = (projectId: string): UseProjectTeamReturn => {
           table: 'project_users',
           filter: `project_id=eq.${projectId}`
         },
-        () => {
-          fetchTeamMembers();
+        (payload) => {
+          console.log('Project users change detected:', payload);
+          // Immediate refetch to ensure UI is updated
+          setTimeout(() => fetchTeamMembers(), 100);
         }
       )
       .on(
@@ -353,8 +370,25 @@ export const useProjectTeam = (projectId: string): UseProjectTeamReturn => {
           table: 'project_pending_invitations',
           filter: `project_id=eq.${projectId}`
         },
-        () => {
-          fetchTeamMembers();
+        (payload) => {
+          console.log('Pending invitations change detected:', payload);
+          setTimeout(() => fetchTeamMembers(), 100);
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'profiles'
+        },
+        (payload) => {
+          // Check if any team member's profile was updated
+          const updatedUserId = payload.new?.user_id;
+          if (updatedUserId && teamMembers.some(m => m.user_id === updatedUserId)) {
+            console.log('Team member profile updated:', updatedUserId);
+            setTimeout(() => fetchTeamMembers(), 100);
+          }
         }
       )
       .subscribe();
@@ -362,7 +396,7 @@ export const useProjectTeam = (projectId: string): UseProjectTeamReturn => {
     return () => {
       subscription.unsubscribe();
     };
-  }, [projectId, fetchTeamMembers]);
+  }, [projectId, fetchTeamMembers, teamMembers]);
 
   return {
     teamMembers,

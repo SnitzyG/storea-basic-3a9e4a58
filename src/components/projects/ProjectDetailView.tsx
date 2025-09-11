@@ -6,6 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AddTeamMemberDialog } from './AddTeamMemberDialog';
 import { useProjectTeam } from '@/hooks/useProjectTeam';
+import { usePendingInvitations } from '@/hooks/usePendingInvitations';
 import { Project } from '@/hooks/useProjects';
 import { Users, UserPlus, Calendar, DollarSign, MapPin, FileText, Trash2, Mail } from 'lucide-react';
 import { format } from 'date-fns';
@@ -34,7 +35,10 @@ const roleLabels: Record<string, string> = {
 
 export function ProjectDetailView({ project }: ProjectDetailViewProps) {
   const { teamMembers, loading, count, addMember, removeMember } = useProjectTeam(project.id);
+  const { pendingInvitations, loading: invitationsLoading } = usePendingInvitations(project.id);
   const [addMemberOpen, setAddMemberOpen] = useState(false);
+  
+  const totalTeamSize = count + pendingInvitations.length;
 
   const getInitials = (name: string, email: string) => {
     if (name && name !== 'Unknown') {
@@ -73,16 +77,23 @@ export function ProjectDetailView({ project }: ProjectDetailViewProps) {
               </div>
               <div>
                 <div className="font-semibold text-foreground">
-                  {loading ? (
+                  {loading || invitationsLoading ? (
                     <Skeleton className="h-5 w-20" />
-                  ) : count === 0 ? (
+                  ) : totalTeamSize === 0 ? (
                     'No Members'
                   ) : (
-                    `${count} Team Member${count > 1 ? 's' : ''}`
+                    <div className="space-y-1">
+                      <div>{`${count} Active Member${count !== 1 ? 's' : ''}`}</div>
+                      {pendingInvitations.length > 0 && (
+                        <div className="text-xs text-muted-foreground">
+                          + {pendingInvitations.length} pending invitation{pendingInvitations.length !== 1 ? 's' : ''}
+                        </div>
+                      )}
+                    </div>
                   )}
                 </div>
                 <div className="text-sm text-muted-foreground">
-                  {count > 0 ? 'Active team collaborating' : 'Add team members'}
+                  {totalTeamSize > 0 ? 'Active team collaborating' : 'Add team members'}
                 </div>
                 <Button
                   size="sm"
@@ -148,13 +159,20 @@ export function ProjectDetailView({ project }: ProjectDetailViewProps) {
       </div>
 
       {/* Team Members Section */}
-      {(count > 0 || loading) && (
+      {(totalTeamSize > 0 || loading || invitationsLoading) && (
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="flex items-center gap-2">
               <Users className="h-5 w-5" />
               Team Members
-              {!loading && <Badge variant="secondary">{count}</Badge>}
+              {!loading && !invitationsLoading && (
+                <div className="flex gap-2">
+                  <Badge variant="secondary">{count} Active</Badge>
+                  {pendingInvitations.length > 0 && (
+                    <Badge variant="outline">{pendingInvitations.length} Pending</Badge>
+                  )}
+                </div>
+              )}
             </CardTitle>
             <Button onClick={() => setAddMemberOpen(true)}>
               <UserPlus className="h-4 w-4 mr-2" />
@@ -162,7 +180,7 @@ export function ProjectDetailView({ project }: ProjectDetailViewProps) {
             </Button>
           </CardHeader>
           <CardContent>
-            {loading ? (
+            {(loading || invitationsLoading) ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {[...Array(3)].map((_, i) => (
                   <Card key={i}>
@@ -228,10 +246,51 @@ export function ProjectDetailView({ project }: ProjectDetailViewProps) {
                             </div>
                           </CardContent>
                         </Card>
-                      ))}
+                        ))}
                     </div>
                   </div>
                 ))}
+                
+                {/* Pending Invitations Section */}
+                {pendingInvitations.length > 0 && (
+                  <div>
+                    <h3 className="text-lg font-semibold mb-3">
+                      Pending Invitations ({pendingInvitations.length})
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {pendingInvitations.map((invitation) => (
+                        <Card key={invitation.id} className="border-dashed border-2">
+                          <CardContent className="p-4">
+                            <div className="flex items-start space-x-3">
+                              <Avatar>
+                                <AvatarFallback className="bg-muted">
+                                  {invitation.email.substring(0, 2).toUpperCase()}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div className="flex-1 min-w-0">
+                                <div className="font-medium truncate">{invitation.email}</div>
+                                <Badge 
+                                  className={`text-xs ${roleColors[invitation.role] || 'bg-gray-100 text-gray-800'}`}
+                                >
+                                  {roleLabels[invitation.role] || invitation.role}
+                                </Badge>
+                                <div className="text-sm text-muted-foreground mt-1">
+                                  Invitation sent
+                                </div>
+                                <div className="text-xs text-muted-foreground">
+                                  {format(new Date(invitation.created_at), 'MMM d, yyyy')}
+                                </div>
+                                <div className="text-xs text-orange-600 mt-2">
+                                  Awaiting acceptance
+                                </div>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </CardContent>
@@ -239,7 +298,7 @@ export function ProjectDetailView({ project }: ProjectDetailViewProps) {
       )}
 
       {/* Empty State */}
-      {!loading && count === 0 && (
+      {!loading && !invitationsLoading && totalTeamSize === 0 && (
         <Card>
           <CardContent className="text-center py-12">
             <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
