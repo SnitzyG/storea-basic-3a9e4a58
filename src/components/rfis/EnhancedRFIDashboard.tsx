@@ -67,7 +67,7 @@ export const EnhancedRFIDashboard: React.FC<EnhancedRFIDashboardProps> = ({
   const [assigneeFilter, setAssigneeFilter] = useState('all');
   const [sortField, setSortField] = useState<SortField>('created_at');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  
 
   // Filter and sort RFIs
   const filteredAndSortedRFIs = useMemo(() => {
@@ -181,7 +181,7 @@ export const EnhancedRFIDashboard: React.FC<EnhancedRFIDashboardProps> = ({
   return (
     <div className="flex h-screen bg-background">
       {/* Main Content */}
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="flex flex-col overflow-hidden w-full">
         {/* Header */}
         <div className="border-b bg-card p-6">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -379,126 +379,6 @@ export const EnhancedRFIDashboard: React.FC<EnhancedRFIDashboardProps> = ({
             </div>
           )}
         </div>
-      </div>
-
-      {/* Sidebar */}
-      <div className={`border-l bg-card transition-all duration-300 ${sidebarOpen ? 'w-80' : 'w-16'}`}>
-        <div className="p-4">
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="w-full justify-start"
-          >
-            {sidebarOpen ? <ChevronRight className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-            {sidebarOpen && <span className="ml-2">Collapse</span>}
-          </Button>
-        </div>
-
-        {sidebarOpen && (
-          <div className="space-y-6 p-4">
-            {/* Process Insights */}
-            <Collapsible defaultOpen>
-              <CollapsibleTrigger className="flex items-center justify-between w-full p-2 text-left font-semibold hover:bg-muted rounded">
-                <span>Process Insights</span>
-                <ChevronDown className="h-4 w-4" />
-              </CollapsibleTrigger>
-              <CollapsibleContent className="space-y-3 pt-3">
-                <div className="flex items-center justify-between p-3 border rounded bg-blue-50">
-                  <div className="flex items-center space-x-2">
-                    <Mail className="h-4 w-4 text-blue-600" />
-                    <span className="text-sm">Mail notifications</span>
-                  </div>
-                  <Badge variant="secondary">{stats.unread}</Badge>
-                </div>
-                
-                <div className="flex items-center justify-between p-3 border rounded bg-orange-50">
-                  <div className="flex items-center space-x-2">
-                    <Bell className="h-4 w-4 text-orange-600" />
-                    <span className="text-sm">Outstanding items</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Badge variant="secondary">{stats.outstanding}</Badge>
-                    <Button variant="link" size="sm" className="text-xs">View All</Button>
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between p-3 border rounded bg-red-50">
-                  <div className="flex items-center space-x-2">
-                    <Bell className="h-4 w-4 text-red-600" />
-                    <span className="text-sm">Overdue notifications</span>
-                  </div>
-                  <Badge variant="destructive">{stats.overdue}</Badge>
-                </div>
-              </CollapsibleContent>
-            </Collapsible>
-
-            <Separator />
-
-            {/* Document Management */}
-            <Collapsible defaultOpen>
-              <CollapsibleTrigger className="flex items-center justify-between w-full p-2 text-left font-semibold hover:bg-muted rounded">
-                <span>Document Management</span>
-                <ChevronDown className="h-4 w-4" />
-              </CollapsibleTrigger>
-              <CollapsibleContent className="space-y-3 pt-3">
-                <div className="flex items-center justify-between p-3 border rounded">
-                  <div className="flex items-center space-x-2">
-                    <FileText className="h-4 w-4" />
-                    <span className="text-sm">Documents</span>
-                  </div>
-                  <Badge variant="outline">245</Badge>
-                </div>
-                
-                <div className="flex items-center justify-between p-3 border rounded">
-                  <div className="flex items-center space-x-2">
-                    <Package className="h-4 w-4" />
-                    <span className="text-sm">Packages</span>
-                  </div>
-                  <Badge variant="outline">12</Badge>
-                </div>
-
-                <div className="flex items-center justify-between p-3 border rounded">
-                  <div className="flex items-center space-x-2">
-                    <Users className="h-4 w-4" />
-                    <span className="text-sm">Supplier documents</span>
-                  </div>
-                  <Badge variant="outline">87</Badge>
-                </div>
-              </CollapsibleContent>
-            </Collapsible>
-
-            <Separator />
-
-            {/* Project Information */}
-            <Collapsible defaultOpen>
-              <CollapsibleTrigger className="flex items-center justify-between w-full p-2 text-left font-semibold hover:bg-muted rounded">
-                <span>Project Information</span>
-                <ChevronDown className="h-4 w-4" />
-              </CollapsibleTrigger>
-              <CollapsibleContent className="space-y-3 pt-3">
-                <div className="p-4 border rounded bg-gradient-to-br from-slate-50 to-slate-100">
-                  <div className="flex items-center space-x-2 mb-2">
-                    <Building className="h-5 w-5 text-slate-600" />
-                    <span className="font-medium">{currentProject?.name}</span>
-                  </div>
-                  <p className="text-sm text-muted-foreground mb-3">
-                    {currentProject?.description || 'Project description not available'}
-                  </p>
-                  <div className="space-y-2">
-                    <Button variant="outline" size="sm" className="w-full">
-                      <FileText className="h-4 w-4 mr-2" />
-                      Attach File
-                    </Button>
-                    <Button variant="outline" size="sm" className="w-full">
-                      Quick Actions
-                    </Button>
-                  </div>
-                </div>
-              </CollapsibleContent>
-            </Collapsible>
-          </div>
-        )}
       </div>
     </div>
   );

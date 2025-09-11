@@ -48,16 +48,19 @@ export const RFIDetailsDialog = ({ open, onOpenChange, rfi }: RFIDetailsDialogPr
       setResponse(rfi.response || '');
       setStatus(rfi.status);
       
-      // Fetch activities
+      // Fetch activities only when dialog opens
       if (open) {
         setLoadingActivities(true);
         getRFIActivities(rfi.id).then((data) => {
-          setActivities(data);
+          setActivities(data || []);
+          setLoadingActivities(false);
+        }).catch(() => {
+          setActivities([]);
           setLoadingActivities(false);
         });
       }
     }
-  }, [rfi, open, getRFIActivities]);
+  }, [rfi?.id, open]);
 
   // Real-time subscription for activity timeline
   useEffect(() => {
@@ -78,13 +81,19 @@ export const RFIDetailsDialog = ({ open, onOpenChange, rfi }: RFIDetailsDialogPr
             .limit(1)
             .maybeSingle();
 
-          setActivities(prev => [
-            {
-              ...newActivity,
-              user_profile: profiles || undefined,
-            },
-            ...prev,
-          ]);
+          setActivities(prev => {
+            // Check if activity already exists to prevent duplicates
+            const exists = prev.find(a => a.id === newActivity.id);
+            if (exists) return prev;
+            
+            return [
+              {
+                ...newActivity,
+                user_profile: profiles || undefined,
+              },
+              ...prev,
+            ];
+          });
         }
       )
       .subscribe();
@@ -92,7 +101,7 @@ export const RFIDetailsDialog = ({ open, onOpenChange, rfi }: RFIDetailsDialogPr
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [open, rfi]);
+  }, [open, rfi?.id]);
 
   const handleSubmitResponse = async () => {
     if (!rfi || !response.trim()) return;
