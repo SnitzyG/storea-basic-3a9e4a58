@@ -60,7 +60,7 @@ export const usePendingInvitations = (projectId: string): UsePendingInvitationsR
     await fetchPendingInvitations();
   }, [fetchPendingInvitations]);
 
-  // Real-time subscription for pending invitations
+  // Real-time subscription for pending invitations with debounced updates
   useEffect(() => {
     fetchPendingInvitations();
 
@@ -76,7 +76,8 @@ export const usePendingInvitations = (projectId: string): UsePendingInvitationsR
         },
         (payload) => {
           console.log('Pending invitation change:', payload);
-          setTimeout(() => fetchPendingInvitations(), 100);
+          // Direct call without setTimeout to prevent flickering
+          fetchPendingInvitations();
         }
       )
       .subscribe();

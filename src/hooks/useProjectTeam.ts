@@ -342,7 +342,7 @@ export const useProjectTeam = (projectId: string): UseProjectTeamReturn => {
     await fetchTeamMembers();
   }, [fetchTeamMembers]);
 
-  // Real-time subscription for team changes with enhanced monitoring
+  // Real-time subscription for team changes with debounced updates
   useEffect(() => {
     fetchTeamMembers();
 
@@ -358,8 +358,8 @@ export const useProjectTeam = (projectId: string): UseProjectTeamReturn => {
         },
         (payload) => {
           console.log('Project users change detected:', payload);
-          // Immediate refetch to ensure UI is updated
-          setTimeout(() => fetchTeamMembers(), 100);
+          // Debounced refetch to prevent rapid re-renders
+          fetchTeamMembers();
         }
       )
       .on(
@@ -372,7 +372,7 @@ export const useProjectTeam = (projectId: string): UseProjectTeamReturn => {
         },
         (payload) => {
           console.log('Pending invitations change detected:', payload);
-          setTimeout(() => fetchTeamMembers(), 100);
+          fetchTeamMembers();
         }
       )
       .on(
@@ -383,11 +383,12 @@ export const useProjectTeam = (projectId: string): UseProjectTeamReturn => {
           table: 'profiles'
         },
         (payload) => {
-          // Check if any team member's profile was updated
+          // Only refetch if a team member's profile was updated
           const updatedUserId = payload.new?.user_id;
-          if (updatedUserId && teamMembers.some(m => m.user_id === updatedUserId)) {
+          const currentTeamUserIds = teamMembers.map(m => m.user_id);
+          if (updatedUserId && currentTeamUserIds.includes(updatedUserId)) {
             console.log('Team member profile updated:', updatedUserId);
-            setTimeout(() => fetchTeamMembers(), 100);
+            fetchTeamMembers();
           }
         }
       )
@@ -396,7 +397,7 @@ export const useProjectTeam = (projectId: string): UseProjectTeamReturn => {
     return () => {
       subscription.unsubscribe();
     };
-  }, [projectId, fetchTeamMembers, teamMembers]);
+  }, [projectId, fetchTeamMembers]); // Removed teamMembers from dependencies
 
   return {
     teamMembers,

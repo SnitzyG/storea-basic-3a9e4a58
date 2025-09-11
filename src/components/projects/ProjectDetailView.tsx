@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -38,7 +38,8 @@ export function ProjectDetailView({ project }: ProjectDetailViewProps) {
   const { pendingInvitations, loading: invitationsLoading } = usePendingInvitations(project.id);
   const [addMemberOpen, setAddMemberOpen] = useState(false);
   
-  const totalTeamSize = count + pendingInvitations.length;
+  // Memoize totalTeamSize to prevent unnecessary re-renders
+  const totalTeamSize = React.useMemo(() => count + pendingInvitations.length, [count, pendingInvitations.length]);
 
   const getInitials = (name: string, email: string) => {
     if (name && name !== 'Unknown') {
@@ -47,15 +48,17 @@ export function ProjectDetailView({ project }: ProjectDetailViewProps) {
     return email.split('@')[0].slice(0, 2).toUpperCase();
   };
 
-  // Group members by role
-  const groupedMembers = teamMembers.reduce((acc, member) => {
-    const role = member.role;
-    if (!acc[role]) {
-      acc[role] = [];
-    }
-    acc[role].push(member);
-    return acc;
-  }, {} as Record<string, typeof teamMembers>);
+  // Memoize grouped members to prevent unnecessary re-renders
+  const groupedMembers = useMemo(() => {
+    return teamMembers.reduce((acc, member) => {
+      const role = member.role;
+      if (!acc[role]) {
+        acc[role] = [];
+      }
+      acc[role].push(member);
+      return acc;
+    }, {} as Record<string, typeof teamMembers>);
+  }, [teamMembers]);
 
   return (
     <div className="space-y-6">
