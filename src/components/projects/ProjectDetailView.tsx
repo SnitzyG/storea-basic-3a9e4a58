@@ -4,11 +4,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Separator } from '@/components/ui/separator';
 import { AddTeamMemberDialog } from './AddTeamMemberDialog';
 import { useProjectTeam } from '@/hooks/useProjectTeam';
 import { usePendingInvitations } from '@/hooks/usePendingInvitations';
+import { useAuth } from '@/hooks/useAuth';
+import { useToast } from '@/hooks/use-toast';
 import { Project } from '@/hooks/useProjects';
-import { Users, UserPlus, Calendar, DollarSign, MapPin, FileText, Trash2, Mail } from 'lucide-react';
+import { Users, UserPlus, Calendar, DollarSign, MapPin, FileText, Trash2, Mail, MessageCircle, Circle, Clock } from 'lucide-react';
 import { format } from 'date-fns';
 
 interface ProjectDetailViewProps {
@@ -18,25 +21,23 @@ interface ProjectDetailViewProps {
 const roleColors: Record<string, string> = {
   architect: 'bg-blue-100 text-blue-800',
   builder: 'bg-orange-100 text-orange-800',
+  homeowner: 'bg-purple-100 text-purple-800',
   contractor: 'bg-green-100 text-green-800',
-  client: 'bg-purple-100 text-purple-800',
-  consultant: 'bg-indigo-100 text-indigo-800',
-  project_manager: 'bg-red-100 text-red-800'
 };
 
 const roleLabels: Record<string, string> = {
   architect: 'Architect',
   builder: 'Builder',
+  homeowner: 'Homeowner',
   contractor: 'Contractor',
-  client: 'Client',
-  consultant: 'Consultant',
-  project_manager: 'Project Manager'
 };
 
-export function ProjectDetailView({ project }: ProjectDetailViewProps) {
-  const { teamMembers, loading, count, addMember, removeMember } = useProjectTeam(project.id);
+export const ProjectDetailView = ({ project }: ProjectDetailViewProps) => {
+  const { teamMembers, loading, error, count, removeMember, addMember } = useProjectTeam(project.id);
   const { pendingInvitations, loading: invitationsLoading } = usePendingInvitations(project.id);
   const [addMemberOpen, setAddMemberOpen] = useState(false);
+  const { user } = useAuth();
+  const { toast } = useToast();
   
   // Memoize totalTeamSize to prevent unnecessary re-renders
   const totalTeamSize = React.useMemo(() => count + pendingInvitations.length, [count, pendingInvitations.length]);
@@ -119,86 +120,82 @@ export function ProjectDetailView({ project }: ProjectDetailViewProps) {
                 <Calendar className="h-5 w-5 text-green-600" />
               </div>
               <div>
-                <div className="font-semibold text-foreground capitalize">{project.status}</div>
-                <div className="text-sm text-muted-foreground">Current status</div>
+                <div className="font-semibold text-foreground">
+                  {project.timeline?.start_date ? format(new Date(project.timeline.start_date), 'MMM d, yyyy') : 'Not set'}
+                </div>
+                <div className="text-sm text-muted-foreground">Start Date</div>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        {project.budget && (
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center space-x-3">
-                <div className="p-2 bg-yellow-500/10 rounded-lg">
-                  <DollarSign className="h-5 w-5 text-yellow-600" />
-                </div>
-                <div>
-                  <div className="font-semibold text-foreground">
-                    ${project.budget.toLocaleString()}
-                  </div>
-                  <div className="text-sm text-muted-foreground">Budget</div>
-                </div>
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center space-x-3">
+              <div className="p-2 bg-blue-500/10 rounded-lg">
+                <DollarSign className="h-5 w-5 text-blue-600" />
               </div>
-            </CardContent>
-          </Card>
-        )}
+              <div>
+                <div className="font-semibold text-foreground">
+                  {project.budget ? `$${project.budget.toLocaleString()}` : 'Not set'}
+                </div>
+                <div className="text-sm text-muted-foreground">Budget</div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
-        {project.address && (
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center space-x-3">
-                <div className="p-2 bg-blue-500/10 rounded-lg">
-                  <MapPin className="h-5 w-5 text-blue-600" />
-                </div>
-                <div>
-                  <div className="font-semibold text-foreground">Location</div>
-                  <div className="text-sm text-muted-foreground">{project.address}</div>
-                </div>
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center space-x-3">
+              <div className="p-2 bg-yellow-500/10 rounded-lg">
+                <MapPin className="h-5 w-5 text-yellow-600" />
               </div>
-            </CardContent>
-          </Card>
-        )}
+              <div>
+                <div className="font-semibold text-foreground truncate">
+                  {project.address || 'Not set'}
+                </div>
+                <div className="text-sm text-muted-foreground">Location</div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
-      {/* Team Members Section */}
-      {(totalTeamSize > 0 || loading || invitationsLoading) && (
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="flex items-center gap-2">
-              <Users className="h-5 w-5" />
-              Team Members
-              {!loading && !invitationsLoading && (
-                <div className="flex gap-2">
-                  <Badge variant="secondary">{count} Active</Badge>
-                  {pendingInvitations.length > 0 && (
-                    <Badge variant="outline">{pendingInvitations.length} Pending</Badge>
-                  )}
-                </div>
-              )}
-            </CardTitle>
-            <Button onClick={() => setAddMemberOpen(true)}>
-              <UserPlus className="h-4 w-4 mr-2" />
-              Add Member
-            </Button>
-          </CardHeader>
-          <CardContent>
-            {(loading || invitationsLoading) ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {[...Array(3)].map((_, i) => (
-                  <Card key={i}>
-                    <CardContent className="p-4">
-                      <div className="flex items-start space-x-3">
-                        <Skeleton className="h-10 w-10 rounded-full" />
-                        <div className="space-y-2 flex-1">
-                          <Skeleton className="h-4 w-32" />
-                          <Skeleton className="h-3 w-24" />
-                          <Skeleton className="h-3 w-28" />
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
+      {/* Team Management Section */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Users className="h-5 w-5" />
+            Team Management
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {/* Active Team Members */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold">Project Team ({count})</h3>
+            
+            {loading ? (
+              <div className="space-y-2">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="flex items-center space-x-3 p-3 border rounded">
+                    <Skeleton className="h-10 w-10 rounded-full" />
+                    <div className="space-y-2 flex-1">
+                      <Skeleton className="h-4 w-[250px]" />
+                      <Skeleton className="h-3 w-[200px]" />
+                    </div>
+                  </div>
                 ))}
+              </div>
+            ) : error ? (
+              <div className="text-center py-4 text-destructive">
+                Error: {error}
+              </div>
+            ) : count === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                <Users className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <p className="text-lg font-medium">No team members have been added to this project</p>
+                <p className="text-sm">Invite your team members to start collaborating</p>
               </div>
             ) : (
               <div className="space-y-6">
@@ -231,19 +228,45 @@ export function ProjectDetailView({ project }: ProjectDetailViewProps) {
                                 <div className="text-xs text-muted-foreground">
                                   Member since {format(new Date(member.added_at), 'MMM d, yyyy')}
                                 </div>
+                                <div className="flex items-center gap-1 text-xs text-muted-foreground mt-2">
+                                  <Circle className={`h-2 w-2 ${member.isOnline ? 'fill-green-500 text-green-500' : 'fill-gray-400 text-gray-400'}`} />
+                                  {member.isOnline ? 'Online' : 'Offline'}
+                                </div>
                                 <div className="flex gap-2 mt-3">
-                                  <Button size="sm" variant="outline">
-                                    <Mail className="h-3 w-3 mr-1" />
-                                    Contact
-                                  </Button>
-                                  <Button
-                                    size="sm"
+                                  <Button 
+                                    size="sm" 
                                     variant="outline"
-                                    className="text-destructive hover:text-destructive"
-                                    onClick={() => removeMember(member.id)}
+                                    onClick={() => {
+                                      // Store target user info for messaging
+                                      sessionStorage.setItem('targetUserId', member.user_id);
+                                      sessionStorage.setItem('targetUserName', member.name);
+                                      sessionStorage.setItem('currentProjectId', project.id);
+                                      // Navigate to messages
+                                      window.location.href = '/messages';
+                                    }}
                                   >
-                                    <Trash2 className="h-3 w-3" />
+                                    <MessageCircle className="h-3 w-3 mr-1" />
+                                    Message
                                   </Button>
+                                  {/* Only show remove button for project creator and if not removing themselves */}
+                                  {project.created_by === user?.id && member.user_id !== user?.id && (
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                                      onClick={async () => {
+                                        const success = await removeMember(member.id);
+                                        if (success) {
+                                          toast({
+                                            title: "Member removed",
+                                            description: `${member.name} has been removed from the project.`
+                                          });
+                                        }
+                                      }}
+                                    >
+                                      <Trash2 className="h-3 w-3" />
+                                    </Button>
+                                  )}
                                 </div>
                               </div>
                             </div>
@@ -254,9 +277,10 @@ export function ProjectDetailView({ project }: ProjectDetailViewProps) {
                   </div>
                 ))}
                 
-                {/* Pending Invitations Section */}
-                {pendingInvitations.length > 0 && (
+                {/* Pending Invitations Section - Only visible to project creator */}
+                {project.created_by === user?.id && pendingInvitations.length > 0 && (
                   <div>
+                    <Separator className="my-6" />
                     <h3 className="text-lg font-semibold mb-3">
                       Pending Invitations ({pendingInvitations.length})
                     </h3>
@@ -266,7 +290,7 @@ export function ProjectDetailView({ project }: ProjectDetailViewProps) {
                           <CardContent className="p-4">
                             <div className="flex items-start space-x-3">
                               <Avatar>
-                                <AvatarFallback className="bg-muted">
+                                <AvatarFallback className="bg-orange-100 text-orange-600">
                                   {invitation.email.substring(0, 2).toUpperCase()}
                                 </AvatarFallback>
                               </Avatar>
@@ -283,7 +307,8 @@ export function ProjectDetailView({ project }: ProjectDetailViewProps) {
                                 <div className="text-xs text-muted-foreground">
                                   {format(new Date(invitation.created_at), 'MMM d, yyyy')}
                                 </div>
-                                <div className="text-xs text-orange-600 mt-2">
+                                <div className="text-xs text-orange-600 mt-2 flex items-center gap-1">
+                                  <Clock className="h-3 w-3" />
                                   Awaiting acceptance
                                 </div>
                               </div>
@@ -296,18 +321,18 @@ export function ProjectDetailView({ project }: ProjectDetailViewProps) {
                 )}
               </div>
             )}
-          </CardContent>
-        </Card>
-      )}
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Empty State */}
-      {!loading && !invitationsLoading && totalTeamSize === 0 && (
+      {!loading && !invitationsLoading && count === 0 && (
         <Card>
           <CardContent className="text-center py-12">
             <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-lg font-medium mb-2">No team members yet</h3>
+            <h3 className="text-lg font-medium mb-2">No team members have been added to this project</h3>
             <p className="text-muted-foreground mb-4">
-              Add your first team member to start collaborating on this project.
+              Invite your team members to start collaborating on this project.
             </p>
             <Button onClick={() => setAddMemberOpen(true)}>
               <UserPlus className="h-4 w-4 mr-2" />
