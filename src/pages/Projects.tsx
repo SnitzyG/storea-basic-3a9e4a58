@@ -7,7 +7,6 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { ProjectCard } from '@/components/projects/ProjectCard';
 import { CreateProjectDialog } from '@/components/projects/CreateProjectDialog';
 import { ProjectDetailsDialog } from '@/components/projects/ProjectDetailsDialog';
-import { ProjectDetailView } from '@/components/projects/ProjectDetailView';
 import { useProjects, Project } from '@/hooks/useProjects';
 import { useAuth } from '@/hooks/useAuth';
 import { Search, Grid, List, Plus, Filter } from 'lucide-react';
@@ -26,7 +25,6 @@ const Projects = () => {
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [detailsMode, setDetailsMode] = useState<'view' | 'edit'>('view');
   const [detailsOpen, setDetailsOpen] = useState(false);
-  const [showDetailView, setShowDetailView] = useState(false);
   const [deleteDialog, setDeleteDialog] = useState<{
     open: boolean;
     project: Project | null;
@@ -44,7 +42,8 @@ const Projects = () => {
   });
   const handleView = (project: Project) => {
     setSelectedProject(project);
-    setShowDetailView(true);
+    setDetailsMode('view');
+    setDetailsOpen(true);
   };
   const handleEdit = (project: Project) => {
     setSelectedProject(project);
@@ -72,22 +71,6 @@ const Projects = () => {
           <div className="text-lg">Loading projects...</div>
         </div>
       </div>;
-  }
-
-  // Show detailed project view
-  if (showDetailView && selectedProject) {
-    return (
-      <div className="relative">
-        <Button 
-          variant="outline" 
-          onClick={() => setShowDetailView(false)}
-          className="mb-4"
-        >
-          ← Back to Projects
-        </Button>
-        <ProjectDetailView project={selectedProject} />
-      </div>
-    );
   }
   return <div className="max-w-7xl space-y-6 mx-[25px]">
         {/* Header */}
