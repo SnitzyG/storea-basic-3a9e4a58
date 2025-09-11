@@ -217,15 +217,112 @@ export const AdvancedRFIComposer: React.FC<AdvancedRFIComposerProps> = ({
     member.user_profile?.name?.toLowerCase().includes(ccSearch.toLowerCase())
   );
 
-  const handleSaveDraft = () => {
+  const handleSaveDraft = async () => {
     setIsDraft(true);
-    // In a real app, save to backend
-    console.log('Saving draft...');
+    setLoading(true);
+    try {
+      // Create a draft RFI with incomplete data
+      await createRFI({
+        project_id: projectId,
+        question: formData.messageContent || 'Draft RFI',
+        priority: formData.priority,
+        category: formData.category || formData.discipline || 'Draft',
+        assigned_to: formData.assigned_to,
+        due_date: formData.responseRequiredDate?.toISOString(),
+        project_name: formData.project_name,
+        project_number: formData.project_number,
+        recipient_name: formData.recipient_name,
+        recipient_email: formData.recipient_email,
+        sender_name: formData.sender_name,
+        sender_email: formData.sender_email,
+        subject: formData.subject || 'Draft RFI',
+        required_response_by: formData.responseRequiredDate?.toISOString(),
+        // Remove status as it's not part of the createRFI interface
+      });
+      
+      console.log('Draft saved successfully');
+    } catch (error) {
+      console.error('Error saving draft:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handlePreview = () => {
-    // Open preview modal/page
-    console.log('Opening preview...');
+    // Create preview content
+    const previewContent = `
+      <html>
+        <head>
+          <title>RFI Preview</title>
+          <style>
+            body { font-family: Arial, sans-serif; margin: 20px; line-height: 1.6; }
+            .header { border-bottom: 2px solid #333; padding-bottom: 20px; margin-bottom: 30px; }
+            .field { margin: 15px 0; }
+            .label { font-weight: bold; color: #333; }
+            .content { margin-top: 8px; padding: 10px; background: #f9f9f9; border: 1px solid #ddd; border-radius: 4px; }
+            .signature { margin-top: 30px; border-top: 1px solid #ccc; padding-top: 20px; }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <h1>Request for Information - Preview</h1>
+            <p><strong>Mail Type:</strong> ${formData.mailType}</p>
+            <p><strong>Project:</strong> ${formData.project_name}</p>
+          </div>
+          
+          <div class="field">
+            <div class="label">To:</div>
+            <div class="content">${formData.recipients.map(id => teamMembers.find(m => m.user_id === id)?.user_profile?.name).join(', ')}</div>
+          </div>
+          
+          ${formData.ccRecipients.length > 0 ? `
+          <div class="field">
+            <div class="label">CC:</div>
+            <div class="content">${formData.ccRecipients.map(id => teamMembers.find(m => m.user_id === id)?.user_profile?.name).join(', ')}</div>
+          </div>
+          ` : ''}
+          
+          <div class="field">
+            <div class="label">Subject:</div>
+            <div class="content">${formData.subject}</div>
+          </div>
+          
+          <div class="field">
+            <div class="label">Message:</div>
+            <div class="content">${formData.messageContent}</div>
+          </div>
+          
+          <div class="field">
+            <div class="label">Response Required:</div>
+            <div class="content">${formData.responseRequired}${formData.responseRequiredDate ? ` by ${format(formData.responseRequiredDate, 'MMM dd, yyyy')}` : ''}</div>
+          </div>
+          
+          ${formData.instrumentationType ? `
+          <div class="field">
+            <div class="label">Instrumentation Type:</div>
+            <div class="content">${formData.instrumentationType}</div>
+          </div>
+          ` : ''}
+          
+          ${formData.discipline ? `
+          <div class="field">
+            <div class="label">Discipline:</div>
+            <div class="content">${formData.discipline}</div>
+          </div>
+          ` : ''}
+          
+          <div class="signature">
+            <p>${formData.signature}</p>
+          </div>
+        </body>
+      </html>
+    `;
+    
+    const previewWindow = window.open('', '_blank', 'width=800,height=600');
+    if (previewWindow) {
+      previewWindow.document.write(previewContent);
+      previewWindow.document.close();
+    }
   };
 
   const handleSubmit = async () => {
@@ -292,8 +389,82 @@ export const AdvancedRFIComposer: React.FC<AdvancedRFIComposerProps> = ({
   const isFormValid = formData.subject && formData.instrumentationType && formData.discipline;
 
   const handleRichTextAction = (action: string) => {
-    console.log(`Rich text action: ${action}`);
-    // In a real implementation, you would apply formatting to the selected text
+    const textarea = document.getElementById('message-content') as HTMLTextAreaElement;
+    if (!textarea) return;
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const selectedText = textarea.value.substring(start, end);
+    let replacement = selectedText;
+
+    switch (action) {
+      case 'bold':
+        replacement = `**${selectedText}**`;
+        break;
+      case 'italic':
+        replacement = `*${selectedText}*`;
+        break;
+      case 'underline':
+        replacement = `<u>${selectedText}</u>`;
+        break;
+      case 'bullet-list':
+        replacement = selectedText.split('\n').map(line => `• ${line}`).join('\n');
+        break;
+      case 'numbered-list':
+        replacement = selectedText.split('\n').map((line, index) => `${index + 1}. ${line}`).join('\n');
+        break;
+      case 'link':
+        const url = prompt('Enter URL:');
+        if (url) replacement = `[${selectedText || 'Link text'}](${url})`;
+        break;
+      case 'table':
+        replacement = `\n| Header 1 | Header 2 |\n|----------|----------|\n| Cell 1   | Cell 2   |\n`;
+        break;
+      case 'code':
+        replacement = `\`${selectedText}\``;
+        break;
+      default:
+        return;
+    }
+
+    const newValue = textarea.value.substring(0, start) + replacement + textarea.value.substring(end);
+    setFormData(prev => ({ ...prev, messageContent: newValue }));
+    
+    // Update cursor position
+    setTimeout(() => {
+      textarea.focus();
+      textarea.setSelectionRange(start + replacement.length, start + replacement.length);
+    }, 0);
+  };
+
+  const handleDocumentAttach = (type: 'document' | 'project-mail' | 'local-file') => {
+    switch (type) {
+      case 'document':
+        // Show document selector from project documents
+        console.log('Attach document from project');
+        break;
+      case 'project-mail':
+        // Show project mail selector
+        console.log('Attach from project mail');
+        break;
+      case 'local-file':
+        // Open file picker
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.multiple = true;
+        input.accept = '.pdf,.doc,.docx,.txt,.jpg,.jpeg,.png';
+        input.onchange = (e) => {
+          const files = (e.target as HTMLInputElement).files;
+          if (files && selectedDocuments.length + files.length <= 6) {
+            // Handle file upload logic here
+            console.log('Selected files:', files);
+          } else {
+            alert('Maximum 6 files allowed');
+          }
+        };
+        input.click();
+        break;
+    }
   };
 
   return (
@@ -320,9 +491,30 @@ export const AdvancedRFIComposer: React.FC<AdvancedRFIComposerProps> = ({
                 </PopoverTrigger>
                 <PopoverContent className="w-40">
                   <div className="space-y-2">
-                    <Button variant="ghost" size="sm" className="w-full justify-start">Document</Button>
-                    <Button variant="ghost" size="sm" className="w-full justify-start">Project Mail</Button>
-                    <Button variant="ghost" size="sm" className="w-full justify-start">Local File</Button>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="w-full justify-start"
+                      onClick={() => handleDocumentAttach('document')}
+                    >
+                      Document
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="w-full justify-start"
+                      onClick={() => handleDocumentAttach('project-mail')}
+                    >
+                      Project Mail
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="w-full justify-start"
+                      onClick={() => handleDocumentAttach('local-file')}
+                    >
+                      Local File
+                    </Button>
                   </div>
                 </PopoverContent>
               </Popover>
@@ -628,91 +820,120 @@ export const AdvancedRFIComposer: React.FC<AdvancedRFIComposerProps> = ({
                     </div>
                   </div>
 
-                  <div className="border rounded-lg p-4 bg-card">
-                    <div className="border-b pb-2 mb-4">
-                      <div className="flex items-center space-x-2 flex-wrap gap-2">
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          onClick={() => handleRichTextAction('bold')}
-                          className="h-8 px-2"
-                        >
-                          <Bold className="h-4 w-4" />
-                        </Button>
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          onClick={() => handleRichTextAction('italic')}
-                          className="h-8 px-2"
-                        >
-                          <Italic className="h-4 w-4" />
-                        </Button>
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          onClick={() => handleRichTextAction('underline')}
-                          className="h-8 px-2"
-                        >
-                          <Underline className="h-4 w-4" />
-                        </Button>
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          onClick={() => handleRichTextAction('color')}
-                          className="h-8 px-2"
-                        >
-                          <Palette className="h-4 w-4" />
-                        </Button>
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          onClick={() => handleRichTextAction('list')}
-                          className="h-8 px-2"
-                        >
-                          <List className="h-4 w-4" />
-                        </Button>
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          onClick={() => handleRichTextAction('table')}
-                          className="h-8 px-2"
-                        >
-                          <Table className="h-4 w-4" />
-                        </Button>
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          onClick={() => handleRichTextAction('align')}
-                          className="h-8 px-2"
-                        >
-                          <AlignLeft className="h-4 w-4" />
-                        </Button>
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          onClick={() => handleRichTextAction('link')}
-                          className="h-8 px-2"
-                        >
-                          <Link className="h-4 w-4" />
-                        </Button>
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          onClick={() => handleRichTextAction('image')}
-                          className="h-8 px-2"
-                        >
-                          <Image className="h-4 w-4" />
-                        </Button>
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          onClick={() => handleRichTextAction('code')}
-                          className="h-8 px-2"
-                        >
-                          <Code className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
+                      <div className="border rounded-lg p-4 bg-card">
+                        <div className="border-b pb-2 mb-4">
+                          <div className="flex items-center space-x-2 flex-wrap gap-2">
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              onClick={() => handleRichTextAction('bold')}
+                              className="h-8 px-2"
+                            >
+                              <Bold className="h-4 w-4" />
+                            </Button>
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              onClick={() => handleRichTextAction('italic')}
+                              className="h-8 px-2"
+                            >
+                              <Italic className="h-4 w-4" />
+                            </Button>
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              onClick={() => handleRichTextAction('underline')}
+                              className="h-8 px-2"
+                            >
+                              <Underline className="h-4 w-4" />
+                            </Button>
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              onClick={() => {
+                                const color = prompt('Enter color (e.g., red, #ff0000):');
+                                if (color) {
+                                  const textarea = document.getElementById('message-content') as HTMLTextAreaElement;
+                                  const start = textarea.selectionStart;
+                                  const end = textarea.selectionEnd;
+                                  const selectedText = textarea.value.substring(start, end);
+                                  const replacement = `<span style="color: ${color}">${selectedText}</span>`;
+                                  const newValue = textarea.value.substring(0, start) + replacement + textarea.value.substring(end);
+                                  setFormData(prev => ({ ...prev, messageContent: newValue }));
+                                }
+                              }}
+                              className="h-8 px-2"
+                            >
+                              <Palette className="h-4 w-4" />
+                            </Button>
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              onClick={() => handleRichTextAction('bullet-list')}
+                              className="h-8 px-2"
+                            >
+                              <List className="h-4 w-4" />
+                            </Button>
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              onClick={() => handleRichTextAction('table')}
+                              className="h-8 px-2"
+                            >
+                              <Table className="h-4 w-4" />
+                            </Button>
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              onClick={() => {
+                                const textarea = document.getElementById('message-content') as HTMLTextAreaElement;
+                                const start = textarea.selectionStart;
+                                const end = textarea.selectionEnd;
+                                const selectedText = textarea.value.substring(start, end);
+                                const alignment = prompt('Enter alignment (left, center, right):') || 'left';
+                                const replacement = `<div style="text-align: ${alignment}">${selectedText}</div>`;
+                                const newValue = textarea.value.substring(0, start) + replacement + textarea.value.substring(end);
+                                setFormData(prev => ({ ...prev, messageContent: newValue }));
+                              }}
+                              className="h-8 px-2"
+                            >
+                              <AlignLeft className="h-4 w-4" />
+                            </Button>
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              onClick={() => handleRichTextAction('link')}
+                              className="h-8 px-2"
+                            >
+                              <Link className="h-4 w-4" />
+                            </Button>
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              onClick={() => {
+                                const url = prompt('Enter image URL:');
+                                if (url) {
+                                  const textarea = document.getElementById('message-content') as HTMLTextAreaElement;
+                                  const start = textarea.selectionStart;
+                                  const replacement = `![Image](${url})`;
+                                  const newValue = textarea.value.substring(0, start) + replacement + textarea.value.substring(start);
+                                  setFormData(prev => ({ ...prev, messageContent: newValue }));
+                                }
+                              }}
+                              className="h-8 px-2"
+                            >
+                              <Image className="h-4 w-4" />
+                            </Button>
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              onClick={() => handleRichTextAction('code')}
+                              className="h-8 px-2"
+                            >
+                              <Code className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
                     
                     <Textarea
                       id="message-content"
@@ -843,7 +1064,7 @@ export const AdvancedRFIComposer: React.FC<AdvancedRFIComposerProps> = ({
                   </div>
                 </div>
 
-                <div className="max-h-64 overflow-y-auto">
+                <div className="max-h-60 overflow-y-auto">
                   <Label>Attachments</Label>
                   <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-4 text-center">
                     <FileText className="h-6 w-6 mx-auto text-muted-foreground mb-2" />
@@ -851,13 +1072,25 @@ export const AdvancedRFIComposer: React.FC<AdvancedRFIComposerProps> = ({
                       Attach up to 6 files
                     </p>
                     <div className="flex flex-wrap justify-center gap-2">
-                      <Button variant="outline" size="sm">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => handleDocumentAttach('document')}
+                      >
                         Document
                       </Button>
-                      <Button variant="outline" size="sm">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => handleDocumentAttach('project-mail')}
+                      >
                         Project Mail
                       </Button>
-                      <Button variant="outline" size="sm">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => handleDocumentAttach('local-file')}
+                      >
                         Local File
                       </Button>
                     </div>

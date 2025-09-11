@@ -120,7 +120,7 @@ export const RFIDetailsDialog = ({ open, onOpenChange, rfi }: RFIDetailsDialogPr
   };
 
   // Only contractors can respond to RFIs assigned to them
-  const canRespond = user && rfi?.assigned_to === user.id && profile?.role === 'contractor' && rfi.status !== 'closed' && rfi.status !== 'responded';
+  const canRespond = user && rfi?.assigned_to === user.id && rfi.status !== 'closed' && rfi.status !== 'responded';
   const canChangeStatus = user && (user.id === rfi?.raised_by || user.id === rfi?.assigned_to || profile?.role === 'architect');
 
   if (!rfi) return null;

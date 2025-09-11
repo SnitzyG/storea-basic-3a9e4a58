@@ -24,7 +24,7 @@ const RFIs = () => {
   const [advancedComposerOpen, setAdvancedComposerOpen] = useState(false);
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
   const [selectedRFI, setSelectedRFI] = useState<RFI | null>(null);
-  const [viewMode, setViewMode] = useState<'enhanced' | 'legacy'>('enhanced');
+  
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [priorityFilter, setPriorityFilter] = useState('all');
@@ -118,75 +118,232 @@ const RFIs = () => {
   };
 
   const handleExportPDF = (rfi: RFI) => {
-    // Create a simple PDF export by opening print dialog
     const printContent = `
+      <!DOCTYPE html>
       <html>
         <head>
           <title>RFI ${rfi.rfi_number || rfi.id}</title>
           <style>
-            body { font-family: Arial, sans-serif; margin: 20px; }
-            .header { border-bottom: 2px solid #333; padding-bottom: 10px; margin-bottom: 20px; }
-            .field { margin: 10px 0; }
-            .label { font-weight: bold; }
-            .content { margin-top: 5px; }
+            * { margin: 0; padding: 0; box-sizing: border-box; }
+            body { 
+              font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+              line-height: 1.6;
+              color: #333;
+              max-width: 800px;
+              margin: 0 auto;
+              padding: 40px 20px;
+            }
+            .header { 
+              background: linear-gradient(135deg, #1e293b, #334155);
+              color: white;
+              padding: 30px;
+              border-radius: 8px;
+              margin-bottom: 30px;
+              box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            }
+            .header h1 { 
+              font-size: 28px;
+              margin-bottom: 15px;
+              font-weight: 600;
+            }
+            .header-info {
+              display: grid;
+              grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+              gap: 15px;
+              margin-top: 20px;
+            }
+            .field { 
+              margin: 20px 0;
+              padding: 15px;
+              border-left: 4px solid #3b82f6;
+              background: #f8fafc;
+              border-radius: 0 8px 8px 0;
+            }
+            .label { 
+              font-weight: 600;
+              color: #1e293b;
+              font-size: 14px;
+              text-transform: uppercase;
+              letter-spacing: 0.5px;
+              margin-bottom: 8px;
+            }
+            .content { 
+              font-size: 16px;
+              line-height: 1.7;
+              color: #334155;
+            }
+            .status-priority {
+              display: flex;
+              gap: 15px;
+              margin: 20px 0;
+            }
+            .badge {
+              display: inline-block;
+              padding: 8px 16px;
+              border-radius: 20px;
+              font-size: 12px;
+              font-weight: 600;
+              text-transform: uppercase;
+              letter-spacing: 0.5px;
+            }
+            .status-outstanding { background: #dbeafe; color: #1e40af; }
+            .status-responded { background: #dcfce7; color: #166534; }
+            .status-overdue { background: #fee2e2; color: #dc2626; }
+            .status-closed { background: #f1f5f9; color: #475569; }
+            .priority-low { background: #f0fdf4; color: #166534; }
+            .priority-medium { background: #fef3c7; color: #92400e; }
+            .priority-high { background: #fed7aa; color: #ea580c; }
+            .priority-critical { background: #fee2e2; color: #dc2626; }
+            .response-section {
+              background: #f1f5f9;
+              border: 2px solid #e2e8f0;
+              border-radius: 8px;
+              padding: 20px;
+              margin: 20px 0;
+            }
+            .meta-grid {
+              display: grid;
+              grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+              gap: 20px;
+              margin: 20px 0;
+            }
+            .divider {
+              height: 2px;
+              background: linear-gradient(90deg, #3b82f6, #e2e8f0);
+              margin: 30px 0;
+              border-radius: 1px;
+            }
+            @media print {
+              body { padding: 20px; }
+              .header { background: #1e293b !important; }
+            }
           </style>
         </head>
         <body>
           <div class="header">
             <h1>Request for Information</h1>
-            <p><strong>RFI Number:</strong> ${rfi.rfi_number || rfi.id}</p>
-            <p><strong>Project:</strong> ${rfi.project_name || 'N/A'}</p>
-            <p><strong>Date:</strong> ${new Date(rfi.created_at).toLocaleDateString()}</p>
+            <div class="header-info">
+              <div><strong>RFI Number:</strong> ${rfi.rfi_number || `RFI-${rfi.id.slice(0, 8)}`}</div>
+              <div><strong>Project:</strong> ${rfi.project_name || 'N/A'}</div>
+              <div><strong>Date Created:</strong> ${new Date(rfi.created_at).toLocaleDateString('en-US', { 
+                year: 'numeric', month: 'long', day: 'numeric' 
+              })}</div>
+              <div><strong>Time:</strong> ${new Date(rfi.created_at).toLocaleTimeString('en-US', { 
+                hour: '2-digit', minute: '2-digit' 
+              })}</div>
+            </div>
           </div>
-          
-          <div class="field">
-            <div class="label">From:</div>
-            <div class="content">${rfi.sender_name || rfi.raised_by_profile?.name || 'N/A'}</div>
+
+          <div class="status-priority">
+            <span class="badge status-${rfi.status}">${rfi.status.replace('_', ' ').toUpperCase()}</span>
+            <span class="badge priority-${rfi.priority}">${rfi.priority.toUpperCase()} PRIORITY</span>
+            ${rfi.category ? `<span class="badge" style="background: #e0e7ff; color: #3730a3;">${rfi.category}</span>` : ''}
           </div>
-          
-          <div class="field">
-            <div class="label">To:</div>
-            <div class="content">${rfi.recipient_name || rfi.assigned_to_profile?.name || 'N/A'}</div>
+
+          <div class="meta-grid">
+            <div class="field">
+              <div class="label">From</div>
+              <div class="content">${rfi.sender_name || rfi.raised_by_profile?.name || 'N/A'}</div>
+              ${rfi.sender_email ? `<div class="content" style="font-size: 14px; color: #64748b;">${rfi.sender_email}</div>` : ''}
+            </div>
+            
+            <div class="field">
+              <div class="label">To</div>
+              <div class="content">${rfi.recipient_name || rfi.assigned_to_profile?.name || 'Unassigned'}</div>
+              ${rfi.recipient_email ? `<div class="content" style="font-size: 14px; color: #64748b;">${rfi.recipient_email}</div>` : ''}
+            </div>
           </div>
-          
+
+          ${rfi.subject ? `
           <div class="field">
-            <div class="label">Subject:</div>
-            <div class="content">${rfi.subject || 'N/A'}</div>
+            <div class="label">Subject</div>
+            <div class="content">${rfi.subject}</div>
           </div>
-          
+          ` : ''}
+
           <div class="field">
-            <div class="label">Priority:</div>
-            <div class="content">${rfi.priority.toUpperCase()}</div>
-          </div>
-          
-          <div class="field">
-            <div class="label">Question/Request:</div>
+            <div class="label">Question/Request</div>
             <div class="content">${rfi.question}</div>
           </div>
-          
+
+          ${rfi.drawing_no || rfi.specification_section || rfi.contract_clause ? `
+          <div class="divider"></div>
+          <h3 style="margin: 20px 0 15px 0; color: #1e293b;">Reference Information</h3>
+          <div class="meta-grid">
+            ${rfi.drawing_no ? `
+            <div class="field">
+              <div class="label">Drawing Number</div>
+              <div class="content">${rfi.drawing_no}</div>
+            </div>
+            ` : ''}
+            ${rfi.specification_section ? `
+            <div class="field">
+              <div class="label">Specification Section</div>
+              <div class="content">${rfi.specification_section}</div>
+            </div>
+            ` : ''}
+            ${rfi.contract_clause ? `
+            <div class="field">
+              <div class="label">Contract Clause</div>
+              <div class="content">${rfi.contract_clause}</div>
+            </div>
+            ` : ''}
+          </div>
+          ` : ''}
+
           ${rfi.proposed_solution ? `
           <div class="field">
-            <div class="label">Proposed Solution:</div>
+            <div class="label">Proposed Solution</div>
             <div class="content">${rfi.proposed_solution}</div>
           </div>
           ` : ''}
-          
-          ${rfi.response ? `
+
+          ${rfi.due_date || rfi.required_response_by ? `
           <div class="field">
-            <div class="label">Response:</div>
-            <div class="content">${rfi.response}</div>
-            <div class="content"><strong>Response Date:</strong> ${rfi.response_date ? new Date(rfi.response_date).toLocaleDateString() : 'N/A'}</div>
+            <div class="label">Response Required By</div>
+            <div class="content">${new Date(rfi.due_date || rfi.required_response_by).toLocaleDateString('en-US', { 
+              year: 'numeric', month: 'long', day: 'numeric' 
+            })}</div>
           </div>
           ` : ''}
+
+          ${rfi.response ? `
+          <div class="divider"></div>
+          <div class="response-section">
+            <div class="label" style="margin-bottom: 15px;">Response</div>
+            <div class="content">${rfi.response}</div>
+            <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #e2e8f0;">
+              <div style="font-size: 14px; color: #64748b;">
+                <strong>Responded by:</strong> ${rfi.responder_name || 'N/A'}<br>
+                <strong>Response Date:</strong> ${rfi.response_date ? new Date(rfi.response_date).toLocaleDateString('en-US', { 
+                  year: 'numeric', month: 'long', day: 'numeric' 
+                }) : 'N/A'}
+              </div>
+            </div>
+          </div>
+          ` : `
+          <div class="response-section">
+            <div class="label">Response Status</div>
+            <div class="content" style="color: #64748b; font-style: italic;">Awaiting response</div>
+          </div>
+          `}
+
+          <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #e2e8f0; text-align: center; color: #64748b; font-size: 12px;">
+            Generated on ${new Date().toLocaleDateString('en-US', { 
+              year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' 
+            })}
+          </div>
         </body>
       </html>
     `;
     
-    const printWindow = window.open('', '_blank');
+    const printWindow = window.open('', '_blank', 'width=900,height=700');
     if (printWindow) {
       printWindow.document.write(printContent);
       printWindow.document.close();
-      printWindow.print();
+      setTimeout(() => {
+        printWindow.print();
+      }, 250);
     }
   };
 
@@ -218,162 +375,41 @@ const RFIs = () => {
     );
   }
 
-  // Enhanced view with professional dashboard
-  if (viewMode === 'enhanced') {
-    return (
-      <div className="h-screen flex flex-col">
-        {/* Toggle between enhanced and legacy views */}
-        <div className="p-4 border-b bg-card">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              {projects.length > 1 && (
-                <select
-                  value={selectedProject || currentProject.id}
-                  onChange={(e) => setSelectedProject(e.target.value)}
-                  className="px-3 py-2 border rounded-md bg-background"
-                >
-                  {projects.map(project => (
-                    <option key={project.id} value={project.id}>
-                      {project.name}
-                    </option>
-                  ))}
-                </select>
-              )}
-            </div>
-            <div className="flex items-center space-x-2">
-              <span className="text-sm text-muted-foreground">Enhanced View</span>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setViewMode('legacy')}
-                className="p-1"
-              >
-                <ToggleLeft className="h-5 w-5" />
-              </Button>
-            </div>
-          </div>
-        </div>
-
-        <div className="flex-1">
-          <EnhancedRFIDashboard
-            rfis={filteredRFIs}
-            onView={handleViewRFI}
-            onCreateNew={() => setAdvancedComposerOpen(true)}
-            onExportPDF={handleExportPDF}
-            projectUsers={projectUsers}
-            currentProject={currentProject}
-          />
-        </div>
-
-        <AdvancedRFIComposer
-          open={advancedComposerOpen}
-          onOpenChange={setAdvancedComposerOpen}
-          projectId={currentProject.id}
-        />
-
-        <RFIDetailsDialog
-          open={detailsDialogOpen}
-          onOpenChange={setDetailsDialogOpen}
-          rfi={selectedRFI}
-        />
-      </div>
-    );
-  }
-
-  // Legacy view (original layout)
   return (
-    <div className="container mx-auto px-4 py-6">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
-        <div>
-          <h1 className="text-3xl font-bold">RFIs</h1>
-          <p className="text-muted-foreground">
-            Manage requests for information for {currentProject.name}
-          </p>
-        </div>
-        <div className="flex items-center space-x-2">
-          <div className="flex items-center space-x-2">
-            <span className="text-sm text-muted-foreground">Legacy View</span>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setViewMode('enhanced')}
-              className="p-1"
+    <div className="h-screen flex flex-col">
+      {/* Project selector only */}
+      <div className="p-4 border-b bg-card">
+        <div className="flex items-center">
+          {projects.length > 1 && (
+            <select
+              value={selectedProject || currentProject.id}
+              onChange={(e) => setSelectedProject(e.target.value)}
+              className="px-3 py-2 border rounded-md bg-background"
             >
-              <ToggleRight className="h-5 w-5" />
-            </Button>
-          </div>
-          <Button onClick={() => setCreateDialogOpen(true)}>
-            <Plus className="w-4 h-4 mr-2" />
-            New RFI
-          </Button>
+              {projects.map(project => (
+                <option key={project.id} value={project.id}>
+                  {project.name}
+                </option>
+              ))}
+            </select>
+          )}
         </div>
       </div>
 
-      {/* Project Selector */}
-      {projects.length > 1 && (
-        <div className="mb-6">
-          <select
-            value={selectedProject || currentProject.id}
-            onChange={(e) => setSelectedProject(e.target.value)}
-            className="px-3 py-2 border rounded-md bg-background"
-          >
-            {projects.map(project => (
-              <option key={project.id} value={project.id}>
-                {project.name}
-              </option>
-            ))}
-          </select>
-        </div>
-      )}
-
-      {/* RFI Management */}
-      <div className="space-y-6">
-        {/* Filters */}
-        <RFIFilters
-          searchQuery={searchQuery}
-          onSearchChange={setSearchQuery}
-          statusFilter={statusFilter}
-          onStatusFilterChange={setStatusFilter}
-          priorityFilter={priorityFilter}
-          onPriorityFilterChange={setPriorityFilter}
-          assigneeFilter={assigneeFilter}
-          onAssigneeFilterChange={setAssigneeFilter}
+      <div className="flex-1">
+        <EnhancedRFIDashboard
+          rfis={filteredRFIs}
+          onView={handleViewRFI}
+          onCreateNew={() => setAdvancedComposerOpen(true)}
+          onExportPDF={handleExportPDF}
           projectUsers={projectUsers}
-          onClearFilters={clearFilters}
+          currentProject={currentProject}
         />
-
-        {/* RFI Display */}
-        {filteredRFIs.length > 0 ? (
-          <RFIListView
-            rfis={filteredRFIs}
-            onView={handleViewRFI}
-            onExportPDF={handleExportPDF}
-          />
-        ) : (
-          <Card>
-            <CardContent className="text-center py-12">
-              <h3 className="text-lg font-semibold mb-2">No RFIs Found</h3>
-              <p className="text-muted-foreground mb-4">
-                {rfis.length === 0
-                  ? "No RFIs have been created for this project yet."
-                  : "No RFIs match your current filters."
-                }
-              </p>
-              {rfis.length === 0 && (
-                <Button onClick={() => setCreateDialogOpen(true)}>
-                  Create First RFI
-                </Button>
-              )}
-            </CardContent>
-          </Card>
-        )}
       </div>
 
-      {/* Dialogs */}
-      <CreateRFIDialog
-        open={createDialogOpen}
-        onOpenChange={setCreateDialogOpen}
+      <AdvancedRFIComposer
+        open={advancedComposerOpen}
+        onOpenChange={setAdvancedComposerOpen}
         projectId={currentProject.id}
       />
 

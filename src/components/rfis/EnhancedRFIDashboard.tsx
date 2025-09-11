@@ -181,7 +181,7 @@ export const EnhancedRFIDashboard: React.FC<EnhancedRFIDashboardProps> = ({
   return (
     <div className="flex h-screen bg-background">
       {/* Main Content */}
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col overflow-hidden">
         {/* Header */}
         <div className="border-b bg-card p-6">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
