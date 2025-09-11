@@ -267,25 +267,35 @@ export const useProjectTeam = (projectId: string): UseProjectTeamReturn => {
       if (error) {
         console.error('Error sending invitation:', error);
         toast({
-          title: "Error sending invitation",
-          description: "Failed to send invitation email. Please try again.",
+          title: "Invitation could not be sent",
+          description: "Please try again. If the problem persists, check your internet connection.",
           variant: "destructive"
         });
         return false;
       }
 
       if (data?.error) {
-        toast({
-          title: "Error",
-          description: data.error,
-          variant: "destructive"
-        });
+        // Handle specific errors from the edge function
+        if (data.error.includes('Failed to send invitation email')) {
+          toast({
+            title: "Email could not be sent",
+            description: "Invitation could not be sent. Please try again.",
+            variant: "destructive"
+          });
+        } else {
+          toast({
+            title: "Error",
+            description: data.error,
+            variant: "destructive"
+          });
+        }
         return false;
       }
 
+      // Success - show confirmation toast
       toast({
         title: "Invitation sent!",
-        description: `An invitation has been sent to ${email}. They will be added to the team when they accept.`
+        description: `Invitation sent to ${email}. They will receive an email with instructions to join the project.`
       });
 
       // Refresh to show any immediate changes

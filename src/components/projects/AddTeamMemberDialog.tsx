@@ -68,7 +68,7 @@ export function AddTeamMemberDialog({ projectName, open, onOpenChange, onMemberA
         <DialogHeader>
           <DialogTitle>Add Team Member</DialogTitle>
           <DialogDescription>
-            Add a new member to your project team. If they don't have an account, they'll receive an invitation email to join.
+            Send an email invitation to add a new member to your project team. They'll receive a secure link to join the project.
           </DialogDescription>
         </DialogHeader>
         
@@ -117,7 +117,7 @@ export function AddTeamMemberDialog({ projectName, open, onOpenChange, onMemberA
               className="flex-1"
             >
               {loading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-              Add Member
+              {loading ? 'Sending Invitation...' : 'Send Invitation'}
             </Button>
           </div>
         </form>
