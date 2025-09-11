@@ -30,7 +30,7 @@ interface UseProjectTeamReturn {
   loading: boolean;
   error: string | null;
   count: number;
-  addMember: (email: string, role: string) => Promise<boolean>;
+  addMember: (email: string, role: string, projectName?: string) => Promise<boolean>;
   removeMember: (memberId: string) => Promise<boolean>;
   refreshTeam: () => Promise<void>;
 }
@@ -123,72 +123,161 @@ export const useProjectTeam = (projectId: string): UseProjectTeamReturn => {
     }
   }, [projectId]);
 
-  const addMember = useCallback(async (email: string, role: string): Promise<boolean> => {
+  const addMember = useCallback(async (email: string, role: string, projectName: string = 'Project'): Promise<boolean> => {
     try {
-      // Find user by email
-      const { data: authData } = await supabase.auth.admin.listUsers();
-      const user = authData?.users?.find((u: any) => u.email === email);
-      
-      if (!user) {
+      // Validate email format
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
         toast({
-          title: "User not found",
-          description: "No user found with this email address. They need to sign up first.",
+          title: "Invalid email",
+          description: "Please enter a valid email address.",
           variant: "destructive"
         });
         return false;
       }
 
-      // Check if user is already a team member
-      const { data: existing } = await supabase
-        .from('project_users')
-        .select('id')
-        .eq('project_id', projectId)
-        .eq('user_id', user.id)
+      // Get current user
+      const { data: currentUser } = await supabase.auth.getUser();
+      if (!currentUser.user) {
+        toast({
+          title: "Authentication error",
+          description: "You must be logged in to add team members.",
+          variant: "destructive"
+        });
+        return false;
+      }
+
+      // Get user profile for inviter name
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('name, full_name')
+        .eq('user_id', currentUser.user.id)
         .single();
 
-      if (existing) {
+      const inviterName = profile?.name || profile?.full_name || currentUser.user.email?.split('@')[0] || 'Someone';
+
+      // Check if email is already a team member or has pending invitation
+      const { data: authUsers } = await supabase.auth.admin.listUsers();
+      const existingUser = authUsers?.users?.find((u: any) => u.email === email);
+      
+      if (existingUser) {
+        // Check if already a team member
+        const { data: isTeamMember } = await supabase
+          .from('project_users')
+          .select('id')
+          .eq('project_id', projectId)
+          .eq('user_id', existingUser.id)
+          .single();
+
+        if (isTeamMember) {
+          toast({
+            title: "Already a member",
+            description: "This user is already a team member.",
+            variant: "destructive"
+          });
+          return false;
+        }
+
+        // User exists but not a member, add them directly
+        const { error } = await supabase
+          .from('project_users')
+          .insert({
+            project_id: projectId,
+            user_id: existingUser.id,
+            role: role as 'architect' | 'builder' | 'homeowner' | 'contractor',
+            invited_by: currentUser.user.id,
+            joined_at: new Date().toISOString()
+          });
+
+        if (error) {
+          console.error('Error adding existing user:', error);
+          toast({
+            title: "Error adding member",
+            description: error.message,
+            variant: "destructive"
+          });
+          return false;
+        }
+
         toast({
-          title: "Already a member",
-          description: "This user is already a team member.",
+          title: "Member added!",
+          description: `${email} has been added to the team.`
+        });
+
+        await fetchTeamMembers();
+        return true;
+      }
+
+      // Check for existing pending invitation
+      const { data: existingInvitation } = await supabase
+        .from('project_pending_invitations')
+        .select('id')
+        .eq('project_id', projectId)
+        .eq('email', email)
+        .single();
+
+      if (existingInvitation) {
+        toast({
+          title: "Invitation already sent",
+          description: "An invitation has already been sent to this email address.",
           variant: "destructive"
         });
         return false;
       }
 
-      // Get current user for added_by
-      const { data: currentUser } = await supabase.auth.getUser();
-
-      // Add team member
-      const { error } = await supabase
-        .from('project_users')
-        .insert({
-          project_id: projectId,
-          user_id: user.id,
-          role: role as 'architect' | 'builder' | 'homeowner' | 'contractor',
-          invited_by: currentUser.user?.id,
-          joined_at: new Date().toISOString()
+      // Send invitation via edge function
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (!sessionData.session) {
+        toast({
+          title: "Authentication error",
+          description: "Please log in again.",
+          variant: "destructive"
         });
+        return false;
+      }
+
+      const { data, error } = await supabase.functions.invoke('send-team-invitation', {
+        body: {
+          projectId,
+          email,
+          role,
+          projectName,
+          inviterName
+        },
+        headers: {
+          Authorization: `Bearer ${sessionData.session.access_token}`,
+        },
+      });
 
       if (error) {
-        console.error('Error adding team member:', error);
+        console.error('Error sending invitation:', error);
         toast({
-          title: "Error adding member",
-          description: error.message,
+          title: "Error sending invitation",
+          description: "Failed to send invitation email. Please try again.",
+          variant: "destructive"
+        });
+        return false;
+      }
+
+      if (data?.error) {
+        toast({
+          title: "Error",
+          description: data.error,
           variant: "destructive"
         });
         return false;
       }
 
       toast({
-        title: "Member added!",
-        description: `${email} has been added to the team.`
+        title: "Invitation sent!",
+        description: `An invitation has been sent to ${email}. They will be added to the team when they accept.`
       });
 
-      // Refresh team list
+      // Refresh to show any immediate changes
       await fetchTeamMembers();
       return true;
     } catch (error) {
-      console.error('Error adding team member:', error);
+      console.error('Error in addMember:', error);
       toast({
         title: "Error adding member",
         description: "Failed to add team member. Please try again.",
@@ -243,13 +332,25 @@ export const useProjectTeam = (projectId: string): UseProjectTeamReturn => {
     fetchTeamMembers();
 
     const subscription = supabase
-      .channel(`project_users_${projectId}`)
+      .channel(`project_team_${projectId}`)
       .on(
         'postgres_changes',
         {
           event: '*',
           schema: 'public',
           table: 'project_users',
+          filter: `project_id=eq.${projectId}`
+        },
+        () => {
+          fetchTeamMembers();
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'project_pending_invitations',
           filter: `project_id=eq.${projectId}`
         },
         () => {

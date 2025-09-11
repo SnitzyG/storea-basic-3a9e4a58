@@ -258,6 +258,7 @@ export function ProjectDetailView({ project }: ProjectDetailViewProps) {
       {/* Add Member Dialog */}
       <AddTeamMemberDialog
         projectId={project.id}
+        projectName={project.name}
         open={addMemberOpen}
         onOpenChange={setAddMemberOpen}
         onMemberAdded={addMember}

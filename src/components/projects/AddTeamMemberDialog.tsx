@@ -8,9 +8,10 @@ import { Loader2 } from 'lucide-react';
 
 interface AddTeamMemberDialogProps {
   projectId: string;
+  projectName: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onMemberAdded: (email: string, role: string) => Promise<boolean>;
+  onMemberAdded: (email: string, role: string, projectName?: string) => Promise<boolean>;
 }
 
 const roleOptions = [
@@ -22,7 +23,7 @@ const roleOptions = [
   { value: 'project_manager', label: 'Project Manager' }
 ];
 
-export function AddTeamMemberDialog({ open, onOpenChange, onMemberAdded }: AddTeamMemberDialogProps) {
+export function AddTeamMemberDialog({ projectName, open, onOpenChange, onMemberAdded }: AddTeamMemberDialogProps) {
   const [email, setEmail] = useState('');
   const [role, setRole] = useState('');
   const [loading, setLoading] = useState(false);
@@ -44,7 +45,7 @@ export function AddTeamMemberDialog({ open, onOpenChange, onMemberAdded }: AddTe
 
     setLoading(true);
     try {
-      const success = await onMemberAdded(email, role);
+      const success = await onMemberAdded(email, role, projectName);
       if (success) {
         setEmail('');
         setRole('');
@@ -67,7 +68,7 @@ export function AddTeamMemberDialog({ open, onOpenChange, onMemberAdded }: AddTe
         <DialogHeader>
           <DialogTitle>Add Team Member</DialogTitle>
           <DialogDescription>
-            Add a new member to your project team. They must have an account to be added.
+            Add a new member to your project team. If they don't have an account, they'll receive an invitation email to join.
           </DialogDescription>
         </DialogHeader>
         
