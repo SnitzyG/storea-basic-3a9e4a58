@@ -28,28 +28,16 @@ interface DocumentFiltersProps {
 }
 const categories = [{
   value: 'all',
-  label: 'All Categories'
+  label: 'All File Types'
 }, {
-  value: 'general',
-  label: 'General'
+  value: 'Architectural',
+  label: 'Architectural'
 }, {
-  value: 'drawings',
-  label: 'Drawings'
+  value: 'Structural',
+  label: 'Structural'
 }, {
-  value: 'contracts',
-  label: 'Contracts'
-}, {
-  value: 'reports',
-  label: 'Reports'
-}, {
-  value: 'specifications',
-  label: 'Specifications'
-}, {
-  value: 'permits',
-  label: 'Permits'
-}, {
-  value: 'safety',
-  label: 'Safety'
+  value: 'Permit',
+  label: 'Permit'
 }];
 export const DocumentFilters: React.FC<DocumentFiltersProps> = ({
   searchTerm,

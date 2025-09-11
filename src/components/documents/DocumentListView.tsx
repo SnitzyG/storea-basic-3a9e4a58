@@ -107,57 +107,24 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
     setSelectedDocuments(newSelected);
   };
   const statusOptions = [{
-    value: "draft",
-    label: "Draft"
+    value: "For Tender",
+    label: "For Tender"
   }, {
-    value: "for_review",
-    label: "For Review"
+    value: "For Information",
+    label: "For Information"
   }, {
-    value: "under_review",
-    label: "Under Review"
-  }, {
-    value: "approved",
-    label: "Approved"
-  }, {
-    value: "superseded",
-    label: "Superseded"
-  }, {
-    value: "void",
-    label: "Void"
-  }, {
-    value: "final",
-    label: "Final"
+    value: "For Construction",
+    label: "For Construction"
   }];
   const typeOptions = [{
-    value: "architectural_drawings",
-    label: "Architectural Drawings"
+    value: "Architectural",
+    label: "Architectural"
   }, {
-    value: "structural_plans",
-    label: "Structural Plans"
+    value: "Structural",
+    label: "Structural"
   }, {
-    value: "electrical_plans",
-    label: "Electrical Plans"
-  }, {
-    value: "plumbing_plans",
-    label: "Plumbing Plans"
-  }, {
-    value: "specifications",
-    label: "Specifications"
-  }, {
-    value: "contracts",
-    label: "Contracts"
-  }, {
-    value: "permits",
-    label: "Permits"
-  }, {
-    value: "reports",
-    label: "Reports"
-  }, {
-    value: "correspondence",
-    label: "Correspondence"
-  }, {
-    value: "photographs",
-    label: "Photographs"
+    value: "Permit",
+    label: "Permit"
   }];
   const assignedToOptions = useMemo(() => {
     return teamMembers.map(member => ({
