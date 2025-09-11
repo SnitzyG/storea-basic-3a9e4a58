@@ -4,11 +4,14 @@ import { useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus } from 'lucide-react';
+import { Plus, ToggleLeft, ToggleRight } from 'lucide-react';
 import { useRFIs, RFI } from '@/hooks/useRFIs';
 import { useProjects } from '@/hooks/useProjects';
 import { useAuth } from '@/hooks/useAuth';
-// Cards view removed for RFIs
+// Import new advanced components
+import { EnhancedRFIDashboard } from '@/components/rfis/EnhancedRFIDashboard';
+import { AdvancedRFIComposer } from '@/components/rfis/AdvancedRFIComposer';
+// Legacy components for fallback
 import { CreateRFIDialog } from '@/components/rfis/CreateRFIDialog';
 import { RFIDetailsDialog } from '@/components/rfis/RFIDetailsDialog';
 import { RFIFilters } from '@/components/rfis/RFIFilters';
@@ -18,9 +21,10 @@ import { useProjectTeam } from '@/hooks/useProjectTeam';
 const RFIs = () => {
   const [selectedProject, setSelectedProject] = useState<string>('');
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [advancedComposerOpen, setAdvancedComposerOpen] = useState(false);
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
   const [selectedRFI, setSelectedRFI] = useState<RFI | null>(null);
-  const [viewMode, setViewMode] = useState<'cards' | 'list'>('list');
+  const [viewMode, setViewMode] = useState<'enhanced' | 'legacy'>('enhanced');
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [priorityFilter, setPriorityFilter] = useState('all');
@@ -42,7 +46,7 @@ const RFIs = () => {
   // Auto-open create dialog when navigated with state
   useEffect(() => {
     if ((location.state as any)?.openCreate) {
-      setCreateDialogOpen(true);
+      setAdvancedComposerOpen(true);
       // Clear the flag to prevent reopening on internal state changes
       window.history.replaceState({}, document.title);
     }
@@ -214,6 +218,69 @@ const RFIs = () => {
     );
   }
 
+  // Enhanced view with professional dashboard
+  if (viewMode === 'enhanced') {
+    return (
+      <div className="h-screen flex flex-col">
+        {/* Toggle between enhanced and legacy views */}
+        <div className="p-4 border-b bg-card">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              {projects.length > 1 && (
+                <select
+                  value={selectedProject || currentProject.id}
+                  onChange={(e) => setSelectedProject(e.target.value)}
+                  className="px-3 py-2 border rounded-md bg-background"
+                >
+                  {projects.map(project => (
+                    <option key={project.id} value={project.id}>
+                      {project.name}
+                    </option>
+                  ))}
+                </select>
+              )}
+            </div>
+            <div className="flex items-center space-x-2">
+              <span className="text-sm text-muted-foreground">Enhanced View</span>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setViewMode('legacy')}
+                className="p-1"
+              >
+                <ToggleLeft className="h-5 w-5" />
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex-1">
+          <EnhancedRFIDashboard
+            rfis={filteredRFIs}
+            onView={handleViewRFI}
+            onCreateNew={() => setAdvancedComposerOpen(true)}
+            onExportPDF={handleExportPDF}
+            projectUsers={projectUsers}
+            currentProject={currentProject}
+          />
+        </div>
+
+        <AdvancedRFIComposer
+          open={advancedComposerOpen}
+          onOpenChange={setAdvancedComposerOpen}
+          projectId={currentProject.id}
+        />
+
+        <RFIDetailsDialog
+          open={detailsDialogOpen}
+          onOpenChange={setDetailsDialogOpen}
+          rfi={selectedRFI}
+        />
+      </div>
+    );
+  }
+
+  // Legacy view (original layout)
   return (
     <div className="container mx-auto px-4 py-6">
       {/* Header */}
@@ -225,6 +292,17 @@ const RFIs = () => {
           </p>
         </div>
         <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-2">
+            <span className="text-sm text-muted-foreground">Legacy View</span>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setViewMode('enhanced')}
+              className="p-1"
+            >
+              <ToggleRight className="h-5 w-5" />
+            </Button>
+          </div>
           <Button onClick={() => setCreateDialogOpen(true)}>
             <Plus className="w-4 h-4 mr-2" />
             New RFI
