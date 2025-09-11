@@ -612,8 +612,11 @@ export type Database = {
           avatar_url: string | null
           company_id: string | null
           created_at: string
+          full_name: string | null
           id: string
+          last_seen: string | null
           name: string
+          online_status: boolean | null
           phone: string | null
           role: Database["public"]["Enums"]["user_role"]
           updated_at: string
@@ -623,8 +626,11 @@ export type Database = {
           avatar_url?: string | null
           company_id?: string | null
           created_at?: string
+          full_name?: string | null
           id?: string
+          last_seen?: string | null
           name: string
+          online_status?: boolean | null
           phone?: string | null
           role: Database["public"]["Enums"]["user_role"]
           updated_at?: string
@@ -634,8 +640,11 @@ export type Database = {
           avatar_url?: string | null
           company_id?: string | null
           created_at?: string
+          full_name?: string | null
           id?: string
+          last_seen?: string | null
           name?: string
+          online_status?: boolean | null
           phone?: string | null
           role?: Database["public"]["Enums"]["user_role"]
           updated_at?: string
@@ -647,6 +656,41 @@ export type Database = {
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_team_members: {
+        Row: {
+          added_at: string | null
+          added_by: string | null
+          id: string
+          project_id: string
+          role: string
+          user_id: string
+        }
+        Insert: {
+          added_at?: string | null
+          added_by?: string | null
+          id?: string
+          project_id: string
+          role?: string
+          user_id: string
+        }
+        Update: {
+          added_at?: string | null
+          added_by?: string | null
+          id?: string
+          project_id?: string
+          role?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_team_members_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
             referencedColumns: ["id"]
           },
         ]

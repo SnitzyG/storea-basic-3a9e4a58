@@ -29,12 +29,12 @@ export const AddUserDialog = ({ open, onOpenChange, projectId, onUserAdded }: Ad
 
     setLoading(true);
     try {
-      const success = await addMember(email, name, role);
+      const success = await addMember(email, role);
       
       if (success) {
         toast({
           title: "Team member added",
-          description: `${name} has been added to the project.`
+          description: `${email} has been added to the project.`
         });
         
         onUserAdded();

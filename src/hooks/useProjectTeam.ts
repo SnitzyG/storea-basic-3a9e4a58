@@ -1,11 +1,20 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
-interface TeamMember {
+export interface TeamMember {
   id: string;
+  project_id: string;
   user_id: string;
   role: string;
-  joined_at?: string;
+  added_at: string;
+  added_by?: string;
+  email: string;
+  full_name?: string;
+  name: string;
+  avatar_url?: string;
+  online_status?: boolean;
+  last_seen?: string;
   user_profile: {
     name: string;
     role: string;
@@ -20,8 +29,9 @@ interface UseProjectTeamReturn {
   teamMembers: TeamMember[];
   loading: boolean;
   error: string | null;
-  addMember: (email: string, name: string, role: string) => Promise<boolean>;
-  removeMember: (userId: string) => Promise<boolean>;
+  count: number;
+  addMember: (email: string, role: string) => Promise<boolean>;
+  removeMember: (memberId: string) => Promise<boolean>;
   refreshTeam: () => Promise<void>;
 }
 
@@ -29,6 +39,7 @@ export const useProjectTeam = (projectId: string): UseProjectTeamReturn => {
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { toast } = useToast();
 
   const fetchTeamMembers = useCallback(async () => {
     if (!projectId) {
@@ -36,15 +47,15 @@ export const useProjectTeam = (projectId: string): UseProjectTeamReturn => {
       setLoading(false);
       return;
     }
-    
+
     try {
       setLoading(true);
       setError(null);
-      
-      // Get project users with their profiles
+
+      // Fetch team members from project_users
       const { data: projectUsersData, error: projectUsersError } = await supabase
         .from('project_users')
-        .select('id, user_id, role, joined_at')
+        .select('id, project_id, user_id, role, joined_at, invited_by')
         .eq('project_id', projectId);
 
       if (projectUsersError) {
@@ -62,7 +73,7 @@ export const useProjectTeam = (projectId: string): UseProjectTeamReturn => {
       const userIds = projectUsersData.map(user => user.user_id);
       const { data: profilesData, error: profilesError } = await supabase
         .from('profiles')
-        .select('user_id, name, role, avatar_url, phone')
+        .select('user_id, name, full_name, avatar_url, online_status, last_seen, role, phone')
         .in('user_id', userIds);
 
       if (profilesError) {
@@ -71,22 +82,35 @@ export const useProjectTeam = (projectId: string): UseProjectTeamReturn => {
         return;
       }
 
-      // Transform data to match expected format
-      const transformedMembers: TeamMember[] = projectUsersData.map(user => {
-        const profile = profilesData?.find(p => p.user_id === user.user_id);
+      // Get user emails from auth
+      const { data: authUsers } = await supabase.auth.admin.listUsers();
+      
+      // Transform data to match interface
+      const transformedMembers: TeamMember[] = projectUsersData.map(member => {
+        const authUser = authUsers?.users?.find((u: any) => u.id === member.user_id);
+        const profile = profilesData?.find(p => p.user_id === member.user_id);
+        
         return {
-          id: user.id,
-          user_id: user.user_id,
-          role: user.role,
-          joined_at: user.joined_at,
+          id: member.id,
+          project_id: member.project_id,
+          user_id: member.user_id,
+          role: member.role,
+          added_at: member.joined_at || new Date().toISOString(),
+          added_by: member.invited_by,
+          email: authUser?.email || '',
+          full_name: profile?.full_name || profile?.name,
+          name: profile?.name || profile?.full_name || authUser?.email?.split('@')[0] || 'Unknown',
+          avatar_url: profile?.avatar_url,
+          online_status: profile?.online_status,
+          last_seen: profile?.last_seen,
           user_profile: profile ? {
-            name: profile.name,
-            role: profile.role,
-            avatar_url: profile.avatar_url || undefined,
-            phone: profile.phone || undefined
+            name: profile.name || profile.full_name || 'Unknown',
+            role: profile.role || member.role,
+            avatar_url: profile.avatar_url,
+            phone: profile.phone
           } : null,
-          isOnline: Math.random() > 0.5, // Mock online status for now
-          lastActive: new Date(Date.now() - Math.random() * 86400000).toISOString()
+          isOnline: profile?.online_status || false,
+          lastActive: profile?.last_seen
         };
       }).filter(member => member.user_profile !== null);
 
@@ -99,127 +123,127 @@ export const useProjectTeam = (projectId: string): UseProjectTeamReturn => {
     }
   }, [projectId]);
 
-  const addMember = useCallback(async (email: string, name: string, role: string): Promise<boolean> => {
+  const addMember = useCallback(async (email: string, role: string): Promise<boolean> => {
     try {
-      // Check if user already exists with this email
-      const { data: existingProfiles } = await supabase
-        .from('profiles')
-        .select('user_id, name')
-        .ilike('name', `%${email}%`);
-
-      let addedSuccessfully = false;
-
-      // If we find an existing user, add them directly
-      if (existingProfiles && existingProfiles.length > 0) {
-        const existingUser = existingProfiles[0];
-        
-        // Check if user is already in project
-        const { data: existingProjectUser } = await supabase
-          .from('project_users')
-          .select('id')
-          .eq('project_id', projectId)
-          .eq('user_id', existingUser.user_id)
-          .single();
-
-        if (!existingProjectUser) {
-          const { data: { user: currentUser } } = await supabase.auth.getUser();
-          
-          const { error: addError } = await supabase
-            .from('project_users')
-            .insert({
-              project_id: projectId,
-              user_id: existingUser.user_id,
-              role: role as 'architect' | 'builder' | 'homeowner' | 'contractor',
-              invited_by: currentUser?.id,
-              joined_at: new Date().toISOString()
-            });
-
-          if (!addError) {
-            addedSuccessfully = true;
-            // Trigger immediate refresh
-            await fetchTeamMembers();
-          }
-        }
+      // Find user by email
+      const { data: authData } = await supabase.auth.admin.listUsers();
+      const user = authData?.users?.find((u: any) => u.email === email);
+      
+      if (!user) {
+        toast({
+          title: "User not found",
+          description: "No user found with this email address. They need to sign up first.",
+          variant: "destructive"
+        });
+        return false;
       }
 
-      // If no existing user found, create pending invitation
-      if (!addedSuccessfully) {
-        const { data: currentProject } = await supabase
-          .from('projects')
-          .select('timeline')
-          .eq('id', projectId)
-          .single();
+      // Check if user is already a team member
+      const { data: existing } = await supabase
+        .from('project_users')
+        .select('id')
+        .eq('project_id', projectId)
+        .eq('user_id', user.id)
+        .single();
 
-        const currentTimeline = (currentProject?.timeline as any) || {};
-        const pendingCollaborators = currentTimeline.pending_collaborators || [];
-
-        await supabase
-          .from('projects')
-          .update({
-            timeline: {
-              ...currentTimeline,
-              pending_collaborators: [...pendingCollaborators, { email, name, role }]
-            }
-          })
-          .eq('id', projectId);
+      if (existing) {
+        toast({
+          title: "Already a member",
+          description: "This user is already a team member.",
+          variant: "destructive"
+        });
+        return false;
       }
 
-      // Trigger global update events
-      window.dispatchEvent(new CustomEvent('teamMembersUpdated', { 
-        detail: { projectId } 
-      }));
-      window.dispatchEvent(new CustomEvent('projectTeamUpdated'));
+      // Get current user for added_by
+      const { data: currentUser } = await supabase.auth.getUser();
 
+      // Add team member
+      const { error } = await supabase
+        .from('project_users')
+        .insert({
+          project_id: projectId,
+          user_id: user.id,
+          role: role as 'architect' | 'builder' | 'homeowner' | 'contractor',
+          invited_by: currentUser.user?.id,
+          joined_at: new Date().toISOString()
+        });
+
+      if (error) {
+        console.error('Error adding team member:', error);
+        toast({
+          title: "Error adding member",
+          description: error.message,
+          variant: "destructive"
+        });
+        return false;
+      }
+
+      toast({
+        title: "Member added!",
+        description: `${email} has been added to the team.`
+      });
+
+      // Refresh team list
+      await fetchTeamMembers();
       return true;
     } catch (error) {
       console.error('Error adding team member:', error);
-      setError('Failed to add team member');
+      toast({
+        title: "Error adding member",
+        description: "Failed to add team member. Please try again.",
+        variant: "destructive"
+      });
       return false;
     }
-  }, [projectId, fetchTeamMembers]);
+  }, [projectId, fetchTeamMembers, toast]);
 
-  const removeMember = useCallback(async (userId: string): Promise<boolean> => {
+  const removeMember = useCallback(async (memberId: string): Promise<boolean> => {
     try {
       const { error } = await supabase
         .from('project_users')
         .delete()
-        .eq('project_id', projectId)
-        .eq('user_id', userId);
+        .eq('id', memberId);
 
       if (error) {
         console.error('Error removing team member:', error);
-        setError('Failed to remove team member');
+        toast({
+          title: "Error removing member",
+          description: error.message,
+          variant: "destructive"
+        });
         return false;
       }
 
-      // Trigger immediate refresh
-      await fetchTeamMembers();
-      
-      // Trigger global update events
-      window.dispatchEvent(new CustomEvent('teamMembersUpdated', { 
-        detail: { projectId } 
-      }));
-      window.dispatchEvent(new CustomEvent('projectTeamUpdated'));
+      toast({
+        title: "Member removed!",
+        description: "Team member has been removed from the project."
+      });
 
+      // Refresh team list
+      await fetchTeamMembers();
       return true;
     } catch (error) {
       console.error('Error removing team member:', error);
-      setError('Failed to remove team member');
+      toast({
+        title: "Error removing member",
+        description: "Failed to remove team member. Please try again.",
+        variant: "destructive"
+      });
       return false;
     }
-  }, [projectId, fetchTeamMembers]);
+  }, [fetchTeamMembers, toast]);
 
   const refreshTeam = useCallback(async () => {
     await fetchTeamMembers();
   }, [fetchTeamMembers]);
 
-  // Real-time sync for team changes with immediate updates
+  // Real-time subscription for team changes
   useEffect(() => {
     fetchTeamMembers();
 
-    // Subscribe to project_users changes with immediate UI update
     const subscription = supabase
-      .channel(`unified_project_users_${projectId}`)
+      .channel(`project_users_${projectId}`)
       .on(
         'postgres_changes',
         {
@@ -228,61 +252,14 @@ export const useProjectTeam = (projectId: string): UseProjectTeamReturn => {
           table: 'project_users',
           filter: `project_id=eq.${projectId}`
         },
-        (payload) => {
-          console.log('Project users changed:', payload);
-          // Force immediate refetch to sync across all components
+        () => {
           fetchTeamMembers();
-          
-          // Dispatch global event for cross-component sync
-          window.dispatchEvent(new CustomEvent('teamMembersUpdated', { 
-            detail: { projectId, payload } 
-          }));
         }
       )
       .subscribe();
-
-    // Subscribe to profiles changes to update user info immediately
-    const profilesSubscription = supabase
-      .channel(`unified_profiles_${projectId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'profiles'
-        },
-        (payload) => {
-          console.log('Profiles changed:', payload);
-          // Immediate refetch for profile updates
-          fetchTeamMembers();
-          
-          // Dispatch event for other components
-          window.dispatchEvent(new CustomEvent('teamMembersUpdated', { 
-            detail: { projectId, payload } 
-          }));
-        }
-      )
-      .subscribe();
-
-    // Listen for custom team update events
-    const handleGlobalTeamUpdate = (event: any) => {
-      if (!event.detail?.projectId || event.detail.projectId === projectId) {
-        fetchTeamMembers();
-      }
-    };
-
-    const handleProjectTeamUpdate = () => {
-      fetchTeamMembers();
-    };
-
-    window.addEventListener('teamMembersUpdated', handleGlobalTeamUpdate);
-    window.addEventListener('projectTeamUpdated', handleProjectTeamUpdate);
 
     return () => {
       subscription.unsubscribe();
-      profilesSubscription.unsubscribe();
-      window.removeEventListener('teamMembersUpdated', handleGlobalTeamUpdate);
-      window.removeEventListener('projectTeamUpdated', handleProjectTeamUpdate);
     };
   }, [projectId, fetchTeamMembers]);
 
@@ -290,6 +267,7 @@ export const useProjectTeam = (projectId: string): UseProjectTeamReturn => {
     teamMembers,
     loading,
     error,
+    count: teamMembers.length,
     addMember,
     removeMember,
     refreshTeam
