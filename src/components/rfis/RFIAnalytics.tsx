@@ -30,8 +30,8 @@ export const RFIAnalytics = ({ rfis }: RFIAnalyticsProps) => {
 
   // Status breakdown
   const statusCounts = {
-    submitted: rfis.filter(rfi => rfi.status === 'submitted').length,
-    in_review: rfis.filter(rfi => rfi.status === 'in_review').length,
+    outstanding: rfis.filter(rfi => rfi.status === 'outstanding').length,
+    overdue: rfis.filter(rfi => rfi.status === 'overdue').length,
     responded: rfis.filter(rfi => rfi.status === 'responded').length,
     closed: rfis.filter(rfi => rfi.status === 'closed').length,
   };
@@ -125,27 +125,27 @@ export const RFIAnalytics = ({ rfis }: RFIAnalyticsProps) => {
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="flex justify-between items-center">
-              <span className="text-sm">Submitted</span>
+              <span className="text-sm">Outstanding</span>
               <div className="flex items-center gap-2">
                 <div className="w-32 bg-muted rounded-full h-2">
                   <div 
                     className="bg-blue-500 h-2 rounded-full" 
-                    style={{ width: `${totalRFIs > 0 ? (statusCounts.submitted / totalRFIs) * 100 : 0}%` }}
+                    style={{ width: `${totalRFIs > 0 ? (statusCounts.outstanding / totalRFIs) * 100 : 0}%` }}
                   />
                 </div>
-                <span className="text-sm font-medium w-8">{statusCounts.submitted}</span>
+                <span className="text-sm font-medium w-8">{statusCounts.outstanding}</span>
               </div>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-sm">In Review</span>
+              <span className="text-sm">Overdue</span>
               <div className="flex items-center gap-2">
                 <div className="w-32 bg-muted rounded-full h-2">
                   <div 
                     className="bg-yellow-500 h-2 rounded-full" 
-                    style={{ width: `${totalRFIs > 0 ? (statusCounts.in_review / totalRFIs) * 100 : 0}%` }}
+                    style={{ width: `${totalRFIs > 0 ? (statusCounts.overdue / totalRFIs) * 100 : 0}%` }}
                   />
                 </div>
-                <span className="text-sm font-medium w-8">{statusCounts.in_review}</span>
+                <span className="text-sm font-medium w-8">{statusCounts.overdue}</span>
               </div>
             </div>
             <div className="flex justify-between items-center">

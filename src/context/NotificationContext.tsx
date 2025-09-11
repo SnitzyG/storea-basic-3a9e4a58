@@ -67,7 +67,7 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
         .select('*', { count: 'exact', head: true })
         .in('project_id', projectIds)
         .eq('assigned_to', user.id)
-        .in('status', ['submitted', 'in_review']);
+        .in('status', ['outstanding', 'overdue']);
 
       // Count recent documents (last 7 days, not uploaded by user)
       const { count: documentCount } = await supabase

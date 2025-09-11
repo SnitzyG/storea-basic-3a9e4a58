@@ -52,8 +52,8 @@ export const RFIFilters = ({
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Status</SelectItem>
-            <SelectItem value="submitted">Submitted</SelectItem>
-            <SelectItem value="in_review">In Review</SelectItem>
+            <SelectItem value="outstanding">Outstanding</SelectItem>
+            <SelectItem value="overdue">Overdue</SelectItem>
             <SelectItem value="responded">Responded</SelectItem>
             <SelectItem value="closed">Closed</SelectItem>
           </SelectContent>

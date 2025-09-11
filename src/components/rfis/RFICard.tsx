@@ -14,8 +14,8 @@ interface RFICardProps {
 }
 
 const statusColors = {
-  submitted: 'bg-blue-500/10 text-blue-700 border-blue-500/20',
-  in_review: 'bg-yellow-500/10 text-yellow-700 border-yellow-500/20',
+  outstanding: 'bg-blue-500/10 text-blue-700 border-blue-500/20',
+  overdue: 'bg-red-500/10 text-red-700 border-red-500/20',
   responded: 'bg-green-500/10 text-green-700 border-green-500/20',
   closed: 'bg-gray-500/10 text-gray-700 border-gray-500/20',
 };
@@ -28,8 +28,8 @@ const priorityColors = {
 };
 
 const statusLabels = {
-  submitted: 'Submitted',
-  in_review: 'In Review',
+  outstanding: 'Outstanding',
+  overdue: 'Overdue',
   responded: 'Responded',
   closed: 'Closed',
 };

@@ -102,7 +102,7 @@ const RFIs = () => {
     // For now, we'll just auto-assign to the first architect
     const architect = teamMembers.find(user => user.role === 'architect');
     if (architect) {
-      await updateRFI(rfi.id, { assigned_to: architect.user_id, status: 'in_review' });
+      await updateRFI(rfi.id, { assigned_to: architect.user_id, status: 'outstanding' });
     }
   };
 

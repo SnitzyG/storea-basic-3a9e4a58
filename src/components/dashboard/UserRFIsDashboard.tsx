@@ -12,7 +12,7 @@ interface RFI {
   assigned_to?: string;
   question: string;
   response?: string;
-  status: 'submitted' | 'in_review' | 'responded' | 'closed';
+  status: 'outstanding' | 'overdue' | 'responded' | 'closed';
   priority: 'low' | 'medium' | 'high' | 'critical';
   due_date?: string;
   category?: string;
@@ -42,8 +42,8 @@ const priorityColors = {
 };
 
 const statusColors = {
-  submitted: 'bg-gray-500/10 text-gray-600',
-  in_review: 'bg-blue-500/10 text-blue-600',
+  outstanding: 'bg-blue-500/10 text-blue-600',
+  overdue: 'bg-red-500/10 text-red-600',
   responded: 'bg-green-500/10 text-green-600',
   closed: 'bg-gray-500/10 text-gray-500'
 };
@@ -169,36 +169,28 @@ export const UserRFIsDashboard = ({
                   View Details
                 </Button>
                 
-                {rfi.status === 'submitted' && (
+                {rfi.status === 'outstanding' && profile?.role === 'contractor' && (
                   <Button
                     size="sm"
-                    onClick={() => handleStatusUpdate(rfi.id, 'in_review')}
+                    onClick={() => {
+                      const response = prompt('Enter your response to this RFI:');
+                      if (response) {
+                        handleAddResponse(rfi.id, response);
+                      }
+                    }}
                   >
-                    Start Review
+                    Add Response
                   </Button>
                 )}
                 
-                {rfi.status === 'in_review' && (
-                  <>
-                    <Button
-                      size="sm"
-                      onClick={() => {
-                        const response = prompt('Enter your response to this RFI:');
-                        if (response) {
-                          handleAddResponse(rfi.id, response);
-                        }
-                      }}
-                    >
-                      Add Response
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => handleStatusUpdate(rfi.id, 'closed')}
-                    >
-                      Close
-                    </Button>
-                  </>
+                {(rfi.status === 'outstanding' || rfi.status === 'overdue') && profile?.role === 'architect' && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleStatusUpdate(rfi.id, 'closed')}
+                  >
+                    Close
+                  </Button>
                 )}
                 
                 {rfi.status === 'responded' && (

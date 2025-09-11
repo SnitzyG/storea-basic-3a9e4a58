@@ -11,7 +11,7 @@ export interface RFI {
   assigned_to?: string;
   question: string;
   response?: string;
-  status: 'submitted' | 'in_review' | 'responded' | 'closed';
+  status: 'outstanding' | 'overdue' | 'responded' | 'closed';
   priority: 'low' | 'medium' | 'high' | 'critical';
   due_date?: string;
   category?: string;

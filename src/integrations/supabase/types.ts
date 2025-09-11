@@ -1142,7 +1142,7 @@ export type Database = {
         | "on_hold"
         | "completed"
         | "cancelled"
-      rfi_status: "submitted" | "in_review" | "responded" | "closed"
+      rfi_status: "outstanding" | "overdue" | "responded" | "closed"
       tender_status: "draft" | "open" | "closed" | "awarded" | "cancelled"
       user_role: "architect" | "builder" | "homeowner" | "contractor"
     }
@@ -1281,7 +1281,7 @@ export const Constants = {
         "completed",
         "cancelled",
       ],
-      rfi_status: ["submitted", "in_review", "responded", "closed"],
+      rfi_status: ["outstanding", "overdue", "responded", "closed"],
       tender_status: ["draft", "open", "closed", "awarded", "cancelled"],
       user_role: ["architect", "builder", "homeowner", "contractor"],
     },

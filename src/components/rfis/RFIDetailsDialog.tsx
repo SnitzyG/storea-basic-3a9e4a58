@@ -20,8 +20,8 @@ interface RFIDetailsDialogProps {
 }
 
 const statusColors = {
-  submitted: 'bg-blue-500/10 text-blue-700 border-blue-500/20',
-  in_review: 'bg-yellow-500/10 text-yellow-700 border-yellow-500/20',
+  outstanding: 'bg-blue-500/10 text-blue-700 border-blue-500/20',
+  overdue: 'bg-red-500/10 text-red-700 border-red-500/20',
   responded: 'bg-green-500/10 text-green-700 border-green-500/20',
   closed: 'bg-gray-500/10 text-gray-700 border-gray-500/20',
 };
@@ -35,7 +35,7 @@ const priorityColors = {
 
 export const RFIDetailsDialog = ({ open, onOpenChange, rfi }: RFIDetailsDialogProps) => {
   const [response, setResponse] = useState('');
-  const [status, setStatus] = useState<'submitted' | 'in_review' | 'responded' | 'closed'>('submitted');
+  const [status, setStatus] = useState<'outstanding' | 'overdue' | 'responded' | 'closed'>('outstanding');
   const [activities, setActivities] = useState<RFIActivity[]>([]);
   const [loading, setLoading] = useState(false);
   const [loadingActivities, setLoadingActivities] = useState(false);
@@ -119,7 +119,8 @@ export const RFIDetailsDialog = ({ open, onOpenChange, rfi }: RFIDetailsDialogPr
     setLoading(false);
   };
 
-  const canRespond = user && (user.id === rfi?.assigned_to || profile?.role === 'architect');
+  // Only contractors can respond to RFIs assigned to them
+  const canRespond = user && rfi?.assigned_to === user.id && profile?.role === 'contractor' && rfi.status !== 'closed' && rfi.status !== 'responded';
   const canChangeStatus = user && (user.id === rfi?.raised_by || user.id === rfi?.assigned_to || profile?.role === 'architect');
 
   if (!rfi) return null;
@@ -247,8 +248,8 @@ export const RFIDetailsDialog = ({ open, onOpenChange, rfi }: RFIDetailsDialogPr
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="submitted">Submitted</SelectItem>
-                  <SelectItem value="in_review">In Review</SelectItem>
+                  <SelectItem value="outstanding">Outstanding</SelectItem>
+                  <SelectItem value="overdue">Overdue</SelectItem>
                   <SelectItem value="responded">Responded</SelectItem>
                   <SelectItem value="closed">Closed</SelectItem>
                 </SelectContent>
