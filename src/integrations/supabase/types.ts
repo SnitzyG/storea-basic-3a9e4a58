@@ -613,7 +613,9 @@ export type Database = {
           company_id: string | null
           created_at: string
           id: string
+          last_seen: string | null
           name: string
+          online_status: boolean | null
           phone: string | null
           role: Database["public"]["Enums"]["user_role"]
           updated_at: string
@@ -624,7 +626,9 @@ export type Database = {
           company_id?: string | null
           created_at?: string
           id?: string
+          last_seen?: string | null
           name: string
+          online_status?: boolean | null
           phone?: string | null
           role: Database["public"]["Enums"]["user_role"]
           updated_at?: string
@@ -635,7 +639,9 @@ export type Database = {
           company_id?: string | null
           created_at?: string
           id?: string
+          last_seen?: string | null
           name?: string
+          online_status?: boolean | null
           phone?: string | null
           role?: Database["public"]["Enums"]["user_role"]
           updated_at?: string
