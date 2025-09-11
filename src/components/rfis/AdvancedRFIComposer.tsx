@@ -17,19 +17,26 @@ import {
   Upload, 
   X, 
   Paperclip,
-  Settings,
   Eye,
   Save,
   Send,
   ChevronDown,
   Search,
-  Info,
-  DollarSign,
-  Calendar as CalendarDays,
   User,
   Mail,
   Building,
-  Phone
+  Phone,
+  Bold,
+  Italic,
+  Underline,
+  Palette,
+  List,
+  Table,
+  AlignLeft,
+  Link,
+  Image,
+  Code,
+  Info
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
@@ -87,6 +94,7 @@ export const AdvancedRFIComposer: React.FC<AdvancedRFIComposerProps> = ({
     recipients: [] as string[],
     ccRecipients: [] as string[],
     responseRequired: 'Yes',
+    responseRequiredDate: undefined as Date | undefined,
     subject: '',
 
     // Message Composition
@@ -97,13 +105,10 @@ export const AdvancedRFIComposer: React.FC<AdvancedRFIComposerProps> = ({
     // Technical Details
     instrumentationType: '',
     discipline: '',
-    question: '',
     scheduleImpact: 'No',
     scheduleDetails: '',
     costImpact: 'No',
     costDetails: '',
-    estimatedCost: '',
-    estimatedSchedule: '',
 
     // Project Info
     project_name: '',
@@ -120,15 +125,16 @@ export const AdvancedRFIComposer: React.FC<AdvancedRFIComposerProps> = ({
 
   const [selectedRecipient, setSelectedRecipient] = useState<string>('');
   const [recipientSearch, setRecipientSearch] = useState('');
+  const [ccSearch, setCcSearch] = useState('');
   const [selectedDocuments, setSelectedDocuments] = useState<string[]>([]);
-  const [characterCount, setCharacterCount] = useState(0);
   const [costCharacterCount, setCostCharacterCount] = useState(0);
   const [scheduleCharacterCount, setScheduleCharacterCount] = useState(0);
+  const [showRichTextToolbar, setShowRichTextToolbar] = useState(false);
 
   // Auto-save functionality
   useEffect(() => {
     const interval = setInterval(() => {
-      if (formData.subject || formData.question) {
+      if (formData.subject || formData.messageContent) {
         setIsDraft(true);
         // In a real app, you'd save to backend here
         console.log('Auto-saving draft...');
@@ -147,15 +153,10 @@ export const AdvancedRFIComposer: React.FC<AdvancedRFIComposerProps> = ({
         project_number: currentProject.id || '',
         sender_name: profile.name || '',
         sender_email: user.email || '',
-        signature: `${profile.name}\n${profile.role}\n${user.email}`
+        signature: `From: ${profile.name || user.email}`
       }));
     }
   }, [open, currentProject, profile, user]);
-
-  // Update character counts
-  useEffect(() => {
-    setCharacterCount(formData.question.length);
-  }, [formData.question]);
 
   useEffect(() => {
     setCostCharacterCount(formData.costDetails.length);
@@ -212,6 +213,10 @@ export const AdvancedRFIComposer: React.FC<AdvancedRFIComposerProps> = ({
     member.user_profile?.name?.toLowerCase().includes(recipientSearch.toLowerCase())
   );
 
+  const filteredCcMembers = teamMembers.filter(member =>
+    member.user_profile?.name?.toLowerCase().includes(ccSearch.toLowerCase())
+  );
+
   const handleSaveDraft = () => {
     setIsDraft(true);
     // In a real app, save to backend
@@ -224,17 +229,17 @@ export const AdvancedRFIComposer: React.FC<AdvancedRFIComposerProps> = ({
   };
 
   const handleSubmit = async () => {
-    if (!formData.question || !formData.subject) return;
+    if (!formData.subject || !formData.instrumentationType || !formData.discipline) return;
 
     setLoading(true);
     try {
       await createRFI({
         project_id: projectId,
-        question: formData.question,
+        question: formData.messageContent || `${formData.instrumentationType} - ${formData.discipline}`,
         priority: formData.priority,
         category: formData.category || formData.discipline,
         assigned_to: formData.assigned_to,
-        due_date: formData.required_response_by?.toISOString(),
+        due_date: formData.responseRequiredDate?.toISOString(),
         project_name: formData.project_name,
         project_number: formData.project_number,
         recipient_name: formData.recipient_name,
@@ -242,7 +247,7 @@ export const AdvancedRFIComposer: React.FC<AdvancedRFIComposerProps> = ({
         sender_name: formData.sender_name,
         sender_email: formData.sender_email,
         subject: formData.subject,
-        required_response_by: formData.required_response_by?.toISOString()
+        required_response_by: formData.responseRequiredDate?.toISOString()
       });
 
       // Reset form
@@ -252,19 +257,17 @@ export const AdvancedRFIComposer: React.FC<AdvancedRFIComposerProps> = ({
         recipients: [],
         ccRecipients: [],
         responseRequired: 'Yes',
+        responseRequiredDate: undefined,
         subject: '',
         messageContent: '',
         autoTextTemplate: '',
-        signature: `${profile?.name}\n${profile?.role}\n${user?.email}`,
+        signature: `From: ${profile?.name || user?.email}`,
         instrumentationType: '',
         discipline: '',
-        question: '',
         scheduleImpact: 'No',
         scheduleDetails: '',
         costImpact: 'No',
         costDetails: '',
-        estimatedCost: '',
-        estimatedSchedule: '',
         project_name: currentProject?.name || '',
         project_number: currentProject?.id || '',
         sender_name: profile?.name || '',
@@ -286,7 +289,12 @@ export const AdvancedRFIComposer: React.FC<AdvancedRFIComposerProps> = ({
     }
   };
 
-  const isFormValid = formData.subject && formData.question && formData.instrumentationType && formData.discipline;
+  const isFormValid = formData.subject && formData.instrumentationType && formData.discipline;
+
+  const handleRichTextAction = (action: string) => {
+    console.log(`Rich text action: ${action}`);
+    // In a real implementation, you would apply formatting to the selected text
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -296,21 +304,28 @@ export const AdvancedRFIComposer: React.FC<AdvancedRFIComposerProps> = ({
             <DialogTitle className="text-2xl font-bold">Advanced RFI Composition</DialogTitle>
             <div className="flex items-center space-x-2">
               {isDraft && <Badge variant="secondary">Draft</Badge>}
-              <Button variant="outline" size="sm">
-                <Settings className="h-4 w-4 mr-2" />
-                Options
-              </Button>
             </div>
           </div>
           
           {/* Header Controls */}
           <div className="flex items-center justify-between pt-4">
             <div className="flex items-center space-x-2">
-              <Button variant="outline" size="sm">
-                <Paperclip className="h-4 w-4 mr-2" />
-                Attach
-                <ChevronDown className="h-4 w-4 ml-1" />
-              </Button>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" size="sm">
+                    <Paperclip className="h-4 w-4 mr-2" />
+                    Attach
+                    <ChevronDown className="h-4 w-4 ml-1" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-40">
+                  <div className="space-y-2">
+                    <Button variant="ghost" size="sm" className="w-full justify-start">Document</Button>
+                    <Button variant="ghost" size="sm" className="w-full justify-start">Project Mail</Button>
+                    <Button variant="ghost" size="sm" className="w-full justify-start">Local File</Button>
+                  </div>
+                </PopoverContent>
+              </Popover>
               <Button variant="outline" size="sm" onClick={handlePreview}>
                 <Eye className="h-4 w-4 mr-2" />
                 Preview
@@ -327,7 +342,7 @@ export const AdvancedRFIComposer: React.FC<AdvancedRFIComposerProps> = ({
               className="bg-slate-900 hover:bg-slate-800 text-white"
             >
               <Send className="h-4 w-4 mr-2" />
-              {loading ? 'Sending...' : 'Send'}
+              {loading ? 'Sending...' : 'Send RFI'}
             </Button>
           </div>
         </DialogHeader>
@@ -441,10 +456,21 @@ export const AdvancedRFIComposer: React.FC<AdvancedRFIComposerProps> = ({
                           </div>
                         )}
 
-                        <Button variant="outline" size="sm" className="w-full">
-                          <Building className="h-4 w-4 mr-2" />
-                          Directory
-                        </Button>
+                        <div className="space-y-2">
+                          <Input
+                            placeholder="Add email manually..."
+                            onKeyPress={(e) => {
+                              if (e.key === 'Enter' && e.currentTarget.value) {
+                                const email = e.currentTarget.value;
+                                setFormData(prev => ({
+                                  ...prev,
+                                  recipients: [...prev.recipients, email]
+                                }));
+                                e.currentTarget.value = '';
+                              }
+                            }}
+                          />
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -453,18 +479,35 @@ export const AdvancedRFIComposer: React.FC<AdvancedRFIComposerProps> = ({
                     <div>
                       <Label>Cc Recipients</Label>
                       <div className="space-y-2">
-                        <Select onValueChange={handleCcAdd}>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Add Cc recipients" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {teamMembers.map(member => (
-                              <SelectItem key={member.user_id} value={member.user_id}>
-                                {member.user_profile?.name} ({member.role})
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                        <div className="relative">
+                          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                          <Input
+                            placeholder="Search Cc contacts..."
+                            value={ccSearch}
+                            onChange={(e) => setCcSearch(e.target.value)}
+                            className="pl-10"
+                          />
+                        </div>
+                        
+                        {ccSearch && (
+                          <Card className="max-h-40 overflow-y-auto">
+                            <CardContent className="p-2">
+                              {filteredCcMembers.map(member => (
+                                <div 
+                                  key={member.user_id}
+                                  className="flex items-center justify-between p-2 hover:bg-muted rounded cursor-pointer"
+                                  onClick={() => handleCcAdd(member.user_id)}
+                                >
+                                  <div className="flex items-center space-x-2">
+                                    <User className="h-4 w-4" />
+                                    <span className="text-sm">{member.user_profile?.name}</span>
+                                    <Badge variant="outline" className="text-xs">{member.role}</Badge>
+                                  </div>
+                                </div>
+                              ))}
+                            </CardContent>
+                          </Card>
+                        )}
 
                         {formData.ccRecipients.length > 0 && (
                           <div className="space-y-1">
@@ -485,6 +528,22 @@ export const AdvancedRFIComposer: React.FC<AdvancedRFIComposerProps> = ({
                             })}
                           </div>
                         )}
+
+                        <div className="space-y-2">
+                          <Input
+                            placeholder="Add Cc email manually..."
+                            onKeyPress={(e) => {
+                              if (e.key === 'Enter' && e.currentTarget.value) {
+                                const email = e.currentTarget.value;
+                                setFormData(prev => ({
+                                  ...prev,
+                                  ccRecipients: [...prev.ccRecipients, email]
+                                }));
+                                e.currentTarget.value = '';
+                              }
+                            }}
+                          />
+                        </div>
                       </div>
                     </div>
 
@@ -501,6 +560,35 @@ export const AdvancedRFIComposer: React.FC<AdvancedRFIComposerProps> = ({
                           <SelectItem value="For Information Only">For Information Only</SelectItem>
                         </SelectContent>
                       </Select>
+                      
+                      {formData.responseRequired === 'Yes' && (
+                        <div className="mt-2">
+                          <Label>Response Required By</Label>
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <Button
+                                variant="outline"
+                                className={cn(
+                                  "w-full justify-start text-left font-normal",
+                                  !formData.responseRequiredDate && "text-muted-foreground"
+                                )}
+                              >
+                                <CalendarIcon className="mr-2 h-4 w-4" />
+                                {formData.responseRequiredDate ? format(formData.responseRequiredDate, "PPP") : <span>Pick a date</span>}
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="start">
+                              <Calendar
+                                mode="single"
+                                selected={formData.responseRequiredDate}
+                                onSelect={(date) => setFormData(prev => ({ ...prev, responseRequiredDate: date }))}
+                                initialFocus
+                                className="pointer-events-auto"
+                              />
+                            </PopoverContent>
+                          </Popover>
+                        </div>
+                      )}
                     </div>
 
                     <div>
@@ -542,24 +630,87 @@ export const AdvancedRFIComposer: React.FC<AdvancedRFIComposerProps> = ({
 
                   <div className="border rounded-lg p-4 bg-card">
                     <div className="border-b pb-2 mb-4">
-                      <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-                        <span>Bold</span>
-                        <span>Italic</span>
-                        <span>Underline</span>
-                        <span>Color</span>
-                        <span>Lists</span>
-                        <span>Tables</span>
-                        <span>Alignment</span>
-                        <Select>
-                          <SelectTrigger className="w-20 h-8">
-                            <SelectValue placeholder="More" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="link">Insert Link</SelectItem>
-                            <SelectItem value="image">Insert Image</SelectItem>
-                            <SelectItem value="code">Code Block</SelectItem>
-                          </SelectContent>
-                        </Select>
+                      <div className="flex items-center space-x-2 flex-wrap gap-2">
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={() => handleRichTextAction('bold')}
+                          className="h-8 px-2"
+                        >
+                          <Bold className="h-4 w-4" />
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={() => handleRichTextAction('italic')}
+                          className="h-8 px-2"
+                        >
+                          <Italic className="h-4 w-4" />
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={() => handleRichTextAction('underline')}
+                          className="h-8 px-2"
+                        >
+                          <Underline className="h-4 w-4" />
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={() => handleRichTextAction('color')}
+                          className="h-8 px-2"
+                        >
+                          <Palette className="h-4 w-4" />
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={() => handleRichTextAction('list')}
+                          className="h-8 px-2"
+                        >
+                          <List className="h-4 w-4" />
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={() => handleRichTextAction('table')}
+                          className="h-8 px-2"
+                        >
+                          <Table className="h-4 w-4" />
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={() => handleRichTextAction('align')}
+                          className="h-8 px-2"
+                        >
+                          <AlignLeft className="h-4 w-4" />
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={() => handleRichTextAction('link')}
+                          className="h-8 px-2"
+                        >
+                          <Link className="h-4 w-4" />
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={() => handleRichTextAction('image')}
+                          className="h-8 px-2"
+                        >
+                          <Image className="h-4 w-4" />
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={() => handleRichTextAction('code')}
+                          className="h-8 px-2"
+                        >
+                          <Code className="h-4 w-4" />
+                        </Button>
                       </div>
                     </div>
                     
@@ -625,28 +776,6 @@ export const AdvancedRFIComposer: React.FC<AdvancedRFIComposerProps> = ({
                       )}
                     </div>
 
-                    <div>
-                      <Label htmlFor="question">Question/Description *</Label>
-                      <Textarea
-                        id="question"
-                        value={formData.question}
-                        onChange={(e) => setFormData(prev => ({ ...prev, question: e.target.value }))}
-                        placeholder="Describe your request or question in detail..."
-                        className={cn(
-                          "min-h-[150px]",
-                          !formData.question ? 'border-red-300' : ''
-                        )}
-                        maxLength={4000}
-                      />
-                      <div className="flex justify-between items-center mt-1">
-                        {!formData.question && (
-                          <p className="text-red-500 text-sm">Question is required</p>
-                        )}
-                        <p className="text-sm text-muted-foreground ml-auto">
-                          {characterCount}/4000 characters
-                        </p>
-                      </div>
-                    </div>
                   </div>
 
                   <div className="space-y-4">
@@ -711,56 +840,17 @@ export const AdvancedRFIComposer: React.FC<AdvancedRFIComposerProps> = ({
                       )}
                     </div>
 
-                    <div className="p-4 border rounded-lg bg-muted/50">
-                      <div className="flex items-center space-x-2 mb-3">
-                        <Info className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-sm font-medium">Restricted Information</span>
-                      </div>
-                      <p className="text-sm text-muted-foreground mb-3">
-                        Only visible to your organization
-                      </p>
-                      
-                      <div className="space-y-3">
-                        <div>
-                          <Label htmlFor="estimated-cost">Estimated Cost</Label>
-                          <div className="relative">
-                            <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                            <Input
-                              id="estimated-cost"
-                              value={formData.estimatedCost}
-                              onChange={(e) => setFormData(prev => ({ ...prev, estimatedCost: e.target.value }))}
-                              placeholder="0.00"
-                              className="pl-10"
-                            />
-                          </div>
-                        </div>
-                        
-                        <div>
-                          <Label htmlFor="estimated-schedule">Estimated Schedule Adjustment</Label>
-                          <div className="relative">
-                            <CalendarDays className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                            <Input
-                              id="estimated-schedule"
-                              value={formData.estimatedSchedule}
-                              onChange={(e) => setFormData(prev => ({ ...prev, estimatedSchedule: e.target.value }))}
-                              placeholder="Number of days"
-                              className="pl-10"
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    </div>
                   </div>
                 </div>
 
-                <div>
+                <div className="max-h-64 overflow-y-auto">
                   <Label>Attachments</Label>
-                  <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-6 text-center">
-                    <FileText className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
+                  <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-4 text-center">
+                    <FileText className="h-6 w-6 mx-auto text-muted-foreground mb-2" />
                     <p className="text-sm text-muted-foreground mb-2">
                       Attach up to 6 files
                     </p>
-                    <div className="flex justify-center space-x-2">
+                    <div className="flex flex-wrap justify-center gap-2">
                       <Button variant="outline" size="sm">
                         Document
                       </Button>
@@ -776,7 +866,7 @@ export const AdvancedRFIComposer: React.FC<AdvancedRFIComposerProps> = ({
                   {selectedDocuments.length > 0 && (
                     <div className="mt-4 space-y-2">
                       <Label className="text-sm">Selected Files ({selectedDocuments.length}/6)</Label>
-                      <div className="space-y-1">
+                      <div className="space-y-1 max-h-32 overflow-y-auto">
                         {selectedDocuments.map(docId => {
                           const doc = documents.find(d => d.id === docId);
                           return (
