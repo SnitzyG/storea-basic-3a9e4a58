@@ -1134,7 +1134,7 @@ export type Database = {
       }
     }
     Enums: {
-      document_status: "draft" | "under_review" | "approved" | "rejected"
+      document_status: "For Tender" | "For Information" | "For Construction"
       priority_level: "low" | "medium" | "high" | "critical"
       project_status:
         | "planning"
@@ -1272,7 +1272,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      document_status: ["draft", "under_review", "approved", "rejected"],
+      document_status: ["For Tender", "For Information", "For Construction"],
       priority_level: ["low", "medium", "high", "critical"],
       project_status: [
         "planning",

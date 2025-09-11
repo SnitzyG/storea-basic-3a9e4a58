@@ -10,26 +10,23 @@ import { format } from 'date-fns';
 export const ActionableDocuments = () => {
   const { documents, loading } = useDocuments(); // Get all documents across projects
 
-  // Filter documents that need action (draft, under review)
+  // Filter documents that need action (for tender, for information)
   const actionableDocuments = documents.filter(doc => 
-    doc.status === 'draft' || 
-    doc.status === 'under_review'
+    doc.status === 'For Tender' || 
+    doc.status === 'For Information'
   );
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'under_review': return 'default';
-      case 'draft': return 'secondary';
+      case 'For Tender': return 'default';
+      case 'For Information': return 'secondary';
+      case 'For Construction': return 'outline';
       default: return 'outline';
     }
   };
 
   const getStatusLabel = (status: string) => {
-    switch (status) {
-      case 'under_review': return 'Under Review';
-      case 'draft': return 'Draft';
-      default: return status;
-    }
+    return status;
   };
 
   if (loading) {

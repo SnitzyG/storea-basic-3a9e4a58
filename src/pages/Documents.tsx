@@ -72,13 +72,14 @@ const Documents = () => {
   const getStatusCounts = () => {
     const counts = {
       all: documents.length,
-      draft: 0,
-      under_review: 0,
-      approved: 0,
-      rejected: 0
+      'For Tender': 0,
+      'For Information': 0,
+      'For Construction': 0
     };
     documents.forEach(doc => {
-      counts[doc.status as keyof typeof counts]++;
+      if (doc.status in counts) {
+        (counts as any)[doc.status]++;
+      }
     });
     return counts;
   };
@@ -139,10 +140,9 @@ const Documents = () => {
         <CardContent className="p-6">
           <DocumentFilters searchTerm={searchTerm} onSearchChange={setSearchTerm} selectedProject={selectedProject} onProjectChange={setSelectedProject} selectedCategory={selectedCategory} onCategoryChange={setSelectedCategory} selectedStatus={statusFilter} onStatusChange={setStatusFilter} viewMode="list" onViewModeChange={() => {}} projects={projects} documentCounts={{
           total: statusCounts.all,
-          draft: statusCounts.draft,
-          under_review: statusCounts.under_review,
-          approved: statusCounts.approved,
-          rejected: statusCounts.rejected
+          'For Tender': statusCounts['For Tender'],
+          'For Information': statusCounts['For Information'],
+          'For Construction': statusCounts['For Construction']
         }} />
         </CardContent>
       </Card>

@@ -5,6 +5,9 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useDocuments } from '@/hooks/useDocuments';
 
 interface DocumentUploadProps {
@@ -17,6 +20,10 @@ interface UploadFile extends File {
   progress: number;
   status: 'pending' | 'uploading' | 'success' | 'error';
   error?: string;
+  documentNumber?: string;
+  title?: string;
+  documentStatus?: 'For Tender' | 'For Information' | 'For Construction';
+  fileType?: 'Architectural' | 'Structural' | 'Permit';
 }
 
 const ACCEPTED_FILE_TYPES = {
@@ -39,12 +46,18 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
   const [isUploading, setIsUploading] = useState(false);
   const { uploadDocument } = useDocuments();
 
+  const STATUS_OPTIONS = ['For Tender', 'For Information', 'For Construction'] as const;
+  const FILE_TYPE_OPTIONS = ['Architectural', 'Structural', 'Permit'] as const;
+
   const onDrop = useCallback((acceptedFiles: File[]) => {
     const newFiles: UploadFile[] = acceptedFiles.map(file => ({
       ...file,
       id: Math.random().toString(36).substring(2),
       progress: 0,
-      status: 'pending'
+      status: 'pending',
+      title: file.name.replace(/\.[^/.]+$/, ""), // Remove extension for title
+      documentStatus: 'For Information',
+      fileType: 'Architectural'
     }));
 
     setFiles(prev => [...prev, ...newFiles]);
@@ -61,8 +74,30 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
     setFiles(prev => prev.filter(f => f.id !== fileId));
   };
 
+  const updateFileProperty = (fileId: string, property: keyof UploadFile, value: any) => {
+    setFiles(prev => prev.map(f => 
+      f.id === fileId ? { ...f, [property]: value } : f
+    ));
+  };
+
   const uploadFiles = async () => {
     if (files.length === 0) return;
+
+    // Validate required fields
+    const invalidFiles = files.filter(f => 
+      f.status === 'pending' && (!f.title?.trim() || !f.documentStatus || !f.fileType)
+    );
+
+    if (invalidFiles.length > 0) {
+      invalidFiles.forEach(f => {
+        setFiles(prev => prev.map(file => 
+          file.id === f.id 
+            ? { ...file, status: 'error', error: 'Please fill in all required fields' } 
+            : file
+        ));
+      });
+      return;
+    }
 
     setIsUploading(true);
 
@@ -85,12 +120,23 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
 
         console.log('Uploading file:', { 
           name: file.name, 
-          type: file.type, 
-          size: file.size, 
+          title: file.title,
+          documentNumber: file.documentNumber,
+          status: file.documentStatus,
+          fileType: file.fileType,
           projectId 
         });
         
-        const result = await uploadDocument(file, projectId, file.name);
+        const result = await uploadDocument(
+          file, 
+          projectId, 
+          file.title || file.name,
+          {
+            documentNumber: file.documentNumber,
+            status: file.documentStatus!,
+            fileType: file.fileType!
+          }
+        );
 
         clearInterval(progressInterval);
 
@@ -195,44 +241,119 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
               </div>
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-4">
               {files.map((file) => (
                 <div
                   key={file.id}
-                  className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg"
+                  className="flex flex-col gap-4 p-4 bg-muted/50 rounded-lg border"
                 >
-                  <File className="h-8 w-8 text-muted-foreground flex-shrink-0" />
-                  
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <p className="text-sm font-medium truncate">{file.name}</p>
-                      <Badge variant={getStatusColor(file.status)}>
-                        {file.status === 'success' && <Check className="h-3 w-3 mr-1" />}
-                        {file.status}
-                      </Badge>
-                    </div>
+                  <div className="flex items-center gap-3">
+                    <File className="h-8 w-8 text-muted-foreground flex-shrink-0" />
                     
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                      <span>{formatFileSize(file.size)}</span>
-                      {file.error && (
-                        <span className="text-destructive">• {file.error}</span>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <p className="text-sm font-medium truncate">{file.name}</p>
+                        <Badge variant={getStatusColor(file.status)}>
+                          {file.status === 'success' && <Check className="h-3 w-3 mr-1" />}
+                          {file.status}
+                        </Badge>
+                      </div>
+                      
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                        <span>{formatFileSize(file.size)}</span>
+                        {file.error && (
+                          <span className="text-destructive">• {file.error}</span>
+                        )}
+                      </div>
+                      
+                      {file.status === 'uploading' && (
+                        <Progress value={file.progress} className="mt-2 h-1" />
                       )}
                     </div>
-                    
-                    {file.status === 'uploading' && (
-                      <Progress value={file.progress} className="mt-2 h-1" />
+
+                    {file.status === 'pending' && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => removeFile(file.id)}
+                        disabled={isUploading}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
                     )}
                   </div>
 
+                  {/* Document metadata fields - only show for pending files */}
                   {file.status === 'pending' && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => removeFile(file.id)}
-                      disabled={isUploading}
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-3 border-t">
+                      <div className="space-y-2">
+                        <Label htmlFor={`title-${file.id}`}>
+                          Title <span className="text-destructive">*</span>
+                        </Label>
+                        <Input
+                          id={`title-${file.id}`}
+                          value={file.title || ''}
+                          onChange={(e) => updateFileProperty(file.id, 'title', e.target.value)}
+                          placeholder="Enter document title"
+                          disabled={isUploading}
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor={`docnum-${file.id}`}>Document No.</Label>
+                        <Input
+                          id={`docnum-${file.id}`}
+                          value={file.documentNumber || ''}
+                          onChange={(e) => updateFileProperty(file.id, 'documentNumber', e.target.value)}
+                          placeholder="Enter document number"
+                          disabled={isUploading}
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor={`status-${file.id}`}>
+                          Status <span className="text-destructive">*</span>
+                        </Label>
+                        <Select
+                          value={file.documentStatus}
+                          onValueChange={(value) => updateFileProperty(file.id, 'documentStatus', value)}
+                          disabled={isUploading}
+                        >
+                          <SelectTrigger id={`status-${file.id}`}>
+                            <SelectValue placeholder="Select status" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {STATUS_OPTIONS.map((status) => (
+                              <SelectItem key={status} value={status}>
+                                {status}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor={`filetype-${file.id}`}>
+                          File Type <span className="text-destructive">*</span>
+                        </Label>
+                        <Select
+                          value={file.fileType}
+                          onValueChange={(value) => updateFileProperty(file.id, 'fileType', value)}
+                          disabled={isUploading}
+                        >
+                          <SelectTrigger id={`filetype-${file.id}`}>
+                            <SelectValue placeholder="Select file type" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {FILE_TYPE_OPTIONS.map((type) => (
+                              <SelectItem key={type} value={type}>
+                                {type}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
                   )}
                 </div>
               ))}

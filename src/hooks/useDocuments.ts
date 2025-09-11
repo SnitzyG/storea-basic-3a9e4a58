@@ -14,7 +14,7 @@ export interface Document {
   tags?: string[];
   uploaded_by: string;
   visibility_scope?: string;
-  status: 'draft' | 'under_review' | 'approved' | 'rejected';
+  status: 'For Tender' | 'For Information' | 'For Construction';
   version?: number;
   created_at: string;
   updated_at: string;
@@ -163,7 +163,12 @@ export const useDocuments = (projectId?: string) => {
   const uploadDocument = async (
     file: File,
     projectId: string,
-    name?: string
+    name?: string,
+    metadata?: {
+      documentNumber?: string;
+      status: 'For Tender' | 'For Information' | 'For Construction';
+      fileType: string;
+    }
   ): Promise<Document | null> => {
     try {
       // Validate inputs
@@ -216,6 +221,7 @@ export const useDocuments = (projectId?: string) => {
       const documentData = {
         project_id: projectId,
         name: name || fileName,
+        title: name || fileName,
         file_path: filePath,
         file_type: fileType,
         file_size: fileSize,
@@ -223,7 +229,9 @@ export const useDocuments = (projectId?: string) => {
         category: 'general',
         tags: [],
         uploaded_by: user.id,
-        status: 'draft' as const
+        status: metadata?.status || 'For Information' as const,
+        document_number: metadata?.documentNumber || null,
+        file_type_category: metadata?.fileType || 'Architectural'
       };
 
       console.log('Creating document record:', documentData);
@@ -254,7 +262,9 @@ export const useDocuments = (projectId?: string) => {
           metadata: { 
             file_type: fileType,
             file_size: fileSize,
-            category: 'general'
+            category: 'general',
+            status: metadata?.status,
+            document_number: metadata?.documentNumber
           }
         }]);
 
@@ -396,7 +406,7 @@ export const useDocuments = (projectId?: string) => {
       if (error) throw error;
 
       // Update document status
-      await updateDocumentStatus(documentId, 'under_review');
+      await updateDocumentStatus(documentId, 'For Information');
 
       toast({
         title: "Success",
@@ -484,7 +494,7 @@ export const useDocuments = (projectId?: string) => {
       if (approvalError) throw approvalError;
 
       // Update document status
-      await updateDocumentStatus(documentId, approved ? 'approved' : 'rejected');
+      await updateDocumentStatus(documentId, approved ? 'For Construction' : 'For Information');
 
       toast({
         title: "Success",

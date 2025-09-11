@@ -11,6 +11,7 @@ import { useMessages } from '@/hooks/useMessages';
 import { useProjects } from '@/hooks/useProjects';
 import { useAuth } from '@/hooks/useAuth';
 import { useProjectTeam } from '@/hooks/useProjectTeam';
+import { useRFIs } from '@/hooks/useRFIs';
 import { ThreadCard } from '@/components/messages/ThreadCard';
 import { CreateThreadDialog } from '@/components/messages/CreateThreadDialog';
 import { MessageBubble } from '@/components/messages/MessageBubble';
@@ -31,6 +32,8 @@ const Messages = () => {
     teamMembers: projectUsers,
     refreshTeam
   } = useProjectTeam(selectedProject || '');
+  
+  const { createRFI } = useRFIs(selectedProject || '');
 
   // Listen for team updates to refresh team list immediately
   useEffect(() => {
@@ -130,6 +133,24 @@ const Messages = () => {
   };
   const handleSendMessage = async (content: string, attachments?: any[], isInquiry?: boolean) => {
     await sendMessage(content, currentThread || undefined, attachments, isInquiry);
+  };
+
+  const handleCreateRFI = async (content: string, attachments?: any[]) => {
+    if (!selectedProject || !profile?.user_id) return;
+    
+    try {
+      await createRFI({
+        project_id: selectedProject,
+        question: content,
+        priority: 'medium',
+        subject: `Inquiry from Message: ${content.substring(0, 50)}${content.length > 50 ? '...' : ''}`,
+        sender_name: profile.name || 'Unknown User',
+        sender_email: profile.user_id, // Store user ID as identifier
+        category: 'Message Inquiry'
+      });
+    } catch (error) {
+      console.error('Error creating RFI:', error);
+    }
   };
   const updateThreadTitle = (threadId: string, newTitle: string) => {
     updateThread(threadId, {
@@ -270,7 +291,7 @@ const Messages = () => {
             </ScrollArea>
 
             {/* Message Input */}
-            <MessageInput onSendMessage={handleSendMessage} onTyping={setTypingIndicator} placeholder={`Message ${currentThread ? 'thread' : messageType + ' conversation'}...`} supportAttachments={true} supportMentions={true} projectUsers={projectUsers} projectId={selectedProject} />
+            <MessageInput onSendMessage={handleSendMessage} onTyping={setTypingIndicator} placeholder={`Message ${currentThread ? 'thread' : messageType + ' conversation'}...`} supportAttachments={true} supportMentions={true} projectUsers={projectUsers} projectId={selectedProject} onCreateRFI={handleCreateRFI} />
           </CardContent>
           </> : <CardContent className="flex-1 flex items-center justify-center">
             <div className="text-center">

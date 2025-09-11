@@ -19,6 +19,7 @@ interface MessageInputProps {
   supportMentions?: boolean;
   projectUsers?: any[];
   projectId?: string;
+  onCreateRFI?: (content: string, attachments?: any[]) => Promise<void>;
 }
 
 export const MessageInput: React.FC<MessageInputProps> = ({
@@ -29,7 +30,8 @@ export const MessageInput: React.FC<MessageInputProps> = ({
   supportAttachments = false,
   supportMentions = false,
   projectUsers = [],
-  projectId = ''
+  projectId = '',
+  onCreateRFI
 }) => {
   const [message, setMessage] = useState('');
   const [sending, setSending] = useState(false);
@@ -89,7 +91,14 @@ export const MessageInput: React.FC<MessageInputProps> = ({
 
     setSending(true);
     try {
+      // Send the message first
       await onSendMessage(message.trim(), attachments.length > 0 ? attachments : undefined, isInquiry);
+      
+      // If it's a formal inquiry, also create an RFI entry
+      if (isInquiry && onCreateRFI) {
+        await onCreateRFI(message.trim(), attachments.length > 0 ? attachments : undefined);
+      }
+      
       setMessage('');
       setAttachments([]);
       setShowMentions(false);
@@ -176,7 +185,7 @@ export const MessageInput: React.FC<MessageInputProps> = ({
         </div>
         {isInquiry && (
           <p className="text-xs text-muted-foreground mt-1">
-            This will send the message as a formal inquiry requiring a response
+            This will send the message as a formal inquiry requiring a response and create an entry in the RFI module
           </p>
         )}
       </div>

@@ -46,8 +46,8 @@ export const DocumentFolder: React.FC<DocumentFolderProps> = ({
   const [isExpanded, setIsExpanded] = useState(defaultExpanded);
   
   const documentCount = documents.length;
-  const approvedCount = documents.filter(doc => doc.status === 'approved').length;
-  const pendingCount = documents.filter(doc => doc.status === 'under_review').length;
+    const constructionCount = documents.filter(doc => doc.status === 'For Construction').length;
+    const tenderCount = documents.filter(doc => doc.status === 'For Tender').length;
 
   return (
     <Card className="mb-4">
@@ -67,14 +67,14 @@ export const DocumentFolder: React.FC<DocumentFolderProps> = ({
               <Badge variant="secondary" className="text-xs">
                 {documentCount}
               </Badge>
-              {approvedCount > 0 && (
+              {constructionCount > 0 && (
                 <Badge variant="default" className="text-xs">
-                  {approvedCount} approved
+                  {constructionCount} construction
                 </Badge>
               )}
-              {pendingCount > 0 && (
+              {tenderCount > 0 && (
                 <Badge variant="outline" className="text-xs">
-                  {pendingCount} pending
+                  {tenderCount} tender
                 </Badge>
               )}
             </div>

@@ -60,12 +60,12 @@ export const DocumentCard: React.FC<DocumentCardProps> = ({
 
   const getStatusIcon = (status: Document['status']) => {
     switch (status) {
-      case 'approved':
+      case 'For Construction':
         return <CheckCircle className="h-4 w-4 text-construction-success" />;
-      case 'rejected':
-        return <XCircle className="h-4 w-4 text-destructive" />;
-      case 'under_review':
+      case 'For Tender':
         return <Clock className="h-4 w-4 text-construction-warning" />;
+      case 'For Information':
+        return <FileText className="h-4 w-4 text-muted-foreground" />;
       default:
         return <FileText className="h-4 w-4 text-muted-foreground" />;
     }
@@ -73,10 +73,9 @@ export const DocumentCard: React.FC<DocumentCardProps> = ({
 
   const getStatusColor = (status: Document['status']) => {
     switch (status) {
-      case 'approved': return 'default';
-      case 'rejected': return 'destructive';
-      case 'under_review': return 'secondary';
-      case 'draft': return 'outline';
+      case 'For Construction': return 'default';
+      case 'For Tender': return 'secondary';
+      case 'For Information': return 'outline';
       default: return 'outline';
     }
   };
@@ -132,28 +131,25 @@ export const DocumentCard: React.FC<DocumentCardProps> = ({
                     </DropdownMenuItem>
                   )}
                   
-                  {canEdit && document.status === 'draft' && onRequestApproval && (
-                    <DropdownMenuItem 
-                      onClick={() => onRequestApproval(document.id)}
-                    >
-                      <CheckCircle className="h-4 w-4 mr-2" />
-                      Request Approval
-                    </DropdownMenuItem>
-                  )}
-                  
-                  {canApprove && document.status === 'under_review' && onStatusChange && (
+                  {canApprove && onStatusChange && (
                     <>
                       <DropdownMenuItem 
-                        onClick={() => onStatusChange(document.id, 'approved')}
+                        onClick={() => onStatusChange(document.id, 'For Tender')}
                       >
-                        <CheckCircle className="h-4 w-4 mr-2" />
-                        Approve
+                        <Clock className="h-4 w-4 mr-2" />
+                        For Tender
                       </DropdownMenuItem>
                       <DropdownMenuItem 
-                        onClick={() => onStatusChange(document.id, 'rejected')}
+                        onClick={() => onStatusChange(document.id, 'For Information')}
                       >
-                        <XCircle className="h-4 w-4 mr-2" />
-                        Reject
+                        <FileText className="h-4 w-4 mr-2" />
+                        For Information
+                      </DropdownMenuItem>
+                      <DropdownMenuItem 
+                        onClick={() => onStatusChange(document.id, 'For Construction')}
+                      >
+                        <CheckCircle className="h-4 w-4 mr-2" />
+                        For Construction
                       </DropdownMenuItem>
                     </>
                   )}

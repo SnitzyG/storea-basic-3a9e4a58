@@ -21,10 +21,9 @@ interface DocumentFiltersProps {
   }>;
   documentCounts: {
     total: number;
-    draft: number;
-    under_review: number;
-    approved: number;
-    rejected: number;
+    'For Tender': number;
+    'For Information': number;
+    'For Construction': number;
   };
 }
 const categories = [{
@@ -113,10 +112,9 @@ export const DocumentFilters: React.FC<DocumentFiltersProps> = ({
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Status</SelectItem>
-            <SelectItem value="draft">Draft</SelectItem>
-            <SelectItem value="under_review">Under Review</SelectItem>
-            <SelectItem value="approved">Approved</SelectItem>
-            <SelectItem value="rejected">Rejected</SelectItem>
+            <SelectItem value="For Tender">For Tender</SelectItem>
+            <SelectItem value="For Information">For Information</SelectItem>
+            <SelectItem value="For Construction">For Construction</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -127,16 +125,13 @@ export const DocumentFilters: React.FC<DocumentFiltersProps> = ({
           Total: {documentCounts.total}
         </Badge>
         <Badge variant="outline">
-          Draft: {documentCounts.draft}
+          For Tender: {documentCounts['For Tender']}
         </Badge>
         <Badge variant="secondary">
-          Under Review: {documentCounts.under_review}
+          For Information: {documentCounts['For Information']}
         </Badge>
         <Badge variant="default">
-          Approved: {documentCounts.approved}
-        </Badge>
-        <Badge variant="destructive">
-          Rejected: {documentCounts.rejected}
+          For Construction: {documentCounts['For Construction']}
         </Badge>
       </div>
     </div>;
