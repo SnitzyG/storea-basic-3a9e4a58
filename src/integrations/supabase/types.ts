@@ -372,12 +372,14 @@ export type Database = {
           file_type_category: string | null
           id: string
           is_locked: boolean | null
+          is_superseded: boolean | null
           locked_at: string | null
           locked_by: string | null
           name: string
           project_id: string
           status: Database["public"]["Enums"]["document_status"]
           status_category: string | null
+          superseded_by: string | null
           tags: string[] | null
           title: string | null
           updated_at: string
@@ -398,12 +400,14 @@ export type Database = {
           file_type_category?: string | null
           id?: string
           is_locked?: boolean | null
+          is_superseded?: boolean | null
           locked_at?: string | null
           locked_by?: string | null
           name: string
           project_id: string
           status?: Database["public"]["Enums"]["document_status"]
           status_category?: string | null
+          superseded_by?: string | null
           tags?: string[] | null
           title?: string | null
           updated_at?: string
@@ -424,12 +428,14 @@ export type Database = {
           file_type_category?: string | null
           id?: string
           is_locked?: boolean | null
+          is_superseded?: boolean | null
           locked_at?: string | null
           locked_by?: string | null
           name?: string
           project_id?: string
           status?: Database["public"]["Enums"]["document_status"]
           status_category?: string | null
+          superseded_by?: string | null
           tags?: string[] | null
           title?: string | null
           updated_at?: string
