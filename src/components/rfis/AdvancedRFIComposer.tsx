@@ -489,15 +489,7 @@ export const AdvancedRFIComposer: React.FC<AdvancedRFIComposerProps> = ({
                       </Select>
                     </div>
 
-                    <div className="p-3 bg-blue-50 border border-blue-200 rounded">
-                      <div className="flex items-center space-x-2">
-                        <Info className="h-4 w-4 text-blue-600" />
-                        <span className="text-sm font-medium text-blue-800">Distribution Rules</span>
-                      </div>
-                      <p className="text-sm text-blue-700 mt-1">
-                        Standard distribution rules apply. <button className="underline">Preview link</button>
-                      </p>
-                    </div>
+                    
 
                     <div>
                       <Label>To Recipients *</Label>
