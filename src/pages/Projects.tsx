@@ -24,7 +24,6 @@ const Projects = () => {
   const [statusFilter, setStatusFilter] = useState('all');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
-  
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [showDetailView, setShowDetailView] = useState(false);
   const [deleteDialog, setDeleteDialog] = useState<{
@@ -46,7 +45,6 @@ const Projects = () => {
     setSelectedProject(project);
     setShowDetailView(true);
   };
-
   const handleViewOld = (project: Project) => {
     setSelectedProject(project);
     setDetailsOpen(true);
@@ -79,24 +77,18 @@ const Projects = () => {
   }
   // Show detail view if a project is selected
   if (showDetailView && selectedProject) {
-    return (
-      <div className="max-w-7xl space-y-6 mx-[25px]">
+    return <div className="max-w-7xl space-y-6 mx-[25px]">
         <div className="flex items-center justify-between">
-          <Button 
-            variant="outline" 
-            onClick={() => {
-              setShowDetailView(false);
-              setSelectedProject(null);
-            }}
-          >
+          <Button variant="outline" onClick={() => {
+          setShowDetailView(false);
+          setSelectedProject(null);
+        }}>
             ← Back to Projects
           </Button>
         </div>
         <ProjectDetailView project={selectedProject} />
-      </div>
-    );
+      </div>;
   }
-
   return <div className="max-w-7xl space-y-6 mx-[25px]">
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -139,9 +131,7 @@ const Projects = () => {
           </div>
 
           <div className="flex gap-2">
-            <Button variant={viewMode === 'grid' ? 'default' : 'outline'} size="sm" onClick={() => setViewMode('grid')}>
-              <Grid className="h-4 w-4" />
-            </Button>
+            
             <Button variant={viewMode === 'list' ? 'default' : 'outline'} size="sm" onClick={() => setViewMode('list')}>
               <List className="h-4 w-4" />
             </Button>
