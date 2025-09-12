@@ -422,11 +422,7 @@ export const AdvancedRFIComposer: React.FC<AdvancedRFIComposerProps> = ({
             <div className="flex items-center space-x-2">
               <Popover>
                 <PopoverTrigger asChild>
-                  <Button variant="outline" size="sm">
-                    <Paperclip className="h-4 w-4 mr-2" />
-                    Attach
-                    <ChevronDown className="h-4 w-4 ml-1" />
-                  </Button>
+                  
                 </PopoverTrigger>
                 <PopoverContent className="w-40">
                   <div className="space-y-2">
