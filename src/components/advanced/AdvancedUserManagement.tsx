@@ -30,7 +30,7 @@ import {
 
 interface TeamMember {
   user_id: string;
-  role: 'architect' | 'builder' | 'contractor' | 'homeowner';
+  role: string;
   joined_at: string;
   invited_by: string;
   name?: string;
@@ -42,16 +42,16 @@ interface TeamMember {
 interface PendingInvitation {
   id: string;
   email: string;
-  role: 'architect' | 'builder' | 'contractor' | 'homeowner';
+  role: string;
   invited_by: string;
-  invited_at: string;
+  created_at: string;
   expires_at: string;
   invitation_token: string;
 }
 
 interface BulkInviteData {
   email: string;
-  role: 'architect' | 'builder' | 'contractor' | 'homeowner';
+  role: string;
   name?: string;
 }
 
@@ -136,7 +136,7 @@ export const AdvancedUserManagement = ({ projectId }: { projectId: string }) => 
           if (email && role) {
             invites.push({
               email,
-              role: role as 'architect' | 'builder' | 'contractor' | 'homeowner',
+              role: role,
               name: name || undefined
             });
           }
@@ -196,7 +196,7 @@ export const AdvancedUserManagement = ({ projectId }: { projectId: string }) => 
     try {
       const { error } = await supabase
         .from('project_users')
-        .update({ role: newRole })
+        .update({ role: newRole as any })
         .eq('project_id', projectId)
         .eq('user_id', userId);
 

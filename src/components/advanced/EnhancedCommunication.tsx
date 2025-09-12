@@ -35,14 +35,13 @@ import {
 
 interface Notification {
   id: string;
-  type: 'announcement' | 'mention' | 'activity' | 'system';
+  type: string;
   title: string;
   message: string;
   read: boolean;
   created_at: string;
-  created_by?: string;
-  project_id?: string;
-  metadata?: any;
+  user_id: string;
+  data?: any;
 }
 
 interface NotificationPreferences {
@@ -102,26 +101,16 @@ export const EnhancedCommunication = ({ projectId }: { projectId?: string }) => 
         .limit(50);
 
       if (error) throw error;
-      setNotifications(data || []);
+      setNotifications((data || []) as Notification[]);
     } catch (error) {
       console.error('Error loading notifications:', error);
     }
   };
 
   const loadPreferences = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('notification_preferences')
-        .select('*')
-        .eq('user_id', user?.id)
-        .single();
-
-      if (data) {
-        setPreferences(data);
-      }
-    } catch (error) {
-      console.error('Error loading preferences:', error);
-    }
+    // For now, use default preferences since table doesn't exist
+    // This could be implemented with a user preferences system later
+    console.log('Using default notification preferences');
   };
 
   const loadTeamMembers = async () => {
@@ -185,20 +174,26 @@ export const EnhancedCommunication = ({ projectId }: { projectId?: string }) => 
 
     setLoading(true);
     try {
-      const { error } = await supabase.functions.invoke('send-announcement', {
-        body: {
-          projectId,
-          title: announcementTitle,
-          message: announcementText,
-          targetUsers: selectedUsers.length > 0 ? selectedUsers : undefined
-        }
-      });
+      // Create notifications for selected users or all team members
+      const targetUserIds = selectedUsers.length > 0 ? selectedUsers : teamMembers.map(m => m.user_id);
+      
+      const notifications = targetUserIds.map(userId => ({
+        user_id: userId,
+        type: 'announcement',
+        title: announcementTitle,
+        message: announcementText,
+        data: { project_id: projectId, sender_id: user?.id }
+      }));
+
+      const { error } = await supabase
+        .from('notifications')
+        .insert(notifications);
 
       if (error) throw error;
 
       toast({
         title: "Announcement sent",
-        description: `Sent to ${selectedUsers.length > 0 ? selectedUsers.length : teamMembers.length} team members.`
+        description: `Sent to ${targetUserIds.length} team members.`
       });
 
       setAnnouncementTitle('');
@@ -257,30 +252,12 @@ export const EnhancedCommunication = ({ projectId }: { projectId?: string }) => 
 
   const updatePreferences = async (newPreferences: Partial<NotificationPreferences>) => {
     const updatedPreferences = { ...preferences, ...newPreferences };
+    setPreferences(updatedPreferences);
     
-    try {
-      const { error } = await supabase
-        .from('notification_preferences')
-        .upsert({
-          user_id: user?.id,
-          ...updatedPreferences
-        });
-
-      if (error) throw error;
-
-      setPreferences(updatedPreferences);
-      toast({
-        title: "Preferences updated",
-        description: "Your notification preferences have been saved."
-      });
-    } catch (error) {
-      console.error('Error updating preferences:', error);
-      toast({
-        title: "Error updating preferences",
-        description: "Please try again.",
-        variant: "destructive"
-      });
-    }
+    toast({
+      title: "Preferences updated",
+      description: "Your notification preferences have been saved locally."
+    });
   };
 
   const getNotificationIcon = (type: string) => {
