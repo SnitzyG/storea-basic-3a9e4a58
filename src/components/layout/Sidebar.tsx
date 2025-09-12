@@ -20,30 +20,25 @@ export const Sidebar = ({
       icon: FolderOpen,
       path: '/projects'
     }, {
-      id: 'tenders',
-      label: 'Tenders',
-      icon: Briefcase,
-      path: '/tenders'
+      id: 'messages',
+      label: 'Messages',
+      icon: MessageSquare,
+      path: '/messages'
     }, {
       id: 'documents',
       label: 'Documents',
       icon: FileStack,
       path: '/documents'
     }, {
-      id: 'messages',
-      label: 'Messages',
-      icon: MessageSquare,
-      path: '/messages'
-    }, {
       id: 'rfis',
       label: 'RFIs',
       icon: HelpCircle,
       path: '/rfis'
     }, {
-      id: 'testing',
-      label: 'Testing',
-      icon: TestTube,
-      path: '/testing'
+      id: 'tenders',
+      label: 'Tenders',
+      icon: Briefcase,
+      path: '/tenders'
     }];
     switch (role) {
       case 'architect':
