@@ -7,51 +7,84 @@ import { PerformanceMonitor } from '@/components/testing/PerformanceMonitor';
 import { SecurityTester } from '@/components/testing/SecurityTester';
 import { TabFunctionalityTester } from '@/components/testing/TabFunctionalityTester';
 import { InvitationSystemTester } from '@/components/testing/InvitationSystemTester';
+import { ConfirmationWorkflowTester } from '@/components/testing/ConfirmationWorkflowTester';
+import { ProductionReadinessTester } from '@/components/testing/ProductionReadinessTester';
+import { SystemHealthMonitor } from '@/components/testing/SystemHealthMonitor';
+import { FinalProductionValidator } from '@/components/testing/FinalProductionValidator';
 import { EmailMonitoringDashboard } from '@/components/admin/EmailMonitoringDashboard';
-import { useAuth } from '@/hooks/useAuth';
-import { TestTube, Activity, Shield, CheckCircle, AlertTriangle, Bug } from 'lucide-react';
 
-const Testing = () => {
+import { useAuth } from '@/hooks/useAuth';
+import { TestTube, Activity, Shield, CheckCircle, AlertTriangle, Bug, Monitor, Zap, Rocket } from 'lucide-react';
+  const Testing = () => {
+
   const { profile } = useAuth();
 
   const testingSuites = [
     {
+      id: 'final',
+      name: 'Final Validation',
+      description: 'Complete production readiness validation',
+      icon: Rocket,
+      status: 'ready'
+    },
+    {
+      id: 'production',
+      name: 'Production Tests',
+      description: 'Comprehensive production readiness validation',
+      icon: CheckCircle,
+      status: 'ready'
+    },
+    {
+      id: 'health',
+      name: 'System Health',
+      description: 'Real-time system monitoring and performance',
+      icon: Monitor,
+      status: 'ready'
+    },
+    {
       id: 'functionality',
-      name: 'Tab Functionality',
-      description: 'Test all application tabs for RLS and data access issues',
+      name: 'Interface Tests',
+      description: 'Test unified view/edit interface functionality',
       icon: Bug,
       status: 'ready'
     },
     {
       id: 'roles',
-      name: 'Role-Based Access',
+      name: 'Role Testing',
       description: 'Test user permissions and data isolation',
       icon: TestTube,
       status: 'ready'
     },
     {
       id: 'performance',
-      name: 'Performance Monitor',
+      name: 'Performance',
       description: 'Monitor API response times and resource usage',
-      icon: Activity,
+      icon: Zap,
       status: 'ready'
     },
     {
       id: 'security',
-      name: 'Security Testing',
+      name: 'Security',
       description: 'Validate authentication and data protection',
       icon: Shield,
       status: 'ready'
     },
     {
       id: 'invitations',
-      name: 'Invitation System',
+      name: 'Invitations',
       description: 'Test team invitation emails and acceptance flow',
       icon: TestTube,
       status: 'ready'
     },
     {
-      id: 'email-monitoring',
+      id: 'confirmation',
+      name: 'Confirmation',
+      description: 'Test confirmation workflow and email links',
+      icon: Activity,
+      status: 'ready'
+    },
+    {
+      id: 'email',
       name: 'Email Monitor',
       description: 'Monitor email service health and delivery status',
       icon: Activity,
@@ -105,15 +138,37 @@ const Testing = () => {
         </p>
       </div>
 
-      <Tabs defaultValue="functionality" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-6">
-          {testingSuites.map((suite) => (
-            <TabsTrigger key={suite.id} value={suite.id} className="flex items-center gap-2">
-              <suite.icon className="h-4 w-4" />
-              {suite.name}
+      <Tabs defaultValue="final" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-2 lg:grid-cols-5 xl:grid-cols-10 gap-1">
+          {testingSuites.slice(0, 5).map((suite) => (
+            <TabsTrigger key={suite.id} value={suite.id} className="flex items-center gap-1 text-xs">
+              <suite.icon className="h-3 w-3" />
+              <span className="hidden sm:inline">{suite.name}</span>
             </TabsTrigger>
           ))}
+          {testingSuites.length > 5 && (
+            <TabsList className="grid w-full grid-cols-5 gap-1 mt-2">
+              {testingSuites.slice(5).map((suite) => (
+                <TabsTrigger key={suite.id} value={suite.id} className="flex items-center gap-1 text-xs">
+                  <suite.icon className="h-3 w-3" />
+                  <span className="hidden sm:inline">{suite.name}</span>
+                </TabsTrigger>
+              ))}
+            </TabsList>
+          )}
         </TabsList>
+
+        <TabsContent value="final" className="space-y-6">
+          <FinalProductionValidator />
+        </TabsContent>
+
+        <TabsContent value="production" className="space-y-6">
+          <ProductionReadinessTester />
+        </TabsContent>
+
+        <TabsContent value="health" className="space-y-6">
+          <SystemHealthMonitor />
+        </TabsContent>
 
         <TabsContent value="functionality" className="space-y-6">
           <TabFunctionalityTester />
@@ -135,7 +190,11 @@ const Testing = () => {
           <InvitationSystemTester />
         </TabsContent>
 
-        <TabsContent value="email-monitoring" className="space-y-6">
+        <TabsContent value="confirmation" className="space-y-6">
+          <ConfirmationWorkflowTester />
+        </TabsContent>
+
+        <TabsContent value="email" className="space-y-6">
           <EmailMonitoringDashboard />
         </TabsContent>
       </Tabs>
