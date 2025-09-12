@@ -17,25 +17,32 @@ import { RFIDetailsDialog } from '@/components/rfis/RFIDetailsDialog';
 import { RFIFilters } from '@/components/rfis/RFIFilters';
 import { RFIListView } from '@/components/rfis/RFIListView';
 import { useProjectTeam } from '@/hooks/useProjectTeam';
-
 const RFIs = () => {
   const [selectedProject, setSelectedProject] = useState<string>('');
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [advancedComposerOpen, setAdvancedComposerOpen] = useState(false);
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
   const [selectedRFI, setSelectedRFI] = useState<RFI | null>(null);
-  
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [priorityFilter, setPriorityFilter] = useState('all');
   const [assigneeFilter, setAssigneeFilter] = useState('all');
   const [projectUsers, setProjectUsers] = useState<any[]>([]);
-
-  const { projects } = useProjects();
-  const { profile } = useAuth();
+  const {
+    projects
+  } = useProjects();
+  const {
+    profile
+  } = useAuth();
   const currentProject = projects.find(p => p.id === selectedProject) || projects[0];
-  const { rfis, loading, updateRFI } = useRFIs(currentProject?.id);
-  const { teamMembers } = useProjectTeam(currentProject?.id || '');
+  const {
+    rfis,
+    loading,
+    updateRFI
+  } = useRFIs(currentProject?.id);
+  const {
+    teamMembers
+  } = useProjectTeam(currentProject?.id || '');
   const location = useLocation();
 
   // Update project users from teamMembers
@@ -58,9 +65,7 @@ const RFIs = () => {
       // Search filter
       if (searchQuery) {
         const query = searchQuery.toLowerCase();
-        if (!rfi.question.toLowerCase().includes(query) &&
-            !rfi.category?.toLowerCase().includes(query) &&
-            !rfi.raised_by_profile?.name?.toLowerCase().includes(query)) {
+        if (!rfi.question.toLowerCase().includes(query) && !rfi.category?.toLowerCase().includes(query) && !rfi.raised_by_profile?.name?.toLowerCase().includes(query)) {
           return false;
         }
       }
@@ -84,39 +89,36 @@ const RFIs = () => {
           return false;
         }
       }
-
       return true;
     });
   }, [rfis, searchQuery, statusFilter, priorityFilter, assigneeFilter]);
-
   const handleViewRFI = (rfi: RFI) => {
     setSelectedRFI(rfi);
     setDetailsDialogOpen(true);
   };
-
   const handleEditRFI = (rfi: RFI) => {
     // For now, just open details dialog
     // In a full implementation, you might want a separate edit dialog
     setSelectedRFI(rfi);
     setDetailsDialogOpen(true);
   };
-
   const handleAssignRFI = async (rfi: RFI) => {
     // In a full implementation, you'd show an assignment dialog
     // For now, we'll just auto-assign to the first architect
     const architect = teamMembers.find(user => user.role === 'architect');
     if (architect) {
-      await updateRFI(rfi.id, { assigned_to: architect.user_id, status: 'outstanding' });
+      await updateRFI(rfi.id, {
+        assigned_to: architect.user_id,
+        status: 'outstanding'
+      });
     }
   };
-
   const clearFilters = () => {
     setSearchQuery('');
     setStatusFilter('all');
     setPriorityFilter('all');
     setAssigneeFilter('all');
   };
-
   const handleExportPDF = (rfi: RFI) => {
     const printContent = `
       <!DOCTYPE html>
@@ -225,12 +227,15 @@ const RFIs = () => {
             <div class="header-info">
               <div><strong>RFI Number:</strong> ${rfi.rfi_number || `RFI-${rfi.id.slice(0, 8)}`}</div>
               <div><strong>Project:</strong> ${rfi.project_name || 'N/A'}</div>
-              <div><strong>Date Created:</strong> ${new Date(rfi.created_at).toLocaleDateString('en-US', { 
-                year: 'numeric', month: 'long', day: 'numeric' 
-              })}</div>
-              <div><strong>Time:</strong> ${new Date(rfi.created_at).toLocaleTimeString('en-US', { 
-                hour: '2-digit', minute: '2-digit' 
-              })}</div>
+              <div><strong>Date Created:</strong> ${new Date(rfi.created_at).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    })}</div>
+              <div><strong>Time:</strong> ${new Date(rfi.created_at).toLocaleTimeString('en-US', {
+      hour: '2-digit',
+      minute: '2-digit'
+    })}</div>
             </div>
           </div>
 
@@ -301,9 +306,11 @@ const RFIs = () => {
           ${rfi.due_date || rfi.required_response_by ? `
           <div class="field">
             <div class="label">Response Required By</div>
-            <div class="content">${new Date(rfi.due_date || rfi.required_response_by).toLocaleDateString('en-US', { 
-              year: 'numeric', month: 'long', day: 'numeric' 
-            })}</div>
+            <div class="content">${new Date(rfi.due_date || rfi.required_response_by).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    })}</div>
           </div>
           ` : ''}
 
@@ -315,9 +322,11 @@ const RFIs = () => {
             <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #e2e8f0;">
               <div style="font-size: 14px; color: #64748b;">
                 <strong>Responded by:</strong> ${rfi.responder_name || 'N/A'}<br>
-                <strong>Response Date:</strong> ${rfi.response_date ? new Date(rfi.response_date).toLocaleDateString('en-US', { 
-                  year: 'numeric', month: 'long', day: 'numeric' 
-                }) : 'N/A'}
+                <strong>Response Date:</strong> ${rfi.response_date ? new Date(rfi.response_date).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    }) : 'N/A'}
               </div>
             </div>
           </div>
@@ -329,14 +338,17 @@ const RFIs = () => {
           `}
 
           <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #e2e8f0; text-align: center; color: #64748b; font-size: 12px;">
-            Generated on ${new Date().toLocaleDateString('en-US', { 
-              year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' 
-            })}
+            Generated on ${new Date().toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    })}
           </div>
         </body>
       </html>
     `;
-    
     const printWindow = window.open('', '_blank', 'width=900,height=700');
     if (printWindow) {
       printWindow.document.write(printContent);
@@ -346,18 +358,13 @@ const RFIs = () => {
       }, 250);
     }
   };
-
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
+    return <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">Loading RFIs...</div>
-      </div>
-    );
+      </div>;
   }
-
   if (!currentProject) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
+    return <div className="min-h-screen flex items-center justify-center">
         <Card className="w-96">
           <CardHeader>
             <CardTitle>No Projects Found</CardTitle>
@@ -371,55 +378,19 @@ const RFIs = () => {
             </Button>
           </CardContent>
         </Card>
-      </div>
-    );
+      </div>;
   }
-
-  return (
-    <div className="h-screen flex flex-col">
+  return <div className="h-screen flex flex-col">
       {/* Project selector only */}
-      <div className="p-4 border-b bg-card">
-        <div className="flex items-center">
-          {projects.length > 1 && (
-            <select
-              value={selectedProject || currentProject.id}
-              onChange={(e) => setSelectedProject(e.target.value)}
-              className="px-3 py-2 border rounded-md bg-background"
-            >
-              {projects.map(project => (
-                <option key={project.id} value={project.id}>
-                  {project.name}
-                </option>
-              ))}
-            </select>
-          )}
-        </div>
-      </div>
+      
 
       <div className="flex-1">
-        <EnhancedRFIDashboard
-          rfis={filteredRFIs}
-          onView={handleViewRFI}
-          onCreateNew={() => setAdvancedComposerOpen(true)}
-          onExportPDF={handleExportPDF}
-          projectUsers={projectUsers}
-          currentProject={currentProject}
-        />
+        <EnhancedRFIDashboard rfis={filteredRFIs} onView={handleViewRFI} onCreateNew={() => setAdvancedComposerOpen(true)} onExportPDF={handleExportPDF} projectUsers={projectUsers} currentProject={currentProject} />
       </div>
 
-      <AdvancedRFIComposer
-        open={advancedComposerOpen}
-        onOpenChange={setAdvancedComposerOpen}
-        projectId={currentProject.id}
-      />
+      <AdvancedRFIComposer open={advancedComposerOpen} onOpenChange={setAdvancedComposerOpen} projectId={currentProject.id} />
 
-      <RFIDetailsDialog
-        open={detailsDialogOpen}
-        onOpenChange={setDetailsDialogOpen}
-        rfi={selectedRFI}
-      />
-    </div>
-  );
+      <RFIDetailsDialog open={detailsDialogOpen} onOpenChange={setDetailsDialogOpen} rfi={selectedRFI} />
+    </div>;
 };
-
 export default RFIs;
