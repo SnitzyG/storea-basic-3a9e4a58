@@ -11,33 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { 
-  CalendarIcon, 
-  FileText, 
-  Upload, 
-  X, 
-  Paperclip,
-  Eye,
-  Save,
-  Send,
-  ChevronDown,
-  Search,
-  User,
-  Mail,
-  Building,
-  Phone,
-  Bold,
-  Italic,
-  Underline,
-  Palette,
-  List,
-  Table,
-  AlignLeft,
-  Link,
-  Image,
-  Code,
-  Info
-} from 'lucide-react';
+import { CalendarIcon, FileText, Upload, X, Paperclip, Eye, Save, Send, ChevronDown, Search, User, Mail, Building, Phone, Bold, Italic, Underline, Palette, List, Table, AlignLeft, Link, Image, Code, Info } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { useRFIs } from '@/hooks/useRFIs';
@@ -45,42 +19,35 @@ import { useProjectTeam } from '@/hooks/useProjectTeam';
 import { useProjects } from '@/hooks/useProjects';
 import { useAuth } from '@/hooks/useAuth';
 import { useDocuments } from '@/hooks/useDocuments';
-
 interface AdvancedRFIComposerProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   projectId: string;
 }
-
-const mailTypes = [
-  'Action Item', 'Advice', 'Approval', 'Change Request', 'Commercial Query',
-  'Daily Site Report', 'Design Query', 'General Correspondence',
-  'Initial Incident Report', 'Inspection Report', 'Internal Memorandum',
-  'Letter', 'Non Conformance Report', 'Notice', 'Rejection Notice',
-  'Request For Information', 'Site Instruction', 'Variation'
-];
-
-const instrumentationTypes = [
-  'Construction Query', 'Design Clarification', 'Material Specification',
-  'Quality Control', 'Safety Inquiry', 'Schedule Information'
-];
-
-const disciplines = [
-  'Architectural', 'Structural', 'Mechanical', 'Electrical', 
-  'Plumbing', 'HVAC', 'Fire Safety', 'Landscaping'
-];
-
+const mailTypes = ['Action Item', 'Advice', 'Approval', 'Change Request', 'Commercial Query', 'Daily Site Report', 'Design Query', 'General Correspondence', 'Initial Incident Report', 'Inspection Report', 'Internal Memorandum', 'Letter', 'Non Conformance Report', 'Notice', 'Rejection Notice', 'Request For Information', 'Site Instruction', 'Variation'];
+const instrumentationTypes = ['Construction Query', 'Design Clarification', 'Material Specification', 'Quality Control', 'Safety Inquiry', 'Schedule Information'];
+const disciplines = ['Architectural', 'Structural', 'Mechanical', 'Electrical', 'Plumbing', 'HVAC', 'Fire Safety', 'Landscaping'];
 export const AdvancedRFIComposer: React.FC<AdvancedRFIComposerProps> = ({
   open,
   onOpenChange,
   projectId
 }) => {
-  const { createRFI } = useRFIs(projectId);
-  const { teamMembers } = useProjectTeam(projectId);
-  const { projects } = useProjects();
-  const { profile, user } = useAuth();
-  const { documents } = useDocuments(projectId);
-
+  const {
+    createRFI
+  } = useRFIs(projectId);
+  const {
+    teamMembers
+  } = useProjectTeam(projectId);
+  const {
+    projects
+  } = useProjects();
+  const {
+    profile,
+    user
+  } = useAuth();
+  const {
+    documents
+  } = useDocuments(projectId);
   const currentProject = projects.find(p => p.id === projectId);
   const [currentStep, setCurrentStep] = useState(1);
   const [isDraft, setIsDraft] = useState(false);
@@ -96,12 +63,10 @@ export const AdvancedRFIComposer: React.FC<AdvancedRFIComposerProps> = ({
     responseRequired: 'Yes',
     responseRequiredDate: undefined as Date | undefined,
     subject: '',
-
     // Message Composition
     messageContent: '',
     autoTextTemplate: '',
     signature: '',
-
     // Technical Details
     instrumentationType: '',
     discipline: '',
@@ -109,7 +74,6 @@ export const AdvancedRFIComposer: React.FC<AdvancedRFIComposerProps> = ({
     scheduleDetails: '',
     costImpact: 'No',
     costDetails: '',
-
     // Project Info
     project_name: '',
     project_number: '',
@@ -122,7 +86,6 @@ export const AdvancedRFIComposer: React.FC<AdvancedRFIComposerProps> = ({
     assigned_to: '',
     required_response_by: undefined as Date | undefined
   });
-
   const [selectedRecipient, setSelectedRecipient] = useState<string>('');
   const [recipientSearch, setRecipientSearch] = useState('');
   const [ccSearch, setCcSearch] = useState('');
@@ -157,15 +120,12 @@ export const AdvancedRFIComposer: React.FC<AdvancedRFIComposerProps> = ({
       }));
     }
   }, [open, currentProject, profile, user]);
-
   useEffect(() => {
     setCostCharacterCount(formData.costDetails.length);
   }, [formData.costDetails]);
-
   useEffect(() => {
     setScheduleCharacterCount(formData.scheduleDetails.length);
   }, [formData.scheduleDetails]);
-
   const handleRecipientAdd = (recipientId: string) => {
     const member = teamMembers.find(m => m.user_id === recipientId);
     if (member && !formData.recipients.includes(recipientId)) {
@@ -177,7 +137,6 @@ export const AdvancedRFIComposer: React.FC<AdvancedRFIComposerProps> = ({
       }));
     }
   };
-
   const handleCcAdd = (recipientId: string) => {
     if (!formData.ccRecipients.includes(recipientId)) {
       setFormData(prev => ({
@@ -186,21 +145,18 @@ export const AdvancedRFIComposer: React.FC<AdvancedRFIComposerProps> = ({
       }));
     }
   };
-
   const handleRecipientRemove = (recipientId: string) => {
     setFormData(prev => ({
       ...prev,
       recipients: prev.recipients.filter(id => id !== recipientId)
     }));
   };
-
   const handleCcRemove = (recipientId: string) => {
     setFormData(prev => ({
       ...prev,
       ccRecipients: prev.ccRecipients.filter(id => id !== recipientId)
     }));
   };
-
   const handleDocumentSelect = (documentId: string) => {
     if (selectedDocuments.includes(documentId)) {
       setSelectedDocuments(prev => prev.filter(id => id !== documentId));
@@ -208,15 +164,8 @@ export const AdvancedRFIComposer: React.FC<AdvancedRFIComposerProps> = ({
       setSelectedDocuments(prev => [...prev, documentId]);
     }
   };
-
-  const filteredTeamMembers = teamMembers.filter(member =>
-    member.user_profile?.name?.toLowerCase().includes(recipientSearch.toLowerCase())
-  );
-
-  const filteredCcMembers = teamMembers.filter(member =>
-    member.user_profile?.name?.toLowerCase().includes(ccSearch.toLowerCase())
-  );
-
+  const filteredTeamMembers = teamMembers.filter(member => member.user_profile?.name?.toLowerCase().includes(recipientSearch.toLowerCase()));
+  const filteredCcMembers = teamMembers.filter(member => member.user_profile?.name?.toLowerCase().includes(ccSearch.toLowerCase()));
   const handleSaveDraft = async () => {
     setIsDraft(true);
     setLoading(true);
@@ -236,10 +185,9 @@ export const AdvancedRFIComposer: React.FC<AdvancedRFIComposerProps> = ({
         sender_name: formData.sender_name,
         sender_email: formData.sender_email,
         subject: formData.subject || 'Draft RFI',
-        required_response_by: formData.responseRequiredDate?.toISOString(),
+        required_response_by: formData.responseRequiredDate?.toISOString()
         // Remove status as it's not part of the createRFI interface
       });
-      
       console.log('Draft saved successfully');
     } catch (error) {
       console.error('Error saving draft:', error);
@@ -247,7 +195,6 @@ export const AdvancedRFIComposer: React.FC<AdvancedRFIComposerProps> = ({
       setLoading(false);
     }
   };
-
   const handlePreview = () => {
     // Create preview content
     const previewContent = `
@@ -317,17 +264,14 @@ export const AdvancedRFIComposer: React.FC<AdvancedRFIComposerProps> = ({
         </body>
       </html>
     `;
-    
     const previewWindow = window.open('', '_blank', 'width=800,height=600');
     if (previewWindow) {
       previewWindow.document.write(previewContent);
       previewWindow.document.close();
     }
   };
-
   const handleSubmit = async () => {
     if (!formData.subject || !formData.instrumentationType || !formData.discipline) return;
-
     setLoading(true);
     try {
       await createRFI({
@@ -385,18 +329,14 @@ export const AdvancedRFIComposer: React.FC<AdvancedRFIComposerProps> = ({
       setLoading(false);
     }
   };
-
   const isFormValid = formData.subject && formData.instrumentationType && formData.discipline;
-
   const handleRichTextAction = (action: string) => {
     const textarea = document.getElementById('message-content') as HTMLTextAreaElement;
     if (!textarea) return;
-
     const start = textarea.selectionStart;
     const end = textarea.selectionEnd;
     const selectedText = textarea.value.substring(start, end);
     let replacement = selectedText;
-
     switch (action) {
       case 'bold':
         replacement = `**${selectedText}**`;
@@ -426,17 +366,18 @@ export const AdvancedRFIComposer: React.FC<AdvancedRFIComposerProps> = ({
       default:
         return;
     }
-
     const newValue = textarea.value.substring(0, start) + replacement + textarea.value.substring(end);
-    setFormData(prev => ({ ...prev, messageContent: newValue }));
-    
+    setFormData(prev => ({
+      ...prev,
+      messageContent: newValue
+    }));
+
     // Update cursor position
     setTimeout(() => {
       textarea.focus();
       textarea.setSelectionRange(start + replacement.length, start + replacement.length);
     }, 0);
   };
-
   const handleDocumentAttach = (type: 'document' | 'project-mail' | 'local-file') => {
     switch (type) {
       case 'document':
@@ -453,7 +394,7 @@ export const AdvancedRFIComposer: React.FC<AdvancedRFIComposerProps> = ({
         input.type = 'file';
         input.multiple = true;
         input.accept = '.pdf,.doc,.docx,.txt,.jpg,.jpeg,.png';
-        input.onchange = (e) => {
+        input.onchange = e => {
           const files = (e.target as HTMLInputElement).files;
           if (files && selectedDocuments.length + files.length <= 6) {
             // Handle file upload logic here
@@ -466,13 +407,11 @@ export const AdvancedRFIComposer: React.FC<AdvancedRFIComposerProps> = ({
         break;
     }
   };
-
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+  return <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-6xl max-h-[95vh] overflow-hidden flex flex-col">
         <DialogHeader className="border-b pb-4">
           <div className="flex items-center justify-between">
-            <DialogTitle className="text-2xl font-bold">Advanced RFI Composition</DialogTitle>
+            <DialogTitle className="text-2xl font-bold">Create RFI</DialogTitle>
             <div className="flex items-center space-x-2">
               {isDraft && <Badge variant="secondary">Draft</Badge>}
             </div>
@@ -491,28 +430,13 @@ export const AdvancedRFIComposer: React.FC<AdvancedRFIComposerProps> = ({
                 </PopoverTrigger>
                 <PopoverContent className="w-40">
                   <div className="space-y-2">
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      className="w-full justify-start"
-                      onClick={() => handleDocumentAttach('document')}
-                    >
+                    <Button variant="ghost" size="sm" className="w-full justify-start" onClick={() => handleDocumentAttach('document')}>
                       Document
                     </Button>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      className="w-full justify-start"
-                      onClick={() => handleDocumentAttach('project-mail')}
-                    >
+                    <Button variant="ghost" size="sm" className="w-full justify-start" onClick={() => handleDocumentAttach('project-mail')}>
                       Project Mail
                     </Button>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      className="w-full justify-start"
-                      onClick={() => handleDocumentAttach('local-file')}
-                    >
+                    <Button variant="ghost" size="sm" className="w-full justify-start" onClick={() => handleDocumentAttach('local-file')}>
                       Local File
                     </Button>
                   </div>
@@ -528,11 +452,7 @@ export const AdvancedRFIComposer: React.FC<AdvancedRFIComposerProps> = ({
               </Button>
             </div>
             
-            <Button 
-              onClick={handleSubmit}
-              disabled={loading || !isFormValid}
-              className="bg-slate-900 hover:bg-slate-800 text-white"
-            >
+            <Button onClick={handleSubmit} disabled={loading || !isFormValid} className="bg-slate-900 hover:bg-slate-800 text-white">
               <Send className="h-4 w-4 mr-2" />
               {loading ? 'Sending...' : 'Send RFI'}
             </Button>
@@ -542,25 +462,13 @@ export const AdvancedRFIComposer: React.FC<AdvancedRFIComposerProps> = ({
         <div className="flex-1 overflow-hidden">
           <Tabs value={`step-${currentStep}`} className="h-full flex flex-col">
             <TabsList className="grid w-full grid-cols-3 mb-4">
-              <TabsTrigger 
-                value="step-1" 
-                onClick={() => setCurrentStep(1)}
-                className="data-[state=active]:bg-slate-900 data-[state=active]:text-white"
-              >
+              <TabsTrigger value="step-1" onClick={() => setCurrentStep(1)} className="data-[state=active]:bg-slate-900 data-[state=active]:text-white">
                 1. Email Configuration
               </TabsTrigger>
-              <TabsTrigger 
-                value="step-2" 
-                onClick={() => setCurrentStep(2)}
-                className="data-[state=active]:bg-slate-900 data-[state=active]:text-white"
-              >
+              <TabsTrigger value="step-2" onClick={() => setCurrentStep(2)} className="data-[state=active]:bg-slate-900 data-[state=active]:text-white">
                 2. Message Composition
               </TabsTrigger>
-              <TabsTrigger 
-                value="step-3" 
-                onClick={() => setCurrentStep(3)}
-                className="data-[state=active]:bg-slate-900 data-[state=active]:text-white"
-              >
+              <TabsTrigger value="step-3" onClick={() => setCurrentStep(3)} className="data-[state=active]:bg-slate-900 data-[state=active]:text-white">
                 3. Technical Details
               </TabsTrigger>
             </TabsList>
@@ -572,15 +480,15 @@ export const AdvancedRFIComposer: React.FC<AdvancedRFIComposerProps> = ({
                   <div className="space-y-4">
                     <div>
                       <Label htmlFor="mail-type">Mail Type *</Label>
-                      <Select value={formData.mailType} onValueChange={(value) => 
-                        setFormData(prev => ({ ...prev, mailType: value }))}>
+                      <Select value={formData.mailType} onValueChange={value => setFormData(prev => ({
+                      ...prev,
+                      mailType: value
+                    }))}>
                         <SelectTrigger>
                           <SelectValue placeholder="Select mail type" />
                         </SelectTrigger>
                         <SelectContent className="max-h-60">
-                          {mailTypes.map(type => (
-                            <SelectItem key={type} value={type}>{type}</SelectItem>
-                          ))}
+                          {mailTypes.map(type => <SelectItem key={type} value={type}>{type}</SelectItem>)}
                         </SelectContent>
                       </Select>
                     </div>
@@ -600,68 +508,44 @@ export const AdvancedRFIComposer: React.FC<AdvancedRFIComposerProps> = ({
                       <div className="space-y-2">
                         <div className="relative">
                           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                          <Input
-                            placeholder="Search contacts..."
-                            value={recipientSearch}
-                            onChange={(e) => setRecipientSearch(e.target.value)}
-                            className="pl-10"
-                          />
+                          <Input placeholder="Search contacts..." value={recipientSearch} onChange={e => setRecipientSearch(e.target.value)} className="pl-10" />
                         </div>
                         
-                        {recipientSearch && (
-                          <Card className="max-h-40 overflow-y-auto">
+                        {recipientSearch && <Card className="max-h-40 overflow-y-auto">
                             <CardContent className="p-2">
-                              {filteredTeamMembers.map(member => (
-                                <div 
-                                  key={member.user_id}
-                                  className="flex items-center justify-between p-2 hover:bg-muted rounded cursor-pointer"
-                                  onClick={() => handleRecipientAdd(member.user_id)}
-                                >
+                              {filteredTeamMembers.map(member => <div key={member.user_id} className="flex items-center justify-between p-2 hover:bg-muted rounded cursor-pointer" onClick={() => handleRecipientAdd(member.user_id)}>
                                   <div className="flex items-center space-x-2">
                                     <User className="h-4 w-4" />
                                     <span className="text-sm">{member.user_profile?.name}</span>
                                     <Badge variant="outline" className="text-xs">{member.role}</Badge>
                                   </div>
-                                </div>
-                              ))}
+                                </div>)}
                             </CardContent>
-                          </Card>
-                        )}
+                          </Card>}
 
-                        {formData.recipients.length > 0 && (
-                          <div className="space-y-1">
+                        {formData.recipients.length > 0 && <div className="space-y-1">
                             {formData.recipients.map(recipientId => {
-                              const member = teamMembers.find(m => m.user_id === recipientId);
-                              return (
-                                <div key={recipientId} className="flex items-center justify-between bg-muted p-2 rounded">
+                          const member = teamMembers.find(m => m.user_id === recipientId);
+                          return <div key={recipientId} className="flex items-center justify-between bg-muted p-2 rounded">
                                   <span className="text-sm">{member?.user_profile?.name}</span>
-                                  <Button 
-                                    variant="ghost" 
-                                    size="sm" 
-                                    onClick={() => handleRecipientRemove(recipientId)}
-                                  >
+                                  <Button variant="ghost" size="sm" onClick={() => handleRecipientRemove(recipientId)}>
                                     <X className="h-3 w-3" />
                                   </Button>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        )}
+                                </div>;
+                        })}
+                          </div>}
 
                         <div className="space-y-2">
-                          <Input
-                            placeholder="Add email manually..."
-                            onKeyPress={(e) => {
-                              if (e.key === 'Enter' && e.currentTarget.value) {
-                                const email = e.currentTarget.value;
-                                setFormData(prev => ({
-                                  ...prev,
-                                  recipients: [...prev.recipients, email]
-                                }));
-                                e.currentTarget.value = '';
-                              }
-                            }}
-                          />
+                          <Input placeholder="Add email manually..." onKeyPress={e => {
+                          if (e.key === 'Enter' && e.currentTarget.value) {
+                            const email = e.currentTarget.value;
+                            setFormData(prev => ({
+                              ...prev,
+                              recipients: [...prev.recipients, email]
+                            }));
+                            e.currentTarget.value = '';
+                          }
+                        }} />
                         </div>
                       </div>
                     </div>
@@ -673,76 +557,54 @@ export const AdvancedRFIComposer: React.FC<AdvancedRFIComposerProps> = ({
                       <div className="space-y-2">
                         <div className="relative">
                           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                          <Input
-                            placeholder="Search Cc contacts..."
-                            value={ccSearch}
-                            onChange={(e) => setCcSearch(e.target.value)}
-                            className="pl-10"
-                          />
+                          <Input placeholder="Search Cc contacts..." value={ccSearch} onChange={e => setCcSearch(e.target.value)} className="pl-10" />
                         </div>
                         
-                        {ccSearch && (
-                          <Card className="max-h-40 overflow-y-auto">
+                        {ccSearch && <Card className="max-h-40 overflow-y-auto">
                             <CardContent className="p-2">
-                              {filteredCcMembers.map(member => (
-                                <div 
-                                  key={member.user_id}
-                                  className="flex items-center justify-between p-2 hover:bg-muted rounded cursor-pointer"
-                                  onClick={() => handleCcAdd(member.user_id)}
-                                >
+                              {filteredCcMembers.map(member => <div key={member.user_id} className="flex items-center justify-between p-2 hover:bg-muted rounded cursor-pointer" onClick={() => handleCcAdd(member.user_id)}>
                                   <div className="flex items-center space-x-2">
                                     <User className="h-4 w-4" />
                                     <span className="text-sm">{member.user_profile?.name}</span>
                                     <Badge variant="outline" className="text-xs">{member.role}</Badge>
                                   </div>
-                                </div>
-                              ))}
+                                </div>)}
                             </CardContent>
-                          </Card>
-                        )}
+                          </Card>}
 
-                        {formData.ccRecipients.length > 0 && (
-                          <div className="space-y-1">
+                        {formData.ccRecipients.length > 0 && <div className="space-y-1">
                             {formData.ccRecipients.map(recipientId => {
-                              const member = teamMembers.find(m => m.user_id === recipientId);
-                              return (
-                                <div key={recipientId} className="flex items-center justify-between bg-muted p-2 rounded">
+                          const member = teamMembers.find(m => m.user_id === recipientId);
+                          return <div key={recipientId} className="flex items-center justify-between bg-muted p-2 rounded">
                                   <span className="text-sm">{member?.user_profile?.name}</span>
-                                  <Button 
-                                    variant="ghost" 
-                                    size="sm" 
-                                    onClick={() => handleCcRemove(recipientId)}
-                                  >
+                                  <Button variant="ghost" size="sm" onClick={() => handleCcRemove(recipientId)}>
                                     <X className="h-3 w-3" />
                                   </Button>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        )}
+                                </div>;
+                        })}
+                          </div>}
 
                         <div className="space-y-2">
-                          <Input
-                            placeholder="Add Cc email manually..."
-                            onKeyPress={(e) => {
-                              if (e.key === 'Enter' && e.currentTarget.value) {
-                                const email = e.currentTarget.value;
-                                setFormData(prev => ({
-                                  ...prev,
-                                  ccRecipients: [...prev.ccRecipients, email]
-                                }));
-                                e.currentTarget.value = '';
-                              }
-                            }}
-                          />
+                          <Input placeholder="Add Cc email manually..." onKeyPress={e => {
+                          if (e.key === 'Enter' && e.currentTarget.value) {
+                            const email = e.currentTarget.value;
+                            setFormData(prev => ({
+                              ...prev,
+                              ccRecipients: [...prev.ccRecipients, email]
+                            }));
+                            e.currentTarget.value = '';
+                          }
+                        }} />
                         </div>
                       </div>
                     </div>
 
                     <div>
                       <Label htmlFor="response-required">Response Required</Label>
-                      <Select value={formData.responseRequired} onValueChange={(value) => 
-                        setFormData(prev => ({ ...prev, responseRequired: value }))}>
+                      <Select value={formData.responseRequired} onValueChange={value => setFormData(prev => ({
+                      ...prev,
+                      responseRequired: value
+                    }))}>
                         <SelectTrigger>
                           <SelectValue />
                         </SelectTrigger>
@@ -753,48 +615,32 @@ export const AdvancedRFIComposer: React.FC<AdvancedRFIComposerProps> = ({
                         </SelectContent>
                       </Select>
                       
-                      {formData.responseRequired === 'Yes' && (
-                        <div className="mt-2">
+                      {formData.responseRequired === 'Yes' && <div className="mt-2">
                           <Label>Response Required By</Label>
                           <Popover>
                             <PopoverTrigger asChild>
-                              <Button
-                                variant="outline"
-                                className={cn(
-                                  "w-full justify-start text-left font-normal",
-                                  !formData.responseRequiredDate && "text-muted-foreground"
-                                )}
-                              >
+                              <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !formData.responseRequiredDate && "text-muted-foreground")}>
                                 <CalendarIcon className="mr-2 h-4 w-4" />
                                 {formData.responseRequiredDate ? format(formData.responseRequiredDate, "PPP") : <span>Pick a date</span>}
                               </Button>
                             </PopoverTrigger>
                             <PopoverContent className="w-auto p-0" align="start">
-                              <Calendar
-                                mode="single"
-                                selected={formData.responseRequiredDate}
-                                onSelect={(date) => setFormData(prev => ({ ...prev, responseRequiredDate: date }))}
-                                initialFocus
-                                className="pointer-events-auto"
-                              />
+                              <Calendar mode="single" selected={formData.responseRequiredDate} onSelect={date => setFormData(prev => ({
+                            ...prev,
+                            responseRequiredDate: date
+                          }))} initialFocus className="pointer-events-auto" />
                             </PopoverContent>
                           </Popover>
-                        </div>
-                      )}
+                        </div>}
                     </div>
 
                     <div>
                       <Label htmlFor="subject">Subject *</Label>
-                      <Input
-                        id="subject"
-                        value={formData.subject}
-                        onChange={(e) => setFormData(prev => ({ ...prev, subject: e.target.value }))}
-                        placeholder="Enter subject line"
-                        className={!formData.subject ? 'border-red-300' : ''}
-                      />
-                      {!formData.subject && (
-                        <p className="text-red-500 text-sm mt-1">Subject is required</p>
-                      )}
+                      <Input id="subject" value={formData.subject} onChange={e => setFormData(prev => ({
+                      ...prev,
+                      subject: e.target.value
+                    }))} placeholder="Enter subject line" className={!formData.subject ? 'border-red-300' : ''} />
+                      {!formData.subject && <p className="text-red-500 text-sm mt-1">Subject is required</p>}
                     </div>
                   </div>
                 </div>
@@ -806,8 +652,10 @@ export const AdvancedRFIComposer: React.FC<AdvancedRFIComposerProps> = ({
                   <div className="flex items-center justify-between">
                     <Label htmlFor="message-content">Message Content</Label>
                     <div className="flex items-center space-x-2">
-                      <Select onValueChange={(value) => 
-                        setFormData(prev => ({ ...prev, autoTextTemplate: value }))}>
+                      <Select onValueChange={value => setFormData(prev => ({
+                      ...prev,
+                      autoTextTemplate: value
+                    }))}>
                         <SelectTrigger className="w-48">
                           <SelectValue placeholder="Auto-text templates" />
                         </SelectTrigger>
@@ -823,136 +671,89 @@ export const AdvancedRFIComposer: React.FC<AdvancedRFIComposerProps> = ({
                       <div className="border rounded-lg p-4 bg-card">
                         <div className="border-b pb-2 mb-4">
                           <div className="flex items-center space-x-2 flex-wrap gap-2">
-                            <Button 
-                              variant="ghost" 
-                              size="sm" 
-                              onClick={() => handleRichTextAction('bold')}
-                              className="h-8 px-2"
-                            >
+                            <Button variant="ghost" size="sm" onClick={() => handleRichTextAction('bold')} className="h-8 px-2">
                               <Bold className="h-4 w-4" />
                             </Button>
-                            <Button 
-                              variant="ghost" 
-                              size="sm" 
-                              onClick={() => handleRichTextAction('italic')}
-                              className="h-8 px-2"
-                            >
+                            <Button variant="ghost" size="sm" onClick={() => handleRichTextAction('italic')} className="h-8 px-2">
                               <Italic className="h-4 w-4" />
                             </Button>
-                            <Button 
-                              variant="ghost" 
-                              size="sm" 
-                              onClick={() => handleRichTextAction('underline')}
-                              className="h-8 px-2"
-                            >
+                            <Button variant="ghost" size="sm" onClick={() => handleRichTextAction('underline')} className="h-8 px-2">
                               <Underline className="h-4 w-4" />
                             </Button>
-                            <Button 
-                              variant="ghost" 
-                              size="sm" 
-                              onClick={() => {
-                                const color = prompt('Enter color (e.g., red, #ff0000):');
-                                if (color) {
-                                  const textarea = document.getElementById('message-content') as HTMLTextAreaElement;
-                                  const start = textarea.selectionStart;
-                                  const end = textarea.selectionEnd;
-                                  const selectedText = textarea.value.substring(start, end);
-                                  const replacement = `<span style="color: ${color}">${selectedText}</span>`;
-                                  const newValue = textarea.value.substring(0, start) + replacement + textarea.value.substring(end);
-                                  setFormData(prev => ({ ...prev, messageContent: newValue }));
-                                }
-                              }}
-                              className="h-8 px-2"
-                            >
+                            <Button variant="ghost" size="sm" onClick={() => {
+                        const color = prompt('Enter color (e.g., red, #ff0000):');
+                        if (color) {
+                          const textarea = document.getElementById('message-content') as HTMLTextAreaElement;
+                          const start = textarea.selectionStart;
+                          const end = textarea.selectionEnd;
+                          const selectedText = textarea.value.substring(start, end);
+                          const replacement = `<span style="color: ${color}">${selectedText}</span>`;
+                          const newValue = textarea.value.substring(0, start) + replacement + textarea.value.substring(end);
+                          setFormData(prev => ({
+                            ...prev,
+                            messageContent: newValue
+                          }));
+                        }
+                      }} className="h-8 px-2">
                               <Palette className="h-4 w-4" />
                             </Button>
-                            <Button 
-                              variant="ghost" 
-                              size="sm" 
-                              onClick={() => handleRichTextAction('bullet-list')}
-                              className="h-8 px-2"
-                            >
+                            <Button variant="ghost" size="sm" onClick={() => handleRichTextAction('bullet-list')} className="h-8 px-2">
                               <List className="h-4 w-4" />
                             </Button>
-                            <Button 
-                              variant="ghost" 
-                              size="sm" 
-                              onClick={() => handleRichTextAction('table')}
-                              className="h-8 px-2"
-                            >
+                            <Button variant="ghost" size="sm" onClick={() => handleRichTextAction('table')} className="h-8 px-2">
                               <Table className="h-4 w-4" />
                             </Button>
-                            <Button 
-                              variant="ghost" 
-                              size="sm" 
-                              onClick={() => {
-                                const textarea = document.getElementById('message-content') as HTMLTextAreaElement;
-                                const start = textarea.selectionStart;
-                                const end = textarea.selectionEnd;
-                                const selectedText = textarea.value.substring(start, end);
-                                const alignment = prompt('Enter alignment (left, center, right):') || 'left';
-                                const replacement = `<div style="text-align: ${alignment}">${selectedText}</div>`;
-                                const newValue = textarea.value.substring(0, start) + replacement + textarea.value.substring(end);
-                                setFormData(prev => ({ ...prev, messageContent: newValue }));
-                              }}
-                              className="h-8 px-2"
-                            >
+                            <Button variant="ghost" size="sm" onClick={() => {
+                        const textarea = document.getElementById('message-content') as HTMLTextAreaElement;
+                        const start = textarea.selectionStart;
+                        const end = textarea.selectionEnd;
+                        const selectedText = textarea.value.substring(start, end);
+                        const alignment = prompt('Enter alignment (left, center, right):') || 'left';
+                        const replacement = `<div style="text-align: ${alignment}">${selectedText}</div>`;
+                        const newValue = textarea.value.substring(0, start) + replacement + textarea.value.substring(end);
+                        setFormData(prev => ({
+                          ...prev,
+                          messageContent: newValue
+                        }));
+                      }} className="h-8 px-2">
                               <AlignLeft className="h-4 w-4" />
                             </Button>
-                            <Button 
-                              variant="ghost" 
-                              size="sm" 
-                              onClick={() => handleRichTextAction('link')}
-                              className="h-8 px-2"
-                            >
+                            <Button variant="ghost" size="sm" onClick={() => handleRichTextAction('link')} className="h-8 px-2">
                               <Link className="h-4 w-4" />
                             </Button>
-                            <Button 
-                              variant="ghost" 
-                              size="sm" 
-                              onClick={() => {
-                                const url = prompt('Enter image URL:');
-                                if (url) {
-                                  const textarea = document.getElementById('message-content') as HTMLTextAreaElement;
-                                  const start = textarea.selectionStart;
-                                  const replacement = `![Image](${url})`;
-                                  const newValue = textarea.value.substring(0, start) + replacement + textarea.value.substring(start);
-                                  setFormData(prev => ({ ...prev, messageContent: newValue }));
-                                }
-                              }}
-                              className="h-8 px-2"
-                            >
+                            <Button variant="ghost" size="sm" onClick={() => {
+                        const url = prompt('Enter image URL:');
+                        if (url) {
+                          const textarea = document.getElementById('message-content') as HTMLTextAreaElement;
+                          const start = textarea.selectionStart;
+                          const replacement = `![Image](${url})`;
+                          const newValue = textarea.value.substring(0, start) + replacement + textarea.value.substring(start);
+                          setFormData(prev => ({
+                            ...prev,
+                            messageContent: newValue
+                          }));
+                        }
+                      }} className="h-8 px-2">
                               <Image className="h-4 w-4" />
                             </Button>
-                            <Button 
-                              variant="ghost" 
-                              size="sm" 
-                              onClick={() => handleRichTextAction('code')}
-                              className="h-8 px-2"
-                            >
+                            <Button variant="ghost" size="sm" onClick={() => handleRichTextAction('code')} className="h-8 px-2">
                               <Code className="h-4 w-4" />
                             </Button>
                           </div>
                         </div>
                     
-                    <Textarea
-                      id="message-content"
-                      value={formData.messageContent}
-                      onChange={(e) => setFormData(prev => ({ ...prev, messageContent: e.target.value }))}
-                      placeholder="Compose your message..."
-                      className="min-h-[200px] border-0 p-0 resize-none focus-visible:ring-0"
-                    />
+                    <Textarea id="message-content" value={formData.messageContent} onChange={e => setFormData(prev => ({
+                    ...prev,
+                    messageContent: e.target.value
+                  }))} placeholder="Compose your message..." className="min-h-[200px] border-0 p-0 resize-none focus-visible:ring-0" />
                   </div>
 
                   <div>
                     <Label htmlFor="signature">Signature</Label>
-                    <Textarea
-                      id="signature"
-                      value={formData.signature}
-                      onChange={(e) => setFormData(prev => ({ ...prev, signature: e.target.value }))}
-                      placeholder="Your signature block..."
-                      className="min-h-[100px]"
-                    />
+                    <Textarea id="signature" value={formData.signature} onChange={e => setFormData(prev => ({
+                    ...prev,
+                    signature: e.target.value
+                  }))} placeholder="Your signature block..." className="min-h-[100px]" />
                   </div>
                 </div>
               </TabsContent>
@@ -963,38 +764,34 @@ export const AdvancedRFIComposer: React.FC<AdvancedRFIComposerProps> = ({
                   <div className="space-y-4">
                     <div>
                       <Label htmlFor="instrumentation-type">Instrumentation Type *</Label>
-                      <Select value={formData.instrumentationType} onValueChange={(value) => 
-                        setFormData(prev => ({ ...prev, instrumentationType: value }))}>
+                      <Select value={formData.instrumentationType} onValueChange={value => setFormData(prev => ({
+                      ...prev,
+                      instrumentationType: value
+                    }))}>
                         <SelectTrigger className={!formData.instrumentationType ? 'border-red-300' : ''}>
                           <SelectValue placeholder="Select type" />
                         </SelectTrigger>
                         <SelectContent>
-                          {instrumentationTypes.map(type => (
-                            <SelectItem key={type} value={type}>{type}</SelectItem>
-                          ))}
+                          {instrumentationTypes.map(type => <SelectItem key={type} value={type}>{type}</SelectItem>)}
                         </SelectContent>
                       </Select>
-                      {!formData.instrumentationType && (
-                        <p className="text-red-500 text-sm mt-1">Instrumentation type is required</p>
-                      )}
+                      {!formData.instrumentationType && <p className="text-red-500 text-sm mt-1">Instrumentation type is required</p>}
                     </div>
 
                     <div>
                       <Label htmlFor="discipline">Discipline *</Label>
-                      <Select value={formData.discipline} onValueChange={(value) => 
-                        setFormData(prev => ({ ...prev, discipline: value }))}>
+                      <Select value={formData.discipline} onValueChange={value => setFormData(prev => ({
+                      ...prev,
+                      discipline: value
+                    }))}>
                         <SelectTrigger className={!formData.discipline ? 'border-red-300' : ''}>
                           <SelectValue placeholder="Select discipline" />
                         </SelectTrigger>
                         <SelectContent>
-                          {disciplines.map(discipline => (
-                            <SelectItem key={discipline} value={discipline}>{discipline}</SelectItem>
-                          ))}
+                          {disciplines.map(discipline => <SelectItem key={discipline} value={discipline}>{discipline}</SelectItem>)}
                         </SelectContent>
                       </Select>
-                      {!formData.discipline && (
-                        <p className="text-red-500 text-sm mt-1">Discipline is required</p>
-                      )}
+                      {!formData.discipline && <p className="text-red-500 text-sm mt-1">Discipline is required</p>}
                     </div>
 
                   </div>
@@ -1002,8 +799,10 @@ export const AdvancedRFIComposer: React.FC<AdvancedRFIComposerProps> = ({
                   <div className="space-y-4">
                     <div>
                       <Label>Schedule Impact</Label>
-                      <Select value={formData.scheduleImpact} onValueChange={(value) => 
-                        setFormData(prev => ({ ...prev, scheduleImpact: value }))}>
+                      <Select value={formData.scheduleImpact} onValueChange={value => setFormData(prev => ({
+                      ...prev,
+                      scheduleImpact: value
+                    }))}>
                         <SelectTrigger>
                           <SelectValue />
                         </SelectTrigger>
@@ -1013,20 +812,15 @@ export const AdvancedRFIComposer: React.FC<AdvancedRFIComposerProps> = ({
                         </SelectContent>
                       </Select>
                       
-                      {formData.scheduleImpact === 'Yes' && (
-                        <div className="mt-2">
-                          <Textarea
-                            value={formData.scheduleDetails}
-                            onChange={(e) => setFormData(prev => ({ ...prev, scheduleDetails: e.target.value }))}
-                            placeholder="Describe schedule impact details..."
-                            className="min-h-[100px]"
-                            maxLength={4000}
-                          />
+                      {formData.scheduleImpact === 'Yes' && <div className="mt-2">
+                          <Textarea value={formData.scheduleDetails} onChange={e => setFormData(prev => ({
+                        ...prev,
+                        scheduleDetails: e.target.value
+                      }))} placeholder="Describe schedule impact details..." className="min-h-[100px]" maxLength={4000} />
                           <p className="text-sm text-muted-foreground mt-1">
                             {scheduleCharacterCount}/4000 characters
                           </p>
-                        </div>
-                      )}
+                        </div>}
                     </div>
 
                     <div>
@@ -1034,8 +828,10 @@ export const AdvancedRFIComposer: React.FC<AdvancedRFIComposerProps> = ({
                         <Label>Cost Impact</Label>
                         <Info className="h-4 w-4 text-muted-foreground" />
                       </div>
-                      <Select value={formData.costImpact} onValueChange={(value) => 
-                        setFormData(prev => ({ ...prev, costImpact: value }))}>
+                      <Select value={formData.costImpact} onValueChange={value => setFormData(prev => ({
+                      ...prev,
+                      costImpact: value
+                    }))}>
                         <SelectTrigger>
                           <SelectValue />
                         </SelectTrigger>
@@ -1045,20 +841,15 @@ export const AdvancedRFIComposer: React.FC<AdvancedRFIComposerProps> = ({
                         </SelectContent>
                       </Select>
                       
-                      {formData.costImpact === 'Yes' && (
-                        <div className="mt-2">
-                          <Textarea
-                            value={formData.costDetails}
-                            onChange={(e) => setFormData(prev => ({ ...prev, costDetails: e.target.value }))}
-                            placeholder="Describe cost impact details..."
-                            className="min-h-[100px]"
-                            maxLength={4000}
-                          />
+                      {formData.costImpact === 'Yes' && <div className="mt-2">
+                          <Textarea value={formData.costDetails} onChange={e => setFormData(prev => ({
+                        ...prev,
+                        costDetails: e.target.value
+                      }))} placeholder="Describe cost impact details..." className="min-h-[100px]" maxLength={4000} />
                           <p className="text-sm text-muted-foreground mt-1">
                             {costCharacterCount}/4000 characters
                           </p>
-                        </div>
-                      )}
+                        </div>}
                     </div>
 
                   </div>
@@ -1072,55 +863,35 @@ export const AdvancedRFIComposer: React.FC<AdvancedRFIComposerProps> = ({
                       Attach up to 6 files
                     </p>
                     <div className="flex flex-wrap justify-center gap-2">
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => handleDocumentAttach('document')}
-                      >
+                      <Button variant="outline" size="sm" onClick={() => handleDocumentAttach('document')}>
                         Document
                       </Button>
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => handleDocumentAttach('project-mail')}
-                      >
+                      <Button variant="outline" size="sm" onClick={() => handleDocumentAttach('project-mail')}>
                         Project Mail
                       </Button>
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => handleDocumentAttach('local-file')}
-                      >
+                      <Button variant="outline" size="sm" onClick={() => handleDocumentAttach('local-file')}>
                         Local File
                       </Button>
                     </div>
                   </div>
                   
-                  {selectedDocuments.length > 0 && (
-                    <div className="mt-4 space-y-2">
+                  {selectedDocuments.length > 0 && <div className="mt-4 space-y-2">
                       <Label className="text-sm">Selected Files ({selectedDocuments.length}/6)</Label>
                       <div className="space-y-1 max-h-32 overflow-y-auto">
                         {selectedDocuments.map(docId => {
-                          const doc = documents.find(d => d.id === docId);
-                          return (
-                            <div key={docId} className="flex items-center justify-between bg-muted p-2 rounded">
+                      const doc = documents.find(d => d.id === docId);
+                      return <div key={docId} className="flex items-center justify-between bg-muted p-2 rounded">
                               <div className="flex items-center space-x-2">
                                 <FileText className="h-4 w-4" />
                                 <span className="text-sm">{doc?.name}</span>
                               </div>
-                              <Button 
-                                variant="ghost" 
-                                size="sm" 
-                                onClick={() => handleDocumentSelect(docId)}
-                              >
+                              <Button variant="ghost" size="sm" onClick={() => handleDocumentSelect(docId)}>
                                 <X className="h-3 w-3" />
                               </Button>
-                            </div>
-                          );
-                        })}
+                            </div>;
+                    })}
                       </div>
-                    </div>
-                  )}
+                    </div>}
                 </div>
               </TabsContent>
             </div>
@@ -1129,40 +900,23 @@ export const AdvancedRFIComposer: React.FC<AdvancedRFIComposerProps> = ({
 
         <div className="border-t pt-4 flex justify-between">
           <div className="flex items-center space-x-2">
-            {currentStep > 1 && (
-              <Button 
-                variant="outline" 
-                onClick={() => setCurrentStep(currentStep - 1)}
-              >
+            {currentStep > 1 && <Button variant="outline" onClick={() => setCurrentStep(currentStep - 1)}>
                 Previous
-              </Button>
-            )}
+              </Button>}
           </div>
           
           <div className="flex items-center space-x-2">
             <Button variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
-            {currentStep < 3 ? (
-              <Button 
-                onClick={() => setCurrentStep(currentStep + 1)}
-                className="bg-slate-900 hover:bg-slate-800 text-white"
-              >
+            {currentStep < 3 ? <Button onClick={() => setCurrentStep(currentStep + 1)} className="bg-slate-900 hover:bg-slate-800 text-white">
                 Next
-              </Button>
-            ) : (
-              <Button 
-                onClick={handleSubmit}
-                disabled={loading || !isFormValid}
-                className="bg-slate-900 hover:bg-slate-800 text-white"
-              >
+              </Button> : <Button onClick={handleSubmit} disabled={loading || !isFormValid} className="bg-slate-900 hover:bg-slate-800 text-white">
                 <Send className="h-4 w-4 mr-2" />
                 {loading ? 'Sending...' : 'Send RFI'}
-              </Button>
-            )}
+              </Button>}
           </div>
         </div>
       </DialogContent>
-    </Dialog>
-  );
+    </Dialog>;
 };
