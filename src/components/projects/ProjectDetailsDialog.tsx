@@ -1,17 +1,12 @@
 import { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Project, useProjects } from '@/hooks/useProjects';
 import { useAuth } from '@/hooks/useAuth';
+import { useViewEditMode } from '@/hooks/useViewEditMode';
 import { ProjectContactsSection } from './ProjectContactsSection';
 import { AddUserDialog } from './AddUserDialog';
-import { CalendarDays, MapPin, DollarSign, User, Edit, Save, X, AlertTriangle } from 'lucide-react';
+import { UnifiedDialog } from '@/components/ui/unified-dialog';
+import { ViewEditField } from '@/components/ui/view-edit-field';
+import { CalendarDays, MapPin, DollarSign, Download } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -19,8 +14,6 @@ interface ProjectDetailsDialogProps {
   project: Project | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  mode: 'view' | 'edit';
-  onModeChange: (mode: 'view' | 'edit') => void;
 }
 
 const statusColors = {
@@ -42,9 +35,7 @@ const statusLabels = {
 export const ProjectDetailsDialog = ({ 
   project, 
   open, 
-  onOpenChange, 
-  mode, 
-  onModeChange 
+  onOpenChange
 }: ProjectDetailsDialogProps) => {
   const [formData, setFormData] = useState({
     name: '',
@@ -56,10 +47,20 @@ export const ProjectDetailsDialog = ({
   const [loading, setLoading] = useState(false);
   const [addUserOpen, setAddUserOpen] = useState(false);
   const [contactsKey, setContactsKey] = useState(0);
+  
   const { updateProject } = useProjects();
   const { profile } = useAuth();
   const { toast } = useToast();
   const isArchitect = profile?.role === 'architect';
+  
+  const {
+    mode,
+    switchToView,
+    switchToEdit,
+    canEdit
+  } = useViewEditMode({
+    canEdit: isArchitect
+  });
 
   useEffect(() => {
     if (project) {
@@ -87,7 +88,7 @@ export const ProjectDetailsDialog = ({
         status: formData.status
       });
       
-      onModeChange('view');
+      switchToView();
     } catch (error) {
       // Error handled in useProjects hook
     } finally {
@@ -134,180 +135,161 @@ export const ProjectDetailsDialog = ({
 
   if (!project) return null;
 
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <DialogTitle>{mode === 'edit' ? 'Edit Project' : 'Project Details'}</DialogTitle>
-              <DialogDescription>
-                {mode === 'edit' ? 'Update project information and manage team' : 'View project details and team'}
-              </DialogDescription>
-            </div>
-            {isArchitect && mode === 'view' && (
-              <Button variant="outline" size="sm" onClick={() => onModeChange('edit')}>
-                <Edit className="h-4 w-4 mr-2" />
-                Edit
-              </Button>
-            )}
+  const statusOptions = [
+    { value: 'planning', label: 'Planning' },
+    { value: 'active', label: 'Active' },
+    { value: 'on_hold', label: 'On Hold' },
+    { value: 'completed', label: 'Completed' },
+    { value: 'cancelled', label: 'Cancelled' }
+  ];
+
+  const badges = [
+    {
+      text: statusLabels[project.status],
+      className: statusColors[project.status]
+    }
+  ];
+
+  const tabs = [
+    {
+      id: 'details',
+      label: mode === 'edit' ? 'Project Details' : 'Project Details',
+      content: mode === 'edit' ? (
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <ViewEditField
+            type="text"
+            label="Project Name"
+            value={formData.name}
+            onChange={(value) => handleInputChange('name', value)}
+            mode={mode}
+            required
+          />
+          
+          <ViewEditField
+            type="text"
+            label="Address"
+            value={formData.address}
+            onChange={(value) => handleInputChange('address', value)}
+            mode={mode}
+            placeholder="Enter project address"
+          />
+          
+          <div className="grid grid-cols-2 gap-4">
+            <ViewEditField
+              type="number"
+              label="Budget"
+              value={formData.budget}
+              onChange={(value) => handleInputChange('budget', value)}
+              mode={mode}
+              step="0.01"
+            />
+            
+            <ViewEditField
+              type="select"
+              label="Status"
+              value={formData.status}
+              onChange={(value) => handleInputChange('status', value)}
+              mode={mode}
+              options={statusOptions}
+            />
           </div>
-        </DialogHeader>
-        
-        {mode === 'view' ? (
-          <Tabs defaultValue="details" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="details">Project Details</TabsTrigger>
-              <TabsTrigger value="team">Team & Contacts</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="details" className="space-y-6 mt-6">
-              {/* Project Header */}
-              <div className="flex items-start justify-between">
-                <div className="space-y-1">
-                  <h3 className="text-xl font-semibold">{project.name}</h3>
-                  <div className="flex items-center gap-1 text-muted-foreground">
-                    <MapPin className="h-4 w-4" />
-                    {project.address || 'No address specified'}
-                  </div>
-                </div>
-                <Badge className={statusColors[project.status]}>
-                  {statusLabels[project.status]}
-                </Badge>
-              </div>
-              
-              {/* Project Details */}
-              <div className="grid grid-cols-2 gap-4">
-                {project.budget && (
-                  <div className="flex items-center gap-2">
-                    <DollarSign className="h-4 w-4 text-muted-foreground" />
-                    <span className="font-medium">${project.budget.toLocaleString()}</span>
-                  </div>
-                )}
-                <div className="flex items-center gap-2">
-                  <CalendarDays className="h-4 w-4 text-muted-foreground" />
-                  <span>Created {new Date(project.created_at).toLocaleDateString()}</span>
-                </div>
-              </div>
-              
-              {/* Description */}
-              {project.description && (
-                <div className="space-y-2">
-                  <Label>Description</Label>
-                  <p className="text-sm text-muted-foreground bg-muted p-3 rounded-md">
-                    {project.description}
-                  </p>
-                </div>
-              )}
-            </TabsContent>
-            
-            <TabsContent value="team" className="mt-6">
-              <ProjectContactsSection
-                key={contactsKey}
-                projectId={project.id}
-                isEditing={false}
+          
+          <ViewEditField
+            type="textarea"
+            label="Description"
+            value={formData.description}
+            onChange={(value) => handleInputChange('description', value)}
+            mode={mode}
+            rows={3}
+          />
+        </form>
+      ) : (
+        <div className="space-y-6">
+          {/* Project Header */}
+          <div className="flex items-start justify-between">
+            <div className="space-y-1">
+              <h3 className="text-xl font-semibold">{project.name}</h3>
+              <ViewEditField
+                type="display"
+                label=""
+                value={project.address || 'No address specified'}
+                mode={mode}
+                icon={<MapPin className="h-4 w-4 text-muted-foreground" />}
               />
-            </TabsContent>
-          </Tabs>
-        ) : (
-          <Tabs defaultValue="details" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="details">Project Details</TabsTrigger>
-              <TabsTrigger value="team">Team Management</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="details" className="mt-6">
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="name">Project Name</Label>
-                  <Input
-                    id="name"
-                    value={formData.name}
-                    onChange={(e) => handleInputChange('name', e.target.value)}
-                    required
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="address">Address</Label>
-                  <Input
-                    id="address"
-                    value={formData.address}
-                    onChange={(e) => handleInputChange('address', e.target.value)}
-                  />
-                </div>
-                
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="budget">Budget</Label>
-                    <Input
-                      id="budget"
-                      type="number"
-                      step="0.01"
-                      value={formData.budget}
-                      onChange={(e) => handleInputChange('budget', e.target.value)}
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="status">Status</Label>
-                    <Select value={formData.status} onValueChange={(value) => handleInputChange('status', value)}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="planning">Planning</SelectItem>
-                        <SelectItem value="active">Active</SelectItem>
-                        <SelectItem value="on_hold">On Hold</SelectItem>
-                        <SelectItem value="completed">Completed</SelectItem>
-                        <SelectItem value="cancelled">Cancelled</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="description">Description</Label>
-                  <Textarea
-                    id="description"
-                    value={formData.description}
-                    onChange={(e) => handleInputChange('description', e.target.value)}
-                    rows={3}
-                  />
-                </div>
-                
-                <div className="flex justify-end gap-2 pt-4">
-                  <Button type="button" variant="outline" onClick={() => onModeChange('view')}>
-                    <X className="h-4 w-4 mr-2" />
-                    Cancel
-                  </Button>
-                  <Button type="submit" disabled={loading}>
-                    <Save className="h-4 w-4 mr-2" />
-                    {loading ? 'Saving...' : 'Save Changes'}
-                  </Button>
-                </div>
-              </form>
-            </TabsContent>
-            
-            <TabsContent value="team" className="mt-6">
-              <ProjectContactsSection
-                key={contactsKey}
-                projectId={project.id}
-                isEditing={true}
-                onUserRemove={handleUserRemove}
-                onUserAdd={() => setAddUserOpen(true)}
+            </div>
+          </div>
+          
+          {/* Project Details */}
+          <div className="grid grid-cols-2 gap-4">
+            {project.budget && (
+              <ViewEditField
+                type="display"
+                label=""
+                value={`$${project.budget.toLocaleString()}`}
+                mode={mode}
+                icon={<DollarSign className="h-4 w-4 text-muted-foreground" />}
               />
-            </TabsContent>
-          </Tabs>
-        )}
-        
-        <AddUserDialog
-          open={addUserOpen}
-          onOpenChange={setAddUserOpen}
-          projectId={project?.id || ''}
-          onUserAdded={handleUserAdded}
+            )}
+            <ViewEditField
+              type="display"
+              label=""
+              value={`Created ${new Date(project.created_at).toLocaleDateString()}`}
+              mode={mode}
+              icon={<CalendarDays className="h-4 w-4 text-muted-foreground" />}
+            />
+          </div>
+          
+          {/* Description */}
+          {project.description && (
+            <ViewEditField
+              type="display"
+              label="Description"
+              value={project.description}
+              mode={mode}
+            />
+          )}
+        </div>
+      )
+    },
+    {
+      id: 'team',
+      label: mode === 'edit' ? 'Team Management' : 'Team & Contacts',
+      content: (
+        <ProjectContactsSection
+          key={contactsKey}
+          projectId={project.id}
+          isEditing={mode === 'edit'}
+          onUserRemove={mode === 'edit' ? handleUserRemove : undefined}
+          onUserAdd={mode === 'edit' ? () => setAddUserOpen(true) : undefined}
         />
-      </DialogContent>
-    </Dialog>
+      )
+    }
+  ];
+
+  return (
+    <>
+      <UnifiedDialog
+        title="Project Details"
+        description="project information and team"
+        open={open}
+        onOpenChange={onOpenChange}
+        mode={mode}
+        onModeChange={switchToEdit}
+        canEdit={canEdit}
+        loading={loading}
+        badges={badges}
+        onSave={() => handleSubmit({} as React.FormEvent)}
+        onCancel={switchToView}
+        maxWidth="4xl"
+        tabs={tabs}
+      />
+      
+      <AddUserDialog
+        open={addUserOpen}
+        onOpenChange={setAddUserOpen}
+        projectId={project?.id || ''}
+        onUserAdded={handleUserAdded}
+      />
+    </>
   );
 };

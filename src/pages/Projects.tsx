@@ -24,7 +24,7 @@ const Projects = () => {
   const [statusFilter, setStatusFilter] = useState('all');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
-  const [detailsMode, setDetailsMode] = useState<'view' | 'edit'>('view');
+  
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [showDetailView, setShowDetailView] = useState(false);
   const [deleteDialog, setDeleteDialog] = useState<{
@@ -49,12 +49,10 @@ const Projects = () => {
 
   const handleViewOld = (project: Project) => {
     setSelectedProject(project);
-    setDetailsMode('view');
     setDetailsOpen(true);
   };
   const handleEdit = (project: Project) => {
     setSelectedProject(project);
-    setDetailsMode('edit');
     setDetailsOpen(true);
   };
   const handleDelete = (project: Project) => {
@@ -174,7 +172,7 @@ const Projects = () => {
           </div>}
 
         {/* Project Details Dialog */}
-        <ProjectDetailsDialog project={selectedProject} open={detailsOpen} onOpenChange={setDetailsOpen} mode={detailsMode} onModeChange={setDetailsMode} />
+        <ProjectDetailsDialog project={selectedProject} open={detailsOpen} onOpenChange={setDetailsOpen} />
 
         {/* Delete Confirmation Dialog */}
         <AlertDialog open={deleteDialog.open} onOpenChange={open => setDeleteDialog({
