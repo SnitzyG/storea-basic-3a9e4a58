@@ -10,11 +10,15 @@ import { NotificationCenter } from '@/components/notifications/NotificationCente
 import { GlobalSearch } from '@/components/search/GlobalSearch';
 import { useTheme } from '@/context/ThemeContext';
 import { useAuth } from '@/hooks/useAuth';
-
 const Dashboard = () => {
   const [searchOpen, setSearchOpen] = useState(false);
-  const { theme, toggleTheme } = useTheme();
-  const { profile } = useAuth();
+  const {
+    theme,
+    toggleTheme
+  } = useTheme();
+  const {
+    profile
+  } = useAuth();
   const navigate = useNavigate();
 
   // Keyboard shortcuts
@@ -28,15 +32,11 @@ const Dashboard = () => {
         setSearchOpen(false);
       }
     };
-
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, []);
-
   const userName = profile?.name || 'username';
-
-  return (
-    <div className="h-full flex flex-col bg-background">
+  return <div className="h-full flex flex-col bg-background">
       {/* Header */}
       <div className="flex-shrink-0 border-b bg-card px-6 py-4">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -51,11 +51,19 @@ const Dashboard = () => {
               <MessageSquare className="h-4 w-4" />
               Message
             </Button>
-            <Button size="sm" variant="outline" className="gap-1 text-xs px-2 py-1" onClick={() => navigate('/rfis', { state: { openCreate: true } })}>
+            <Button size="sm" variant="outline" className="gap-1 text-xs px-2 py-1" onClick={() => navigate('/rfis', {
+            state: {
+              openCreate: true
+            }
+          })}>
               <FileText className="h-4 w-4" />
               RFI
             </Button>
-            <Button size="sm" variant="outline" className="gap-1 text-xs px-2 py-1" onClick={() => navigate('/documents', { state: { openUpload: true } })}>
+            <Button size="sm" variant="outline" className="gap-1 text-xs px-2 py-1" onClick={() => navigate('/documents', {
+            state: {
+              openUpload: true
+            }
+          })}>
               <Upload className="h-4 w-4" />
               Upload
             </Button>
@@ -65,9 +73,7 @@ const Dashboard = () => {
               Search
             </Button>
             
-            <Button variant="outline" size="sm" onClick={toggleTheme}>
-              {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-            </Button>
+            
             
             <NotificationCenter />
           </div>
@@ -100,8 +106,6 @@ const Dashboard = () => {
       </div>
 
       <GlobalSearch open={searchOpen} onOpenChange={setSearchOpen} />
-    </div>
-  );
+    </div>;
 };
-
 export default Dashboard;
