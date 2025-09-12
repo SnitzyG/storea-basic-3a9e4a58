@@ -859,12 +859,8 @@ export const AdvancedRFIComposer: React.FC<AdvancedRFIComposerProps> = ({
                       Attach up to 6 files
                     </p>
                     <div className="flex flex-wrap justify-center gap-2">
-                      <Button variant="outline" size="sm" onClick={() => handleDocumentAttach('document')}>
-                        Document
-                      </Button>
-                      <Button variant="outline" size="sm" onClick={() => handleDocumentAttach('project-mail')}>
-                        Project Mail
-                      </Button>
+                      
+                      
                       <Button variant="outline" size="sm" onClick={() => handleDocumentAttach('local-file')}>
                         Local File
                       </Button>
