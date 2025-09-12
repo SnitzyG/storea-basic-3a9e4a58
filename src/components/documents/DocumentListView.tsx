@@ -22,6 +22,7 @@ interface DocumentListViewProps {
   onViewDetails?: (document: Document) => void;
   onViewEvents?: (document: Document) => void;
   onViewTransmittals?: (document: Document) => void;
+  onToggleLock?: (documentId: string) => void;
   canEdit: boolean;
   canApprove: boolean;
   selectedProject?: string;
@@ -37,6 +38,7 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
   onViewDetails,
   onViewEvents,
   onViewTransmittals,
+  onToggleLock,
   canEdit,
   canApprove,
   selectedProject
@@ -48,8 +50,34 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
   const {
     teamMembers
   } = useProjectTeam(selectedProject);
-  const getFileTypeIcon = (category: string) => {
-    const iconMap = {
+  const getFileTypeIcon = (document: Document) => {
+    const category = document.category || 'general';
+    const extension = document.file_extension?.toLowerCase() || '';
+    
+    // First try to match by file extension for more accurate icons
+    const extensionIconMap: { [key: string]: JSX.Element } = {
+      'pdf': <FileText className="h-4 w-4 text-red-500" />,
+      'doc': <FileText className="h-4 w-4 text-blue-500" />,
+      'docx': <FileText className="h-4 w-4 text-blue-500" />,
+      'dwg': <Building className="h-4 w-4 text-blue-600" />,
+      'dxf': <Building className="h-4 w-4 text-blue-400" />,
+      'jpg': <Image className="h-4 w-4 text-green-500" />,
+      'jpeg': <Image className="h-4 w-4 text-green-500" />,
+      'png': <Image className="h-4 w-4 text-green-600" />,
+      'gif': <Image className="h-4 w-4 text-green-400" />,
+      'xlsx': <FileBarChart className="h-4 w-4 text-green-600" />,
+      'xls': <FileBarChart className="h-4 w-4 text-green-500" />,
+      'zip': <FileText className="h-4 w-4 text-orange-500" />,
+      'rar': <FileText className="h-4 w-4 text-orange-600" />
+    };
+
+    // If we have a specific icon for the extension, use it
+    if (extension && extensionIconMap[extension]) {
+      return extensionIconMap[extension];
+    }
+
+    // Fall back to category-based icons
+    const categoryIconMap = {
       'architectural_drawings': <Building className="h-4 w-4 text-blue-500" />,
       'structural_plans': <FileBarChart className="h-4 w-4 text-green-500" />,
       'electrical_plans': <Zap className="h-4 w-4 text-yellow-500" />,
@@ -61,7 +89,8 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
       'correspondence': <Mail className="h-4 w-4 text-gray-500" />,
       'photographs': <Camera className="h-4 w-4 text-pink-500" />
     };
-    return iconMap[category as keyof typeof iconMap] || <FileText className="h-4 w-4 text-muted-foreground" />;
+    
+    return categoryIconMap[category as keyof typeof categoryIconMap] || <FileText className="h-4 w-4 text-muted-foreground" />;
   };
   const getProjectNumber = (projectId: string) => {
     const project = projects.find(p => p.id === projectId);
@@ -186,17 +215,28 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
           </TableRow>
         </TableHeader>
         <TableBody>
-          {documents.map(document => <TableRow key={document.id} className="hover:bg-muted/50 border-b">
+          {documents.map(document => <TableRow key={document.id} className={`hover:bg-muted/50 border-b ${document.is_superseded ? 'opacity-60 bg-muted/30' : ''}`}>
               <TableCell>
                 <Checkbox checked={selectedDocuments.has(document.id)} onCheckedChange={checked => handleSelectDocument(document.id, checked as boolean)} />
               </TableCell>
               
               <TableCell>
-                {getFileTypeIcon(document.category || 'general')}
+                {getFileTypeIcon(document)}
               </TableCell>
               
               <TableCell>
-                {document.is_locked ? <Lock className="h-4 w-4 text-destructive" /> : <Unlock className="h-4 w-4 text-muted-foreground" />}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 w-7 p-0"
+                  onClick={() => onToggleLock?.(document.id)}
+                  disabled={!canEdit}
+                >
+                  {document.is_locked ? 
+                    <Lock className="h-4 w-4 text-destructive" /> : 
+                    <Unlock className="h-4 w-4 text-muted-foreground" />
+                  }
+                </Button>
               </TableCell>
               
               
@@ -206,7 +246,14 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
               </TableCell>
               
               <TableCell className="font-medium">
-                {document.title || document.name}
+                <div className="flex items-center gap-2">
+                  {document.title || document.name}
+                  {document.is_superseded && (
+                    <Badge variant="outline" className="text-xs">
+                      Superseded
+                    </Badge>
+                  )}
+                </div>
               </TableCell>
               
               <TableCell className="font-mono text-center">

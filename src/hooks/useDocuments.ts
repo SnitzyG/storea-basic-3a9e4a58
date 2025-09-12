@@ -24,6 +24,8 @@ export interface Document {
   is_locked?: boolean;
   locked_by?: string;
   locked_at?: string;
+  superseded_by?: string;
+  is_superseded?: boolean;
 }
 
 export interface DocumentVersion {
@@ -160,6 +162,45 @@ export const useDocuments = (projectId?: string) => {
     }
   };
 
+  const toggleDocumentLock = async (documentId: string) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('User not authenticated');
+
+      const document = documents.find(d => d.id === documentId);
+      if (!document) throw new Error('Document not found');
+
+      const newLockState = !document.is_locked;
+      
+      const updateData = {
+        is_locked: newLockState,
+        locked_by: newLockState ? user.id : null,
+        locked_at: newLockState ? new Date().toISOString() : null
+      };
+
+      const { error } = await supabase
+        .from('documents')
+        .update(updateData)
+        .eq('id', documentId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: `Document ${newLockState ? 'locked' : 'unlocked'} successfully`,
+      });
+
+      await fetchDocuments(projectId);
+    } catch (error) {
+      console.error('Error toggling document lock:', error);
+      toast({
+        title: "Error",
+        description: "Failed to toggle document lock",
+        variant: "destructive",
+      });
+    }
+  };
+
   const uploadDocument = async (
     file: File,
     projectId: string,
@@ -191,6 +232,20 @@ export const useDocuments = (projectId?: string) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
 
+      // Check for existing document with same document number for replacement logic
+      let existingDocument = null;
+      if (metadata?.documentNumber) {
+        const { data: existing } = await supabase
+          .from('documents')
+          .select('*')
+          .eq('project_id', projectId)
+          .eq('document_number', metadata.documentNumber)
+          .eq('is_superseded', false)
+          .single();
+        
+        existingDocument = existing;
+      }
+
       // Generate file path with proper extension handling
       let fileExt = 'bin'; // Default extension
       if (fileName && fileName.includes('.')) {
@@ -217,6 +272,9 @@ export const useDocuments = (projectId?: string) => {
 
       console.log('File uploaded to storage successfully');
 
+      // Determine version number
+      const newVersion = existingDocument ? (existingDocument.version || 1) + 1 : 1;
+
       // Create document record with new fields
       const documentData = {
         project_id: projectId,
@@ -226,12 +284,13 @@ export const useDocuments = (projectId?: string) => {
         file_type: fileType,
         file_size: fileSize,
         file_extension: fileExt,
-        category: 'general',
+        category: getFileTypeCategory(fileExt),
         tags: [],
         uploaded_by: user.id,
         status: metadata?.status || 'For Information' as const,
         document_number: metadata?.documentNumber || null,
-        file_type_category: metadata?.fileType || 'Architectural'
+        file_type_category: metadata?.fileType || 'Architectural',
+        version: newVersion
       };
 
       console.log('Creating document record:', documentData);
@@ -245,6 +304,17 @@ export const useDocuments = (projectId?: string) => {
       if (error) {
         console.error('Database insert error:', error);
         throw error;
+      }
+
+      // If replacing an existing document, mark it as superseded
+      if (existingDocument) {
+        await supabase
+          .from('documents')
+          .update({
+            is_superseded: true,
+            superseded_by: data.id
+          })
+          .eq('id', existingDocument.id);
       }
 
       console.log('Document record created successfully:', data);
@@ -284,6 +354,27 @@ export const useDocuments = (projectId?: string) => {
       });
       return null;
     }
+  };
+
+  const getFileTypeCategory = (fileExtension: string): string => {
+    const ext = fileExtension.toLowerCase();
+    const typeMap: { [key: string]: string } = {
+      'pdf': 'contracts',
+      'doc': 'specifications',
+      'docx': 'specifications',
+      'dwg': 'architectural_drawings',
+      'dxf': 'architectural_drawings',
+      'jpg': 'photographs',
+      'jpeg': 'photographs',
+      'png': 'photographs',
+      'gif': 'photographs',
+      'xlsx': 'reports',
+      'xls': 'reports',
+      'txt': 'correspondence',
+      'zip': 'permits',
+      'rar': 'permits'
+    };
+    return typeMap[ext] || 'general';
   };
 
   const updateDocumentStatus = async (
@@ -570,6 +661,7 @@ export const useDocuments = (projectId?: string) => {
     getDocumentVersions,
     revertToVersion,
     requestApproval,
-    approveDocument
+    approveDocument,
+    toggleDocumentLock
   };
 };

@@ -39,7 +39,8 @@ const Documents = () => {
     updateDocumentStatus,
     updateDocumentType,
     updateDocumentAssignment,
-    requestApproval
+    requestApproval,
+    toggleDocumentLock
   } = useDocuments(selectedProject === 'all' ? undefined : selectedProject);
   const filteredDocuments = useMemo(() => {
     return documents.filter(doc => {
@@ -161,7 +162,7 @@ const Documents = () => {
                 Upload Documents
               </Button>}
           </CardContent>
-        </Card> : <DocumentListView documents={filteredDocuments} onDownload={downloadDocument} onDelete={deleteDocument} onStatusChange={handleStatusChange} onTypeChange={handleTypeChange} onAssignedToChange={handleAssignedToChange} onPreview={setPreviewDocument} onViewDetails={setDetailsDocument} onViewEvents={setEventsDocument} onViewTransmittals={setTransmittalsDocument} canEdit={filteredDocuments.some(doc => canEditDocument(doc))} canApprove={canApproveDocument()} selectedProject={selectedProject} />}
+        </Card> : <DocumentListView documents={filteredDocuments} onDownload={downloadDocument} onDelete={deleteDocument} onStatusChange={handleStatusChange} onTypeChange={handleTypeChange} onAssignedToChange={handleAssignedToChange} onPreview={setPreviewDocument} onViewDetails={setDetailsDocument} onViewEvents={setEventsDocument} onViewTransmittals={setTransmittalsDocument} onToggleLock={toggleDocumentLock} canEdit={filteredDocuments.some(doc => canEditDocument(doc))} canApprove={canApproveDocument()} selectedProject={selectedProject} />}
 
       {/* Document Preview Dialog */}
       {previewDocument && <DocumentPreview document={previewDocument} isOpen={!!previewDocument} onClose={() => setPreviewDocument(null)} onDownload={downloadDocument} />}
