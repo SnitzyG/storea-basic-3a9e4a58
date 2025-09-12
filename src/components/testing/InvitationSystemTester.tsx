@@ -19,6 +19,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { useProjects } from '@/hooks/useProjects';
 import { useProjectTeam } from '@/hooks/useProjectTeam';
+import { ConfirmationWorkflowTester } from './ConfirmationWorkflowTester';
 
 export function InvitationSystemTester() {
   const { user } = useAuth();
@@ -309,6 +310,42 @@ export function InvitationSystemTester() {
           </CardContent>
         </Card>
       )}
+
+      {/* Email Configuration Test */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Mail className="h-5 w-5" />
+            Quick Email Configuration Test
+          </CardTitle>
+          <CardDescription>
+            Test email service without sending actual invitations
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Button 
+            onClick={testEmailConfiguration} 
+            disabled={testing}
+            variant="outline"
+            className="w-full"
+          >
+            Test Email Configuration
+          </Button>
+        </CardContent>
+      </Card>
+
+      {/* Confirmation Workflow Testing */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Confirmation Workflow Testing</CardTitle>
+          <CardDescription>
+            Test the complete invitation acceptance and confirmation flow
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <ConfirmationWorkflowTester />
+        </CardContent>
+      </Card>
     </div>
   );
 }

@@ -183,7 +183,15 @@ const handler = async (req: Request): Promise<Response> => {
               <div style="background: #fff3cd; border: 1px solid #ffeaa7; padding: 15px; border-radius: 8px; margin: 20px 0;">
                 <p style="margin: 0; font-size: 14px; color: #856404;">
                   <strong>⏰ Important:</strong> This invitation will expire in 7 days. 
-                  Don't miss out on being part of this project!
+                  Click the button above or use the link below to accept your invitation and join the team!
+                </p>
+              </div>
+
+              <div style="background: #e7f3ff; border: 1px solid #bee5eb; padding: 15px; border-radius: 8px; margin: 20px 0;">
+                <h4 style="color: #0c5460; margin: 0 0 10px 0; font-size: 16px;">🚀 Ready to get started?</h4>
+                <p style="margin: 0; font-size: 14px; color: #0c5460;">
+                  Once you accept this invitation, you'll have immediate access to collaborate with your team members, 
+                  view project documents, and contribute to project success.
                 </p>
               </div>
 
