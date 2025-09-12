@@ -6,6 +6,8 @@ import { RoleTestingTools } from '@/components/testing/RoleTestingTools';
 import { PerformanceMonitor } from '@/components/testing/PerformanceMonitor';
 import { SecurityTester } from '@/components/testing/SecurityTester';
 import { TabFunctionalityTester } from '@/components/testing/TabFunctionalityTester';
+import { InvitationSystemTester } from '@/components/testing/InvitationSystemTester';
+import { EmailMonitoringDashboard } from '@/components/admin/EmailMonitoringDashboard';
 import { useAuth } from '@/hooks/useAuth';
 import { TestTube, Activity, Shield, CheckCircle, AlertTriangle, Bug } from 'lucide-react';
 
@@ -39,6 +41,20 @@ const Testing = () => {
       name: 'Security Testing',
       description: 'Validate authentication and data protection',
       icon: Shield,
+      status: 'ready'
+    },
+    {
+      id: 'invitations',
+      name: 'Invitation System',
+      description: 'Test team invitation emails and acceptance flow',
+      icon: TestTube,
+      status: 'ready'
+    },
+    {
+      id: 'email-monitoring',
+      name: 'Email Monitor',
+      description: 'Monitor email service health and delivery status',
+      icon: Activity,
       status: 'ready'
     }
   ];
@@ -90,7 +106,7 @@ const Testing = () => {
       </div>
 
       <Tabs defaultValue="functionality" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-6">
           {testingSuites.map((suite) => (
             <TabsTrigger key={suite.id} value={suite.id} className="flex items-center gap-2">
               <suite.icon className="h-4 w-4" />
@@ -113,6 +129,14 @@ const Testing = () => {
 
         <TabsContent value="security" className="space-y-6">
           <SecurityTester />
+        </TabsContent>
+
+        <TabsContent value="invitations" className="space-y-6">
+          <InvitationSystemTester />
+        </TabsContent>
+
+        <TabsContent value="email-monitoring" className="space-y-6">
+          <EmailMonitoringDashboard />
         </TabsContent>
       </Tabs>
 

@@ -275,20 +275,32 @@ export const useProjectTeam = (projectId: string): UseProjectTeamReturn => {
       }
 
       if (data?.error) {
-        // Handle specific errors from the edge function
-        if (data.error.includes('Failed to send invitation email')) {
-          toast({
-            title: "Email could not be sent",
-            description: "Invitation could not be sent. Please try again.",
-            variant: "destructive"
-          });
-        } else {
-          toast({
-            title: "Error",
-            description: data.error,
-            variant: "destructive"
-          });
+        // Enhanced error handling with specific messages based on error type
+        let errorTitle = "Invitation failed";
+        let errorDescription = data.error;
+        
+        if (data.isConfigurationIssue) {
+          errorTitle = "Email service configuration required";
+          errorDescription = "The email service needs to be set up by an administrator. Please contact support.";
+        } else if (data.error.includes('domain') || data.error.includes('verify')) {
+          errorTitle = "Email delivery issue";
+          errorDescription = "Email could not be delivered. Please check the email address or contact support.";
+        } else if (data.error.includes('rate limit')) {
+          errorTitle = "Too many requests";
+          errorDescription = "Please wait a few minutes before sending another invitation.";
+        } else if (data.error.includes('Invalid email')) {
+          errorTitle = "Invalid email address";
+          errorDescription = "Please check the email address format and try again.";
+        } else if (data.error.includes('already')) {
+          errorTitle = "Already invited";
+          errorDescription = "This user has already been invited or is already a team member.";
         }
+
+        toast({
+          title: errorTitle,
+          description: errorDescription,
+          variant: "destructive"
+        });
         return false;
       }
 
