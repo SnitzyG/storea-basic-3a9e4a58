@@ -456,23 +456,36 @@ export const useDocuments = (projectId?: string) => {
     }
   };
 
+  // ✅ BULLETPROOF DOWNLOAD WITH SIGNED URL AND CORRECT FILENAME
   const downloadDocument = async (filePath: string, fileName: string) => {
     try {
+      console.log('[DownloadDocument] Starting download:', { filePath, fileName });
+      
       const { data, error } = await supabase.storage
         .from('documents')
-        .download(filePath);
+        .createSignedUrl(filePath, 60);
 
-      if (error) throw error;
+      if (error) {
+        console.error('[Download Error]', error);
+        throw new Error(`Failed to create download URL: ${error.message}`);
+      }
 
-      // Create download link with original blob and content type
-      const url = window.URL.createObjectURL(data);
+      const response = await fetch(data.signedUrl);
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      
+      // ✅ Ensure correct filename with extension
+      const safeName = fileName.includes('.') ? fileName : `${fileName}.bin`;
+      
       const a = document.createElement('a');
       a.href = url;
-      a.download = fileName; // Use original filename to preserve extension
+      a.download = safeName;
       document.body.appendChild(a);
       a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      a.remove();
+
+      console.log('[DownloadDocument] Download completed:', safeName);
 
       // Log the download activity
       const { data: { user } } = await supabase.auth.getUser();
@@ -491,10 +504,11 @@ export const useDocuments = (projectId?: string) => {
           }]);
       }
     } catch (error) {
-      console.error('Error downloading document:', error);
+      console.error('[DownloadDocument Error]', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown download error';
       toast({
-        title: "Error",
-        description: "Failed to download document",
+        title: "Download Failed",
+        description: errorMessage,
         variant: "destructive",
       });
     }
