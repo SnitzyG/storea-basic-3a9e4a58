@@ -13,7 +13,7 @@ import { format } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
 import { FileTypeIcon } from './FileTypeIcon';
 import { EditDocumentDialog } from './EditDocumentDialog';
-import { getSafeFilename, getFileTypeDisplayName } from '@/utils/documentUtils';
+import { getFileExtension, getSafeFilename } from '@/utils/documentUtils';
 interface DocumentListViewProps {
   documents: Document[];
   onDownload: (filePath: string, fileName: string) => void;
@@ -242,7 +242,7 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
               </TableCell>
               
               <TableCell className="text-xs text-muted-foreground">
-                {getFileTypeDisplayName(document)}
+                {(document.file_extension || getFileExtension(document.name || document.file_path || '')).toUpperCase()}
               </TableCell>
               
               <TableCell>

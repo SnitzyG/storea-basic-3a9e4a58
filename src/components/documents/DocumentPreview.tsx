@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
-import { getFileExtension, canPreviewFile, getSafeFilename } from '@/utils/documentUtils';
+import { getSafeMime, getFileExtension } from '@/utils/documentUtils';
 
 interface DocumentPreviewProps {
   document: {
@@ -70,13 +70,13 @@ export const DocumentPreview: React.FC<DocumentPreviewProps> = ({
   };
 
   const renderPreview = () => {
-    const extension = getDocumentExtension();
-    const isImage = document.file_type.startsWith('image/') || ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'svg'].includes(extension);
-    const isPdf = document.file_type === 'application/pdf' || extension === 'pdf';
-    const isText = document.file_type === 'text/plain' || extension === 'txt' || extension === 'csv';
-
-    // For office documents, try to create preview URL using Google Docs Viewer
-    const isOfficeDoc = ['doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx'].includes(extension);
+    // ✅ BULLETPROOF TYPE DETECTION
+    const type = getSafeMime(document);
+    const ext = getFileExtension(document.name || document.file_path || '');
+    const isImage = type.startsWith('image/');
+    const isPdf = type === 'application/pdf';
+    const isText = type.startsWith('text/') || ['txt','csv'].includes(ext);
+    const isOffice = ['doc','docx','xls','xlsx','ppt','pptx'].includes(ext);
 
     if (isImage) {
       return (
@@ -110,7 +110,7 @@ export const DocumentPreview: React.FC<DocumentPreviewProps> = ({
       );
     }
 
-    if (isOfficeDoc) {
+    if (isOffice) {
       const fileUrl = encodeURIComponent(previewUrl);
       const viewerUrl = `https://docs.google.com/gview?url=${fileUrl}&embedded=true`;
 
@@ -151,11 +151,11 @@ export const DocumentPreview: React.FC<DocumentPreviewProps> = ({
         <Eye className="h-16 w-16 text-muted-foreground mb-4" />
         <h3 className="text-lg font-medium mb-2">Preview not available</h3>
         <p className="text-muted-foreground mb-4">
-          {extension.toUpperCase()} files cannot be previewed in the browser
+          {ext.toUpperCase()} files cannot be previewed in the browser
         </p>
         <Button onClick={() => onDownload(
           document.file_path,
-          document.name && document.name.includes('.') ? document.name : `${document.name || 'document'}.${extension}`
+          document.name && document.name.includes('.') ? document.name : `${document.name || 'document'}.${ext}`
         )}>
           <Download className="h-4 w-4 mr-2" />
           Download to View
@@ -202,7 +202,7 @@ export const DocumentPreview: React.FC<DocumentPreviewProps> = ({
                 size="sm"
                 onClick={() => onDownload(
                   document.file_path,
-                  document.name && document.name.includes('.') ? document.name : `${document.name || 'document'}.${getDocumentExtension()}`
+                  document.name && document.name.includes('.') ? document.name : `${document.name || 'document'}.${getFileExtension(document.name || document.file_path || '')}`
                 )}
               >
                 <Download className="h-4 w-4" />

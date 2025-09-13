@@ -1,123 +1,59 @@
-// Production-grade document utility functions
+// Production-grade document utility functions with bulletproof MIME/extension handling
 
+import mime from 'mime-types';
 import { Document } from '@/hooks/useDocuments';
 
 /**
- * Extract file extension from filename
+ * Extract file extension from filename or path (bulletproof)
  */
-export const getFileExtension = (fileName: string): string => {
-  if (!fileName || !fileName.includes('.')) return '';
-  const parts = fileName.split('.');
-  return parts[parts.length - 1].toLowerCase().trim();
+export const getFileExtension = (nameOrPath: string): string => {
+  if (!nameOrPath) return 'bin';
+  const clean = nameOrPath.split('?')[0].split('#')[0];
+  const parts = clean.split('.');
+  const ext = parts.length > 1 ? parts.pop()!.toLowerCase().trim() : '';
+  return ext || 'bin';
 };
 
 /**
- * Get MIME type from file extension
+ * Get MIME type from file extension using mime-types (bulletproof)
  */
 export const getMimeType = (extension: string): string => {
-  const ext = extension.toLowerCase();
-  
-  const mimeMap: Record<string, string> = {
-    // Images
-    png: 'image/png',
-    jpg: 'image/jpeg',
-    jpeg: 'image/jpeg',
-    gif: 'image/gif',
-    webp: 'image/webp',
-    bmp: 'image/bmp',
-    svg: 'image/svg+xml',
-    tiff: 'image/tiff',
-    tif: 'image/tiff',
-    heic: 'image/heic',
-    heif: 'image/heif',
-    ico: 'image/x-icon',
-    
-    // Documents
-    pdf: 'application/pdf',
-    doc: 'application/msword',
-    docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-    xls: 'application/vnd.ms-excel',
-    xlsx: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-    ppt: 'application/vnd.ms-powerpoint',
-    pptx: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-    odt: 'application/vnd.oasis.opendocument.text',
-    ods: 'application/vnd.oasis.opendocument.spreadsheet',
-    odp: 'application/vnd.oasis.opendocument.presentation',
-    
-    // Text files
-    txt: 'text/plain',
-    csv: 'text/csv',
-    rtf: 'application/rtf',
-    xml: 'application/xml',
-    html: 'text/html',
-    css: 'text/css',
-    js: 'text/javascript',
-    json: 'application/json',
-    
-    // Archives
-    zip: 'application/zip',
-    rar: 'application/vnd.rar',
-    '7z': 'application/x-7z-compressed',
-    tar: 'application/x-tar',
-    gz: 'application/gzip',
-    
-    // CAD/Engineering
-    dwg: 'application/acad',
-    dxf: 'application/dxf',
-    
-    // Audio/Video
-    mp3: 'audio/mpeg',
-    mp4: 'video/mp4',
-    avi: 'video/x-msvideo',
-    mov: 'video/quicktime',
-    wav: 'audio/wav',
-  };
-  
-  return mimeMap[ext] || 'application/octet-stream';
+  const ext = (extension || '').toLowerCase().trim();
+  return (mime.lookup(ext) || 'application/octet-stream') as string;
 };
 
 /**
- * Resolve the best MIME type from File object and extension
+ * Get safe MIME type from document (bulletproof)
  */
-export const resolveMimeType = (file: File): string => {
-  const fileExt = getFileExtension(file.name);
-  const fileMime = file.type?.trim();
-  
-  // If browser provided a specific MIME type that's not generic, use it
-  if (fileMime && 
-      fileMime !== 'application/octet-stream' && 
-      fileMime !== 'binary/octet-stream' && 
-      fileMime !== '' &&
-      !fileMime.includes('application/x-')) {
-    return fileMime;
-  }
-  
-  // Otherwise, resolve from extension
-  return getMimeType(fileExt);
+export const getSafeMime = (doc: { 
+  file_type?: string; 
+  file_extension?: string; 
+  name?: string; 
+  file_path?: string; 
+}): string => {
+  const ext = (doc.file_extension || getFileExtension(doc.name || doc.file_path || '')).toLowerCase();
+  const fromDb = (doc.file_type || '').trim();
+  return fromDb || getMimeType(ext);
 };
 
 /**
- * Get safe filename for downloads
+ * Get safe filename for downloads (bulletproof)
  */
-export const getSafeFilename = (document: Document): string => {
-  // Prefer document.name if it has an extension
+export const getSafeFilename = (document: { 
+  name?: string; 
+  title?: string; 
+  file_extension?: string; 
+}): string => {
+  // Prefer provided name if it has an extension
   if (document.name && document.name.includes('.')) {
     return document.name;
   }
-  
-  // Fallback: combine title/name with extension
-  const baseName = document.title || document.name || 'document';
-  const extension = document.file_extension || getFileExtension(document.file_path || '');
-  
-  if (extension) {
-    // Avoid duplicate extensions
-    if (baseName.toLowerCase().endsWith(`.${extension.toLowerCase()}`)) {
-      return baseName;
-    }
-    return `${baseName}.${extension}`;
-  }
-  
-  return baseName;
+  const base = (document.title || document.name || 'document').trim();
+  const ext = (document.file_extension || '').toLowerCase();
+  if (!ext) return base; // unknown, caller may append .bin
+  // avoid duplicate extensions
+  if (base.toLowerCase().endsWith(`.${ext}`)) return base;
+  return `${base}.${ext}`;
 };
 
 /**

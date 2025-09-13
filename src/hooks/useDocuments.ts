@@ -3,11 +3,12 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { 
   getFileExtension, 
-  resolveMimeType, 
+  getMimeType,
+  getSafeMime,
+  getSafeFilename,
   getFileCategory, 
   generateStorageFilename,
-  getSafeFilename,
-  getFileTypeDisplayName 
+  formatFileSize
 } from '@/utils/documentUtils';
 
 export interface Document {
@@ -265,14 +266,13 @@ export const useDocuments = (projectId?: string) => {
         throw new Error('No project ID provided');
       }
 
-      // Validate file properties
-      const fileName = file.name || 'unnamed-file';
-      const fileType = file.type || 'application/octet-stream';
-      const fileSize = file.size || 0;
+      // ✅ FORCE CORRECT MIME AND EXTENSION (NEVER TRUST BROWSER)
+      const originalName = file.name || 'unnamed.bin';
+      const extension = getFileExtension(originalName);
+      const safeMime = getMimeType(extension);
+      
+      console.log('🔒 Forced MIME/ext:', { originalName, extension, safeMime });
 
-      console.log('Uploading file:', { fileName, fileType, fileSize, projectId });
-
-      // Get current user
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
 
@@ -290,50 +290,16 @@ export const useDocuments = (projectId?: string) => {
         existingDocument = existing;
       }
 
-      // Generate file path with proper extension handling
-      let fileExt = 'bin'; // Default extension
-      if (fileName && fileName.includes('.')) {
-        const parts = fileName.split('.');
-        fileExt = (parts.pop() || 'bin').toLowerCase();
-      }
-      
-      const timestamp = Date.now();
-      const randomId = Math.random().toString(36).substring(2);
-      const generatedFileName = `${timestamp}-${randomId}.${fileExt}`;
-      const filePath = `${projectId}/${generatedFileName}`;
+      const filePath = `${projectId}/${Date.now()}-${Math.random().toString(36).slice(2)}.${extension}`;
 
       console.log('Generated file path:', filePath);
 
-      // Determine correct MIME type (fallback from extension if file.type is missing/generic)
-      const extensionToMime: Record<string, string> = {
-        pdf: 'application/pdf',
-        png: 'image/png',
-        jpg: 'image/jpeg',
-        jpeg: 'image/jpeg',
-        gif: 'image/gif',
-        webp: 'image/webp',
-        bmp: 'image/bmp',
-        svg: 'image/svg+xml',
-        txt: 'text/plain',
-        csv: 'text/csv',
-        doc: 'application/msword',
-        docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-        xls: 'application/vnd.ms-excel',
-        xlsx: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        ppt: 'application/vnd.ms-powerpoint',
-        pptx: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-        zip: 'application/zip',
-        rar: 'application/vnd.rar',
-        sevenz: 'application/x-7z-compressed',
-        heic: 'image/heic',
-      };
-      const isGeneric = !fileType || fileType === 'application/octet-stream' || fileType === 'binary/octet-stream';
-      const resolvedMime = isGeneric ? (extensionToMime[fileExt] || 'application/octet-stream') : fileType;
+      // MIME type already forced via getMimeType(extension)
 
-      // Upload file to storage with correct contentType
+      // ✅ UPLOAD WITH FORCED CONTENT-TYPE
       const { error: uploadError } = await supabase.storage
         .from('documents')
-        .upload(filePath, file, { contentType: resolvedMime });
+        .upload(filePath, file, { contentType: safeMime, cacheControl: '3600' });
 
       if (uploadError) {
         console.error('Storage upload error:', uploadError);
@@ -354,7 +320,7 @@ export const useDocuments = (projectId?: string) => {
         file_type: resolvedMime,
         file_size: fileSize,
         file_extension: fileExt,
-        category: getFileCategory(fileExt),
+        category: getFileCategory(extension),
         tags: [],
         uploaded_by: user.id,
         status: metadata?.status || 'For Information' as const,
