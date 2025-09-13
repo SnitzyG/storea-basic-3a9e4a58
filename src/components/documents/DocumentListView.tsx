@@ -182,8 +182,8 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
             <TableHead className="w-32">Created By</TableHead>
             <TableHead className="w-32">File Type</TableHead>
             <TableHead className="w-32">Accessibility</TableHead>
-            <TableHead className="w-16">Activity</TableHead>
-            <TableHead className="w-16">History</TableHead>
+            <TableHead className="w-16">👁️ Preview</TableHead>
+            <TableHead className="w-16">📋 History</TableHead>
             <TableHead className="w-12">Actions</TableHead>
           </TableRow>
         </TableHeader>
@@ -241,7 +241,7 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
               </TableCell>
               
               <TableCell className="text-xs text-muted-foreground">
-                {document.file_extension?.toUpperCase() || 'N/A'}
+                {document.file_extension?.toUpperCase() || document.file_type?.split('/')[1]?.toUpperCase() || 'N/A'}
               </TableCell>
               
               <TableCell>
@@ -251,14 +251,14 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
               </TableCell>
               
               <TableCell>
-                <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={() => onViewActivity?.(document)}>
-                  <Settings className="h-3 w-3" />
+                <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={() => onPreview?.(document)}>
+                  <Eye className="h-3 w-3" />
                 </Button>
               </TableCell>
 
               <TableCell>
                 <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={() => onViewDetails?.(document)}>
-                  <Eye className="h-3 w-3" />
+                  <Settings className="h-3 w-3" />
                 </Button>
               </TableCell>
               

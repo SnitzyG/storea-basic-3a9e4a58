@@ -14,6 +14,7 @@ import { DocumentPreview } from '@/components/documents/DocumentPreview';
 import { DocumentDetailsDialog } from '@/components/documents/DocumentDetailsDialog';
 import { DocumentFilters } from '@/components/documents/DocumentFilters';
 import { DocumentListView } from '@/components/documents/DocumentListView';
+import { DocumentActivity } from '@/components/documents/DocumentActivity';
 const Documents = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedProject, setSelectedProject] = useState<string>('all');
@@ -22,8 +23,7 @@ const Documents = () => {
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
   const [previewDocument, setPreviewDocument] = useState<Document | null>(null);
   const [detailsDocument, setDetailsDocument] = useState<Document | null>(null);
-  const [eventsDocument, setEventsDocument] = useState<Document | null>(null);
-  const [transmittalsDocument, setTransmittalsDocument] = useState<Document | null>(null);
+  const [activityDocument, setActivityDocument] = useState<Document | null>(null);
   const {
     profile
   } = useAuth();
@@ -162,7 +162,7 @@ const Documents = () => {
                 Upload Documents
               </Button>}
           </CardContent>
-        </Card> : <DocumentListView documents={filteredDocuments} onDownload={downloadDocument} onDelete={deleteDocument} onStatusChange={handleStatusChange} onTypeChange={handleTypeChange} onAccessibilityChange={async (docId: string, accessibility: string) => {}} onPreview={setPreviewDocument} onViewDetails={setDetailsDocument} onViewActivity={setEventsDocument} onToggleLock={toggleDocumentLock} canEdit={filteredDocuments.some(doc => canEditDocument(doc))} canApprove={canApproveDocument()} selectedProject={selectedProject} />}
+        </Card> : <DocumentListView documents={filteredDocuments} onDownload={downloadDocument} onDelete={deleteDocument} onStatusChange={handleStatusChange} onTypeChange={handleTypeChange} onAccessibilityChange={async (docId: string, accessibility: string) => {}} onPreview={setPreviewDocument} onViewDetails={setDetailsDocument} onViewActivity={setActivityDocument} onToggleLock={toggleDocumentLock} canEdit={filteredDocuments.some(doc => canEditDocument(doc))} canApprove={canApproveDocument()} selectedProject={selectedProject} />}
 
       {/* Document Preview Dialog */}
       {previewDocument && <DocumentPreview document={previewDocument} isOpen={!!previewDocument} onClose={() => setPreviewDocument(null)} onDownload={downloadDocument} />}
@@ -170,8 +170,17 @@ const Documents = () => {
       {/* Document Details Dialog */}
       <DocumentDetailsDialog document={detailsDocument} isOpen={!!detailsDocument} onClose={() => setDetailsDocument(null)} />
 
-      {/* TODO: Add Event History Dialog */}
-      {/* TODO: Add Transmittal History Dialog */}
+      {/* Document Activity Dialog */}
+      {activityDocument && (
+        <Dialog open={!!activityDocument} onOpenChange={() => setActivityDocument(null)}>
+          <DialogContent className="max-w-4xl max-h-[80vh]">
+            <DialogHeader>
+              <DialogTitle>Document Activity - {activityDocument.title || activityDocument.name}</DialogTitle>
+            </DialogHeader>
+            <DocumentActivity document={activityDocument} />
+          </DialogContent>
+        </Dialog>
+      )}
     </div>;
 };
 export default Documents;
