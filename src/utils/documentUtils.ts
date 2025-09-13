@@ -19,7 +19,9 @@ export const getFileExtension = (nameOrPath: string): string => {
  */
 export const getMimeType = (extension: string): string => {
   const ext = (extension || '').toLowerCase().trim();
-  return (mime.lookup(ext) || 'application/octet-stream') as string;
+  // mime.lookup expects a filename, so we create a dummy filename with the extension
+  const dummyFilename = `file.${ext}`;
+  return (mime.lookup(dummyFilename) || 'application/octet-stream') as string;
 };
 
 /**
