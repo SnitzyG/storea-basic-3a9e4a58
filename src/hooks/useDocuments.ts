@@ -114,13 +114,39 @@ export const useDocuments = (projectId?: string) => {
       const nextVersion = (currentDoc.version || 1) + 1;
 
       // Upload new version file
-      const fileExt = file.name.split('.').pop();
+      const fileExt = (file.name.split('.').pop() || 'bin').toLowerCase();
       const fileName = `${Date.now()}-v${nextVersion}.${fileExt}`;
       const filePath = `${currentDoc.project_id}/versions/${fileName}`;
 
+      // Resolve MIME type for the new version
+      const extensionToMime: Record<string, string> = {
+        pdf: 'application/pdf',
+        png: 'image/png',
+        jpg: 'image/jpeg',
+        jpeg: 'image/jpeg',
+        gif: 'image/gif',
+        webp: 'image/webp',
+        bmp: 'image/bmp',
+        svg: 'image/svg+xml',
+        txt: 'text/plain',
+        csv: 'text/csv',
+        doc: 'application/msword',
+        docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        xls: 'application/vnd.ms-excel',
+        xlsx: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        ppt: 'application/vnd.ms-powerpoint',
+        pptx: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+        zip: 'application/zip',
+        rar: 'application/vnd.rar',
+        sevenz: 'application/x-7z-compressed',
+        heic: 'image/heic',
+      };
+      const isGeneric = !file.type || file.type === 'application/octet-stream' || file.type === 'binary/octet-stream';
+      const resolvedMime = isGeneric ? (extensionToMime[fileExt] || 'application/octet-stream') : file.type;
+
       const { error: uploadError } = await supabase.storage
         .from('documents')
-        .upload(filePath, file);
+        .upload(filePath, file, { contentType: resolvedMime });
 
       if (uploadError) throw uploadError;
 
@@ -139,12 +165,14 @@ export const useDocuments = (projectId?: string) => {
 
       if (versionError) throw versionError;
 
-      // Update document's current version and file path
+      // Update document's current version and file metadata
       const { error: updateError } = await supabase
         .from('documents')
         .update({
           version: nextVersion,
           file_path: filePath,
+          file_type: resolvedMime,
+          file_extension: fileExt,
           updated_at: new Date().toISOString()
         })
         .eq('id', documentId);
@@ -258,7 +286,7 @@ export const useDocuments = (projectId?: string) => {
       let fileExt = 'bin'; // Default extension
       if (fileName && fileName.includes('.')) {
         const parts = fileName.split('.');
-        fileExt = parts.pop() || 'bin';
+        fileExt = (parts.pop() || 'bin').toLowerCase();
       }
       
       const timestamp = Date.now();
@@ -268,10 +296,36 @@ export const useDocuments = (projectId?: string) => {
 
       console.log('Generated file path:', filePath);
 
-      // Upload file to storage
+      // Determine correct MIME type (fallback from extension if file.type is missing/generic)
+      const extensionToMime: Record<string, string> = {
+        pdf: 'application/pdf',
+        png: 'image/png',
+        jpg: 'image/jpeg',
+        jpeg: 'image/jpeg',
+        gif: 'image/gif',
+        webp: 'image/webp',
+        bmp: 'image/bmp',
+        svg: 'image/svg+xml',
+        txt: 'text/plain',
+        csv: 'text/csv',
+        doc: 'application/msword',
+        docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        xls: 'application/vnd.ms-excel',
+        xlsx: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        ppt: 'application/vnd.ms-powerpoint',
+        pptx: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+        zip: 'application/zip',
+        rar: 'application/vnd.rar',
+        sevenz: 'application/x-7z-compressed',
+        heic: 'image/heic',
+      };
+      const isGeneric = !fileType || fileType === 'application/octet-stream' || fileType === 'binary/octet-stream';
+      const resolvedMime = isGeneric ? (extensionToMime[fileExt] || 'application/octet-stream') : fileType;
+
+      // Upload file to storage with correct contentType
       const { error: uploadError } = await supabase.storage
         .from('documents')
-        .upload(filePath, file);
+        .upload(filePath, file, { contentType: resolvedMime });
 
       if (uploadError) {
         console.error('Storage upload error:', uploadError);
@@ -289,7 +343,7 @@ export const useDocuments = (projectId?: string) => {
         name: name || fileName,
         title: name || fileName,
         file_path: filePath,
-        file_type: fileType,
+        file_type: resolvedMime,
         file_size: fileSize,
         file_extension: fileExt,
         category: getFileTypeCategory(fileExt),

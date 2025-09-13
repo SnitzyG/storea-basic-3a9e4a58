@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Eye, Download, X, ZoomIn, ZoomOut, RotateCw, Maximize } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -46,11 +46,12 @@ export const DocumentPreview: React.FC<DocumentPreviewProps> = ({
       'image/gif',
       'image/bmp',
       'image/webp',
+      'image/svg+xml',
       'text/plain'
     ];
     
     const previewableExtensions = [
-      'pdf', 'jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'txt'
+      'pdf', 'jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'svg', 'txt'
     ];
     
     return previewableTypes.includes(fileType) || previewableExtensions.includes(extension);
@@ -58,9 +59,9 @@ export const DocumentPreview: React.FC<DocumentPreviewProps> = ({
 
   const renderPreview = () => {
     const extension = getFileExtension(document.name);
-    const isImage = document.file_type.startsWith('image/') || ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'].includes(extension);
+    const isImage = document.file_type.startsWith('image/') || ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'svg'].includes(extension);
     const isPdf = document.file_type === 'application/pdf' || extension === 'pdf';
-    const isText = document.file_type === 'text/plain' || extension === 'txt';
+    const isText = document.file_type === 'text/plain' || extension === 'txt' || extension === 'csv';
 
     // For office documents, try to create preview URL using Google Docs Viewer
     const isOfficeDoc = ['doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx'].includes(extension);

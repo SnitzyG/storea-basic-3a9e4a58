@@ -183,7 +183,7 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
             <TableHead className="w-32">File Type</TableHead>
             <TableHead className="w-32">Accessibility</TableHead>
             <TableHead className="w-16">👁️ Preview</TableHead>
-            <TableHead className="w-16">📋 History</TableHead>
+            <TableHead className="w-16">🕘 History</TableHead>
             <TableHead className="w-12">Actions</TableHead>
           </TableRow>
         </TableHeader>
@@ -241,7 +241,12 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
               </TableCell>
               
               <TableCell className="text-xs text-muted-foreground">
-                {document.file_extension?.toUpperCase() || document.file_type?.split('/')[1]?.toUpperCase() || 'N/A'}
+                {(document.file_extension?.toUpperCase()
+                  || document.name?.split('.').pop()?.toUpperCase()
+                  || ((document.file_type?.split('/')[1]?.split('+')[0]?.toUpperCase() !== 'OCTET-STREAM' && document.file_type?.split('/')[1]?.split('+')[0]?.toUpperCase() !== 'BINARY')
+                        ? document.file_type?.split('/')[1]?.split('+')[0]?.toUpperCase()
+                        : '')
+                  || 'N/A')}
               </TableCell>
               
               <TableCell>
