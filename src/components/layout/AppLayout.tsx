@@ -31,8 +31,24 @@ export const AppLayout = ({
     return <Navigate to="/auth" replace />;
   }
 
-  // If user exists but no profile, show profile setup
-  if (!profile) {
+  // Check if profile setup should be shown for new users or missing critical fields
+  const shouldShowProfileSetup = () => {
+    if (!profile) return true;
+    
+    // Check if user is new (created within last 7 days)
+    const userCreatedAt = new Date(user.created_at || '');
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    const isNewUser = userCreatedAt > sevenDaysAgo;
+    
+    // Check if critical fields are missing
+    const hasCriticalFields = profile.name && profile.role;
+    
+    return isNewUser && !hasCriticalFields;
+  };
+
+  // If user exists but profile setup is needed, show profile setup
+  if (shouldShowProfileSetup()) {
     return <ProfileSetup onComplete={() => window.location.reload()} />;
   }
   return <div className="min-h-screen bg-background flex">
