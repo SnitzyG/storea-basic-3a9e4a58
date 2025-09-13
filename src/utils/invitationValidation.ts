@@ -79,10 +79,11 @@ export const validateInvitationRequest = async (
 
     // Check for pending invitations
     const { data: existingInvitation } = await supabase
-      .from('project_pending_invitations')
+      .from('invitations')
       .select('id, role, created_at')
       .eq('project_id', projectId)
       .eq('email', email)
+      .eq('status', 'pending')
       .gt('expires_at', new Date().toISOString())
       .single();
 

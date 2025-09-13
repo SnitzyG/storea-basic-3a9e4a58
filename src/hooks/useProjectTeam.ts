@@ -125,9 +125,10 @@ export const useProjectTeam = (projectId: string): UseProjectTeamReturn => {
       
       // Also fetch pending invitations to show invited users
       const { data: pendingInvitations } = await supabase
-        .from('project_pending_invitations')
-        .select('email, role, created_at, invited_by')
+        .from('invitations')
+        .select('email, role, created_at, inviter_id')
         .eq('project_id', projectId)
+        .eq('status', 'pending')
         .gt('expires_at', new Date().toISOString());
       
       if (pendingInvitations && pendingInvitations.length > 0) {
@@ -241,10 +242,11 @@ export const useProjectTeam = (projectId: string): UseProjectTeamReturn => {
 
       // Check for existing pending invitation
       const { data: existingInvitation } = await supabase
-        .from('project_pending_invitations')
+        .from('invitations')
         .select('id')
         .eq('project_id', projectId)
         .eq('email', email)
+        .eq('status', 'pending')
         .single();
 
       if (existingInvitation) {

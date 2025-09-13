@@ -68,13 +68,13 @@ export function ConfirmationWorkflowTester() {
       
       // Create a mock invitation record
       const { error: invitationError } = await supabase
-        .from('project_pending_invitations')
+        .from('invitations')
         .insert({
           project_id: testProjectId,
           email: testEmail,
           role: 'contractor',
-          invited_by: (await supabase.auth.getUser()).data.user?.id,
-          invitation_token: invitationToken,
+          inviter_id: (await supabase.auth.getUser()).data.user?.id,
+          token: invitationToken,
           expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
         });
 
@@ -99,9 +99,9 @@ export function ConfirmationWorkflowTester() {
       try {
         // Verify the invitation can be fetched
         const { data: invitationData, error: fetchError } = await supabase
-          .from('project_pending_invitations')
+          .from('invitations')
           .select('id, email, role, expires_at')
-          .eq('invitation_token', invitationToken)
+          .eq('token', invitationToken)
           .single();
 
         if (fetchError || !invitationData) {
@@ -133,9 +133,9 @@ export function ConfirmationWorkflowTester() {
       
       // Get the invitation data again for expiration check
       const { data: expirationData } = await supabase
-        .from('project_pending_invitations')
+        .from('invitations')
         .select('expires_at')
-        .eq('invitation_token', invitationToken)
+        .eq('token', invitationToken)
         .single();
       
       if (expirationData) {
@@ -155,9 +155,9 @@ export function ConfirmationWorkflowTester() {
       addTestResult('Cleanup', 'pending', 'Cleaning up test data...');
       
       const { error: cleanupError } = await supabase
-        .from('project_pending_invitations')
+        .from('invitations')
         .delete()
-        .eq('invitation_token', invitationToken);
+        .eq('token', invitationToken);
       
       if (cleanupError) {
         addTestResult('Cleanup', 'warning', 'Failed to cleanup test data - may need manual cleanup');

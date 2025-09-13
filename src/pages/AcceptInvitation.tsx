@@ -74,9 +74,8 @@ const AcceptInvitation = () => {
         .insert({
           project_id: invite.project_id,
           user_id: user.id,
-          role: invite.role,
-          invited_by: invite.inviter_id,
-          joined_at: new Date().toISOString()
+          role: invite.role as 'architect' | 'builder' | 'homeowner' | 'contractor',
+          invited_by: invite.inviter_id
         })
 
       if (memberError) {

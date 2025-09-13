@@ -6,9 +6,11 @@ export interface PendingInvitation {
   email: string;
   role: string;
   created_at: string;
-  invited_by: string;
+  inviter_id: string;
   expires_at: string;
   project_id: string;
+  status: string;
+  token: string;
 }
 
 interface UsePendingInvitationsReturn {
@@ -35,9 +37,10 @@ export const usePendingInvitations = (projectId: string): UsePendingInvitationsR
       setError(null);
 
       const { data, error: fetchError } = await supabase
-        .from('project_pending_invitations')
+        .from('invitations')
         .select('*')
         .eq('project_id', projectId)
+        .eq('status', 'pending')
         .gt('expires_at', new Date().toISOString())
         .order('created_at', { ascending: false });
 
@@ -71,7 +74,7 @@ export const usePendingInvitations = (projectId: string): UsePendingInvitationsR
         {
           event: '*',
           schema: 'public',
-          table: 'project_pending_invitations',
+          table: 'invitations',
           filter: `project_id=eq.${projectId}`
         },
         (payload) => {

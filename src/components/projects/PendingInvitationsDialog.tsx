@@ -24,8 +24,8 @@ export function PendingInvitationsDialog({ projectId, open, onOpenChange }: Pend
     setActionLoading(invitationId);
     try {
       const { error } = await supabase
-        .from('project_pending_invitations')
-        .delete()
+        .from('invitations')
+        .update({ status: 'cancelled' })
         .eq('id', invitationId);
 
       if (error) throw error;

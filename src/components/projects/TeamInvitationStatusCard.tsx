@@ -14,7 +14,10 @@ interface PendingInvitation {
   role: string;
   created_at: string;
   expires_at: string;
-  invited_by: string;
+  inviter_id: string;
+  status: string;
+  token: string;
+  project_id: string;
 }
 
 interface TeamInvitationStatusCardProps {
@@ -106,7 +109,7 @@ export function TeamInvitationStatusCard({ projectId, onInvitationUpdate }: Team
       const { data: inviter } = await supabase
         .from('profiles')
         .select('name, full_name')
-        .eq('user_id', invitation.invited_by)
+        .eq('user_id', invitation.inviter_id)
         .single();
 
       const inviterName = inviter?.name || inviter?.full_name || 'Someone';

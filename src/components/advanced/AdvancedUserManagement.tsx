@@ -43,10 +43,11 @@ interface PendingInvitation {
   id: string;
   email: string;
   role: string;
-  invited_by: string;
+  inviter_id: string;
   created_at: string;
   expires_at: string;
-  invitation_token: string;
+  token: string;
+  status: string;
 }
 
 interface BulkInviteData {
@@ -99,9 +100,10 @@ export const AdvancedUserManagement = ({ projectId }: { projectId: string }) => 
 
       // Load pending invitations
       const { data: invitations, error: invitationsError } = await supabase
-        .from('project_pending_invitations')
+        .from('invitations')
         .select('*')
         .eq('project_id', projectId)
+        .eq('status', 'pending')
         .gt('expires_at', new Date().toISOString());
 
       if (invitationsError) throw invitationsError;
@@ -249,8 +251,8 @@ export const AdvancedUserManagement = ({ projectId }: { projectId: string }) => 
   const cancelInvitation = async (invitationId: string) => {
     try {
       const { error } = await supabase
-        .from('project_pending_invitations')
-        .delete()
+        .from('invitations')
+        .update({ status: 'cancelled' })
         .eq('id', invitationId);
 
       if (error) throw error;

@@ -53,14 +53,14 @@ export function EmailMonitoringDashboard() {
       
       // Get basic stats
       const { data: pending, error: pendingError } = await supabase
-        .from('project_pending_invitations')
+        .from('invitations')
         .select('id, expires_at')
         .gt('expires_at', new Date().toISOString());
 
       if (pendingError) throw pendingError;
 
       const { data: expired, error: expiredError } = await supabase
-        .from('project_pending_invitations')
+        .from('invitations')
         .select('id')
         .lt('expires_at', new Date().toISOString());
 
@@ -70,7 +70,7 @@ export function EmailMonitoringDashboard() {
       const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
       
       const { data: recentInvitations, error: recentError } = await supabase
-        .from('project_pending_invitations')
+        .from('invitations')
         .select('id')
         .gte('created_at', yesterday);
 
@@ -85,14 +85,14 @@ export function EmailMonitoringDashboard() {
 
       // Fetch detailed pending invitations
       const { data: detailedPending, error: detailedError } = await supabase
-        .from('project_pending_invitations')
+        .from('invitations')
         .select(`
           id,
           email,
           role,
           created_at,
           expires_at,
-          invited_by,
+          inviter_id,
           project_id,
           projects:project_id (name)
         `)
@@ -103,7 +103,7 @@ export function EmailMonitoringDashboard() {
       if (detailedError) throw detailedError;
 
       // Get inviter profiles separately
-      const inviterIds = detailedPending?.map(inv => inv.invited_by) || [];
+      const inviterIds = detailedPending?.map(inv => inv.inviter_id) || [];
       const { data: inviterProfiles } = await supabase
         .from('profiles')
         .select('user_id, name, full_name')
@@ -112,7 +112,8 @@ export function EmailMonitoringDashboard() {
       // Combine the data
       const enrichedInvitations = (detailedPending || []).map(invitation => ({
         ...invitation,
-        inviter_profile: inviterProfiles?.find(profile => profile.user_id === invitation.invited_by)
+        invited_by: invitation.inviter_id, // For compatibility
+        inviter_profile: inviterProfiles?.find(profile => profile.user_id === invitation.inviter_id)
       }));
 
       setPendingInvitations(enrichedInvitations);
