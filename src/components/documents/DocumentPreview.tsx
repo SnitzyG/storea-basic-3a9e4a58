@@ -65,21 +65,19 @@ export const DocumentPreview: React.FC<DocumentPreviewProps> = ({
     // For office documents, try to create preview URL using Google Docs Viewer
     const isOfficeDoc = ['doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx'].includes(extension);
     
+    // Get Supabase storage URL for the document
+    const documentUrl = `https://inibugusrzfihldvegrb.supabase.co/storage/v1/object/public/documents/${document.file_path}`;
+    
     if (isImage) {
       return (
         <div className="flex justify-center items-center h-full bg-muted/20 rounded-lg">
           <img
-            src={`/api/documents/preview/${document.file_path}`}
+            src={documentUrl}
             alt={document.name}
             className="max-w-full max-h-full object-contain"
             style={{
               transform: `scale(${zoom / 100}) rotate(${rotation}deg)`,
               transition: 'transform 0.2s ease'
-            }}
-            onError={(e) => {
-              // If direct preview fails, try Supabase storage URL
-              const target = e.target as HTMLImageElement;
-              target.src = `https://inibugusrzfihldvegrb.supabase.co/storage/v1/object/public/documents/${document.file_path}`;
             }}
           />
         </div>
@@ -87,11 +85,10 @@ export const DocumentPreview: React.FC<DocumentPreviewProps> = ({
     }
 
     if (isPdf) {
-      const pdfUrl = `https://inibugusrzfihldvegrb.supabase.co/storage/v1/object/public/documents/${document.file_path}`;
       return (
         <div className="flex justify-center items-center h-full bg-muted/20 rounded-lg">
           <iframe
-            src={pdfUrl}
+            src={documentUrl}
             className="w-full h-full border-0 rounded-lg"
             style={{
               transform: `scale(${zoom / 100})`,
@@ -104,7 +101,7 @@ export const DocumentPreview: React.FC<DocumentPreviewProps> = ({
     }
 
     if (isOfficeDoc) {
-      const fileUrl = encodeURIComponent(`https://inibugusrzfihldvegrb.supabase.co/storage/v1/object/public/documents/${document.file_path}`);
+      const fileUrl = encodeURIComponent(documentUrl);
       const viewerUrl = `https://docs.google.com/gview?url=${fileUrl}&embedded=true`;
       
       return (
@@ -126,7 +123,7 @@ export const DocumentPreview: React.FC<DocumentPreviewProps> = ({
       return (
         <div className="flex justify-center items-center h-full bg-muted/20 rounded-lg">
           <iframe
-            src={`https://inibugusrzfihldvegrb.supabase.co/storage/v1/object/public/documents/${document.file_path}`}
+            src={documentUrl}
             className="w-full h-full border-0 rounded-lg bg-white p-4"
             style={{
               transform: `scale(${zoom / 100})`,

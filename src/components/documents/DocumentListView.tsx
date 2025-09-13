@@ -178,13 +178,12 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
             <TableHead className="w-16">Rev</TableHead>
             <TableHead className="w-24">Status</TableHead>
             <TableHead className="w-24">Created</TableHead>
+            <TableHead className="w-24">Updated</TableHead>
             <TableHead className="w-32">Created By</TableHead>
             <TableHead className="w-32">File Type</TableHead>
-            <TableHead className="w-32">Assigned To</TableHead>
-            <TableHead className="w-16">Accessibility</TableHead>
+            <TableHead className="w-32">Accessibility</TableHead>
+            <TableHead className="w-16">Activity</TableHead>
             <TableHead className="w-16">History</TableHead>
-            
-            
             <TableHead className="w-12">Actions</TableHead>
           </TableRow>
         </TableHeader>
@@ -241,41 +240,25 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
                 {userNames[document.uploaded_by] || 'Loading...'}
               </TableCell>
               
-              <TableCell>
-                <Select value={document.category || 'general'} onValueChange={value => onTypeChange?.(document.id, value)} disabled={!canEdit || document.is_locked}>
-                  <SelectTrigger className="h-7 text-xs">
-                    <SelectValue placeholder="Select Type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {typeOptions.map(option => <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </SelectItem>)}
-                  </SelectContent>
-                </Select>
+              <TableCell className="text-xs text-muted-foreground">
+                {document.file_extension?.toUpperCase() || 'N/A'}
               </TableCell>
               
               <TableCell>
-                <Select value={document.visibility_scope === 'private' ? 'private' : 'public'} onValueChange={value => onAccessibilityChange?.(document.id, value)} disabled={!canEdit || document.is_locked}>
-                  <SelectTrigger className="h-7 text-xs">
-                    <SelectValue placeholder="Select Accessibility" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {accessibilityOptions.map(option => <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </TableCell>
-              
-              <TableCell>
-                <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={() => onPreview?.(document)}>
-                  <Eye className="h-3 w-3" />
-                </Button>
+                <Badge variant={document.visibility_scope === 'private' ? 'secondary' : 'outline'} className="text-xs">
+                  {document.visibility_scope === 'private' ? 'Private' : 'Public'}
+                </Badge>
               </TableCell>
               
               <TableCell>
                 <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={() => onViewActivity?.(document)}>
                   <Settings className="h-3 w-3" />
+                </Button>
+              </TableCell>
+
+              <TableCell>
+                <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={() => onViewDetails?.(document)}>
+                  <Eye className="h-3 w-3" />
                 </Button>
               </TableCell>
               

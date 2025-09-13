@@ -137,7 +137,8 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
           {
             documentNumber: file.documentNumber,
             status: file.documentStatus!,
-            fileType: file.fileType!
+            fileType: file.fileType!,
+            isPrivate: file.isPrivate
           }
         );
 

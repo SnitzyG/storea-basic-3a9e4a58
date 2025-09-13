@@ -31,10 +31,11 @@ export const DocumentVersionHistory: React.FC<DocumentVersionHistoryProps> = ({
   };
 
   const getVersionLabel = (version: DocumentVersion) => {
+    const revisionLetter = String.fromCharCode(64 + version.version_number); // A, B, C, etc.
     if (version.version_number === currentVersion) {
-      return 'Current';
+      return `${revisionLetter} (Current)`;
     }
-    return `v${version.version_number}`;
+    return revisionLetter;
   };
 
   return (
@@ -75,7 +76,7 @@ export const DocumentVersionHistory: React.FC<DocumentVersionHistoryProps> = ({
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => onDownloadVersion(version.file_path, `v${version.version_number}.pdf`)}
+                          onClick={() => onDownloadVersion(version.file_path, `${String.fromCharCode(64 + version.version_number)}-document.pdf`)}
                         >
                           <Download className="h-4 w-4" />
                         </Button>

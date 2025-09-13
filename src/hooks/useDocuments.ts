@@ -73,7 +73,13 @@ export const useDocuments = (projectId?: string) => {
         throw error;
       }
       
-      setDocuments(data || []);
+      // Filter out private documents that don't belong to the current user
+      const { data: { user } } = await supabase.auth.getUser();
+      const filteredData = data?.filter(doc => 
+        doc.visibility_scope !== 'private' || doc.uploaded_by === user?.id
+      ) || [];
+      
+      setDocuments(filteredData);
     } catch (error: any) {
       console.error('Error fetching documents:', error);
       toast({
@@ -210,6 +216,7 @@ export const useDocuments = (projectId?: string) => {
       documentNumber?: string;
       status: 'For Tender' | 'For Information' | 'For Construction';
       fileType: string;
+      isPrivate?: boolean;
     }
   ): Promise<Document | null> => {
     try {
@@ -291,7 +298,8 @@ export const useDocuments = (projectId?: string) => {
         status: metadata?.status || 'For Information' as const,
         document_number: metadata?.documentNumber || null,
         file_type_category: metadata?.fileType || 'Architectural',
-        version: newVersion
+        version: newVersion,
+        visibility_scope: metadata?.isPrivate ? 'private' : 'project'
       };
 
       console.log('Creating document record:', documentData);
@@ -447,16 +455,11 @@ export const useDocuments = (projectId?: string) => {
 
       if (error) throw error;
 
-      // Get the file extension from the original filename to preserve it
-      const fileExtension = fileName.split('.').pop();
-      const downloadFileName = fileExtension ? fileName : `${fileName}.bin`;
-
-      // Create download link with proper MIME type
-      const blob = new Blob([data], { type: data.type || 'application/octet-stream' });
-      const url = window.URL.createObjectURL(blob);
+      // Create download link with original blob and content type
+      const url = window.URL.createObjectURL(data);
       const a = document.createElement('a');
       a.href = url;
-      a.download = downloadFileName;
+      a.download = fileName; // Use original filename to preserve extension
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
