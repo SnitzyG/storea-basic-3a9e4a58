@@ -311,15 +311,14 @@ export const useDocuments = (projectId?: string) => {
       // Determine version number
       const newVersion = existingDocument ? (existingDocument.version || 1) + 1 : 1;
 
-      // Create document record with new fields
       const documentData = {
         project_id: projectId,
-        name: name || fileName,
-        title: name || fileName,
+        name: originalName,
+        title: name || originalName.replace(/\.[^/.]+$/, ''),
         file_path: filePath,
-        file_type: resolvedMime,
-        file_size: fileSize,
-        file_extension: fileExt,
+        file_type: safeMime,
+        file_size: file.size,
+        file_extension: extension,
         category: getFileCategory(extension),
         tags: [],
         uploaded_by: user.id,
@@ -365,10 +364,10 @@ export const useDocuments = (projectId?: string) => {
           entity_type: 'document',
           entity_id: data.id,
           action: 'uploaded',
-          description: `Uploaded document: "${name || fileName}"`,
+          description: `Uploaded document: "${originalName}"`,
           metadata: { 
-            file_type: fileType,
-            file_size: fileSize,
+            file_type: safeMime,
+            file_size: file.size,
             category: 'general',
             status: metadata?.status,
             document_number: metadata?.documentNumber
