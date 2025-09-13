@@ -74,7 +74,7 @@ serve(async (req) => {
       .eq('project_id', projectId)
       .eq('email', email)
       .eq('status', 'pending')
-      .single()
+      .maybeSingle()
 
     if (existingInvite) throw new Error('Invitation already sent to this email')
 
@@ -104,7 +104,7 @@ serve(async (req) => {
     const resendApiKey = Deno.env.get('RESEND_API_KEY')
     if (!resendApiKey) throw new Error('Resend API key not configured')
 
-    const appUrl = 'https://bd2e83dc-1d1d-4a73-96c2-6279990f514d.sandbox.lovable.dev'
+    const appUrl = Deno.env.get('SITE_URL') || 'https://bd2e83dc-1d1d-4a73-96c2-6279990f514d.sandbox.lovable.dev'
     
     const emailResponse = await fetch('https://api.resend.com/emails', {
       method: 'POST',
@@ -113,7 +113,7 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        from: 'onboarding@resend.dev',
+        from: 'Team Invitations <onboarding@resend.dev>',
         to: [email],
         subject: `You've been invited to join ${project.name}`,
         html: `

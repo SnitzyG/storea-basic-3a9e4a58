@@ -432,11 +432,11 @@ export const useProjectTeam = (projectId: string): UseProjectTeamReturn => {
         {
           event: '*',
           schema: 'public',
-          table: 'project_pending_invitations',
+          table: 'invitations',
           filter: `project_id=eq.${projectId}`
         },
         (payload) => {
-          console.log('Pending invitations change detected:', payload);
+          console.log('Invitations change detected:', payload);
           fetchTeamMembers();
         }
       )
