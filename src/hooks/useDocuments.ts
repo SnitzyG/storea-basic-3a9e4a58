@@ -299,7 +299,7 @@ export const useDocuments = (projectId?: string) => {
       // ✅ UPLOAD WITH FORCED CONTENT-TYPE
       const { error: uploadError } = await supabase.storage
         .from('documents')
-        .upload(filePath, file, { contentType: safeMime, cacheControl: '3600', upsert: false });
+        .upload(filePath, file, { contentType: safeMime, cacheControl: '3600' });
 
       if (uploadError) {
         console.error('Storage upload error:', uploadError);
@@ -381,15 +381,14 @@ export const useDocuments = (projectId?: string) => {
 
       await fetchDocuments(projectId);
       return data;
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error uploading document:', error);
-      const message = error?.message || (typeof error === 'string' ? error : 'Failed to upload document');
       toast({
-        title: "Upload failed",
-        description: message,
+        title: "Error",
+        description: "Failed to upload document",
         variant: "destructive",
       });
-      throw new Error(message);
+      return null;
     }
   };
 
