@@ -21,45 +21,69 @@ export const useAuth = () => {
 
   useEffect(() => {
     let mounted = true;
+    let initialized = false;
 
-    // Set up auth state listener FIRST
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
+    const initializeAuth = async () => {
+      try {
+        // Get initial session first
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
         if (!mounted) return;
         
-        console.log('Auth state change:', event, session?.user?.email);
+        if (error) {
+          console.error('Error getting session:', error);
+        }
+
         setSession(session);
         setUser(session?.user ?? null);
         
-        if (session?.user) {
-          // Only fetch profile if user is confirmed
-          if (session.user.email_confirmed_at) {
-            setTimeout(() => {
-              if (mounted) fetchUserProfile(session.user.id);
-            }, 0);
-          } else {
-            setProfile(null);
-          }
+        if (session?.user?.email_confirmed_at) {
+          await fetchUserProfile(session.user.id);
         } else {
           setProfile(null);
         }
         
-        // Only set loading to false once
-        if (mounted) setLoading(false);
+        initialized = true;
+        setLoading(false);
+      } catch (error) {
+        console.error('Auth initialization error:', error);
+        if (mounted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    // Set up auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        if (!mounted) return;
+        
+        console.log('Auth state change:', event, session?.user?.email || 'no user');
+        
+        // Skip INITIAL_SESSION if we already initialized
+        if (event === 'INITIAL_SESSION' && initialized) {
+          return;
+        }
+        
+        setSession(session);
+        setUser(session?.user ?? null);
+        
+        if (session?.user?.email_confirmed_at) {
+          await fetchUserProfile(session.user.id);
+        } else {
+          setProfile(null);
+        }
+        
+        // Only set loading false after initial setup
+        if (!initialized) {
+          setLoading(false);
+          initialized = true;
+        }
       }
     );
 
-    // THEN check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (!mounted) return;
-      
-      setSession(session);
-      setUser(session?.user ?? null);
-      if (session?.user && session.user.email_confirmed_at) {
-        fetchUserProfile(session.user.id);
-      }
-      if (mounted) setLoading(false);
-    });
+    // Initialize auth
+    initializeAuth();
 
     return () => {
       mounted = false;
