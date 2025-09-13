@@ -3,6 +3,7 @@ import { Eye, Download, X, ZoomIn, ZoomOut, RotateCw, Maximize } from 'lucide-re
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { supabase } from '@/integrations/supabase/client';
 
 interface DocumentPreviewProps {
   document: {
@@ -25,15 +26,48 @@ export const DocumentPreview: React.FC<DocumentPreviewProps> = ({
 }) => {
   const [zoom, setZoom] = useState(100);
   const [rotation, setRotation] = useState(0);
+  const [previewUrl, setPreviewUrl] = useState<string>('');
 
   const handleZoomIn = () => setZoom(prev => Math.min(prev + 25, 200));
   const handleZoomOut = () => setZoom(prev => Math.max(prev - 25, 50));
   const handleRotate = () => setRotation(prev => (prev + 90) % 360);
 
-  const getFileExtension = (fileName: string) => {
-    return fileName.split('.').pop()?.toLowerCase() || '';
-  };
+  useEffect(() => {
+    let isMounted = true;
+    const generateUrl = async () => {
+      try {
+        // Prefer a signed URL (works with private buckets); fallback to public URL
+        const { data, error } = await supabase.storage
+          .from('documents')
+          .createSignedUrl(document.file_path, 60 * 60); // 1 hour
 
+        if (!isMounted) return;
+
+        if (error || !data?.signedUrl) {
+          const { data: pub } = supabase.storage
+            .from('documents')
+            .getPublicUrl(document.file_path);
+          setPreviewUrl(pub.publicUrl);
+        } else {
+          setPreviewUrl(data.signedUrl);
+        }
+      } catch (e) {
+        const { data: pub } = supabase.storage
+          .from('documents')
+          .getPublicUrl(document.file_path);
+        setPreviewUrl(pub.publicUrl);
+      }
+    };
+
+    generateUrl();
+    return () => { isMounted = false; };
+  }, [document.file_path]);
+
+  const getFileExtension = (fallbackName: string) => {
+    const fromPath = document.file_path.split('.').pop()?.toLowerCase();
+    if (fromPath) return fromPath;
+    return fallbackName.split('.').pop()?.toLowerCase() || '';
+  };
   const canPreviewFile = (fileType: string, fileName: string) => {
     const extension = getFileExtension(fileName);
     
@@ -65,16 +99,13 @@ export const DocumentPreview: React.FC<DocumentPreviewProps> = ({
 
     // For office documents, try to create preview URL using Google Docs Viewer
     const isOfficeDoc = ['doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx'].includes(extension);
-    
-    // Get Supabase storage URL for the document
-    const documentUrl = `https://inibugusrzfihldvegrb.supabase.co/storage/v1/object/public/documents/${document.file_path}`;
-    
+
     if (isImage) {
       return (
         <div className="flex justify-center items-center h-full bg-muted/20 rounded-lg">
           <img
-            src={documentUrl}
-            alt={document.name}
+            src={previewUrl}
+            alt={`${document.name || 'image'}`}
             className="max-w-full max-h-full object-contain"
             style={{
               transform: `scale(${zoom / 100}) rotate(${rotation}deg)`,
@@ -89,7 +120,7 @@ export const DocumentPreview: React.FC<DocumentPreviewProps> = ({
       return (
         <div className="flex justify-center items-center h-full bg-muted/20 rounded-lg">
           <iframe
-            src={documentUrl}
+            src={previewUrl}
             className="w-full h-full border-0 rounded-lg"
             style={{
               transform: `scale(${zoom / 100})`,
@@ -102,9 +133,9 @@ export const DocumentPreview: React.FC<DocumentPreviewProps> = ({
     }
 
     if (isOfficeDoc) {
-      const fileUrl = encodeURIComponent(documentUrl);
+      const fileUrl = encodeURIComponent(previewUrl);
       const viewerUrl = `https://docs.google.com/gview?url=${fileUrl}&embedded=true`;
-      
+
       return (
         <div className="flex justify-center items-center h-full bg-muted/20 rounded-lg">
           <iframe
@@ -124,7 +155,7 @@ export const DocumentPreview: React.FC<DocumentPreviewProps> = ({
       return (
         <div className="flex justify-center items-center h-full bg-muted/20 rounded-lg">
           <iframe
-            src={documentUrl}
+            src={previewUrl}
             className="w-full h-full border-0 rounded-lg bg-white p-4"
             style={{
               transform: `scale(${zoom / 100})`,
@@ -144,7 +175,12 @@ export const DocumentPreview: React.FC<DocumentPreviewProps> = ({
         <p className="text-muted-foreground mb-4">
           {extension.toUpperCase()} files cannot be previewed in the browser
         </p>
-        <Button onClick={() => onDownload(document.file_path, document.name)}>
+        <Button onClick={() => onDownload(
+          document.file_path,
+          (document.name && document.name.includes('.'))
+            ? document.name
+            : ((document.name || 'document') + (extension ? `.${extension}` : ''))
+        )}>
           <Download className="h-4 w-4 mr-2" />
           Download to View
         </Button>
@@ -188,7 +224,12 @@ export const DocumentPreview: React.FC<DocumentPreviewProps> = ({
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => onDownload(document.file_path, document.name)}
+                onClick={() => onDownload(
+                  document.file_path,
+                  (document.name && document.name.includes('.'))
+                    ? document.name
+                    : ((document.name || 'document') + (getFileExtension(document.name) ? `.${getFileExtension(document.name)}` : ''))
+                )}
               >
                 <Download className="h-4 w-4" />
               </Button>

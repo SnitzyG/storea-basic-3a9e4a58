@@ -133,7 +133,7 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
         const result = await uploadDocument(
           file, 
           projectId, 
-          file.title || file.name,
+          file.name,
           {
             documentNumber: file.documentNumber,
             status: file.documentStatus!,

@@ -279,7 +279,15 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="bg-background border">
-                    <DropdownMenuItem onClick={() => onDownload(document.file_path, document.name)}>
+                    <DropdownMenuItem onClick={() => onDownload(
+                      document.file_path,
+                      (document.name && document.name.includes('.'))
+                        ? document.name
+                        : (
+                            ((document.title && document.title.includes('.')) ? document.title : (document.title || document.name || 'document')) +
+                            (document.file_extension ? `.${document.file_extension}` : (document.file_path?.includes('.') ? `.${document.file_path.split('.').pop()}` : ''))
+                          )
+                    )}>
                       <Download className="h-3 w-3 mr-2" />
                       Download
                     </DropdownMenuItem>
