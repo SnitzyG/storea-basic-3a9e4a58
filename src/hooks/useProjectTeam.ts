@@ -266,9 +266,25 @@ export const useProjectTeam = (projectId: string): UseProjectTeamReturn => {
 
       if (error) {
         console.error('Error sending invitation:', error);
+        
+        // More specific error handling based on error details
+        let errorTitle = "Invitation could not be sent";
+        let errorDescription = "Please try again. If the problem persists, contact support.";
+        
+        if (error.message?.includes('Failed to fetch') || error.message?.includes('network')) {
+          errorTitle = "Network error";
+          errorDescription = "Please check your internet connection and try again.";
+        } else if (error.message?.includes('unauthorized') || error.message?.includes('401')) {
+          errorTitle = "Authentication error";
+          errorDescription = "Please log in again and try sending the invitation.";
+        } else if (error.message?.includes('forbidden') || error.message?.includes('403')) {
+          errorTitle = "Permission denied";
+          errorDescription = "You don't have permission to invite members to this project.";
+        }
+
         toast({
-          title: "Invitation could not be sent",
-          description: "Please try again. If the problem persists, check your internet connection.",
+          title: errorTitle,
+          description: errorDescription,
           variant: "destructive"
         });
         return false;
@@ -282,17 +298,23 @@ export const useProjectTeam = (projectId: string): UseProjectTeamReturn => {
         if (data.isConfigurationIssue) {
           errorTitle = "Email service configuration required";
           errorDescription = "The email service needs to be set up by an administrator. Please contact support.";
+        } else if (data.method === 'all_failed') {
+          errorTitle = "Email delivery failed";
+          errorDescription = "All email delivery methods failed. Please check your internet connection or contact support.";
+        } else if (data.method === 'supabase_auth') {
+          errorTitle = "Invitation delivery issue";
+          errorDescription = data.error;
         } else if (data.error.includes('domain') || data.error.includes('verify')) {
           errorTitle = "Email delivery issue";
           errorDescription = "Email could not be delivered. Please check the email address or contact support.";
-        } else if (data.error.includes('rate limit')) {
+        } else if (data.error.includes('rate limit') || data.error.includes('too many')) {
           errorTitle = "Too many requests";
           errorDescription = "Please wait a few minutes before sending another invitation.";
-        } else if (data.error.includes('Invalid email')) {
+        } else if (data.error.includes('Invalid email') || data.error.includes('invalid email')) {
           errorTitle = "Invalid email address";
           errorDescription = "Please check the email address format and try again.";
-        } else if (data.error.includes('already')) {
-          errorTitle = "Already invited";
+        } else if (data.error.includes('already') || data.error.includes('exists')) {
+          errorTitle = "Already invited or exists";
           errorDescription = "This user has already been invited or is already a team member.";
         }
 
