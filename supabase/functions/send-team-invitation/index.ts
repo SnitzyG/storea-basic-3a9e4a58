@@ -1,84 +1,57 @@
-import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { Resend } from "npm:resend@2.0.0";
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.57.0';
-
-const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
-const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-
-const supabase = createClient(supabaseUrl, supabaseServiceKey);
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+}
 
 interface InvitationRequest {
   projectId: string;
   email: string;
   role: string;
-  projectName: string;
-  inviterName: string;
 }
 
-const handler = async (req: Request): Promise<Response> => {
-  // Handle CORS preflight requests
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
+serve(async (req) => {
+  if (req.method === 'OPTIONS') {
+    return new Response('ok', { headers: corsHeaders })
   }
 
   try {
-    // Get authorization header
-    const authHeader = req.headers.get('authorization');
-    if (!authHeader) {
-      throw new Error('No authorization header');
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    )
+
+    const { projectId, email, role }: InvitationRequest = await req.json()
+    
+    // Validate inputs
+    if (!projectId || !email || !role) {
+      throw new Error('Missing required fields: projectId, email, role')
     }
 
-    // Verify the user is authenticated
-    const { data: { user }, error: authError } = await supabase.auth.getUser(authHeader.replace('Bearer ', ''));
-    if (authError || !user) {
-      throw new Error('Unauthorized');
-    }
+    // Get authenticated user
+    const authHeader = req.headers.get('Authorization')
+    if (!authHeader) throw new Error('No authorization header')
+    
+    const token = authHeader.replace('Bearer ', '')
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token)
+    
+    if (authError || !user) throw new Error('Unauthorized')
 
-    const { projectId, email, role, projectName, inviterName }: InvitationRequest = await req.json();
-
-    // Validate input
-    if (!projectId || !email || !role || !projectName) {
-      throw new Error('Missing required fields');
-    }
-
-    // Validate email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      throw new Error('Invalid email format');
-    }
-
-    // Check if user is project creator/admin
+    // Verify project ownership
     const { data: project, error: projectError } = await supabase
       .from('projects')
-      .select('created_by')
+      .select('id, name, created_by')
       .eq('id', projectId)
-      .single();
+      .eq('created_by', user.id)
+      .single()
 
-    if (projectError || !project) {
-      throw new Error('Project not found');
-    }
+    if (projectError || !project) throw new Error('Project not found or access denied')
 
-    if (project.created_by !== user.id) {
-      throw new Error('Only project creators can invite team members');
-    }
-
-    // Check if email is already a team member
-    const { data: existingMember } = await supabase
-      .from('project_users')
-      .select('id')
-      .eq('project_id', projectId)
-      .eq('user_id', user.id)
-      .single();
-
-    // Check by email in auth.users for existing users
-    const { data: authUsers } = await supabase.auth.admin.listUsers();
-    const existingUser = authUsers?.users?.find((u: any) => u.email === email);
+    // Check if user is already a team member by checking their actual user ID, not current user
+    const { data: authUsers } = await supabase.auth.admin.listUsers()
+    const existingUser = authUsers?.users?.find((u: any) => u.email === email)
     
     if (existingUser) {
       // Check if already a team member
@@ -87,399 +60,131 @@ const handler = async (req: Request): Promise<Response> => {
         .select('id')
         .eq('project_id', projectId)
         .eq('user_id', existingUser.id)
-        .single();
+        .single()
 
       if (isTeamMember) {
-        return new Response(
-          JSON.stringify({ error: 'User is already a team member' }),
-          { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
-        );
+        throw new Error('User is already a team member')
       }
     }
 
-    // Check if there's already a pending invitation
-    const { data: existingInvitation } = await supabase
-      .from('project_pending_invitations')
+    // Check for existing pending invitation
+    const { data: existingInvite } = await supabase
+      .from('invitations')
       .select('id')
       .eq('project_id', projectId)
       .eq('email', email)
-      .single();
+      .eq('status', 'pending')
+      .single()
 
-    if (existingInvitation) {
-      return new Response(
-        JSON.stringify({ error: 'Invitation already sent to this email' }),
-        { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
-      );
-    }
+    if (existingInvite) throw new Error('Invitation already sent to this email')
 
-    // Generate unique invitation token
-    const invitationToken = crypto.randomUUID();
+    // Generate invitation
+    const inviteToken = crypto.randomUUID()
+    const expiresAt = new Date()
+    expiresAt.setDate(expiresAt.getDate() + 7)
 
-    // Store pending invitation
-    const { error: invitationError } = await supabase
-      .from('project_pending_invitations')
+    // Create invitation record
+    const { data: invitation, error: inviteError } = await supabase
+      .from('invitations')
       .insert({
         project_id: projectId,
+        inviter_id: user.id,
         email: email,
         role: role,
-        invited_by: user.id,
-        invitation_token: invitationToken,
-        expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days
-      });
+        token: inviteToken,
+        expires_at: expiresAt.toISOString(),
+        status: 'pending'
+      })
+      .select()
+      .single()
 
-    if (invitationError) {
-      console.error('Error creating invitation:', invitationError);
-      throw new Error('Failed to create invitation');
-    }
+    if (inviteError) throw new Error('Failed to create invitation: ' + inviteError.message)
 
-    // Create invitation link
-    const frontendUrl = Deno.env.get('FRONTEND_URL') || 'https://inibugusrzfihldvegrb.lovableproject.com';
-    const invitationLink = `${frontendUrl}/accept-invitation?token=${invitationToken}`;
+    // Send email via Resend
+    const resendApiKey = Deno.env.get('RESEND_API_KEY')
+    if (!resendApiKey) throw new Error('Resend API key not configured')
 
-    // Rate limiting check (simple in-memory approach)
-    const rateLimitKey = `invite_${user.id}_${projectId}`;
-    const now = Date.now();
+    const appUrl = 'https://bd2e83dc-1d1d-4a73-96c2-6279990f514d.sandbox.lovable.dev'
     
-    // Enhanced email sending with multiple delivery methods
-    let emailResponse;
-    let emailMethod = 'supabase'; // Default to Supabase Auth first
-    let retryCount = 0;
-    const maxRetries = 3;
-    
-    // Check if Resend is properly configured and verify domain setup
-    const resendApiKey = Deno.env.get("RESEND_API_KEY");
-    const isDomainVerified = Deno.env.get("RESEND_DOMAIN_VERIFIED") === "true";
-    
-    // Only use Resend if API key exists and domain is verified
-    if (resendApiKey && resendApiKey !== "your-resend-api-key-here" && isDomainVerified) {
-      console.log("Resend is configured and domain verified, using Resend");
-      emailMethod = 'resend';
-    } else {
-      console.log("Resend not fully configured or domain not verified, using Supabase Auth");
-    }
-    
-    if (emailMethod === 'resend') {
-      while (retryCount < maxRetries) {
-        try {
-          console.log(`Attempting to send email via Resend (attempt ${retryCount + 1}/${maxRetries}) to: ${email}`);
-          
-          emailResponse = await resend.emails.send({
-            from: "Team Collaboration <noreply@resend.dev>",
-            to: [email],
-            subject: `You've been invited to join "${projectName}"`,
-            html: `
-              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #ffffff;">
-                <div style="text-align: center; margin-bottom: 30px; border-bottom: 3px solid #007bff; padding-bottom: 20px;">
-                  <h1 style="color: #333; margin: 0; font-size: 28px;">🏗️ Project Team Invitation</h1>
-                </div>
-                
-                <div style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); padding: 25px; border-radius: 12px; margin: 20px 0; border-left: 4px solid #007bff;">
-                  <h2 style="color: #495057; margin-top: 0; font-size: 22px;">You're invited to join a project!</h2>
-                  <p style="color: #6c757d; line-height: 1.8; font-size: 16px; margin: 15px 0;">
-                    <strong style="color: #007bff;">${inviterName}</strong> has invited you to join the project 
-                    <strong style="color: #007bff;">"${projectName}"</strong> as a 
-                    <strong style="color: #28a745;">${role.charAt(0).toUpperCase() + role.slice(1)}</strong>.
-                  </p>
-                </div>
-
-                <div style="text-align: center; margin: 40px 0;">
-                  <a href="${invitationLink}" 
-                     style="background: linear-gradient(135deg, #007bff 0%, #0056b3 100%); color: white; padding: 15px 35px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: bold; font-size: 16px; box-shadow: 0 4px 15px rgba(0, 123, 255, 0.3); transition: all 0.3s ease;">
-                    ✅ Accept Invitation
-                  </a>
-                </div>
-
-                <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0; border: 1px solid #dee2e6;">
-                  <h3 style="color: #495057; margin-top: 0; font-size: 18px;">📋 What happens next?</h3>
-                  <ul style="color: #6c757d; line-height: 1.6; padding-left: 20px;">
-                    <li>Click the button above to create your account (or sign in if you already have one)</li>
-                    <li>You'll automatically join the "${projectName}" project team</li>
-                    <li>Start collaborating with ${inviterName} and other team members immediately</li>
-                  </ul>
-                </div>
-
-                <div style="background: #fff3cd; border: 1px solid #ffeaa7; padding: 15px; border-radius: 8px; margin: 20px 0;">
-                  <p style="margin: 0; font-size: 14px; color: #856404;">
-                    <strong>⏰ Important:</strong> This invitation will expire in 7 days. 
-                    Click the button above or use the link below to accept your invitation and join the team!
-                  </p>
-                </div>
-
-                <div style="background: #e7f3ff; border: 1px solid #bee5eb; padding: 15px; border-radius: 8px; margin: 20px 0;">
-                  <h4 style="color: #0c5460; margin: 0 0 10px 0; font-size: 16px;">🚀 Ready to get started?</h4>
-                  <p style="margin: 0; font-size: 14px; color: #0c5460;">
-                    Once you accept this invitation, you'll have immediate access to collaborate with your team members, 
-                    view project documents, and contribute to project success.
-                  </p>
-                </div>
-
-                <hr style="border: 1px solid #dee2e6; margin: 30px 0;">
-                
-                <div style="text-align: center; color: #6c757d; font-size: 12px; line-height: 1.5;">
-                  <p style="margin: 10px 0;">
-                    Having trouble with the button? Copy and paste this link into your browser:
-                  </p>
-                  <p style="background: #f8f9fa; padding: 8px; border-radius: 4px; word-break: break-all; font-family: monospace; border: 1px solid #dee2e6;">
-                    ${invitationLink}
-                  </p>
-                  <p style="margin: 15px 0 0 0; color: #888;">
-                    This email was sent by the project collaboration platform. 
-                    If you weren't expecting this invitation, you can safely ignore this email.
-                  </p>
-                </div>
-              </div>
-            `,
-          });
-
-          // If successful, break out of retry loop
-          if (emailResponse && !emailResponse.error) {
-            console.log("Email sent successfully via Resend on attempt", retryCount + 1);
-            break;
-          }
-
-          // Log the actual error object for debugging
-          console.error("Resend API error details:", JSON.stringify(emailResponse, null, 2));
-          throw new Error(emailResponse?.error || "Unknown Resend error");
-        } catch (error: any) {
-          retryCount++;
-          console.error(`Resend email send attempt ${retryCount} failed:`, error);
-          console.error("Full error object:", JSON.stringify(error, Object.getOwnPropertyNames(error)));
-          
-          // If this was the last retry with Resend, fall back to Supabase
-          if (retryCount >= maxRetries) {
-            console.log("Resend failed after max retries, falling back to Supabase Auth");
-            emailMethod = 'supabase';
-            break;
-          }
-
-          // Wait before retry (exponential backoff)
-          const delay = Math.min(1000 * Math.pow(2, retryCount - 1), 5000);
-          await new Promise(resolve => setTimeout(resolve, delay));
-        }
-      }
-    }
-
-    // Primary method: Supabase Auth invitation system
-    if (emailMethod === 'supabase') {
-      try {
-        console.log(`Attempting to send invitation via Supabase Auth to: ${email}`);
-        
-        // For existing users, add them directly to the project
-        if (existingUser) {
-          console.log(`User ${email} already exists, adding directly to project`);
-          
-          const { error: addUserError } = await supabase
-            .from('project_users')
-            .insert({
-              project_id: projectId,
-              user_id: existingUser.id,
-              role: role,
-              invited_by: user.id,
-              joined_at: new Date().toISOString()
-            });
-
-          if (addUserError) {
-            console.error('Error adding existing user to project:', addUserError);
-            throw addUserError;
-          }
-
-          // Remove pending invitation since user is now a member
-          await supabase
-            .from('project_pending_invitations')
-            .delete()
-            .eq('invitation_token', invitationToken);
-
-          // Create notification for the existing user
-          await supabase
-            .from('notifications')
-            .insert({
-              user_id: existingUser.id,
-              type: 'team_invitation_accepted',
-              title: 'Added to Project Team',
-              message: `You've been added to "${projectName}" as a ${role}.`,
-              data: {
-                project_id: projectId,
-                project_name: projectName,
-                role: role,
-                inviter_name: inviterName
-              }
-            });
-
-          console.log("Existing user added to project directly");
-          emailResponse = { success: true, method: 'direct_add', user_existed: true };
-        } else {
-          // For new users, send invitation via Supabase Auth
-          const { data: inviteData, error: inviteError } = await supabase.auth.admin.inviteUserByEmail(email, {
-            data: {
-              invitation_token: invitationToken,
-              project_id: projectId,
-              project_name: projectName,
-              role: role,
-              inviter_name: inviterName
-            },
-            redirectTo: invitationLink
-          });
-
-          if (inviteError) {
-            console.error("Supabase Auth invite error:", inviteError);
+    const emailResponse = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${resendApiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        from: 'onboarding@resend.dev',
+        to: [email],
+        subject: `You've been invited to join ${project.name}`,
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+            <h1 style="color: #333; border-bottom: 2px solid #007bff; padding-bottom: 10px;">Team Invitation</h1>
+            <p style="font-size: 16px; line-height: 1.5;">You've been invited to join <strong style="color: #007bff;">${project.name}</strong> as a <strong>${role}</strong>.</p>
             
-            // Clean up pending invitation on failure
-            await supabase
-              .from('project_pending_invitations')
-              .delete()
-              .eq('invitation_token', invitationToken);
+            <div style="text-align: center; margin: 30px 0;">
+              <a href="${appUrl}/accept-invitation?token=${inviteToken}" 
+                 style="background-color: #007bff; color: white; padding: 15px 30px; text-decoration: none; border-radius: 5px; display: inline-block; font-weight: bold; font-size: 16px;">
+                🎉 Accept Invitation
+              </a>
+            </div>
+            
+            <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; margin: 20px 0;">
+              <h3 style="margin-top: 0; color: #495057;">Project Details:</h3>
+              <p style="margin: 5px 0;"><strong>Project:</strong> ${project.name}</p>
+              <p style="margin: 5px 0;"><strong>Your Role:</strong> ${role}</p>
+              <p style="margin: 5px 0;"><strong>Invited By:</strong> Project Owner</p>
+            </div>
+            
+            <p style="color: #666; font-size: 14px; border-top: 1px solid #dee2e6; padding-top: 15px;">
+              ⏰ This invitation expires in 7 days.<br>
+              🔗 If the button doesn't work, copy and paste this link: <br>
+              <code style="background-color: #f1f3f4; padding: 2px 4px; border-radius: 3px;">${appUrl}/accept-invitation?token=${inviteToken}</code>
+            </p>
+          </div>
+        `
+      })
+    })
 
-            // Determine specific error message
-            let errorMessage = 'Failed to send invitation email. Please try again.';
-            let statusCode = 500;
-
-            if (inviteError.message?.includes('rate limit') || inviteError.message?.includes('too many')) {
-              errorMessage = 'Too many invitations sent recently. Please wait a few minutes and try again.';
-              statusCode = 429;
-            } else if (inviteError.message?.includes('invalid email') || inviteError.message?.includes('email')) {
-              errorMessage = 'Invalid email address. Please check the email format and try again.';
-              statusCode = 422;
-            } else if (inviteError.message?.includes('user already exists') || inviteError.message?.includes('already been registered')) {
-              // If user exists, try to add them directly
-              console.log("User already exists, attempting direct add");
-              emailMethod = 'direct_add';
-            } else {
-              return new Response(
-                JSON.stringify({ 
-                  error: errorMessage,
-                  method: 'supabase_auth',
-                  details: inviteError.message
-                }),
-                {
-                  status: statusCode,
-                  headers: { "Content-Type": "application/json", ...corsHeaders },
-                }
-              );
-            }
-          } else {
-            console.log("Invitation sent successfully via Supabase Auth:", inviteData);
-            emailResponse = { success: true, method: 'supabase_auth' };
-          }
-        }
-      } catch (error: any) {
-        console.error("Supabase Auth method failed:", error);
-        emailMethod = 'direct_add'; // Try direct add as fallback
-      }
-    }
-
-    // Fallback method: Direct add for existing users
-    if (emailMethod === 'direct_add' && existingUser) {
-      try {
-        console.log(`Attempting direct add for existing user: ${email}`);
-        
-        const { error: addUserError } = await supabase
-          .from('project_users')
-          .insert({
-            project_id: projectId,
-            user_id: existingUser.id,
-            role: role,
-            invited_by: user.id,
-            joined_at: new Date().toISOString()
-          });
-
-        if (addUserError) {
-          console.error('Error in direct add:', addUserError);
-          throw addUserError;
-        }
-
-        // Remove pending invitation
-        await supabase
-          .from('project_pending_invitations')
-          .delete()
-          .eq('invitation_token', invitationToken);
-
-        // Create notification
-        await supabase
-          .from('notifications')
-          .insert({
-            user_id: existingUser.id,
-            type: 'team_invitation_accepted',
-            title: 'Added to Project Team',
-            message: `You've been added to "${projectName}" as a ${role}.`,
-            data: {
-              project_id: projectId,
-              project_name: projectName,
-              role: role,
-              inviter_name: inviterName
-            }
-          });
-
-        console.log("User added directly to project successfully");
-        emailResponse = { success: true, method: 'direct_add', user_existed: true };
-      } catch (error: any) {
-        console.error("Direct add failed:", error);
-        
-        // Clean up pending invitation on complete failure
-        await supabase
-          .from('project_pending_invitations')
-          .delete()
-          .eq('invitation_token', invitationToken);
-
-        return new Response(
-          JSON.stringify({ 
-            error: 'Failed to add user to project. Please try again.',
-            method: 'direct_add_failed',
-            details: error.message
-          }),
-          {
-            status: 503,
-            headers: { "Content-Type": "application/json", ...corsHeaders },
-          }
-        );
-      }
-    }
-
-    // If we get here without success, something went wrong
-    if (!emailResponse?.success) {
+    if (!emailResponse.ok) {
+      const emailError = await emailResponse.text()
+      console.error('Resend error:', emailError)
+      
       await supabase
-        .from('project_pending_invitations')
-        .delete()
-        .eq('invitation_token', invitationToken);
-
-      return new Response(
-        JSON.stringify({ 
-          error: 'All invitation methods failed. Please contact support.',
-          method: 'all_failed'
-        }),
-        {
-          status: 503,
-          headers: { "Content-Type": "application/json", ...corsHeaders },
-        }
-      );
+        .from('invitations')
+        .update({ status: 'failed' })
+        .eq('id', invitation.id)
+      
+      throw new Error('Failed to send email: ' + emailError)
     }
 
-    console.log("Team invitation sent successfully:", emailResponse);
+    const emailResult = await emailResponse.json()
+    console.log('✅ Email sent successfully:', emailResult)
 
     return new Response(
-      JSON.stringify({
-        success: true,
-        message: emailResponse.user_existed 
-          ? `${email} has been added to the project team directly`
-          : `Invitation sent to ${email}`,
-        invitationId: invitationToken,
-        method: emailResponse.method,
-        userExisted: emailResponse.user_existed || false
+      JSON.stringify({ 
+        success: true, 
+        invitation,
+        emailId: emailResult.id,
+        message: 'Invitation sent successfully'
       }),
       {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 200,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
       }
-    );
-  } catch (error: any) {
-    console.error("Error in send-team-invitation function:", error);
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      {
-        status: 500,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
-      }
-    );
-  }
-};
+    )
 
-serve(handler);
+  } catch (error) {
+    console.error('❌ Function error:', error)
+    
+    return new Response(
+      JSON.stringify({ 
+        error: error.message,
+        details: error.stack
+      }),
+      {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 400,
+      }
+    )
+  }
+})

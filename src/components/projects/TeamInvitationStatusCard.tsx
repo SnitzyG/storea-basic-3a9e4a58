@@ -32,9 +32,10 @@ export function TeamInvitationStatusCard({ projectId, onInvitationUpdate }: Team
   const fetchPendingInvitations = async () => {
     try {
       const { data, error } = await supabase
-        .from('project_pending_invitations')
+        .from('invitations')
         .select('*')
         .eq('project_id', projectId)
+        .eq('status', 'pending')
         .gt('expires_at', new Date().toISOString())
         .order('created_at', { ascending: false });
 
@@ -62,7 +63,7 @@ export function TeamInvitationStatusCard({ projectId, onInvitationUpdate }: Team
         {
           event: '*',
           schema: 'public',
-          table: 'project_pending_invitations',
+          table: 'invitations',
           filter: `project_id=eq.${projectId}`
         },
         (payload) => {
@@ -115,9 +116,7 @@ export function TeamInvitationStatusCard({ projectId, onInvitationUpdate }: Team
         body: {
           projectId,
           email: invitation.email,
-          role: invitation.role,
-          projectName,
-          inviterName
+          role: invitation.role
         },
       });
 
@@ -131,7 +130,7 @@ export function TeamInvitationStatusCard({ projectId, onInvitationUpdate }: Team
 
       // Remove old invitation and the new one will be created
       await supabase
-        .from('project_pending_invitations')
+        .from('invitations')
         .delete()
         .eq('id', invitation.id);
 
@@ -157,8 +156,8 @@ export function TeamInvitationStatusCard({ projectId, onInvitationUpdate }: Team
     setCancelingId(invitationId);
     try {
       const { error } = await supabase
-        .from('project_pending_invitations')
-        .delete()
+        .from('invitations')
+        .update({ status: 'cancelled' })
         .eq('id', invitationId);
 
       if (error) {

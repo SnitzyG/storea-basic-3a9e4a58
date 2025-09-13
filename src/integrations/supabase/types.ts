@@ -453,6 +453,53 @@ export type Database = {
           },
         ]
       }
+      invitations: {
+        Row: {
+          created_at: string | null
+          email: string
+          expires_at: string | null
+          id: string
+          inviter_id: string
+          project_id: string
+          role: string
+          status: string | null
+          token: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email: string
+          expires_at?: string | null
+          id?: string
+          inviter_id: string
+          project_id: string
+          role?: string
+          status?: string | null
+          token?: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email?: string
+          expires_at?: string | null
+          id?: string
+          inviter_id?: string
+          project_id?: string
+          role?: string
+          status?: string | null
+          token?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invitations_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       message_participants: {
         Row: {
           created_at: string
@@ -662,47 +709,6 @@ export type Database = {
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "companies"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      project_pending_invitations: {
-        Row: {
-          created_at: string | null
-          email: string
-          expires_at: string
-          id: string
-          invitation_token: string
-          invited_by: string
-          project_id: string
-          role: string
-        }
-        Insert: {
-          created_at?: string | null
-          email: string
-          expires_at?: string
-          id?: string
-          invitation_token: string
-          invited_by: string
-          project_id: string
-          role: string
-        }
-        Update: {
-          created_at?: string | null
-          email?: string
-          expires_at?: string
-          id?: string
-          invitation_token?: string
-          invited_by?: string
-          project_id?: string
-          role?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "project_pending_invitations_project_id_fkey"
-            columns: ["project_id"]
-            isOneToOne: false
-            referencedRelation: "projects"
             referencedColumns: ["id"]
           },
         ]
