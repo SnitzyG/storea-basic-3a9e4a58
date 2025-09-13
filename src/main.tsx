@@ -35,10 +35,10 @@ createRoot(document.getElementById("root")!).render(
             <TooltipProvider>
               <Toaster />
               <Sonner />
-              <BrowserRouter>
-                <Routes>
-                  <Route path="/" element={<AppLayout><div /></AppLayout>}>
-                    <Route index element={<Index />} />
+               <BrowserRouter>
+                <AppLayout>
+                  <Routes>
+                    <Route path="/" element={<Index />} />
                     <Route path="/dashboard" element={<Dashboard />} />
                     <Route path="/projects" element={<Projects />} />
                     <Route path="/documents" element={<Documents />} />
@@ -51,9 +51,9 @@ createRoot(document.getElementById("root")!).render(
                     <Route path="/auth" element={<Auth />} />
                     <Route path="/accept-invitation" element={<AcceptInvitation />} />
                     <Route path="*" element={<NotFound />} />
-                  </Route>
-                </Routes>
-              </BrowserRouter>
+                  </Routes>
+                </AppLayout>
+               </BrowserRouter>
             </TooltipProvider>
           </QueryClientProvider>
         </NotificationProvider>
