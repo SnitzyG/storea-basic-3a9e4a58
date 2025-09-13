@@ -17,7 +17,6 @@ const Dashboard = () => {
     toggleTheme
   } = useTheme();
   const {
-    user,
     profile
   } = useAuth();
   const navigate = useNavigate();
@@ -36,7 +35,7 @@ const Dashboard = () => {
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, []);
-  const userName = profile?.name?.split(' ')[0] || profile?.name || user?.email?.split('@')[0] || 'there';
+  const userName = profile?.name || 'username';
   return <div className="h-full flex flex-col bg-background">
       {/* Header */}
       <div className="flex-shrink-0 border-b bg-card px-6 py-4">
@@ -48,13 +47,6 @@ const Dashboard = () => {
           
           <div className="flex items-center gap-2">
             {/* Quick Action Shortcuts (non-functional placeholders) */}
-            {/* Jobs Toggle */}
-            <select className="border rounded-md px-3 py-1 text-sm bg-background">
-              <option value="all">All Jobs</option>
-              <option value="active">Active Jobs</option>
-              <option value="completed">Completed Jobs</option>
-            </select>
-            
             <Button size="sm" variant="outline" className="gap-1 text-xs px-2 py-1" onClick={() => navigate('/messages')}>
               <MessageSquare className="h-4 w-4" />
               Message
@@ -81,31 +73,33 @@ const Dashboard = () => {
               Search
             </Button>
             
+            
+            
             <NotificationCenter />
           </div>
         </div>
       </div>
 
-      {/* Main Dashboard Content - Redesigned Widget Grid */}
-      <div className="flex-1 p-6 overflow-hidden">
-        <div className="h-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
+      {/* Main Dashboard Content - Optimized Single Page Layout */}
+      <div className="flex-1 p-4 overflow-hidden">
+        <div className="h-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
           {/* Recent Activity */}
-          <div className="h-[400px]">
+          <div className="col-span-1 h-full">
             <RecentActivity />
           </div>
 
           {/* Calendar */}
-          <div className="h-[400px]">
+          <div className="col-span-1 h-full">
             <CalendarWidget />
           </div>
 
           {/* To-Do List */}
-          <div className="h-[400px]">
+          <div className="col-span-1 h-full">
             <ToDoList />
           </div>
 
           {/* Info Panel */}
-          <div className="h-[400px]">
+          <div className="col-span-1 h-full">
             <InfoPanel />
           </div>
         </div>

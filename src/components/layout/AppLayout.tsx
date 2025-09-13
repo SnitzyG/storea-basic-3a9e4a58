@@ -3,7 +3,7 @@ import { useProjectLinking } from '@/hooks/useProjectLinking';
 import { Navigate } from 'react-router-dom';
 import { Sidebar } from './Sidebar';
 import { Header } from './Header';
-
+import { ProfileSetup } from '@/components/profile/ProfileSetup';
 interface AppLayoutProps {
   children: React.ReactNode;
 }
@@ -26,9 +26,14 @@ export const AppLayout = ({
       </div>;
   }
 
-  // Only redirect if we're certain the user is not authenticated or has no profile
-  if (!user || !profile) {
-    return <Navigate to="/" replace />;
+  // Only redirect if we're certain the user is not authenticated
+  if (!user) {
+    return <Navigate to="/auth" replace />;
+  }
+
+  // If user exists but no profile, show profile setup
+  if (!profile) {
+    return <ProfileSetup onComplete={() => window.location.reload()} />;
   }
   return <div className="min-h-screen bg-background flex">
       <Sidebar userRole={profile.role} />
