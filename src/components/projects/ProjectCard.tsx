@@ -4,14 +4,12 @@ import { Button } from '@/components/ui/button';
 import { Project } from '@/hooks/useProjects';
 import { CalendarDays, MapPin, DollarSign, Eye, Edit, Trash2 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
-
 interface ProjectCardProps {
   project: Project;
   onView: (project: Project) => void;
   onEdit: (project: Project) => void;
   onDelete: (project: Project) => void;
 }
-
 const statusColors: Record<string, "default" | "secondary" | "outline" | "destructive"> = {
   planning: 'default',
   active: 'default',
@@ -19,7 +17,6 @@ const statusColors: Record<string, "default" | "secondary" | "outline" | "destru
   completed: 'outline',
   cancelled: 'destructive'
 };
-
 const statusLabels = {
   planning: 'Planning',
   active: 'Active',
@@ -27,13 +24,17 @@ const statusLabels = {
   completed: 'Completed',
   cancelled: 'Cancelled'
 };
-
-export const ProjectCard = ({ project, onView, onEdit, onDelete }: ProjectCardProps) => {
-  const { profile } = useAuth();
+export const ProjectCard = ({
+  project,
+  onView,
+  onEdit,
+  onDelete
+}: ProjectCardProps) => {
+  const {
+    profile
+  } = useAuth();
   const isArchitect = profile?.role === 'architect';
-
-  return (
-    <Card className="hover:shadow-md transition-shadow">
+  return <Card className="hover:shadow-md transition-shadow">
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
           <div className="space-y-1">
@@ -50,19 +51,15 @@ export const ProjectCard = ({ project, onView, onEdit, onDelete }: ProjectCardPr
       </CardHeader>
       
       <CardContent className="space-y-4">
-        {project.description && (
-          <p className="text-sm text-muted-foreground line-clamp-2">
+        {project.description && <p className="text-sm text-muted-foreground line-clamp-2">
             {project.description}
-          </p>
-        )}
+          </p>}
         
         <div className="flex items-center gap-4 text-sm text-muted-foreground">
-          {project.budget && (
-            <div className="flex items-center gap-1">
+          {project.budget && <div className="flex items-center gap-1">
               <DollarSign className="h-3 w-3" />
               ${project.budget.toLocaleString()}
-            </div>
-          )}
+            </div>}
           <div className="flex items-center gap-1">
             <CalendarDays className="h-3 w-3" />
             {new Date(project.created_at).toLocaleDateString()}
@@ -74,20 +71,14 @@ export const ProjectCard = ({ project, onView, onEdit, onDelete }: ProjectCardPr
             <Eye className="h-3 w-3 mr-1" />
             View
           </Button>
-          {isArchitect && (
-            <>
-              <Button variant="outline" size="sm" onClick={() => onEdit(project)}>
-                <Edit className="h-3 w-3 mr-1" />
-                Edit
-              </Button>
+          {isArchitect && <>
+              
               <Button variant="outline" size="sm" onClick={() => onDelete(project)}>
                 <Trash2 className="h-3 w-3 mr-1" />
                 Delete
               </Button>
-            </>
-          )}
+            </>}
         </div>
       </CardContent>
-    </Card>
-  );
+    </Card>;
 };
