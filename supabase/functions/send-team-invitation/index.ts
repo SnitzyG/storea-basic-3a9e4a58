@@ -140,17 +140,22 @@ const handler = async (req: Request): Promise<Response> => {
     const rateLimitKey = `invite_${user.id}_${projectId}`;
     const now = Date.now();
     
-    // Enhanced email sending with fallback to Supabase Auth
+    // Enhanced email sending with multiple delivery methods
     let emailResponse;
-    let emailMethod = 'resend';
+    let emailMethod = 'supabase'; // Default to Supabase Auth first
     let retryCount = 0;
     const maxRetries = 3;
     
-    // Check if Resend is properly configured
+    // Check if Resend is properly configured and verify domain setup
     const resendApiKey = Deno.env.get("RESEND_API_KEY");
-    if (!resendApiKey || resendApiKey === "your-resend-api-key-here") {
-      console.log("Resend not configured, falling back to Supabase Auth");
-      emailMethod = 'supabase';
+    const isDomainVerified = Deno.env.get("RESEND_DOMAIN_VERIFIED") === "true";
+    
+    // Only use Resend if API key exists and domain is verified
+    if (resendApiKey && resendApiKey !== "your-resend-api-key-here" && isDomainVerified) {
+      console.log("Resend is configured and domain verified, using Resend");
+      emailMethod = 'resend';
+    } else {
+      console.log("Resend not fully configured or domain not verified, using Supabase Auth");
     }
     
     if (emailMethod === 'resend') {
@@ -254,63 +259,160 @@ const handler = async (req: Request): Promise<Response> => {
       }
     }
 
-    // Fallback to Supabase Auth invitation system
+    // Primary method: Supabase Auth invitation system
     if (emailMethod === 'supabase') {
       try {
         console.log(`Attempting to send invitation via Supabase Auth to: ${email}`);
         
-        const { data: inviteData, error: inviteError } = await supabase.auth.admin.inviteUserByEmail(email, {
-          data: {
-            invitation_token: invitationToken,
-            project_id: projectId,
-            project_name: projectName,
-            role: role,
-            inviter_name: inviterName
-          },
-          redirectTo: invitationLink
-        });
-
-        if (inviteError) {
-          console.error("Supabase Auth invite error:", inviteError);
+        // For existing users, add them directly to the project
+        if (existingUser) {
+          console.log(`User ${email} already exists, adding directly to project`);
           
-          // Clean up pending invitation on failure
+          const { error: addUserError } = await supabase
+            .from('project_users')
+            .insert({
+              project_id: projectId,
+              user_id: existingUser.id,
+              role: role,
+              invited_by: user.id,
+              joined_at: new Date().toISOString()
+            });
+
+          if (addUserError) {
+            console.error('Error adding existing user to project:', addUserError);
+            throw addUserError;
+          }
+
+          // Remove pending invitation since user is now a member
           await supabase
             .from('project_pending_invitations')
             .delete()
             .eq('invitation_token', invitationToken);
 
-          // Determine specific error message
-          let errorMessage = 'Failed to send invitation email. Please try again.';
-          let statusCode = 500;
+          // Create notification for the existing user
+          await supabase
+            .from('notifications')
+            .insert({
+              user_id: existingUser.id,
+              type: 'team_invitation_accepted',
+              title: 'Added to Project Team',
+              message: `You've been added to "${projectName}" as a ${role}.`,
+              data: {
+                project_id: projectId,
+                project_name: projectName,
+                role: role,
+                inviter_name: inviterName
+              }
+            });
 
-          if (inviteError.message?.includes('rate limit') || inviteError.message?.includes('too many')) {
-            errorMessage = 'Too many invitations sent recently. Please wait a few minutes and try again.';
-            statusCode = 429;
-          } else if (inviteError.message?.includes('invalid email') || inviteError.message?.includes('email')) {
-            errorMessage = 'Invalid email address. Please check the email format and try again.';
-            statusCode = 422;
-          } else if (inviteError.message?.includes('user already exists')) {
-            errorMessage = 'A user with this email already exists. Please try adding them directly to the project.';
-            statusCode = 409;
-          }
-          
-          return new Response(
-            JSON.stringify({ 
-              error: errorMessage,
-              method: 'supabase_auth',
-              details: inviteError.message
-            }),
-            {
-              status: statusCode,
-              headers: { "Content-Type": "application/json", ...corsHeaders },
+          console.log("Existing user added to project directly");
+          emailResponse = { success: true, method: 'direct_add', user_existed: true };
+        } else {
+          // For new users, send invitation via Supabase Auth
+          const { data: inviteData, error: inviteError } = await supabase.auth.admin.inviteUserByEmail(email, {
+            data: {
+              invitation_token: invitationToken,
+              project_id: projectId,
+              project_name: projectName,
+              role: role,
+              inviter_name: inviterName
+            },
+            redirectTo: invitationLink
+          });
+
+          if (inviteError) {
+            console.error("Supabase Auth invite error:", inviteError);
+            
+            // Clean up pending invitation on failure
+            await supabase
+              .from('project_pending_invitations')
+              .delete()
+              .eq('invitation_token', invitationToken);
+
+            // Determine specific error message
+            let errorMessage = 'Failed to send invitation email. Please try again.';
+            let statusCode = 500;
+
+            if (inviteError.message?.includes('rate limit') || inviteError.message?.includes('too many')) {
+              errorMessage = 'Too many invitations sent recently. Please wait a few minutes and try again.';
+              statusCode = 429;
+            } else if (inviteError.message?.includes('invalid email') || inviteError.message?.includes('email')) {
+              errorMessage = 'Invalid email address. Please check the email format and try again.';
+              statusCode = 422;
+            } else if (inviteError.message?.includes('user already exists') || inviteError.message?.includes('already been registered')) {
+              // If user exists, try to add them directly
+              console.log("User already exists, attempting direct add");
+              emailMethod = 'direct_add';
+            } else {
+              return new Response(
+                JSON.stringify({ 
+                  error: errorMessage,
+                  method: 'supabase_auth',
+                  details: inviteError.message
+                }),
+                {
+                  status: statusCode,
+                  headers: { "Content-Type": "application/json", ...corsHeaders },
+                }
+              );
             }
-          );
+          } else {
+            console.log("Invitation sent successfully via Supabase Auth:", inviteData);
+            emailResponse = { success: true, method: 'supabase_auth' };
+          }
+        }
+      } catch (error: any) {
+        console.error("Supabase Auth method failed:", error);
+        emailMethod = 'direct_add'; // Try direct add as fallback
+      }
+    }
+
+    // Fallback method: Direct add for existing users
+    if (emailMethod === 'direct_add' && existingUser) {
+      try {
+        console.log(`Attempting direct add for existing user: ${email}`);
+        
+        const { error: addUserError } = await supabase
+          .from('project_users')
+          .insert({
+            project_id: projectId,
+            user_id: existingUser.id,
+            role: role,
+            invited_by: user.id,
+            joined_at: new Date().toISOString()
+          });
+
+        if (addUserError) {
+          console.error('Error in direct add:', addUserError);
+          throw addUserError;
         }
 
-        console.log("Invitation sent successfully via Supabase Auth:", inviteData);
-        emailResponse = { success: true, method: 'supabase_auth' };
+        // Remove pending invitation
+        await supabase
+          .from('project_pending_invitations')
+          .delete()
+          .eq('invitation_token', invitationToken);
+
+        // Create notification
+        await supabase
+          .from('notifications')
+          .insert({
+            user_id: existingUser.id,
+            type: 'team_invitation_accepted',
+            title: 'Added to Project Team',
+            message: `You've been added to "${projectName}" as a ${role}.`,
+            data: {
+              project_id: projectId,
+              project_name: projectName,
+              role: role,
+              inviter_name: inviterName
+            }
+          });
+
+        console.log("User added directly to project successfully");
+        emailResponse = { success: true, method: 'direct_add', user_existed: true };
       } catch (error: any) {
-        console.error("Supabase Auth fallback failed:", error);
+        console.error("Direct add failed:", error);
         
         // Clean up pending invitation on complete failure
         await supabase
@@ -320,8 +422,8 @@ const handler = async (req: Request): Promise<Response> => {
 
         return new Response(
           JSON.stringify({ 
-            error: 'All email delivery methods failed. Please contact support.',
-            method: 'all_failed',
+            error: 'Failed to add user to project. Please try again.',
+            method: 'direct_add_failed',
             details: error.message
           }),
           {
@@ -332,13 +434,36 @@ const handler = async (req: Request): Promise<Response> => {
       }
     }
 
+    // If we get here without success, something went wrong
+    if (!emailResponse?.success) {
+      await supabase
+        .from('project_pending_invitations')
+        .delete()
+        .eq('invitation_token', invitationToken);
+
+      return new Response(
+        JSON.stringify({ 
+          error: 'All invitation methods failed. Please contact support.',
+          method: 'all_failed'
+        }),
+        {
+          status: 503,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        }
+      );
+    }
+
     console.log("Team invitation sent successfully:", emailResponse);
 
     return new Response(
       JSON.stringify({
         success: true,
-        message: `Invitation sent to ${email}`,
-        invitationId: invitationToken
+        message: emailResponse.user_existed 
+          ? `${email} has been added to the project team directly`
+          : `Invitation sent to ${email}`,
+        invitationId: invitationToken,
+        method: emailResponse.method,
+        userExisted: emailResponse.user_existed || false
       }),
       {
         status: 200,

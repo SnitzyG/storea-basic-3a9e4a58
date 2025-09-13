@@ -6,6 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Separator } from '@/components/ui/separator';
 import { AddTeamMemberDialog } from './AddTeamMemberDialog';
+import { TeamInvitationStatusCard } from './TeamInvitationStatusCard';
 import { useProjectTeam } from '@/hooks/useProjectTeam';
 import { usePendingInvitations } from '@/hooks/usePendingInvitations';
 import { useAuth } from '@/hooks/useAuth';
@@ -341,6 +342,15 @@ export const ProjectDetailView = ({ project }: ProjectDetailViewProps) => {
           </CardContent>
         </Card>
       )}
+
+      {/* Team Invitation Status */}
+      <TeamInvitationStatusCard 
+        projectId={project.id} 
+        onInvitationUpdate={() => {
+          // This will trigger a refresh of the team data
+          window.location.reload();
+        }} 
+      />
 
       {/* Add Member Dialog */}
       <AddTeamMemberDialog
