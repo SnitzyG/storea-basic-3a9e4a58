@@ -98,7 +98,7 @@ const Dashboard = () => {
             <ToDoList />
           </div>
 
-          {/* Info Panel */}
+          {/* Info Panel / Team Members */}
           <div className="col-span-1 h-full">
             <InfoPanel />
           </div>

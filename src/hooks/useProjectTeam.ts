@@ -1,6 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useRateLimit } from '@/hooks/useRateLimit';
+import { createInvitationSentNotification } from '@/utils/teamNotifications';
+import { validateInvitationRequest } from '@/utils/invitationValidation';
 
 export interface TeamMember {
   id: string;
@@ -40,6 +43,7 @@ export const useProjectTeam = (projectId: string): UseProjectTeamReturn => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
+  const { checkInviteLimit } = useRateLimit();
 
   const fetchTeamMembers = useCallback(async () => {
     if (!projectId) {
@@ -140,17 +144,6 @@ export const useProjectTeam = (projectId: string): UseProjectTeamReturn => {
 
   const addMember = useCallback(async (email: string, role: string, projectName: string = 'Project'): Promise<boolean> => {
     try {
-      // Validate email format
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(email)) {
-        toast({
-          title: "Invalid email",
-          description: "Please enter a valid email address.",
-          variant: "destructive"
-        });
-        return false;
-      }
-
       // Get current user
       const { data: currentUser } = await supabase.auth.getUser();
       if (!currentUser.user) {
@@ -161,6 +154,29 @@ export const useProjectTeam = (projectId: string): UseProjectTeamReturn => {
         });
         return false;
       }
+
+      // Check rate limit
+      const rateLimit = checkInviteLimit(projectId, currentUser.user.id);
+      if (!rateLimit.allowed) {
+        toast({
+          title: "Rate limit exceeded",
+          description: `Too many invitations sent. Please wait ${rateLimit.resetIn} seconds before sending another invitation.`,
+          variant: "destructive"
+        });
+        return false;
+      }
+
+      // Comprehensive validation
+      const validation = await validateInvitationRequest(projectId, email, role, currentUser.user.id);
+      if (!validation.isValid) {
+        toast({
+          title: validation.error || "Validation failed",
+          description: validation.suggestion || "Please check your input and try again.",
+          variant: "destructive"
+        });
+        return false;
+      }
+
 
       // Get user profile for inviter name
       const { data: profile } = await supabase
@@ -331,6 +347,9 @@ export const useProjectTeam = (projectId: string): UseProjectTeamReturn => {
         title: "Invitation sent!",
         description: `Invitation sent to ${email}. They will receive an email with instructions to join the project.`
       });
+
+      // Create notification for the inviter
+      await createInvitationSentNotification(currentUser.user.id, email, projectName);
 
       // Refresh to show any immediate changes
       await fetchTeamMembers();

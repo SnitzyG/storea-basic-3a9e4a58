@@ -8,6 +8,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, CheckCircle, XCircle, UserPlus } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { createWelcomeNotification } from '@/utils/teamNotifications';
 
 export default function AcceptInvitation() {
   const [searchParams] = useSearchParams();
@@ -134,6 +135,16 @@ export default function AcceptInvitation() {
 
       // Show success state
       setAcceptanceSuccess(true);
+      
+      // Create welcome notification
+      if (invitation && projectInfo) {
+        await createWelcomeNotification(userId, {
+          projectId: invitation.project_id,
+          projectName: projectInfo.name,
+          role: invitation.role,
+          inviterName: projectInfo.creatorName
+        });
+      }
       
       toast({
         title: "🎉 Welcome to the team!",
