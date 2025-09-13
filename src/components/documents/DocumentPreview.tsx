@@ -4,6 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
+import { getFileExtension, canPreviewFile, getSafeFilename } from '@/utils/documentUtils';
 
 interface DocumentPreviewProps {
   document: {
@@ -63,36 +64,13 @@ export const DocumentPreview: React.FC<DocumentPreviewProps> = ({
     return () => { isMounted = false; };
   }, [document.file_path]);
 
-  const getFileExtension = (fallbackName: string) => {
-    const fromPath = document.file_path.split('.').pop()?.toLowerCase();
-    if (fromPath) return fromPath;
-    return fallbackName.split('.').pop()?.toLowerCase() || '';
-  };
-  const canPreviewFile = (fileType: string, fileName: string) => {
-    const extension = getFileExtension(fileName);
-    
-    // Supported preview types
-    const previewableTypes = [
-      'application/pdf',
-      'image/jpeg',
-      'image/jpg', 
-      'image/png',
-      'image/gif',
-      'image/bmp',
-      'image/webp',
-      'image/svg+xml',
-      'text/plain'
-    ];
-    
-    const previewableExtensions = [
-      'pdf', 'jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'svg', 'txt'
-    ];
-    
-    return previewableTypes.includes(fileType) || previewableExtensions.includes(extension);
+  // Use utility function for consistent extension extraction
+  const getDocumentExtension = () => {
+    return getFileExtension(document.file_path) || getFileExtension(document.name);
   };
 
   const renderPreview = () => {
-    const extension = getFileExtension(document.name);
+    const extension = getDocumentExtension();
     const isImage = document.file_type.startsWith('image/') || ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'svg'].includes(extension);
     const isPdf = document.file_type === 'application/pdf' || extension === 'pdf';
     const isText = document.file_type === 'text/plain' || extension === 'txt' || extension === 'csv';
@@ -177,9 +155,7 @@ export const DocumentPreview: React.FC<DocumentPreviewProps> = ({
         </p>
         <Button onClick={() => onDownload(
           document.file_path,
-          (document.name && document.name.includes('.'))
-            ? document.name
-            : ((document.name || 'document') + (extension ? `.${extension}` : ''))
+          document.name && document.name.includes('.') ? document.name : `${document.name || 'document'}.${extension}`
         )}>
           <Download className="h-4 w-4 mr-2" />
           Download to View
@@ -226,9 +202,7 @@ export const DocumentPreview: React.FC<DocumentPreviewProps> = ({
                 size="sm"
                 onClick={() => onDownload(
                   document.file_path,
-                  (document.name && document.name.includes('.'))
-                    ? document.name
-                    : ((document.name || 'document') + (getFileExtension(document.name) ? `.${getFileExtension(document.name)}` : ''))
+                  document.name && document.name.includes('.') ? document.name : `${document.name || 'document'}.${getDocumentExtension()}`
                 )}
               >
                 <Download className="h-4 w-4" />

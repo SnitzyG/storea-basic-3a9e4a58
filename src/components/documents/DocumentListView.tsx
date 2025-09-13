@@ -13,6 +13,7 @@ import { format } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
 import { FileTypeIcon } from './FileTypeIcon';
 import { EditDocumentDialog } from './EditDocumentDialog';
+import { getSafeFilename, getFileTypeDisplayName } from '@/utils/documentUtils';
 interface DocumentListViewProps {
   documents: Document[];
   onDownload: (filePath: string, fileName: string) => void;
@@ -241,12 +242,7 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
               </TableCell>
               
               <TableCell className="text-xs text-muted-foreground">
-                {(document.file_extension?.toUpperCase()
-                  || document.name?.split('.').pop()?.toUpperCase()
-                  || ((document.file_type?.split('/')[1]?.split('+')[0]?.toUpperCase() !== 'OCTET-STREAM' && document.file_type?.split('/')[1]?.split('+')[0]?.toUpperCase() !== 'BINARY')
-                        ? document.file_type?.split('/')[1]?.split('+')[0]?.toUpperCase()
-                        : '')
-                  || 'N/A')}
+                {getFileTypeDisplayName(document)}
               </TableCell>
               
               <TableCell>
@@ -281,12 +277,7 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
                   <DropdownMenuContent align="end" className="bg-background border">
                     <DropdownMenuItem onClick={() => onDownload(
                       document.file_path,
-                      (document.name && document.name.includes('.'))
-                        ? document.name
-                        : (
-                            ((document.title && document.title.includes('.')) ? document.title : (document.title || document.name || 'document')) +
-                            (document.file_extension ? `.${document.file_extension}` : (document.file_path?.includes('.') ? `.${document.file_path.split('.').pop()}` : ''))
-                          )
+                      getSafeFilename(document)
                     )}>
                       <Download className="h-3 w-3 mr-2" />
                       Download

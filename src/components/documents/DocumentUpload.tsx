@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { useDocuments } from '@/hooks/useDocuments';
+import { getFileExtension, formatFileSize } from '@/utils/documentUtils';
 
 interface DocumentUploadProps {
   projectId: string;
@@ -133,7 +134,7 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
         const result = await uploadDocument(
           file, 
           projectId, 
-          file.name,
+          file.name, // Use original filename with extension
           {
             documentNumber: file.documentNumber,
             status: file.documentStatus!,
@@ -177,13 +178,8 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
     setFiles(prev => prev.filter(f => f.status === 'pending' || f.status === 'uploading'));
   };
 
-  const formatFileSize = (bytes: number) => {
-    if (bytes === 0) return '0 Bytes';
-    const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-  };
+  // Use the imported formatFileSize utility function
+  // (removed local implementation)
 
   const getStatusColor = (status: UploadFile['status']) => {
     switch (status) {
