@@ -131,7 +131,7 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
           projectId 
         });
         
-        const result = await uploadDocument(
+        await uploadDocument(
           file, 
           projectId, 
           file.name, // Use original filename with extension
@@ -145,19 +145,11 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
 
         clearInterval(progressInterval);
 
-        if (result) {
-          setFiles(prev => prev.map(f => 
-            f.id === file.id 
-              ? { ...f, status: 'success', progress: 100 } 
-              : f
-          ));
-        } else {
-          setFiles(prev => prev.map(f => 
-            f.id === file.id 
-              ? { ...f, status: 'error', progress: 0, error: 'Upload failed' } 
-              : f
-          ));
-        }
+        setFiles(prev => prev.map(f => 
+          f.id === file.id 
+            ? { ...f, status: 'success', progress: 100 } 
+            : f
+        ));
       } catch (error) {
         console.error('Upload error:', error);
         const errorMessage = error instanceof Error ? error.message : 'Upload failed';
