@@ -109,7 +109,7 @@ export const DocumentDetailsDialog: React.FC<DocumentDetailsDialogProps> = ({
                 <DialogTitle className="text-xl">{document.name}</DialogTitle>
                 <div className="flex items-center gap-2 mt-1">
                   <Badge variant="outline">
-                    v{document.version || 1}
+                    {String.fromCharCode(64 + (document.version || 1))}
                   </Badge>
                   <Badge variant="secondary">
                     {document.status.replace('_', ' ')}
@@ -127,11 +127,8 @@ export const DocumentDetailsDialog: React.FC<DocumentDetailsDialogProps> = ({
 
         <div className="flex-1 min-h-0">
           <Tabs defaultValue="versions" className="h-full flex flex-col">
-            <TabsList className="grid w-full grid-cols-4">
-              <TabsTrigger value="versions">Version History</TabsTrigger>
-              
-              
-              
+            <TabsList className="grid w-full grid-cols-1">
+              <TabsTrigger value="versions">History</TabsTrigger>
             </TabsList>
             
             <div className="flex-1 min-h-0 pt-4">

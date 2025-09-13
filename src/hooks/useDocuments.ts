@@ -26,6 +26,7 @@ export interface Document {
   locked_at?: string;
   superseded_by?: string;
   is_superseded?: boolean;
+  file_type_category?: string;
 }
 
 export interface DocumentVersion {
@@ -446,15 +447,37 @@ export const useDocuments = (projectId?: string) => {
 
       if (error) throw error;
 
-      // Create download link
-      const url = window.URL.createObjectURL(data);
+      // Get the file extension from the original filename to preserve it
+      const fileExtension = fileName.split('.').pop();
+      const downloadFileName = fileExtension ? fileName : `${fileName}.bin`;
+
+      // Create download link with proper MIME type
+      const blob = new Blob([data], { type: data.type || 'application/octet-stream' });
+      const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = fileName;
+      a.download = downloadFileName;
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
+
+      // Log the download activity
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        await supabase
+          .from('activity_log')
+          .insert([{
+            user_id: user.id,
+            entity_type: 'document',
+            action: 'downloaded',
+            description: `Downloaded document: "${fileName}"`,
+            metadata: { 
+              file_path: filePath,
+              file_name: fileName
+            }
+          }]);
+      }
     } catch (error) {
       console.error('Error downloading document:', error);
       toast({

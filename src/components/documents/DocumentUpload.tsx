@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
 import { useDocuments } from '@/hooks/useDocuments';
 
 interface DocumentUploadProps {
@@ -24,6 +25,7 @@ interface UploadFile extends File {
   title?: string;
   documentStatus?: 'For Tender' | 'For Information' | 'For Construction';
   fileType?: 'Architectural' | 'Structural' | 'Permit';
+  isPrivate?: boolean;
 }
 
 const ACCEPTED_FILE_TYPES = {
@@ -57,7 +59,8 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
       status: 'pending',
       title: file.name.replace(/\.[^/.]+$/, ""), // Remove extension for title
       documentStatus: 'For Information',
-      fileType: 'Architectural'
+      fileType: 'Architectural',
+      isPrivate: false
     }));
 
     setFiles(prev => [...prev, ...newFiles]);
@@ -352,6 +355,24 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
                             ))}
                           </SelectContent>
                         </Select>
+                      </div>
+
+                      {/* Privacy Toggle */}
+                      <div className="col-span-2 flex items-center justify-between p-3 bg-muted/30 rounded-lg">
+                        <div className="space-y-0.5">
+                          <Label htmlFor={`private-${file.id}`} className="text-sm font-medium">
+                            Make Private
+                          </Label>
+                          <p className="text-xs text-muted-foreground">
+                            Only you can view this document
+                          </p>
+                        </div>
+                        <Switch
+                          id={`private-${file.id}`}
+                          checked={file.isPrivate || false}
+                          onCheckedChange={(checked) => updateFileProperty(file.id, 'isPrivate', checked)}
+                          disabled={isUploading}
+                        />
                       </div>
                     </div>
                   )}

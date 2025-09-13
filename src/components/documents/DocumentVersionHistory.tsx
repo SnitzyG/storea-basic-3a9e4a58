@@ -62,7 +62,7 @@ export const DocumentVersionHistory: React.FC<DocumentVersionHistoryProps> = ({
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2">
                         <Badge variant={version.version_number === currentVersion ? 'default' : 'outline'}>
-                          {getVersionLabel(version)}
+                          {String.fromCharCode(64 + version.version_number)}
                         </Badge>
                         {version.changes_summary && (
                           <span className="text-sm text-muted-foreground truncate">

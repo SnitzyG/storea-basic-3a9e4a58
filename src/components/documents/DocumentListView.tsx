@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { FileText, Lock, Unlock, Eye, Settings, History, Send, Check, X, MoreHorizontal, Download, Edit, Image, FileCheck, Building, Zap, Wrench, FileBarChart, Mail, Camera } from 'lucide-react';
+import { Lock, Unlock, Eye, Settings, MoreHorizontal, Download, Edit, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -11,17 +11,18 @@ import { useProjects } from '@/hooks/useProjects';
 import { useProjectTeam } from '@/hooks/useProjectTeam';
 import { format } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
+import { FileTypeIcon } from './FileTypeIcon';
+import { EditDocumentDialog } from './EditDocumentDialog';
 interface DocumentListViewProps {
   documents: Document[];
   onDownload: (filePath: string, fileName: string) => void;
   onDelete?: (documentId: string, filePath: string) => void;
   onStatusChange?: (documentId: string, status: string) => void;
   onTypeChange?: (documentId: string, type: string) => void;
-  onAssignedToChange?: (documentId: string, assignedTo: string) => void;
+  onAccessibilityChange?: (documentId: string, accessibility: string) => void;
   onPreview?: (document: Document) => void;
   onViewDetails?: (document: Document) => void;
-  onViewEvents?: (document: Document) => void;
-  onViewTransmittals?: (document: Document) => void;
+  onViewActivity?: (document: Document) => void;
   onToggleLock?: (documentId: string) => void;
   canEdit: boolean;
   canApprove: boolean;
@@ -33,64 +34,24 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
   onDelete,
   onStatusChange,
   onTypeChange,
-  onAssignedToChange,
+  onAccessibilityChange,
   onPreview,
   onViewDetails,
-  onViewEvents,
-  onViewTransmittals,
+  onViewActivity,
   onToggleLock,
   canEdit,
   canApprove,
   selectedProject
 }) => {
   const [selectedDocuments, setSelectedDocuments] = useState<Set<string>>(new Set());
-  const {
-    projects
-  } = useProjects();
-  const {
-    teamMembers
-  } = useProjectTeam(selectedProject);
-  const getFileTypeIcon = (document: Document) => {
-    const category = document.category || 'general';
-    const extension = document.file_extension?.toLowerCase() || '';
-    
-    // First try to match by file extension for more accurate icons
-    const extensionIconMap: { [key: string]: JSX.Element } = {
-      'pdf': <FileText className="h-4 w-4 text-red-500" />,
-      'doc': <FileText className="h-4 w-4 text-blue-500" />,
-      'docx': <FileText className="h-4 w-4 text-blue-500" />,
-      'dwg': <Building className="h-4 w-4 text-blue-600" />,
-      'dxf': <Building className="h-4 w-4 text-blue-400" />,
-      'jpg': <Image className="h-4 w-4 text-green-500" />,
-      'jpeg': <Image className="h-4 w-4 text-green-500" />,
-      'png': <Image className="h-4 w-4 text-green-600" />,
-      'gif': <Image className="h-4 w-4 text-green-400" />,
-      'xlsx': <FileBarChart className="h-4 w-4 text-green-600" />,
-      'xls': <FileBarChart className="h-4 w-4 text-green-500" />,
-      'zip': <FileText className="h-4 w-4 text-orange-500" />,
-      'rar': <FileText className="h-4 w-4 text-orange-600" />
-    };
-
-    // If we have a specific icon for the extension, use it
-    if (extension && extensionIconMap[extension]) {
-      return extensionIconMap[extension];
-    }
-
-    // Fall back to category-based icons
-    const categoryIconMap = {
-      'architectural_drawings': <Building className="h-4 w-4 text-blue-500" />,
-      'structural_plans': <FileBarChart className="h-4 w-4 text-green-500" />,
-      'electrical_plans': <Zap className="h-4 w-4 text-yellow-500" />,
-      'plumbing_plans': <Wrench className="h-4 w-4 text-cyan-500" />,
-      'specifications': <FileCheck className="h-4 w-4 text-purple-500" />,
-      'contracts': <FileText className="h-4 w-4 text-red-500" />,
-      'permits': <FileText className="h-4 w-4 text-orange-500" />,
-      'reports': <FileBarChart className="h-4 w-4 text-indigo-500" />,
-      'correspondence': <Mail className="h-4 w-4 text-gray-500" />,
-      'photographs': <Camera className="h-4 w-4 text-pink-500" />
-    };
-    
-    return categoryIconMap[category as keyof typeof categoryIconMap] || <FileText className="h-4 w-4 text-muted-foreground" />;
+  const [editingDocument, setEditingDocument] = useState<Document | null>(null);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const { projects } = useProjects();
+  const { teamMembers } = useProjectTeam(selectedProject);
+  // Convert numeric version to alphanumeric (1=A, 2=B, etc.)
+  const getVersionLabel = (version?: number) => {
+    if (!version || version < 1) return 'A';
+    return String.fromCharCode(64 + version); // 65 is 'A', so 64 + 1 = 'A'
   };
   const getProjectNumber = (projectId: string) => {
     const project = projects.find(p => p.id === projectId);
@@ -155,12 +116,20 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
     value: "Permit",
     label: "Permit"
   }];
-  const assignedToOptions = useMemo(() => {
-    return teamMembers.map(member => ({
-      value: member.user_id,
-      label: `${member.user_profile?.name || 'Unknown User'} (${member.user_profile?.role || member.role})`
-    }));
-  }, [teamMembers]);
+  const accessibilityOptions = [
+    { value: 'public', label: 'Public' },
+    { value: 'private', label: 'Private' }
+  ];
+
+  const handleEditDocument = (document: Document) => {
+    setEditingDocument(document);
+    setIsEditDialogOpen(true);
+  };
+
+  const handleEditSave = () => {
+    // Refresh documents list after edit
+    window.location.reload(); // Simple refresh for now
+  };
 
   // Get user name from user ID
   const getUserName = async (userId: string) => {
@@ -221,7 +190,7 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
               </TableCell>
               
               <TableCell>
-                {getFileTypeIcon(document)}
+                <FileTypeIcon fileName={document.name} fileType={document.file_type} />
               </TableCell>
               
               <TableCell>
@@ -257,26 +226,21 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
               </TableCell>
               
               <TableCell className="font-mono text-center">
-                {document.version || 1}
+                {getVersionLabel(document.version)}
               </TableCell>
               
               <TableCell>
-                {onStatusChange && !document.is_locked ? <Select value={document.status} onValueChange={value => onStatusChange(document.id, value)} disabled={document.is_locked}>
-                    <SelectTrigger className="h-7 text-xs">
-                      <SelectValue placeholder="Select Status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {statusOptions.map(option => <SelectItem key={option.value} value={option.value}>
-                          {option.label}
-                        </SelectItem>)}
-                    </SelectContent>
-                  </Select> : <Badge variant={getStatusBadgeColor(document.status)} className="text-xs">
-                    {document.status.replace('_', ' ')}
-                  </Badge>}
+                <Badge variant={getStatusBadgeColor(document.status)} className="text-xs">
+                  {document.status.replace('_', ' ')}
+                </Badge>
               </TableCell>
               
               <TableCell className="text-xs text-muted-foreground">
                 {format(new Date(document.created_at), 'dd/MM/yy')}
+              </TableCell>
+              
+              <TableCell className="text-xs text-muted-foreground">
+                {format(new Date(document.updated_at), 'dd/MM/yy')}
               </TableCell>
               
               <TableCell className="text-xs text-muted-foreground">
@@ -297,15 +261,20 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
               </TableCell>
               
               <TableCell>
-                <Select value={document.assigned_to || 'unassigned'} onValueChange={value => onAssignedToChange?.(document.id, value === 'unassigned' ? '' : value)} disabled={!canEdit || document.is_locked}>
+                <Select 
+                  value={document.visibility_scope === 'private' ? 'private' : 'public'} 
+                  onValueChange={value => onAccessibilityChange?.(document.id, value)} 
+                  disabled={!canEdit || document.is_locked}
+                >
                   <SelectTrigger className="h-7 text-xs">
-                    <SelectValue placeholder="Select Team Member" />
+                    <SelectValue placeholder="Select Accessibility" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="unassigned">Unassigned</SelectItem>
-                    {assignedToOptions.map(option => <SelectItem key={option.value} value={option.value}>
+                    {accessibilityOptions.map(option => (
+                      <SelectItem key={option.value} value={option.value}>
                         {option.label}
-                      </SelectItem>)}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </TableCell>
@@ -317,7 +286,7 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
               </TableCell>
               
               <TableCell>
-                <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={() => onViewDetails?.(document)}>
+                <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={() => onViewActivity?.(document)}>
                   <Settings className="h-3 w-3" />
                 </Button>
               </TableCell>
@@ -339,10 +308,12 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
                       Download
                     </DropdownMenuItem>
                     
-                    {canEdit && <DropdownMenuItem>
+                    {canEdit && (
+                      <DropdownMenuItem onClick={() => handleEditDocument(document)}>
                         <Edit className="h-3 w-3 mr-2" />
-                        Edit Title
-                      </DropdownMenuItem>}
+                        Edit Document
+                      </DropdownMenuItem>
+                    )}
                     
                     {canEdit && onDelete && <DropdownMenuItem onClick={() => onDelete(document.id, document.file_path)} className="text-destructive">
                         <X className="h-3 w-3 mr-2" />
@@ -355,9 +326,21 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
         </TableBody>
       </Table>
       
-      {documents.length === 0 && <div className="text-center py-12 text-muted-foreground">
-          <FileText className="h-12 w-12 mx-auto mb-2 opacity-50" />
+      {documents.length === 0 && (
+        <div className="text-center py-12 text-muted-foreground">
+          <FileTypeIcon fileName="document.pdf" className="h-12 w-12 mx-auto mb-2 opacity-50" />
           <p>No documents found</p>
-        </div>}
+        </div>
+      )}
+
+      <EditDocumentDialog
+        document={editingDocument}
+        isOpen={isEditDialogOpen}
+        onClose={() => {
+          setIsEditDialogOpen(false);
+          setEditingDocument(null);
+        }}
+        onSave={handleEditSave}
+      />
     </div>;
 };

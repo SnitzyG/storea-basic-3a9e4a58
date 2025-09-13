@@ -30,8 +30,42 @@ export const DocumentPreview: React.FC<DocumentPreviewProps> = ({
   const handleZoomOut = () => setZoom(prev => Math.max(prev - 25, 50));
   const handleRotate = () => setRotation(prev => (prev + 90) % 360);
 
+  const getFileExtension = (fileName: string) => {
+    return fileName.split('.').pop()?.toLowerCase() || '';
+  };
+
+  const canPreviewFile = (fileType: string, fileName: string) => {
+    const extension = getFileExtension(fileName);
+    
+    // Supported preview types
+    const previewableTypes = [
+      'application/pdf',
+      'image/jpeg',
+      'image/jpg', 
+      'image/png',
+      'image/gif',
+      'image/bmp',
+      'image/webp',
+      'text/plain'
+    ];
+    
+    const previewableExtensions = [
+      'pdf', 'jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'txt'
+    ];
+    
+    return previewableTypes.includes(fileType) || previewableExtensions.includes(extension);
+  };
+
   const renderPreview = () => {
-    if (document.file_type.startsWith('image/')) {
+    const extension = getFileExtension(document.name);
+    const isImage = document.file_type.startsWith('image/') || ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'].includes(extension);
+    const isPdf = document.file_type === 'application/pdf' || extension === 'pdf';
+    const isText = document.file_type === 'text/plain' || extension === 'txt';
+
+    // For office documents, try to create preview URL using Google Docs Viewer
+    const isOfficeDoc = ['doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx'].includes(extension);
+    
+    if (isImage) {
       return (
         <div className="flex justify-center items-center h-full bg-muted/20 rounded-lg">
           <img
@@ -42,32 +76,75 @@ export const DocumentPreview: React.FC<DocumentPreviewProps> = ({
               transform: `scale(${zoom / 100}) rotate(${rotation}deg)`,
               transition: 'transform 0.2s ease'
             }}
-          />
-        </div>
-      );
-    }
-
-    if (document.file_type === 'application/pdf') {
-      return (
-        <div className="flex justify-center items-center h-full bg-muted/20 rounded-lg">
-          <iframe
-            src={`/api/documents/preview/${document.file_path}`}
-            className="w-full h-full border-0 rounded-lg"
-            style={{
-              transform: `scale(${zoom / 100})`,
-              transformOrigin: 'top left'
+            onError={(e) => {
+              // If direct preview fails, try Supabase storage URL
+              const target = e.target as HTMLImageElement;
+              target.src = `https://inibugusrzfihldvegrb.supabase.co/storage/v1/object/public/documents/${document.file_path}`;
             }}
           />
         </div>
       );
     }
 
+    if (isPdf) {
+      const pdfUrl = `https://inibugusrzfihldvegrb.supabase.co/storage/v1/object/public/documents/${document.file_path}`;
+      return (
+        <div className="flex justify-center items-center h-full bg-muted/20 rounded-lg">
+          <iframe
+            src={pdfUrl}
+            className="w-full h-full border-0 rounded-lg"
+            style={{
+              transform: `scale(${zoom / 100})`,
+              transformOrigin: 'top left'
+            }}
+            title="PDF Preview"
+          />
+        </div>
+      );
+    }
+
+    if (isOfficeDoc) {
+      const fileUrl = encodeURIComponent(`https://inibugusrzfihldvegrb.supabase.co/storage/v1/object/public/documents/${document.file_path}`);
+      const viewerUrl = `https://docs.google.com/gview?url=${fileUrl}&embedded=true`;
+      
+      return (
+        <div className="flex justify-center items-center h-full bg-muted/20 rounded-lg">
+          <iframe
+            src={viewerUrl}
+            className="w-full h-full border-0 rounded-lg"
+            style={{
+              transform: `scale(${zoom / 100})`,
+              transformOrigin: 'top left'
+            }}
+            title="Document Preview"
+          />
+        </div>
+      );
+    }
+
+    if (isText) {
+      return (
+        <div className="flex justify-center items-center h-full bg-muted/20 rounded-lg">
+          <iframe
+            src={`https://inibugusrzfihldvegrb.supabase.co/storage/v1/object/public/documents/${document.file_path}`}
+            className="w-full h-full border-0 rounded-lg bg-white p-4"
+            style={{
+              transform: `scale(${zoom / 100})`,
+              transformOrigin: 'top left'
+            }}
+            title="Text Preview"
+          />
+        </div>
+      );
+    }
+
+    // Fallback for unsupported types
     return (
       <div className="flex flex-col justify-center items-center h-full bg-muted/20 rounded-lg text-center">
         <Eye className="h-16 w-16 text-muted-foreground mb-4" />
         <h3 className="text-lg font-medium mb-2">Preview not available</h3>
         <p className="text-muted-foreground mb-4">
-          This file type cannot be previewed in the browser
+          {extension.toUpperCase()} files cannot be previewed in the browser
         </p>
         <Button onClick={() => onDownload(document.file_path, document.name)}>
           <Download className="h-4 w-4 mr-2" />
