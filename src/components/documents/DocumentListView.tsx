@@ -46,8 +46,12 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
   const [selectedDocuments, setSelectedDocuments] = useState<Set<string>>(new Set());
   const [editingDocument, setEditingDocument] = useState<Document | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const { projects } = useProjects();
-  const { teamMembers } = useProjectTeam(selectedProject);
+  const {
+    projects
+  } = useProjects();
+  const {
+    teamMembers
+  } = useProjectTeam(selectedProject);
   // Convert numeric version to alphanumeric (1=A, 2=B, etc.)
   const getVersionLabel = (version?: number) => {
     if (!version || version < 1) return 'A';
@@ -116,16 +120,17 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
     value: "Permit",
     label: "Permit"
   }];
-  const accessibilityOptions = [
-    { value: 'public', label: 'Public' },
-    { value: 'private', label: 'Private' }
-  ];
-
+  const accessibilityOptions = [{
+    value: 'public',
+    label: 'Public'
+  }, {
+    value: 'private',
+    label: 'Private'
+  }];
   const handleEditDocument = (document: Document) => {
     setEditingDocument(document);
     setIsEditDialogOpen(true);
   };
-
   const handleEditSave = () => {
     // Refresh documents list after edit
     window.location.reload(); // Simple refresh for now
@@ -176,7 +181,7 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
             <TableHead className="w-32">Created By</TableHead>
             <TableHead className="w-32">File Type</TableHead>
             <TableHead className="w-32">Assigned To</TableHead>
-            <TableHead className="w-16">Preview</TableHead>
+            <TableHead className="w-16">Accessabil</TableHead>
             <TableHead className="w-16">History</TableHead>
             
             
@@ -194,17 +199,8 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
               </TableCell>
               
               <TableCell>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-7 w-7 p-0"
-                  onClick={() => onToggleLock?.(document.id)}
-                  disabled={!canEdit}
-                >
-                  {document.is_locked ? 
-                    <Lock className="h-4 w-4 text-destructive" /> : 
-                    <Unlock className="h-4 w-4 text-muted-foreground" />
-                  }
+                <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={() => onToggleLock?.(document.id)} disabled={!canEdit}>
+                  {document.is_locked ? <Lock className="h-4 w-4 text-destructive" /> : <Unlock className="h-4 w-4 text-muted-foreground" />}
                 </Button>
               </TableCell>
               
@@ -217,11 +213,9 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
               <TableCell className="font-medium">
                 <div className="flex items-center gap-2">
                   {document.title || document.name}
-                  {document.is_superseded && (
-                    <Badge variant="outline" className="text-xs">
+                  {document.is_superseded && <Badge variant="outline" className="text-xs">
                       Superseded
-                    </Badge>
-                  )}
+                    </Badge>}
                 </div>
               </TableCell>
               
@@ -261,20 +255,14 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
               </TableCell>
               
               <TableCell>
-                <Select 
-                  value={document.visibility_scope === 'private' ? 'private' : 'public'} 
-                  onValueChange={value => onAccessibilityChange?.(document.id, value)} 
-                  disabled={!canEdit || document.is_locked}
-                >
+                <Select value={document.visibility_scope === 'private' ? 'private' : 'public'} onValueChange={value => onAccessibilityChange?.(document.id, value)} disabled={!canEdit || document.is_locked}>
                   <SelectTrigger className="h-7 text-xs">
                     <SelectValue placeholder="Select Accessibility" />
                   </SelectTrigger>
                   <SelectContent>
-                    {accessibilityOptions.map(option => (
-                      <SelectItem key={option.value} value={option.value}>
+                    {accessibilityOptions.map(option => <SelectItem key={option.value} value={option.value}>
                         {option.label}
-                      </SelectItem>
-                    ))}
+                      </SelectItem>)}
                   </SelectContent>
                 </Select>
               </TableCell>
@@ -308,12 +296,10 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
                       Download
                     </DropdownMenuItem>
                     
-                    {canEdit && (
-                      <DropdownMenuItem onClick={() => handleEditDocument(document)}>
+                    {canEdit && <DropdownMenuItem onClick={() => handleEditDocument(document)}>
                         <Edit className="h-3 w-3 mr-2" />
                         Edit Document
-                      </DropdownMenuItem>
-                    )}
+                      </DropdownMenuItem>}
                     
                     {canEdit && onDelete && <DropdownMenuItem onClick={() => onDelete(document.id, document.file_path)} className="text-destructive">
                         <X className="h-3 w-3 mr-2" />
@@ -326,21 +312,14 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
         </TableBody>
       </Table>
       
-      {documents.length === 0 && (
-        <div className="text-center py-12 text-muted-foreground">
+      {documents.length === 0 && <div className="text-center py-12 text-muted-foreground">
           <FileTypeIcon fileName="document.pdf" className="h-12 w-12 mx-auto mb-2 opacity-50" />
           <p>No documents found</p>
-        </div>
-      )}
+        </div>}
 
-      <EditDocumentDialog
-        document={editingDocument}
-        isOpen={isEditDialogOpen}
-        onClose={() => {
-          setIsEditDialogOpen(false);
-          setEditingDocument(null);
-        }}
-        onSave={handleEditSave}
-      />
+      <EditDocumentDialog document={editingDocument} isOpen={isEditDialogOpen} onClose={() => {
+      setIsEditDialogOpen(false);
+      setEditingDocument(null);
+    }} onSave={handleEditSave} />
     </div>;
 };
