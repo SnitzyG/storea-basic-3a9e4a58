@@ -1,7 +1,12 @@
+import { AppLayout } from '@/components/layout/AppLayout';
 import Dashboard from './Dashboard';
 
 const Index = () => {
-  return <Dashboard />;
+  return (
+    <AppLayout>
+      <Dashboard />
+    </AppLayout>
+  );
 };
 
 export default Index;
