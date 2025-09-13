@@ -17,61 +17,64 @@ import TenderResponse from "./pages/TenderResponse";
 import TenderReviewDemo from "./pages/TenderReviewDemo";
 import AcceptInvitation from "./pages/AcceptInvitation";
 import NotFound from "./pages/NotFound";
+import { AuthProvider } from "@/hooks/useAuth";
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/dashboard" element={
-            <AppLayout>
-              <Dashboard />
-            </AppLayout>
-          } />
-          <Route path="/auth" element={<Auth />} />
-          <Route path="/projects" element={
-            <AppLayout>
-              <Projects />
-            </AppLayout>
-          } />
-          <Route path="/tenders" element={
-            <AppLayout>
-              <Tenders />
-            </AppLayout>
-          } />
-          <Route path="/documents" element={
-            <AppLayout>
-              <Documents />
-            </AppLayout>
-          } />
-          <Route path="/messages" element={
-            <AppLayout>
-              <Messages />
-            </AppLayout>
-          } />
-          <Route path="/rfis" element={
-            <AppLayout>
-              <RFIs />
-            </AppLayout>
-          } />
-          <Route path="/testing" element={
-            <AppLayout>
-              <Testing />
-            </AppLayout>
-          } />
-          <Route path="/tender/:tenderId" element={<TenderResponse />} />
-          <Route path="/tender-review-demo" element={<TenderReviewDemo />} />
-          <Route path="/accept-invitation" element={<AcceptInvitation />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
+    <AuthProvider>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/dashboard" element={
+              <AppLayout>
+                <Dashboard />
+              </AppLayout>
+            } />
+            <Route path="/auth" element={<Auth />} />
+            <Route path="/projects" element={
+              <AppLayout>
+                <Projects />
+              </AppLayout>
+            } />
+            <Route path="/tenders" element={
+              <AppLayout>
+                <Tenders />
+              </AppLayout>
+            } />
+            <Route path="/documents" element={
+              <AppLayout>
+                <Documents />
+              </AppLayout>
+            } />
+            <Route path="/messages" element={
+              <AppLayout>
+                <Messages />
+              </AppLayout>
+            } />
+            <Route path="/rfis" element={
+              <AppLayout>
+                <RFIs />
+              </AppLayout>
+            } />
+            <Route path="/testing" element={
+              <AppLayout>
+                <Testing />
+              </AppLayout>
+            } />
+            <Route path="/tender/:tenderId" element={<TenderResponse />} />
+            <Route path="/tender-review-demo" element={<TenderReviewDemo />} />
+            <Route path="/accept-invitation" element={<AcceptInvitation />} />
+            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </TooltipProvider>
+    </AuthProvider>
   </QueryClientProvider>
 );
 
