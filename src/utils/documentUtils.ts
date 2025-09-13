@@ -1,6 +1,6 @@
 // Production-grade document utility functions with bulletproof MIME/extension handling
 
-import mime from 'mime-types';
+
 import { Document } from '@/hooks/useDocuments';
 
 /**
@@ -19,9 +19,40 @@ export const getFileExtension = (nameOrPath: string): string => {
  */
 export const getMimeType = (extension: string): string => {
   const ext = (extension || '').toLowerCase().trim();
-  // mime.lookup expects a filename, so we create a dummy filename with the extension
-  const dummyFilename = `file.${ext}`;
-  return (mime.lookup(dummyFilename) || 'application/octet-stream') as string;
+  const map: Record<string, string> = {
+    pdf: 'application/pdf',
+    png: 'image/png',
+    jpg: 'image/jpeg',
+    jpeg: 'image/jpeg',
+    gif: 'image/gif',
+    webp: 'image/webp',
+    bmp: 'image/bmp',
+    svg: 'image/svg+xml',
+    txt: 'text/plain',
+    csv: 'text/csv',
+    doc: 'application/msword',
+    docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    xls: 'application/vnd.ms-excel',
+    xlsx: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    ppt: 'application/vnd.ms-powerpoint',
+    pptx: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+    zip: 'application/zip',
+    rar: 'application/vnd.rar',
+    '7z': 'application/x-7z-compressed',
+    sevenz: 'application/x-7z-compressed',
+    heic: 'image/heic',
+    mp3: 'audio/mpeg',
+    mp4: 'video/mp4',
+    mov: 'video/quicktime',
+    avi: 'video/x-msvideo',
+    mkv: 'video/x-matroska',
+    dwg: 'image/vnd.dwg',
+    dxf: 'image/vnd.dxf',
+    json: 'application/json',
+    xml: 'application/xml',
+    html: 'text/html',
+  };
+  return map[ext] || 'application/octet-stream';
 };
 
 /**
