@@ -28,7 +28,7 @@ export const AppLayout = ({
 
   // Only redirect if we're certain the user is not authenticated or has no profile
   if (!user || !profile) {
-    return <Navigate to="/auth" replace />;
+    return <Navigate to="/" replace />;
   }
   return <div className="min-h-screen bg-background flex">
       <Sidebar userRole={profile.role} />

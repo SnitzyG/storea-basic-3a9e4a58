@@ -35,7 +35,7 @@ const Auth = () => {
   }
 
   if (user) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/dashboard" replace />;
   }
 
   const handleSignIn = async (e: React.FormEvent) => {
@@ -60,10 +60,10 @@ const Auth = () => {
   ];
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background px-4">
+    <div className="min-h-screen flex items-center justify-center bg-background px-4 animate-fade-in">
       <div className="w-full max-w-6xl flex flex-col lg:flex-row items-center lg:items-stretch lg:justify-between gap-8">
         {/* Animated House Illustration */}
-        <div className="w-full lg:w-1/2 flex justify-center lg:order-2">
+        <div className="w-full lg:w-1/2 flex justify-center lg:order-2 animate-fade-in" style={{ animationDelay: '0.2s' }}>
           <Card className="w-full max-w-md">
             <CardContent>
               <div className="relative w-full">
@@ -139,23 +139,24 @@ const Auth = () => {
         </div>
 
         {/* Login Form Section */}
-        <div className="w-full lg:w-1/2 lg:order-1 flex justify-center">
-          <div className="text-center mb-8">
-            {emailConfirmed && (
-              <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
-                <p className="text-green-800 text-sm">
-                  ✓ Email confirmed! You can now sign in to your account.
-                </p>
-              </div>
-            )}
-          </div>
+        <div className="w-full lg:w-1/2 lg:order-1 flex justify-center animate-fade-in" style={{ animationDelay: '0.4s' }}>
+          <div className="w-full max-w-md">
+            <div className="text-center mb-8">
+              {emailConfirmed && (
+                <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg animate-fade-in">
+                  <p className="text-green-800 text-sm">
+                    ✓ Email confirmed! You can now sign in to your account.
+                  </p>
+                </div>
+              )}
+            </div>
 
-        <Card className="w-full max-w-md">
-          <CardHeader>
+            <Card className="w-full animate-fade-in" style={{ animationDelay: '0.6s' }}>
+          <CardHeader className="animate-fade-in" style={{ animationDelay: '0.8s' }}>
             <CardTitle>Welcome</CardTitle>
             <CardDescription>Sign in to your account or create a new one</CardDescription>
           </CardHeader>
-          <CardContent>
+              <CardContent className="animate-fade-in" style={{ animationDelay: '1s' }}>
             <Tabs defaultValue="signin" className="w-full">
               <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="signin">Sign In</TabsTrigger>
@@ -257,8 +258,9 @@ const Auth = () => {
                 </form>
               </TabsContent>
             </Tabs>
-          </CardContent>
-        </Card>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </div>
     </div>
