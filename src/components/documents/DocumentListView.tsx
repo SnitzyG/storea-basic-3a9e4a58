@@ -183,8 +183,8 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
             <TableHead className="w-32">Created By</TableHead>
             <TableHead className="w-32">File Type</TableHead>
             <TableHead className="w-32">Accessibility</TableHead>
-            <TableHead className="w-16">👁️ Preview</TableHead>
-            <TableHead className="w-16">🕘 History</TableHead>
+            <TableHead className="w-16"> Preview</TableHead>
+            <TableHead className="w-16"> History</TableHead>
             <TableHead className="w-12">Actions</TableHead>
           </TableRow>
         </TableHeader>
@@ -275,10 +275,7 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="bg-background border">
-                    <DropdownMenuItem onClick={() => onDownload(
-                      document.file_path,
-                      getSafeFilename(document)
-                    )}>
+                    <DropdownMenuItem onClick={() => onDownload(document.file_path, getSafeFilename(document))}>
                       <Download className="h-3 w-3 mr-2" />
                       Download
                     </DropdownMenuItem>
