@@ -10,14 +10,12 @@ import { Badge } from '@/components/ui/badge';
 import { Document, useDocuments } from '@/hooks/useDocuments';
 import { Upload, X } from 'lucide-react';
 import { useDropzone } from 'react-dropzone';
-
 interface EditDocumentDialogProps {
   document: Document | null;
   isOpen: boolean;
   onClose: () => void;
   onSave: () => void;
 }
-
 export const EditDocumentDialog: React.FC<EditDocumentDialogProps> = ({
   document,
   isOpen,
@@ -35,14 +33,15 @@ export const EditDocumentDialog: React.FC<EditDocumentDialogProps> = ({
   const [newFile, setNewFile] = useState<File | null>(null);
   const [newTag, setNewTag] = useState('');
   const [loading, setLoading] = useState(false);
-  
-  const { createNewVersion } = useDocuments();
-
+  const {
+    createNewVersion
+  } = useDocuments();
   useEffect(() => {
     if (document) {
       setFormData({
         title: document.title || document.name,
-        description: '', // Add description field to Document interface if needed
+        description: '',
+        // Add description field to Document interface if needed
         status: document.status,
         fileType: document.category || 'Architectural',
         tags: document.tags || [],
@@ -50,9 +49,12 @@ export const EditDocumentDialog: React.FC<EditDocumentDialogProps> = ({
       });
     }
   }, [document]);
-
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    onDrop: (acceptedFiles) => {
+  const {
+    getRootProps,
+    getInputProps,
+    isDragActive
+  } = useDropzone({
+    onDrop: acceptedFiles => {
       if (acceptedFiles.length > 0) {
         setNewFile(acceptedFiles[0]);
       }
@@ -60,7 +62,6 @@ export const EditDocumentDialog: React.FC<EditDocumentDialogProps> = ({
     maxFiles: 1,
     multiple: false
   });
-
   const handleAddTag = () => {
     if (newTag.trim() && !formData.tags.includes(newTag.trim())) {
       setFormData(prev => ({
@@ -70,17 +71,14 @@ export const EditDocumentDialog: React.FC<EditDocumentDialogProps> = ({
       setNewTag('');
     }
   };
-
   const handleRemoveTag = (tagToRemove: string) => {
     setFormData(prev => ({
       ...prev,
       tags: prev.tags.filter(tag => tag !== tagToRemove)
     }));
   };
-
   const handleSave = async () => {
     if (!document) return;
-    
     setLoading(true);
     try {
       // If there's a new file, create a new version
@@ -105,11 +103,8 @@ export const EditDocumentDialog: React.FC<EditDocumentDialogProps> = ({
       setLoading(false);
     }
   };
-
   if (!document) return null;
-
-  return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+  return <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle>Edit Document</DialogTitle>
@@ -119,34 +114,29 @@ export const EditDocumentDialog: React.FC<EditDocumentDialogProps> = ({
           {/* Title */}
           <div className="space-y-2">
             <Label htmlFor="title">Title</Label>
-            <Input
-              id="title"
-              value={formData.title}
-              onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
-              placeholder="Enter document title"
-            />
+            <Input id="title" value={formData.title} onChange={e => setFormData(prev => ({
+            ...prev,
+            title: e.target.value
+          }))} placeholder="Enter document title" />
           </div>
 
           {/* Description */}
           <div className="space-y-2">
             <Label htmlFor="description">Description</Label>
-            <Textarea
-              id="description"
-              value={formData.description}
-              onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-              placeholder="Enter document description (optional)"
-              rows={3}
-            />
+            <Textarea id="description" value={formData.description} onChange={e => setFormData(prev => ({
+            ...prev,
+            description: e.target.value
+          }))} placeholder="Enter document description (optional)" rows={3} />
           </div>
 
           {/* Status and Type */}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="status">Status</Label>
-              <Select 
-                value={formData.status} 
-                onValueChange={(value) => setFormData(prev => ({ ...prev, status: value as Document['status'] }))}
-              >
+              <Select value={formData.status} onValueChange={value => setFormData(prev => ({
+              ...prev,
+              status: value as Document['status']
+            }))}>
                 <SelectTrigger id="status">
                   <SelectValue />
                 </SelectTrigger>
@@ -159,11 +149,11 @@ export const EditDocumentDialog: React.FC<EditDocumentDialogProps> = ({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="fileType">File Type</Label>
-              <Select 
-                value={formData.fileType} 
-                onValueChange={(value) => setFormData(prev => ({ ...prev, fileType: value }))}
-              >
+              <Label htmlFor="fileType">Category</Label>
+              <Select value={formData.fileType} onValueChange={value => setFormData(prev => ({
+              ...prev,
+              fileType: value
+            }))}>
                 <SelectTrigger id="fileType">
                   <SelectValue />
                 </SelectTrigger>
@@ -180,24 +170,14 @@ export const EditDocumentDialog: React.FC<EditDocumentDialogProps> = ({
           <div className="space-y-2">
             <Label>Tags</Label>
             <div className="flex gap-2 mb-2">
-              <Input
-                value={newTag}
-                onChange={(e) => setNewTag(e.target.value)}
-                placeholder="Add a tag"
-                onKeyPress={(e) => e.key === 'Enter' && handleAddTag()}
-              />
+              <Input value={newTag} onChange={e => setNewTag(e.target.value)} placeholder="Add a tag" onKeyPress={e => e.key === 'Enter' && handleAddTag()} />
               <Button type="button" onClick={handleAddTag}>Add</Button>
             </div>
             <div className="flex flex-wrap gap-2">
-              {formData.tags.map((tag) => (
-                <Badge key={tag} variant="secondary" className="flex items-center gap-1">
+              {formData.tags.map(tag => <Badge key={tag} variant="secondary" className="flex items-center gap-1">
                   {tag}
-                  <X 
-                    className="h-3 w-3 cursor-pointer" 
-                    onClick={() => handleRemoveTag(tag)}
-                  />
-                </Badge>
-              ))}
+                  <X className="h-3 w-3 cursor-pointer" onClick={() => handleRemoveTag(tag)} />
+                </Badge>)}
             </div>
           </div>
 
@@ -209,46 +189,26 @@ export const EditDocumentDialog: React.FC<EditDocumentDialogProps> = ({
                 Only you can view this document
               </p>
             </div>
-            <Switch
-              id="privacy"
-              checked={formData.isPrivate}
-              onCheckedChange={(checked) => setFormData(prev => ({ ...prev, isPrivate: checked }))}
-            />
+            <Switch id="privacy" checked={formData.isPrivate} onCheckedChange={checked => setFormData(prev => ({
+            ...prev,
+            isPrivate: checked
+          }))} />
           </div>
 
           {/* New Version Upload */}
           <div className="space-y-2">
             <Label>Upload New Version (Optional)</Label>
-            <div
-              {...getRootProps()}
-              className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors ${
-                isDragActive
-                  ? 'border-primary bg-primary/5'
-                  : 'border-muted-foreground/25 hover:border-primary/50'
-              }`}
-            >
+            <div {...getRootProps()} className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors ${isDragActive ? 'border-primary bg-primary/5' : 'border-muted-foreground/25 hover:border-primary/50'}`}>
               <input {...getInputProps()} />
               <Upload className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
-              {newFile ? (
-                <p className="text-sm font-medium">{newFile.name}</p>
-              ) : isDragActive ? (
-                <p className="text-sm">Drop the file here...</p>
-              ) : (
-                <p className="text-sm text-muted-foreground">
+              {newFile ? <p className="text-sm font-medium">{newFile.name}</p> : isDragActive ? <p className="text-sm">Drop the file here...</p> : <p className="text-sm text-muted-foreground">
                   Drag & drop a file here, or click to select
-                </p>
-              )}
+                </p>}
             </div>
-            {newFile && (
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={() => setNewFile(null)}
-              >
+            {newFile && <Button variant="outline" size="sm" onClick={() => setNewFile(null)}>
                 <X className="h-4 w-4 mr-2" />
                 Remove File
-              </Button>
-            )}
+              </Button>}
           </div>
         </div>
 
@@ -261,6 +221,5 @@ export const EditDocumentDialog: React.FC<EditDocumentDialogProps> = ({
           </Button>
         </DialogFooter>
       </DialogContent>
-    </Dialog>
-  );
+    </Dialog>;
 };
