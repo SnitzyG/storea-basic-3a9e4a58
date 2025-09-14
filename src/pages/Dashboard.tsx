@@ -53,27 +53,6 @@ const Dashboard = () => {
                     Here's what's happening with your projects today.
                   </p>
                 </div>
-                
-                {/* Project Toggle */}
-                <div className="flex items-center gap-2 bg-muted/30 p-2 rounded-lg">
-                  <FolderOpen className="h-4 w-4 text-muted-foreground" />
-                  <Select value={selectedProject} onValueChange={setSelectedProject}>
-                    <SelectTrigger className="w-[180px] border-0 bg-transparent focus:ring-0">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Projects</SelectItem>
-                      {projects.map((project) => (
-                        <SelectItem key={project.id} value={project.id}>
-                          {project.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <Badge variant="secondary" className="text-xs">
-                    {filteredProjects.length} project{filteredProjects.length !== 1 ? 's' : ''}
-                  </Badge>
-                </div>
               </div>
             </div>
             
