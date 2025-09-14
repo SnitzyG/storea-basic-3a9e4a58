@@ -80,26 +80,26 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Main Dashboard Content - Optimized Single Page Layout */}
-      <div className="flex-1 p-4 overflow-hidden">
-        <div className="h-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
+      {/* Main Dashboard Content - Improved Grid Layout */}
+      <div className="flex-1 p-6 overflow-hidden">
+        <div className="h-full grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
           {/* Recent Activity */}
-          <div className="col-span-1 h-full">
+          <div className="col-span-1 md:col-span-1 xl:col-span-1 h-full">
             <RecentActivity />
           </div>
 
           {/* Calendar */}
-          <div className="col-span-1 h-full">
+          <div className="col-span-1 md:col-span-1 xl:col-span-1 h-full">
             <CalendarWidget />
           </div>
 
           {/* To-Do List */}
-          <div className="col-span-1 h-full">
+          <div className="col-span-1 md:col-span-1 xl:col-span-1 h-full">
             <ToDoList />
           </div>
 
           {/* Info Panel / Team Members */}
-          <div className="col-span-1 h-full">
+          <div className="col-span-1 md:col-span-1 xl:col-span-1 h-full">
             <InfoPanel />
           </div>
         </div>

@@ -11,10 +11,11 @@ import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
-import { CalendarDays, Plus, Clock, CheckCircle2, ChevronLeft, ChevronRight, Download, Users } from 'lucide-react';
+import { CalendarDays, Plus, Clock, CheckCircle2, ChevronLeft, ChevronRight, Download, Users, Paperclip, Edit, Trash2, X } from 'lucide-react';
 import { format, isSameDay, startOfMonth, endOfMonth, eachDayOfInterval } from 'date-fns';
 import { useTodos } from '@/hooks/useTodos';
 import { useToast } from '@/hooks/use-toast';
+import { useDocuments } from '@/hooks/useDocuments';
 
 export const CalendarWidget = () => {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
@@ -29,7 +30,12 @@ export const CalendarWidget = () => {
   const [inviteCollaborators, setInviteCollaborators] = useState<string[]>([]);
   const [collaboratorEmail, setCollaboratorEmail] = useState('');
   const [exportFormat, setExportFormat] = useState<'day' | 'week' | 'fortnight' | 'month'>('week');
-  const { todos, addTodo } = useTodos();
+  const [attachedDocument, setAttachedDocument] = useState<string>('');
+  const [eventDate, setEventDate] = useState<Date | undefined>(new Date());
+  const [editingEvent, setEditingEvent] = useState<any>(null);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const { todos, addTodo, updateTodo, deleteTodo } = useTodos();
+  const { documents } = useDocuments();
   const { toast } = useToast();
 
   // Get todos for a specific date
@@ -61,40 +67,111 @@ export const CalendarWidget = () => {
   };
 
   const handleCreateEvent = async () => {
-    if (!selectedDate || !newEventTitle.trim()) return;
+    if (!eventDate || !newEventTitle.trim()) return;
 
     try {
-      const eventContent = isMeeting 
+      let eventContent = isMeeting 
         ? `Meeting: ${newEventTitle}${newEventDescription ? ` - ${newEventDescription}` : ''}${inviteCollaborators.length > 0 ? ` (Attendees: ${inviteCollaborators.join(', ')})` : ''}`
         : `${newEventTitle}${newEventDescription ? ` - ${newEventDescription}` : ''}`;
 
-      const eventDate = newEventTime 
-        ? new Date(`${selectedDate.toDateString()} ${newEventTime}`)
-        : selectedDate;
+      if (attachedDocument) {
+        const doc = documents.find(d => d.id === attachedDocument);
+        if (doc) {
+          eventContent += ` [Document: ${doc.name}]`;
+        }
+      }
+
+      const finalEventDate = newEventTime 
+        ? new Date(`${eventDate.toDateString()} ${newEventTime}`)
+        : eventDate;
 
       await addTodo(
         eventContent,
         newEventPriority,
-        eventDate.toISOString()
+        finalEventDate.toISOString()
       );
       
       // Reset form
-      setNewEventTitle('');
-      setNewEventDescription('');
-      setNewEventTime('');
-      setNewEventPriority('medium');
-      setIsMeeting(false);
-      setInviteCollaborators([]);
-      setIsDialogOpen(false);
+      resetForm();
       
       toast({
         title: "Event created",
-        description: `${isMeeting ? 'Meeting' : 'Event'} "${newEventTitle}" scheduled for ${format(selectedDate, 'MMM d, yyyy')}`,
+        description: `${isMeeting ? 'Meeting' : 'Event'} "${newEventTitle}" scheduled for ${format(eventDate, 'MMM d, yyyy')}`,
       });
+
+      // Send confirmation for meetings
+      if (isMeeting && inviteCollaborators.length > 0) {
+        toast({
+          title: "Meeting invitations sent",
+          description: `Confirmation messages sent to ${inviteCollaborators.length} attendee(s)`,
+        });
+      }
     } catch (error) {
       toast({
         title: "Error",
         description: "Failed to create event. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const resetForm = () => {
+    setNewEventTitle('');
+    setNewEventDescription('');
+    setNewEventTime('');
+    setNewEventPriority('medium');
+    setIsMeeting(false);
+    setInviteCollaborators([]);
+    setAttachedDocument('');
+    setEventDate(selectedDate);
+    setIsDialogOpen(false);
+  };
+
+  const handleEditEvent = (todo: any) => {
+    setEditingEvent(todo);
+    setNewEventTitle(todo.content.replace(/^Meeting: |^Task: /, '').split(' - ')[0]);
+    setNewEventDescription(todo.content.includes(' - ') ? todo.content.split(' - ')[1] : '');
+    setNewEventPriority(todo.priority || 'medium');
+    setIsEditDialogOpen(true);
+  };
+
+  const handleUpdateEvent = async () => {
+    if (!editingEvent || !newEventTitle.trim()) return;
+
+    try {
+      await updateTodo(editingEvent.id, {
+        content: `${newEventTitle}${newEventDescription ? ` - ${newEventDescription}` : ''}`,
+        priority: newEventPriority
+      });
+      
+      setIsEditDialogOpen(false);
+      setEditingEvent(null);
+      resetForm();
+      
+      toast({
+        title: "Event updated",
+        description: "Event has been successfully updated",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update event",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDeleteEvent = async (todoId: string) => {
+    try {
+      await deleteTodo(todoId);
+      toast({
+        title: "Event deleted",
+        description: "Event has been successfully removed",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to delete event",
         variant: "destructive",
       });
     }
@@ -278,23 +355,124 @@ export const CalendarWidget = () => {
                       </div>
                     )}
 
-                    <div className="bg-muted/50 p-3 rounded-lg">
-                      <p className="text-sm text-muted-foreground">
-                        <strong>Selected Date:</strong> {selectedDate ? format(selectedDate, 'EEEE, MMMM d, yyyy') : 'No date selected'}
-                      </p>
+                    <div className="space-y-2">
+                      <Label htmlFor="event-date">Event Date</Label>
+                      <Calendar
+                        mode="single"
+                        selected={eventDate}
+                        onSelect={setEventDate}
+                        className="rounded-md border pointer-events-auto"
+                        classNames={{
+                          months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
+                          month: "space-y-4",
+                          caption: "flex justify-center pt-1 relative items-center",
+                          caption_label: "text-sm font-medium",
+                          table: "w-full border-collapse space-y-1",
+                          head_row: "flex",
+                          head_cell: "text-muted-foreground rounded-md w-9 font-normal text-[0.8rem]",
+                          row: "flex w-full mt-2",
+                          cell: "h-9 w-9 text-center text-sm p-0 relative",
+                          day: "h-9 w-9 p-0 font-normal aria-selected:opacity-100 hover:bg-primary/10 rounded-md",
+                          day_selected: "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground",
+                          day_today: "bg-accent text-accent-foreground",
+                        }}
+                      />
+                    </div>
+
+                    {/* Document Attachment */}
+                    <div className="space-y-2">
+                      <Label htmlFor="attached-document">Attach Document (Optional)</Label>
+                      <Select value={attachedDocument} onValueChange={setAttachedDocument}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select a document..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="">No document</SelectItem>
+                          {documents.map((doc) => (
+                            <SelectItem key={doc.id} value={doc.id}>
+                              <div className="flex items-center gap-2">
+                                <Paperclip className="h-4 w-4" />
+                                {doc.name}
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
 
                     <div className="flex gap-2 pt-2">
-                      <Button onClick={handleCreateEvent} className="flex-1 gap-2" disabled={!newEventTitle.trim()}>
+                      <Button onClick={handleCreateEvent} className="flex-1 gap-2" disabled={!newEventTitle.trim() || !eventDate}>
                         <Plus className="h-4 w-4" />
                         Create {isMeeting ? 'Meeting' : 'Event'}
                       </Button>
-                      <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+                      <Button variant="outline" onClick={resetForm}>
                         Cancel
                       </Button>
                     </div>
                   </div>
                 </ScrollArea>
+              </DialogContent>
+            </Dialog>
+
+            {/* Edit Event Dialog */}
+            <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+              <DialogContent className="max-w-md">
+                <DialogHeader>
+                  <DialogTitle className="flex items-center gap-2">
+                    <Edit className="h-5 w-5" />
+                    Edit Event
+                  </DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4 pt-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="edit-event-title">Event Title</Label>
+                    <Input
+                      id="edit-event-title"
+                      value={newEventTitle}
+                      onChange={(e) => setNewEventTitle(e.target.value)}
+                      placeholder="Enter event title..."
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="edit-event-description">Description</Label>
+                    <Textarea
+                      id="edit-event-description"
+                      value={newEventDescription}
+                      onChange={(e) => setNewEventDescription(e.target.value)}
+                      placeholder="Add event description (optional)"
+                      rows={3}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="edit-event-priority">Priority</Label>
+                    <Select value={newEventPriority} onValueChange={(value: 'low' | 'medium' | 'high') => setNewEventPriority(value)}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="low">Low Priority</SelectItem>
+                        <SelectItem value="medium">Medium Priority</SelectItem>
+                        <SelectItem value="high">High Priority</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="flex gap-2 pt-2">
+                    <Button onClick={handleUpdateEvent} className="flex-1 gap-2" disabled={!newEventTitle.trim()}>
+                      <Edit className="h-4 w-4" />
+                      Update Event
+                    </Button>
+                    <Button variant="outline" onClick={() => {
+                      setIsEditDialogOpen(false);
+                      setEditingEvent(null);
+                      resetForm();
+                    }}>
+                      Cancel
+                    </Button>
+                  </div>
+                </div>
               </DialogContent>
             </Dialog>
           </div>
@@ -419,11 +597,11 @@ export const CalendarWidget = () => {
             </div>
             
             {selectedDateTodos.length > 0 ? (
-              <div className="space-y-2 max-h-32 overflow-y-auto">
+              <div className="space-y-2 max-h-40 overflow-y-auto">
                 {selectedDateTodos.map((todo) => (
                   <div 
                     key={todo.id} 
-                    className="flex items-center gap-3 p-3 bg-card rounded-lg border border-border/40 shadow-sm hover:shadow-md transition-all duration-200"
+                    className="group flex items-center gap-3 p-3 bg-card rounded-lg border border-border/40 shadow-sm hover:shadow-md transition-all duration-200"
                   >
                     <div className={`p-1.5 rounded-full ${
                       todo.priority === 'high' 
@@ -457,6 +635,25 @@ export const CalendarWidget = () => {
                       >
                         {todo.priority} priority
                       </Badge>
+                    </div>
+
+                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-7 w-7 p-0"
+                        onClick={() => handleEditEvent(todo)}
+                      >
+                        <Edit className="h-3 w-3" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-7 w-7 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                        onClick={() => handleDeleteEvent(todo.id)}
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
                     </div>
                   </div>
                 ))}

@@ -13,6 +13,7 @@ import Documents from "./pages/Documents.tsx";
 import RFIs from "./pages/RFIs.tsx";
 import Messages from "./pages/Messages.tsx";
 import Tenders from "./pages/Tenders.tsx";
+import Jobs from "./pages/Jobs.tsx";
 import TenderResponse from "./pages/TenderResponse.tsx";
 import TenderReviewDemo from "./pages/TenderReviewDemo.tsx";
 import Auth from "./pages/Auth.tsx";
@@ -46,6 +47,7 @@ createRoot(document.getElementById("root")!).render(
                     <Route path="/rfis" element={<AppLayout><RFIs /></AppLayout>} />
                     <Route path="/messages" element={<AppLayout><Messages /></AppLayout>} />
                     <Route path="/tenders" element={<AppLayout><Tenders /></AppLayout>} />
+                    <Route path="/jobs" element={<AppLayout><Jobs /></AppLayout>} />
                     <Route path="/tender/:tenderId" element={<TenderResponse />} />
                     <Route path="/tender-review-demo" element={<TenderReviewDemo />} />
                     <Route path="/testing" element={<AppLayout><Testing /></AppLayout>} />

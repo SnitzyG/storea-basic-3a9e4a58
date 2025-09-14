@@ -5,7 +5,9 @@ import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
 import { useActivity } from '@/hooks/useActivity';
-import { formatDistanceToNow } from 'date-fns';
+import { useTodos } from '@/hooks/useTodos';
+import { useToast } from '@/hooks/use-toast';
+import { formatDistanceToNow, addDays } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
 import { 
   FileText, 
@@ -15,8 +17,12 @@ import {
   FolderOpen,
   User,
   Clock,
-  ExternalLink
+  ExternalLink,
+  Calendar,
+  CheckSquare,
+  MoreHorizontal
 } from 'lucide-react';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
 const activityIcons = {
   project: FolderOpen,
@@ -28,18 +34,29 @@ const activityIcons = {
 };
 
 const actionColors = {
-  created: 'bg-green-500/10 text-green-700 border-green-500/20',
-  updated: 'bg-blue-500/10 text-blue-700 border-blue-500/20',
-  deleted: 'bg-red-500/10 text-red-700 border-red-500/20',
-  assigned: 'bg-purple-500/10 text-purple-700 border-purple-500/20',
-  completed: 'bg-gray-500/10 text-gray-700 border-gray-500/20',
-  uploaded: 'bg-orange-500/10 text-orange-700 border-orange-500/20',
-  submitted: 'bg-yellow-500/10 text-yellow-700 border-yellow-500/20',
+  created: 'bg-emerald-500/15 text-emerald-700 border-emerald-500/30',
+  updated: 'bg-blue-500/15 text-blue-700 border-blue-500/30',
+  deleted: 'bg-red-500/15 text-red-700 border-red-500/30',
+  assigned: 'bg-purple-500/15 text-purple-700 border-purple-500/30',
+  completed: 'bg-slate-500/15 text-slate-700 border-slate-500/30',
+  uploaded: 'bg-orange-500/15 text-orange-700 border-orange-500/30',
+  submitted: 'bg-amber-500/15 text-amber-700 border-amber-500/30',
+};
+
+const entityTypeColors = {
+  project: 'bg-indigo-50 border-indigo-200',
+  document: 'bg-blue-50 border-blue-200',
+  message: 'bg-green-50 border-green-200',
+  rfi: 'bg-orange-50 border-orange-200',
+  tender: 'bg-purple-50 border-purple-200',
+  user: 'bg-gray-50 border-gray-200',
 };
 
 export const RecentActivity = () => {
   const { activities, loading } = useActivity();
   const navigate = useNavigate();
+  const { toast } = useToast();
+  const { addTodo } = useTodos();
 
   const handleActivityClick = (activity: any) => {
     // Navigate to relevant tab based on entity type
@@ -61,6 +78,46 @@ export const RecentActivity = () => {
         break;
       default:
         break;
+    }
+  };
+
+  const handleAddToCalendar = async (activity: any) => {
+    try {
+      const eventDate = addDays(new Date(), 1); // Default to tomorrow
+      await addTodo(
+        `Follow up: ${activity.description}`,
+        'medium',
+        eventDate.toISOString()
+      );
+      toast({
+        title: "Added to Calendar",
+        description: "Activity added as a calendar event for tomorrow",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to add to calendar",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleAddToTodo = async (activity: any) => {
+    try {
+      await addTodo(
+        `Task: ${activity.description}`,
+        'medium'
+      );
+      toast({
+        title: "Added to To-Do",
+        description: "Activity added to your to-do list",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to add to to-do list",
+        variant: "destructive",
+      });
     }
   };
 
@@ -99,34 +156,42 @@ export const RecentActivity = () => {
                 return (
                   <div 
                     key={activity.id} 
-                    className="flex items-start gap-3 p-3 bg-muted/20 rounded-lg hover:bg-muted/30 cursor-pointer transition-colors"
-                    onClick={() => handleActivityClick(activity)}
+                    className={`relative flex items-start gap-3 p-4 rounded-xl border transition-all duration-200 hover:shadow-md group ${
+                      entityTypeColors[activity.entity_type as keyof typeof entityTypeColors] || entityTypeColors.user
+                    }`}
                   >
                     <div className="flex-shrink-0">
-                      <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                        <Icon className="h-4 w-4 text-primary" />
+                      <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                        activity.entity_type === 'project' ? 'bg-indigo-100 text-indigo-600' :
+                        activity.entity_type === 'document' ? 'bg-blue-100 text-blue-600' :
+                        activity.entity_type === 'message' ? 'bg-green-100 text-green-600' :
+                        activity.entity_type === 'rfi' ? 'bg-orange-100 text-orange-600' :
+                        activity.entity_type === 'tender' ? 'bg-purple-100 text-purple-600' :
+                        'bg-gray-100 text-gray-600'
+                      }`}>
+                        <Icon className="h-5 w-5" />
                       </div>
                     </div>
                     
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <Avatar className="w-5 h-5">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Avatar className="w-6 h-6">
                           <AvatarFallback className="text-xs">
                             {activity.user_profile?.name?.charAt(0) || 'U'}
                           </AvatarFallback>
                         </Avatar>
-                        <span className="font-medium text-sm">
+                        <span className="font-semibold text-sm">
                           {activity.user_profile?.name || 'Unknown User'}
                         </span>
                         <Badge 
-                          className={actionColors[activity.action as keyof typeof actionColors] || actionColors.updated}
+                          className={`${actionColors[activity.action as keyof typeof actionColors] || actionColors.updated} font-medium`}
                           variant="outline"
                         >
                           {activity.action}
                         </Badge>
                       </div>
                       
-                      <p className="text-sm text-foreground mb-2">
+                      <p className="text-sm text-foreground/90 mb-3 leading-relaxed">
                         {activity.description}
                       </p>
                       
@@ -134,7 +199,7 @@ export const RecentActivity = () => {
                         <div className="flex items-center gap-2 text-xs text-muted-foreground">
                           {activity.project?.name && (
                             <>
-                              <span>{activity.project.name}</span>
+                              <span className="font-medium">{activity.project.name}</span>
                               <span>•</span>
                             </>
                           )}
@@ -142,7 +207,43 @@ export const RecentActivity = () => {
                             {formatDistanceToNow(new Date(activity.created_at), { addSuffix: true })}
                           </span>
                         </div>
-                        <ExternalLink className="h-3 w-3 text-muted-foreground" />
+                        
+                        <div className="flex items-center gap-1">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 w-7 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleActivityClick(activity);
+                            }}
+                          >
+                            <ExternalLink className="h-3 w-3" />
+                          </Button>
+                          
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-7 w-7 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                <MoreHorizontal className="h-3 w-3" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="w-48">
+                              <DropdownMenuItem onClick={() => handleAddToCalendar(activity)}>
+                                <Calendar className="h-4 w-4 mr-2" />
+                                Add to Calendar
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleAddToTodo(activity)}>
+                                <CheckSquare className="h-4 w-4 mr-2" />
+                                Add to To-Do
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
                       </div>
                     </div>
                   </div>

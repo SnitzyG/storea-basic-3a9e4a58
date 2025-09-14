@@ -20,6 +20,11 @@ export const Sidebar = ({
       icon: FolderOpen,
       path: '/projects'
     }, {
+      id: 'jobs',
+      label: 'Jobs',
+      icon: Briefcase,
+      path: '/jobs'
+    }, {
       id: 'messages',
       label: 'Messages',
       icon: MessageSquare,
