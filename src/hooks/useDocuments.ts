@@ -266,6 +266,12 @@ export const useDocuments = (projectId?: string) => {
         throw new Error('No project ID provided');
       }
 
+      console.log('🔍 Upload started with file:', {
+        fileName: file.name,
+        fileType: file.type,
+        fileSize: file.size
+      });
+
       // ✅ BULLETPROOF MIME AND EXTENSION DETECTION
       const originalName = file.name || 'unnamed.bin';
       let extension = getFileExtension(originalName);

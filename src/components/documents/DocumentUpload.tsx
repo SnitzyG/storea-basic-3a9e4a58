@@ -17,8 +17,9 @@ interface DocumentUploadProps {
   onUploadComplete?: () => void;
 }
 
-interface UploadFile extends File {
+interface UploadFile {
   id: string;
+  file: File; // Store original File object separately
   progress: number;
   status: 'pending' | 'uploading' | 'success' | 'error';
   error?: string;
@@ -54,8 +55,8 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     const newFiles: UploadFile[] = acceptedFiles.map(file => ({
-      ...file,
       id: Math.random().toString(36).substring(2),
+      file: file, // Store the original File object
       progress: 0,
       status: 'pending',
       title: file.name.replace(/\.[^/.]+$/, ""), // Remove extension for title
@@ -123,7 +124,7 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
         }, 200);
 
         console.log('Uploading file:', { 
-          name: file.name, 
+          name: file.file.name, 
           title: file.title,
           documentNumber: file.documentNumber,
           status: file.documentStatus,
@@ -132,9 +133,9 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
         });
         
         const result = await uploadDocument(
-          file, 
+          file.file, // Pass the actual File object
           projectId, 
-          file.name, // Use original filename with extension
+          file.title || file.file.name, // Use title if available, fallback to filename
           {
             documentNumber: file.documentNumber,
             status: file.documentStatus!,
@@ -252,7 +253,7 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
                     
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
-                        <p className="text-sm font-medium truncate">{file.name}</p>
+                        <p className="text-sm font-medium truncate">{file.file.name}</p>
                         <Badge variant={getStatusColor(file.status)}>
                           {file.status === 'success' && <Check className="h-3 w-3 mr-1" />}
                           {file.status}
@@ -260,7 +261,7 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
                       </div>
                       
                       <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                        <span>{formatFileSize(file.size)}</span>
+                        <span>{formatFileSize(file.file.size)}</span>
                         {file.error && (
                           <span className="text-destructive">• {file.error}</span>
                         )}
