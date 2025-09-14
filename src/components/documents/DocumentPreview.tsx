@@ -13,7 +13,7 @@ interface DocumentPreviewProps {
     file_path: string;
     file_type: string;
     version?: number;
-  } | null;
+  };
   isOpen: boolean;
   onClose: () => void;
   onDownload: (filePath: string, fileName: string) => void;
@@ -29,21 +29,11 @@ export const DocumentPreview: React.FC<DocumentPreviewProps> = ({
   const [rotation, setRotation] = useState(0);
   const [previewUrl, setPreviewUrl] = useState<string>('');
 
-  // Early return if document is null
-  if (!document) {
-    return null;
-  }
-
   const handleZoomIn = () => setZoom(prev => Math.min(prev + 25, 200));
   const handleZoomOut = () => setZoom(prev => Math.max(prev - 25, 50));
   const handleRotate = () => setRotation(prev => (prev + 90) % 360);
 
   useEffect(() => {
-    if (!document?.file_path || !isOpen) {
-      setPreviewUrl('');
-      return;
-    }
-
     let isMounted = true;
     const generateUrl = async () => {
       try {
@@ -63,7 +53,6 @@ export const DocumentPreview: React.FC<DocumentPreviewProps> = ({
           setPreviewUrl(data.signedUrl);
         }
       } catch (e) {
-        if (!isMounted) return;
         const { data: pub } = supabase.storage
           .from('documents')
           .getPublicUrl(document.file_path);
@@ -73,7 +62,7 @@ export const DocumentPreview: React.FC<DocumentPreviewProps> = ({
 
     generateUrl();
     return () => { isMounted = false; };
-  }, [document?.file_path, isOpen]);
+  }, [document.file_path]);
 
   // Use utility function for consistent extension extraction
   const getDocumentExtension = () => {
