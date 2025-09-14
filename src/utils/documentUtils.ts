@@ -11,6 +11,7 @@ export const getFileExtension = (nameOrPath: string): string => {
   const clean = nameOrPath.split('?')[0].split('#')[0];
   const parts = clean.split('.');
   const ext = parts.length > 1 ? parts.pop()!.toLowerCase().trim() : '';
+  
   return ext || 'bin';
 };
 
@@ -19,9 +20,33 @@ export const getFileExtension = (nameOrPath: string): string => {
  */
 export const getMimeType = (extension: string): string => {
   const ext = (extension || '').toLowerCase().trim();
-  // mime.lookup expects a filename, so we create a dummy filename with the extension
-  const dummyFilename = `file.${ext}`;
-  return (mime.lookup(dummyFilename) || 'application/octet-stream') as string;
+  
+  // Direct mapping for known extensions (more reliable than mime-types library)
+  const mimeMap: Record<string, string> = {
+    'pdf': 'application/pdf',
+    'png': 'image/png',
+    'jpg': 'image/jpeg',
+    'jpeg': 'image/jpeg',
+    'gif': 'image/gif',
+    'webp': 'image/webp',
+    'bmp': 'image/bmp',
+    'svg': 'image/svg+xml',
+    'doc': 'application/msword',
+    'docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'xls': 'application/vnd.ms-excel',
+    'xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    'ppt': 'application/vnd.ms-powerpoint',
+    'pptx': 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+    'txt': 'text/plain',
+    'csv': 'text/csv',
+    'zip': 'application/zip',
+    'rar': 'application/vnd.rar',
+    'dwg': 'application/x-autocad',
+    'dxf': 'application/x-autocad'
+  };
+  
+  const mimeType = mimeMap[ext] || (mime.lookup(`file.${ext}`) as string) || 'application/octet-stream';
+  return mimeType;
 };
 
 /**

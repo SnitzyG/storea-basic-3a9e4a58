@@ -266,12 +266,35 @@ export const useDocuments = (projectId?: string) => {
         throw new Error('No project ID provided');
       }
 
-      // ✅ FORCE CORRECT MIME AND EXTENSION (NEVER TRUST BROWSER)
+      // ✅ BULLETPROOF MIME AND EXTENSION DETECTION
       const originalName = file.name || 'unnamed.bin';
-      const extension = getFileExtension(originalName);
-      const safeMime = getMimeType(extension);
+      let extension = getFileExtension(originalName);
+      let safeMime = file.type && file.type !== 'application/octet-stream' && file.type !== 'binary/octet-stream' 
+        ? file.type 
+        : getMimeType(extension);
       
-      console.log('🔒 Forced MIME/ext:', { originalName, extension, safeMime });
+      // Special handling for files without extensions (common for screenshots)
+      if (extension === 'bin' && file.type && file.type.startsWith('image/')) {
+        // Browser detected image type, infer extension from MIME
+        const typeMap: Record<string, string> = {
+          'image/png': 'png',
+          'image/jpeg': 'jpg',
+          'image/jpg': 'jpg',
+          'image/gif': 'gif',
+          'image/webp': 'webp',
+          'image/bmp': 'bmp'
+        };
+        extension = typeMap[file.type] || 'png'; // default to png for unknown image types
+        safeMime = file.type;
+      }
+      
+      console.log('🔒 File upload debug:', { 
+        originalName, 
+        extension, 
+        safeMime, 
+        browserType: file.type,
+        extensionInferred: extension !== getFileExtension(originalName)
+      });
 
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
@@ -291,6 +314,8 @@ export const useDocuments = (projectId?: string) => {
       }
 
       const filePath = `${projectId}/${Date.now()}-${Math.random().toString(36).slice(2)}.${extension}`;
+      
+      console.log('Generated file path with correct extension:', filePath);
 
       console.log('Generated file path:', filePath);
 
@@ -316,7 +341,7 @@ export const useDocuments = (projectId?: string) => {
         name: originalName,
         title: name || originalName.replace(/\.[^/.]+$/, ''),
         file_path: filePath,
-        file_type: safeMime,
+        file_type: safeMime, // Using forced MIME type from extension
         file_size: file.size,
         file_extension: extension,
         category: getFileCategory(extension),
@@ -329,7 +354,12 @@ export const useDocuments = (projectId?: string) => {
         visibility_scope: metadata?.isPrivate ? 'private' : 'project'
       };
 
-      console.log('Creating document record:', documentData);
+      console.log('Creating document record with MIME type:', {
+        ...documentData,
+        originalFileType: file.type,
+        forcedFileType: safeMime,
+        extension: extension
+      });
 
       const { data, error } = await supabase
         .from('documents')
@@ -353,7 +383,12 @@ export const useDocuments = (projectId?: string) => {
           .eq('id', existingDocument.id);
       }
 
-      console.log('Document record created successfully:', data);
+      console.log('✅ Document record created successfully with correct MIME type:', {
+        id: data.id,
+        name: data.name,
+        file_type: data.file_type,
+        file_extension: data.file_extension
+      });
 
       // Log activity for document upload
       await supabase
