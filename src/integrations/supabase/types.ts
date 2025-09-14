@@ -846,6 +846,180 @@ export type Database = {
         }
         Relationships: []
       }
+      rfi_collaboration_comments: {
+        Row: {
+          comment: string
+          comment_type: string
+          created_at: string
+          id: string
+          rfi_id: string
+          user_id: string
+        }
+        Insert: {
+          comment: string
+          comment_type?: string
+          created_at?: string
+          id?: string
+          rfi_id: string
+          user_id: string
+        }
+        Update: {
+          comment?: string
+          comment_type?: string
+          created_at?: string
+          id?: string
+          rfi_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      rfi_collaborators: {
+        Row: {
+          comments: string | null
+          created_at: string
+          id: string
+          rfi_id: string
+          role: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          comments?: string | null
+          created_at?: string
+          id?: string
+          rfi_id: string
+          role: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          comments?: string | null
+          created_at?: string
+          id?: string
+          rfi_id?: string
+          role?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      rfi_email_delivery: {
+        Row: {
+          attempt_count: number
+          created_at: string
+          delivered_at: string | null
+          error_message: string | null
+          id: string
+          recipient_email: string
+          rfi_id: string
+          sent_at: string | null
+          status: string
+        }
+        Insert: {
+          attempt_count?: number
+          created_at?: string
+          delivered_at?: string | null
+          error_message?: string | null
+          id?: string
+          recipient_email: string
+          rfi_id: string
+          sent_at?: string | null
+          status?: string
+        }
+        Update: {
+          attempt_count?: number
+          created_at?: string
+          delivered_at?: string | null
+          error_message?: string | null
+          id?: string
+          recipient_email?: string
+          rfi_id?: string
+          sent_at?: string | null
+          status?: string
+        }
+        Relationships: []
+      }
+      rfi_templates: {
+        Row: {
+          category: string
+          created_at: string
+          created_by: string
+          description: string | null
+          id: string
+          is_favorite: boolean
+          is_shared: boolean
+          name: string
+          priority: Database["public"]["Enums"]["priority_level"]
+          template_data: Json
+          updated_at: string
+          usage_count: number
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          created_by: string
+          description?: string | null
+          id?: string
+          is_favorite?: boolean
+          is_shared?: boolean
+          name: string
+          priority?: Database["public"]["Enums"]["priority_level"]
+          template_data?: Json
+          updated_at?: string
+          usage_count?: number
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          id?: string
+          is_favorite?: boolean
+          is_shared?: boolean
+          name?: string
+          priority?: Database["public"]["Enums"]["priority_level"]
+          template_data?: Json
+          updated_at?: string
+          usage_count?: number
+        }
+        Relationships: []
+      }
+      rfi_workflow_transitions: {
+        Row: {
+          action: string
+          created_at: string
+          from_state: string
+          id: string
+          notes: string | null
+          rfi_id: string
+          to_state: string
+          user_id: string
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          from_state: string
+          id?: string
+          notes?: string | null
+          rfi_id: string
+          to_state: string
+          user_id: string
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          from_state?: string
+          id?: string
+          notes?: string | null
+          rfi_id?: string
+          to_state?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       rfis: {
         Row: {
           assigned_to: string | null
