@@ -23,41 +23,42 @@ import "./index.css";
 import { ThemeProvider } from "./context/ThemeContext.tsx";
 import { ErrorBoundary } from "./components/ui/error-boundary.tsx";
 import { NotificationProvider } from "./context/NotificationContext.tsx";
+import { AuthProvider } from "./context/AuthContext.tsx";
 
 const queryClient = new QueryClient();
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <ErrorBoundary>
-      <ThemeProvider>
-        <NotificationProvider>
-          <QueryClientProvider client={queryClient}>
-            <TooltipProvider>
-              <Toaster />
-              <Sonner />
-               <BrowserRouter>
-                <AppLayout>
+      <AuthProvider>
+        <ThemeProvider>
+          <NotificationProvider>
+            <QueryClientProvider client={queryClient}>
+              <TooltipProvider>
+                <Toaster />
+                <Sonner />
+                <BrowserRouter>
                   <Routes>
-                    <Route path="/" element={<Index />} />
-                    <Route path="/dashboard" element={<Dashboard />} />
-                    <Route path="/projects" element={<Projects />} />
-                    <Route path="/documents" element={<Documents />} />
-                    <Route path="/rfis" element={<RFIs />} />
-                    <Route path="/messages" element={<Messages />} />
-                    <Route path="/tenders" element={<Tenders />} />
-                    <Route path="/tender-response" element={<TenderResponse />} />
+                    <Route path="/" element={<AppLayout><Index /></AppLayout>} />
+                    <Route path="/dashboard" element={<AppLayout><Dashboard /></AppLayout>} />
+                    <Route path="/projects" element={<AppLayout><Projects /></AppLayout>} />
+                    <Route path="/documents" element={<AppLayout><Documents /></AppLayout>} />
+                    <Route path="/rfis" element={<AppLayout><RFIs /></AppLayout>} />
+                    <Route path="/messages" element={<AppLayout><Messages /></AppLayout>} />
+                    <Route path="/tenders" element={<AppLayout><Tenders /></AppLayout>} />
+                    <Route path="/tender/:tenderId" element={<TenderResponse />} />
                     <Route path="/tender-review-demo" element={<TenderReviewDemo />} />
-                    <Route path="/testing" element={<Testing />} />
+                    <Route path="/testing" element={<AppLayout><Testing /></AppLayout>} />
                     <Route path="/auth" element={<Auth />} />
                     <Route path="/accept-invitation" element={<AcceptInvitation />} />
                     <Route path="*" element={<NotFound />} />
                   </Routes>
-                </AppLayout>
-               </BrowserRouter>
-            </TooltipProvider>
-          </QueryClientProvider>
-        </NotificationProvider>
-      </ThemeProvider>
+                </BrowserRouter>
+              </TooltipProvider>
+            </QueryClientProvider>
+          </NotificationProvider>
+        </ThemeProvider>
+      </AuthProvider>
     </ErrorBoundary>
   </StrictMode>
 );
