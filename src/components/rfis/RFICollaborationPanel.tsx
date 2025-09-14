@@ -61,8 +61,8 @@ export function RFICollaborationPanel({ rfi, onUpdate }: RFICollaborationPanelPr
 
   const fetchCollaborationData = async () => {
     try {
-      // Fetch collaborators
-      const { data: collaboratorsData, error: collabError } = await supabase
+      // Fetch collaborators - using type assertion for new tables
+      const { data: collaboratorsData, error: collabError } = await (supabase as any)
         .from('rfi_collaborators')
         .select(`
           *,
@@ -77,8 +77,8 @@ export function RFICollaborationPanel({ rfi, onUpdate }: RFICollaborationPanelPr
 
       if (collabError) throw collabError;
 
-      // Fetch comments
-      const { data: commentsData, error: commentsError } = await supabase
+      // Fetch comments - using type assertion for new tables
+      const { data: commentsData, error: commentsError } = await (supabase as any)
         .from('rfi_collaboration_comments')
         .select(`
           *,
@@ -93,8 +93,8 @@ export function RFICollaborationPanel({ rfi, onUpdate }: RFICollaborationPanelPr
 
       if (commentsError) throw commentsError;
 
-      setCollaborators(collaboratorsData || []);
-      setComments(commentsData || []);
+      setCollaborators((collaboratorsData || []) as Collaborator[]);
+      setComments((commentsData || []) as CollaborationComment[]);
     } catch (error) {
       console.error('Error fetching collaboration data:', error);
       toast({
@@ -112,7 +112,7 @@ export function RFICollaborationPanel({ rfi, onUpdate }: RFICollaborationPanelPr
 
     setSubmitting(true);
     try {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('rfi_collaboration_comments')
         .insert({
           rfi_id: rfi.id,
@@ -158,7 +158,7 @@ export function RFICollaborationPanel({ rfi, onUpdate }: RFICollaborationPanelPr
 
   const updateCollaboratorStatus = async (collaboratorId: string, status: Collaborator['status'], comments?: string) => {
     try {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('rfi_collaborators')
         .update({ 
           status,

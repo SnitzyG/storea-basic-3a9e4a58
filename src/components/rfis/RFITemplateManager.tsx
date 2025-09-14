@@ -96,7 +96,7 @@ export function RFITemplateManager({ onSelectTemplate, mode = 'manage' }: RFITem
 
   const fetchTemplates = async () => {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('rfi_templates')
         .select(`
           *,
@@ -110,8 +110,8 @@ export function RFITemplateManager({ onSelectTemplate, mode = 'manage' }: RFITem
 
       if (error) throw error;
 
-      setTemplates(data || []);
-      setFilteredTemplates(data || []);
+      setTemplates((data || []) as RFITemplate[]);
+      setFilteredTemplates((data || []) as RFITemplate[]);
     } catch (error) {
       console.error('Error fetching templates:', error);
       toast({
@@ -135,7 +135,7 @@ export function RFITemplateManager({ onSelectTemplate, mode = 'manage' }: RFITem
     }
 
     try {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('rfi_templates')
         .insert({
           ...newTemplate,
@@ -167,7 +167,7 @@ export function RFITemplateManager({ onSelectTemplate, mode = 'manage' }: RFITem
 
   const updateTemplate = async (template: RFITemplate) => {
     try {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('rfi_templates')
         .update({
           name: template.name,
@@ -202,7 +202,7 @@ export function RFITemplateManager({ onSelectTemplate, mode = 'manage' }: RFITem
 
   const deleteTemplate = async (templateId: string) => {
     try {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('rfi_templates')
         .delete()
         .eq('id', templateId)
@@ -228,7 +228,7 @@ export function RFITemplateManager({ onSelectTemplate, mode = 'manage' }: RFITem
 
   const toggleFavorite = async (template: RFITemplate) => {
     try {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('rfi_templates')
         .update({ is_favorite: !template.is_favorite })
         .eq('id', template.id);
@@ -244,7 +244,7 @@ export function RFITemplateManager({ onSelectTemplate, mode = 'manage' }: RFITem
   const useTemplate = async (template: RFITemplate) => {
     try {
       // Increment usage count
-      await supabase
+      await (supabase as any)
         .from('rfi_templates')
         .update({ usage_count: template.usage_count + 1 })
         .eq('id', template.id);
@@ -264,7 +264,7 @@ export function RFITemplateManager({ onSelectTemplate, mode = 'manage' }: RFITem
 
   const duplicateTemplate = async (template: RFITemplate) => {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('rfi_templates')
         .insert({
           name: `${template.name} (Copy)`,

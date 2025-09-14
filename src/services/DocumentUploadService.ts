@@ -20,7 +20,7 @@ export interface FilePreview {
 }
 
 export class DocumentUploadService {
-  private progressCallbacks: Map<string, (progress: UploadProgress) => void> = new Map();
+  private progressCallbacks: Map<string, (fileId: string, progress: UploadProgress) => void> = new Map();
 
   /**
    * Upload multiple files with progress tracking
@@ -103,15 +103,21 @@ export class DocumentUploadService {
         .from('documents')
         .upload(filePath, file, {
           cacheControl: '3600',
-          upsert: false,
-          onUploadProgress: (progress) => {
-            const percentage = Math.round((progress.loaded / progress.total) * 100);
-            updateProgress({ 
-              status: 'uploading', 
-              progress: percentage 
-            });
-          }
+          upsert: false
         });
+
+      // Simulate progress for UI feedback
+      updateProgress({ 
+        status: 'uploading', 
+        progress: 50 
+      });
+
+      await new Promise(resolve => setTimeout(resolve, 100)); // Brief delay for UX
+
+      updateProgress({ 
+        status: 'uploading', 
+        progress: 90 
+      });
 
       if (uploadError) throw uploadError;
 

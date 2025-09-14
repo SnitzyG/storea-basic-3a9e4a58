@@ -88,7 +88,7 @@ export const useRFIWorkflow = (rfiId?: string) => {
       setCurrentState(mappedState);
 
       // Get workflow transitions
-      const { data: transitionsData, error: transitionsError } = await supabase
+      const { data: transitionsData, error: transitionsError } = await (supabase as any)
         .from('rfi_workflow_transitions')
         .select(`
           *,
@@ -132,7 +132,7 @@ export const useRFIWorkflow = (rfiId?: string) => {
       const newState = getNextState(currentState, action);
       
       // Start transaction by creating transition record
-      const { data: transition, error: transitionError } = await supabase
+      const { data: transition, error: transitionError } = await (supabase as any)
         .from('rfi_workflow_transitions')
         .insert({
           rfi_id: rfiId,
@@ -271,7 +271,7 @@ function mapWorkflowStateToRFIStatus(state: WorkflowState): string {
 }
 
 function getNextState(currentState: WorkflowState, action: WorkflowAction): WorkflowState {
-  const transitions: Record<WorkflowState, Record<WorkflowAction, WorkflowState>> = {
+  const transitions: Record<WorkflowState, Partial<Record<WorkflowAction, WorkflowState>>> = {
     draft: {
       submit_for_review: 'review'
     },

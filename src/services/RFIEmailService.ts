@@ -28,7 +28,7 @@ export const RFIEmailService = {
       }));
 
       // Store delivery status in database
-      await supabase
+      await (supabase as any)
         .from('rfi_email_delivery')
         .insert(deliveryStatuses.map(status => ({
           id: status.id,
@@ -50,7 +50,7 @@ export const RFIEmailService = {
 
       if (error) {
         // Update all statuses to failed
-        await supabase
+        await (supabase as any)
           .from('rfi_email_delivery')
           .update({ 
             status: 'failed',
@@ -157,7 +157,7 @@ export const RFIEmailService = {
    */
   getDeliveryStatus: async (rfiId: string): Promise<EmailDeliveryStatus[]> => {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('rfi_email_delivery')
         .select('*')
         .eq('rfi_id', rfiId)
@@ -176,7 +176,7 @@ export const RFIEmailService = {
    */
   retryEmailDelivery: async (deliveryStatusId: string): Promise<boolean> => {
     try {
-      const { data: status, error: fetchError } = await supabase
+      const { data: status, error: fetchError } = await (supabase as any)
         .from('rfi_email_delivery')
         .select('*, rfis(*)')
         .eq('id', deliveryStatusId)
@@ -189,7 +189,7 @@ export const RFIEmailService = {
       }
 
       // Increment attempt count
-      await supabase
+      await (supabase as any)
         .from('rfi_email_delivery')
         .update({ 
           attempt_count: status.attempt_count + 1,
@@ -209,7 +209,7 @@ export const RFIEmailService = {
       });
 
       if (error) {
-        await supabase
+        await (supabase as any)
           .from('rfi_email_delivery')
           .update({ 
             status: 'failed',
