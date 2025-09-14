@@ -263,6 +263,15 @@ export const useProjects = () => {
 
   const deleteProject = async (id: string) => {
     try {
+      // Delete project-related activities first
+      const { error: activityError } = await supabase
+        .from('activity_log')
+        .delete()
+        .eq('project_id', id);
+
+      if (activityError) throw activityError;
+
+      // Delete the project
       const { error } = await supabase
         .from('projects')
         .delete()
@@ -273,7 +282,7 @@ export const useProjects = () => {
       await fetchProjects();
       toast({
         title: "Project deleted",
-        description: "Project has been deleted successfully"
+        description: "Project and related activities have been deleted successfully"
       });
     } catch (error: any) {
       toast({

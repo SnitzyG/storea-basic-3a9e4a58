@@ -200,13 +200,11 @@ export const CalendarWidget = () => {
   const selectedDateTodos = selectedDate ? getTodosForDate(selectedDate) : [];
 
   return (
-    <Card className="h-full flex flex-col bg-gradient-to-br from-background to-muted/20 border-0 shadow-lg">
-      <CardHeader className="pb-4 flex-shrink-0 bg-gradient-to-r from-primary/5 to-secondary/5 rounded-t-lg">
+    <Card className="h-full flex flex-col">
+      <CardHeader className="pb-4 flex-shrink-0 border-b">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-xl flex items-center gap-3 font-semibold">
-            <div className="p-2 bg-primary/10 rounded-full">
-              <CalendarDays className="h-5 w-5 text-primary" />
-            </div>
+          <CardTitle className="text-lg flex items-center gap-2 font-medium">
+            <CalendarDays className="h-5 w-5 text-primary" />
             Calendar
           </CardTitle>
           <div className="flex items-center gap-1">
@@ -250,7 +248,7 @@ export const CalendarWidget = () => {
             
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
               <DialogTrigger asChild>
-                <Button variant="outline" size="sm" className="gap-2 hover:bg-primary/10 border-primary/20">
+                <Button variant="outline" size="sm" className="gap-2">
                   <Plus className="h-4 w-4" />
                   Add Event
                 </Button>
@@ -447,15 +445,10 @@ export const CalendarWidget = () => {
                   </div>
 
                   <div className="flex gap-2 pt-2">
-                    <Button onClick={handleUpdateEvent} className="flex-1 gap-2" disabled={!newEventTitle.trim()}>
-                      <Edit className="h-4 w-4" />
+                    <Button onClick={handleUpdateEvent} className="flex-1" disabled={!newEventTitle.trim()}>
                       Update Event
                     </Button>
-                    <Button variant="outline" onClick={() => {
-                      setIsEditDialogOpen(false);
-                      setEditingEvent(null);
-                      resetForm();
-                    }}>
+                    <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
                       Cancel
                     </Button>
                   </div>
@@ -465,200 +458,145 @@ export const CalendarWidget = () => {
           </div>
         </div>
       </CardHeader>
-      <CardContent className="flex-1 flex flex-col space-y-6 p-6">
-        {/* Month Navigation */}
-        <div className="flex items-center justify-between bg-muted/30 p-4 rounded-xl">
-          <h3 className="font-bold text-xl text-foreground">
-            {format(currentMonth, 'MMMM yyyy')}
-          </h3>
-          <div className="flex gap-2">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => navigateMonth('prev')}
-              className="hover:bg-primary/10 h-9 w-9 p-0"
-            >
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => navigateMonth('next')}
-              className="hover:bg-primary/10 h-9 w-9 p-0"
-            >
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                const today = new Date();
-                setCurrentMonth(today);
-                setSelectedDate(today);
-              }}
-              className="h-9"
-            >
-              Today
-            </Button>
-          </div>
-        </div>
 
-        {/* Calendar Grid */}
-        <div className="flex-1 bg-card rounded-xl border border-border/40 p-4 shadow-sm">
-          <Calendar
-            mode="single"
-            selected={selectedDate}
-            onSelect={setSelectedDate}
-            month={currentMonth}
-            onMonthChange={setCurrentMonth}
-            className="w-full rounded-lg pointer-events-auto"
-            classNames={{
-              months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
-              month: "space-y-4 w-full",
-              caption: "hidden",
-              caption_label: "hidden",
-              nav: "hidden",
-              nav_button: "hidden",
-              nav_button_previous: "hidden",
-              nav_button_next: "hidden",
-              table: "w-full border-collapse",
-              head_row: "flex mb-2",
-              head_cell: "text-muted-foreground text-center font-medium text-sm w-full p-2 rounded-md bg-muted/20",
-              row: "flex w-full",
-              cell: "relative p-1 text-center text-sm focus-within:relative focus-within:z-20 flex-1",
-              day: "h-10 w-full p-0 font-medium aria-selected:opacity-100 hover:bg-primary/10 hover:text-primary rounded-lg transition-all duration-200 cursor-pointer border border-transparent hover:border-primary/20",
-              day_range_end: "day-range-end",
-              day_selected: "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground shadow-md border-primary",
-              day_today: "bg-secondary/50 text-secondary-foreground font-bold ring-2 ring-primary/30",
-              day_outside: "text-muted-foreground/40 opacity-50",
-              day_disabled: "text-muted-foreground opacity-30 cursor-not-allowed hover:bg-transparent",
-              day_range_middle: "aria-selected:bg-accent aria-selected:text-accent-foreground",
-              day_hidden: "invisible",
-            }}
-            components={{
-              Day: ({ date, displayMonth, ...props }: any) => {
-                if (!date) {
+      <CardContent className="flex-1 p-4 overflow-hidden">
+        <div className="flex flex-col h-full">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => navigateMonth('prev')}
+                className="h-8 w-8 p-0"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <h3 className="text-base font-medium">
+                {format(currentMonth, 'MMMM yyyy')}
+              </h3>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => navigateMonth('next')}
+                className="h-8 w-8 p-0"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+          
+          <div className="flex-1 overflow-hidden">
+            <Calendar
+              mode="single"
+              selected={selectedDate}
+              onSelect={setSelectedDate}
+              month={currentMonth}
+              onMonthChange={setCurrentMonth}
+              className="w-full h-full border rounded-lg"
+              classNames={{
+                months: "flex w-full flex-col space-y-4 flex-1",
+                month: "space-y-4 w-full flex flex-col",
+                caption: "flex justify-center pt-1 relative items-center",
+                caption_label: "text-sm font-medium",
+                nav: "space-x-1 flex items-center",
+                nav_button: "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100",
+                nav_button_previous: "absolute left-1",
+                nav_button_next: "absolute right-1",
+                table: "w-full border-collapse space-y-1",
+                head_row: "flex",
+                head_cell: "text-muted-foreground rounded-md w-9 font-normal text-[0.8rem]",
+                row: "flex w-full mt-2",
+                cell: "h-9 w-9 text-center text-sm p-0 relative [&:has([aria-selected].day-range-end)]:rounded-r-md [&:has([aria-selected].day-outside)]:bg-accent/50 [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
+                day: "h-9 w-9 p-0 font-normal aria-selected:opacity-100 hover:bg-accent hover:text-accent-foreground rounded-md transition-colors relative",
+                day_range_end: "day-range-end",
+                day_selected: "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
+                day_today: "bg-accent text-accent-foreground",
+                day_outside: "day-outside text-muted-foreground opacity-50 aria-selected:bg-accent/50 aria-selected:text-muted-foreground aria-selected:opacity-30",
+                day_disabled: "text-muted-foreground opacity-50",
+                day_range_middle: "aria-selected:bg-accent aria-selected:text-accent-foreground",
+                day_hidden: "invisible",
+              }}
+              components={{
+                Day: ({ date, displayMonth, ...props }: any) => {
+                  if (!date) {
+                    return (
+                      <button {...props} className={`${props.className || ''} relative h-9 w-9`} />
+                    );
+                  }
+                  const todosForDate = getTodosForDate(date);
+                  
                   return (
-                    <button {...props} className={`${props.className || ''} relative w-full h-full`} />
-                  );
-                }
-                const todosForDate = getTodosForDate(date);
-                
-                return (
-                  <div className="relative w-full h-full">
-                    <button {...props} className={`${props.className || ''} relative w-full h-full flex flex-col items-center justify-center gap-1`}>
+                    <button
+                      {...props}
+                      className={`${props.className || ''} relative h-9 w-9 flex flex-col items-center justify-center`}
+                    >
                       <span className="text-sm">{date.getDate()}</span>
                       {todosForDate.length > 0 && (
-                        <div className="flex gap-0.5 absolute bottom-1">
-                          {todosForDate.slice(0, 3).map((todo, index) => (
-                            <div
-                              key={index}
-                              className={`h-1.5 w-1.5 rounded-full ${
-                                todo.priority === 'high' 
-                                  ? 'bg-red-500' 
-                                  : todo.priority === 'medium' 
-                                  ? 'bg-yellow-500' 
-                                  : 'bg-green-500'
-                              }`}
+                        <div className="absolute bottom-0.5 left-1/2 transform -translate-x-1/2 flex gap-0.5">
+                          {todosForDate.slice(0, 3).map((_, index) => (
+                            <div 
+                              key={index} 
+                              className="w-1 h-1 rounded-full bg-primary"
                             />
                           ))}
-                          {todosForDate.length > 3 && (
-                            <div className="h-1.5 w-1.5 rounded-full bg-muted-foreground" />
-                          )}
                         </div>
                       )}
                     </button>
-                  </div>
-                );
-              }
-            }}
-          />
-        </div>
-
-        {/* Selected Date Events */}
-        {selectedDate && (
-          <div className="space-y-3 flex-shrink-0 bg-muted/30 p-4 rounded-xl border border-border/20">
-            <div className="flex items-center justify-between">
-              <h4 className="font-semibold text-base flex items-center gap-2">
-                <Clock className="h-4 w-4 text-primary" />
-                {format(selectedDate, 'EEEE, MMMM d')}
-              </h4>
-              <Badge variant="secondary" className="text-xs">
-                {selectedDateTodos.length} event{selectedDateTodos.length !== 1 ? 's' : ''}
-              </Badge>
-            </div>
-            
-            {selectedDateTodos.length > 0 ? (
-              <div className="space-y-2 max-h-40 overflow-y-auto">
-                {selectedDateTodos.map((todo) => (
-                  <div 
-                    key={todo.id} 
-                    className="group flex items-center gap-3 p-3 bg-card rounded-lg border border-border/40 shadow-sm hover:shadow-md transition-all duration-200"
-                  >
-                    <div className={`p-1.5 rounded-full ${
-                      todo.priority === 'high' 
-                        ? 'bg-red-100 text-red-600' 
-                        : todo.priority === 'medium' 
-                        ? 'bg-yellow-100 text-yellow-600' 
-                        : 'bg-green-100 text-green-600'
-                    }`}>
-                      {todo.completed ? (
-                        <CheckCircle2 className="h-3 w-3" />
-                      ) : (
-                        <Clock className="h-3 w-3" />
-                      )}
-                    </div>
-                    
-                    <div className="flex-1 min-w-0">
-                      <p className={`text-sm font-medium ${
-                        todo.completed ? 'line-through text-muted-foreground' : 'text-foreground'
-                      }`}>
-                        {todo.content}
-                      </p>
-                      <Badge 
-                        variant="outline" 
-                        className={`text-xs mt-1 ${
-                          todo.priority === 'high' 
-                            ? 'border-red-300 text-red-600' 
-                            : todo.priority === 'medium' 
-                            ? 'border-yellow-300 text-yellow-600' 
-                            : 'border-green-300 text-green-600'
-                        }`}
-                      >
-                        {todo.priority} priority
-                      </Badge>
-                    </div>
-
-                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-7 w-7 p-0"
-                        onClick={() => handleEditEvent(todo)}
-                      >
-                        <Edit className="h-3 w-3" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-7 w-7 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
-                        onClick={() => handleDeleteEvent(todo.id)}
-                      >
-                        <Trash2 className="h-3 w-3" />
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-6">
-                <Clock className="h-8 w-8 text-muted-foreground/50 mx-auto mb-2" />
-                <p className="text-sm text-muted-foreground">No events scheduled</p>
-                <p className="text-xs text-muted-foreground/70 mt-1">Click "Add Event" to create your first event</p>
-              </div>
-            )}
+                  );
+                }
+              }}
+            />
           </div>
-        )}
+
+          {/* Events List for Selected Date */}
+          {selectedDate && selectedDateTodos.length > 0 && (
+            <div className="mt-4 p-3 bg-muted/30 rounded-lg border">
+              <div className="flex items-center justify-between mb-2">
+                <h4 className="text-sm font-medium">
+                  Events for {format(selectedDate, 'MMM d, yyyy')}
+                </h4>
+                <Badge variant="secondary" className="text-xs">
+                  {selectedDateTodos.length} event{selectedDateTodos.length !== 1 ? 's' : ''}
+                </Badge>
+              </div>
+              <ScrollArea className="max-h-32">
+                <div className="space-y-2">
+                  {selectedDateTodos.map((todo) => (
+                    <div key={todo.id} className="flex items-center justify-between p-2 bg-background rounded border text-sm">
+                      <div className="flex items-center gap-2">
+                        <div className={`w-2 h-2 rounded-full ${
+                          todo.priority === 'high' ? 'bg-destructive' :
+                          todo.priority === 'medium' ? 'bg-yellow-500' : 
+                          'bg-green-500'
+                        }`} />
+                        <span className="font-medium text-sm">{todo.content.split(' - ')[0]}</span>
+                        {todo.completed && <CheckCircle2 className="h-3 w-3 text-green-600" />}
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 w-6 p-0"
+                          onClick={() => handleEditEvent(todo)}
+                        >
+                          <Edit className="h-3 w-3" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 w-6 p-0 text-destructive"
+                          onClick={() => handleDeleteEvent(todo.id)}
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </ScrollArea>
+            </div>
+          )}
+        </div>
       </CardContent>
     </Card>
   );
