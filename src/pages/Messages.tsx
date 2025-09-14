@@ -32,8 +32,9 @@ const Messages = () => {
     teamMembers: projectUsers,
     refreshTeam
   } = useProjectTeam(selectedProject || '');
-  
-  const { createRFI } = useRFIs(selectedProject || '');
+  const {
+    createRFI
+  } = useRFIs(selectedProject || '');
 
   // Listen for team updates to refresh team list immediately
   useEffect(() => {
@@ -134,10 +135,8 @@ const Messages = () => {
   const handleSendMessage = async (content: string, attachments?: any[], isInquiry?: boolean) => {
     await sendMessage(content, currentThread || undefined, attachments, isInquiry);
   };
-
   const handleCreateRFI = async (content: string, attachments?: any[]) => {
     if (!selectedProject || !profile?.user_id) return;
-    
     try {
       await createRFI({
         project_id: selectedProject,
@@ -145,7 +144,8 @@ const Messages = () => {
         priority: 'medium',
         subject: `Inquiry from Message: ${content.substring(0, 50)}${content.length > 50 ? '...' : ''}`,
         sender_name: profile.name || 'Unknown User',
-        sender_email: profile.user_id, // Store user ID as identifier
+        sender_email: profile.user_id,
+        // Store user ID as identifier
         category: 'Message Inquiry'
       });
     } catch (error) {
@@ -186,19 +186,7 @@ const Messages = () => {
       {/* Sidebar */}
       <div className="w-80 flex flex-col">
         {/* Project Header */}
-        <Card className="mb-4">
-          <CardHeader className="pb-2">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-lg font-semibold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-                {getCurrentProjectName()}
-              </CardTitle>
-              {/* Removed WiFi indicator as requested */}
-            </div>
-            <p className="text-sm text-muted-foreground">
-              Project Messages
-            </p>
-          </CardHeader>
-        </Card>
+        
 
         {/* Messages Management */}
         <Card className="flex-1 flex flex-col">
