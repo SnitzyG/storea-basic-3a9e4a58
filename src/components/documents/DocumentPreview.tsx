@@ -95,10 +95,14 @@ export const DocumentPreview: React.FC<DocumentPreviewProps> = ({
     }
 
     if (isPdf) {
+      // Use Google Docs viewer for PDFs to avoid Chrome blocking issues
+      const fileUrl = encodeURIComponent(previewUrl);
+      const viewerUrl = `https://docs.google.com/gview?url=${fileUrl}&embedded=true`;
+      
       return (
         <div className="flex justify-center items-center h-full bg-muted/20 rounded-lg">
           <iframe
-            src={previewUrl}
+            src={viewerUrl}
             className="w-full h-full border-0 rounded-lg"
             style={{
               transform: `scale(${zoom / 100})`,
