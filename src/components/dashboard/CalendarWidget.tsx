@@ -537,6 +537,11 @@ export const CalendarWidget = () => {
             }}
             components={{
               Day: ({ date, displayMonth, ...props }: any) => {
+                if (!date) {
+                  return (
+                    <button {...props} className={`${props.className || ''} relative w-full h-full`} />
+                  );
+                }
                 const todosForDate = getTodosForDate(date);
                 
                 return (
