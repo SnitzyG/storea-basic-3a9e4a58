@@ -737,6 +737,131 @@ export const useDocuments = (projectId?: string) => {
     }
   };
 
+  const supersedeDocument = async (documentId: string, newFile: File, changesSummary?: string): Promise<boolean> => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('User not authenticated');
+
+      // Get the current document
+      const { data: currentDoc, error: docError } = await supabase
+        .from('documents')
+        .select('*')
+        .eq('id', documentId)
+        .single();
+
+      if (docError) throw docError;
+
+      // First, archive the current version
+      const { error: archiveError } = await supabase
+        .from('document_versions')
+        .insert({
+          document_id: documentId,
+          version_number: currentDoc.version || 1,
+          file_path: currentDoc.file_path,
+          uploaded_by: currentDoc.uploaded_by,
+          changes_summary: 'Archived before superseding'
+        });
+
+      if (archiveError) throw archiveError;
+
+      // Upload the new file that will supersede the current one
+      const fileExtension = getFileExtension(newFile.name);
+      const newFilePath = `${currentDoc.project_id}/${Date.now()}-superseded-${Math.random().toString(36).slice(2)}.${fileExtension}`;
+      
+      const { error: uploadError } = await supabase.storage
+        .from('documents')
+        .upload(newFilePath, newFile);
+
+      if (uploadError) throw uploadError;
+
+      // Create the new document
+      const newDocumentData = {
+        project_id: currentDoc.project_id,
+        name: newFile.name,
+        title: currentDoc.title,
+        file_path: newFilePath,
+        file_type: getMimeType(fileExtension),
+        file_size: newFile.size,
+        file_extension: fileExtension,
+        category: currentDoc.category,
+        tags: currentDoc.tags,
+        uploaded_by: user.id,
+        status: currentDoc.status,
+        document_number: currentDoc.document_number,
+        file_type_category: currentDoc.file_type_category,
+        version: (currentDoc.version || 1) + 1,
+        visibility_scope: currentDoc.visibility_scope
+      };
+
+      const { data: newDocument, error: insertError } = await supabase
+        .from('documents')
+        .insert(newDocumentData)
+        .select()
+        .single();
+
+      if (insertError) throw insertError;
+
+      // Mark the old document as superseded
+      await supabase
+        .from('documents')
+        .update({
+          is_superseded: true,
+          superseded_by: newDocument.id,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', documentId);
+
+      // Log the supersede activity
+      await supabase
+        .from('activity_log')
+        .insert({
+          user_id: user.id,
+          project_id: currentDoc.project_id,
+          entity_type: 'document',
+          entity_id: documentId,
+          action: 'superseded',
+          description: `Document superseded by new version${changesSummary ? `: ${changesSummary}` : ''}`,
+          metadata: {
+            superseded_by: newDocument.id,
+            new_version: newDocument.version,
+            changes_summary: changesSummary
+          }
+        });
+
+      // Log the creation of new document
+      await supabase
+        .from('activity_log')
+        .insert({
+          user_id: user.id,
+          project_id: currentDoc.project_id,
+          entity_type: 'document',
+          entity_id: newDocument.id,
+          action: 'created',
+          description: `Document created (superseding previous version)`,
+          metadata: {
+            supersedes: documentId,
+            version: newDocument.version
+          }
+        });
+
+      toast({
+        title: "Success",
+        description: "Document successfully superseded",
+      });
+
+      await fetchDocuments();
+      return true;
+    } catch (error) {
+      console.error('Error superseding document:', error);
+      toast({
+        title: "Error", 
+        description: "Failed to supersede document",
+        variant: "destructive",
+      });
+      return false;
+    }
+  };
+
   return {
     documents,
     loading,
@@ -752,6 +877,7 @@ export const useDocuments = (projectId?: string) => {
     revertToVersion,
     requestApproval,
     approveDocument,
-    toggleDocumentLock
+    toggleDocumentLock,
+    supersedeDocument
   };
 };

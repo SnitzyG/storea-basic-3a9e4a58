@@ -6,7 +6,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Document } from '@/hooks/useDocuments';
+import { Document, useDocuments } from '@/hooks/useDocuments';
 import { useProjects } from '@/hooks/useProjects';
 import { useProjectTeam } from '@/hooks/useProjectTeam';
 import { useAuth } from '@/hooks/useAuth';
@@ -15,6 +15,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { FileTypeIcon } from './FileTypeIcon';
 import { EditDocumentDialog } from './EditDocumentDialog';
 import { DocumentSharingDialog } from './DocumentSharingDialog';
+import { DocumentHistoryDialog } from './DocumentHistoryDialog';
+import { SupersedeDocumentDialog } from './SupersedeDocumentDialog';
 import { getFileExtension, getSafeFilename } from '@/utils/documentUtils';
 interface DocumentListViewProps {
   documents: Document[];
@@ -46,11 +48,17 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
   canApprove,
   selectedProject
 }) => {
+  // Filter out superseded documents from main list
+  const activeDocuments = documents.filter(doc => !doc.is_superseded);
   const [selectedDocuments, setSelectedDocuments] = useState<Set<string>>(new Set());
   const [editingDocument, setEditingDocument] = useState<Document | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [sharingDocument, setSharingDocument] = useState<Document | null>(null);
   const [isSharingDialogOpen, setIsSharingDialogOpen] = useState(false);
+  const [historyDocument, setHistoryDocument] = useState<Document | null>(null);
+  const [isHistoryDialogOpen, setIsHistoryDialogOpen] = useState(false);
+  const [supersedeDocument, setSupersedeDocument] = useState<Document | null>(null);
+  const [isSupersedeDialogOpen, setIsSupersedeDialogOpen] = useState(false);
   const {
     projects
   } = useProjects();
@@ -58,6 +66,7 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
     teamMembers
   } = useProjectTeam(selectedProject);
   const { profile } = useAuth();
+  const { supersedeDocument: handleDocumentSupersede } = useDocuments();
   // Convert numeric version to alphanumeric (1=A, 2=B, etc.)
   const getVersionLabel = (version?: number) => {
     if (!version || version < 1) return 'A';
@@ -92,7 +101,7 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
   };
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
-      setSelectedDocuments(new Set(documents.map(doc => doc.id)));
+      setSelectedDocuments(new Set(activeDocuments.map(doc => doc.id)));
     } else {
       setSelectedDocuments(new Set());
     }
@@ -147,6 +156,16 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
     setIsSharingDialogOpen(true);
   };
 
+  const handleViewHistory = (document: Document) => {
+    setHistoryDocument(document);
+    setIsHistoryDialogOpen(true);
+  };
+
+  const handleSupersede = (document: Document) => {
+    setSupersedeDocument(document);
+    setIsSupersedeDialogOpen(true);
+  };
+
   // Get user name from user ID
   const getUserName = async (userId: string) => {
     try {
@@ -163,23 +182,23 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
   // Load user names for all documents
   React.useEffect(() => {
     const loadUserNames = async () => {
-      const uniqueUserIds = [...new Set(documents.map(doc => doc.uploaded_by))];
+      const uniqueUserIds = [...new Set(activeDocuments.map(doc => doc.uploaded_by))];
       const names: Record<string, string> = {};
       for (const userId of uniqueUserIds) {
         names[userId] = await getUserName(userId);
       }
       setUserNames(names);
     };
-    if (documents.length > 0) {
+    if (activeDocuments.length > 0) {
       loadUserNames();
     }
-  }, [documents]);
+  }, [activeDocuments]);
   return <div className="border rounded-lg">
       <Table>
         <TableHeader>
           <TableRow className="bg-muted/50">
             <TableHead className="w-12">
-              <Checkbox checked={selectedDocuments.size === documents.length && documents.length > 0} onCheckedChange={handleSelectAll} />
+              <Checkbox checked={selectedDocuments.size === activeDocuments.length && activeDocuments.length > 0} onCheckedChange={handleSelectAll} />
             </TableHead>
             <TableHead className="w-12"> Type</TableHead>
             <TableHead className="w-12">Lock</TableHead>
@@ -244,7 +263,7 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
           </TableRow>
         </TableHeader>
         <TableBody>
-          {documents.map(document => <TableRow key={document.id} className={`hover:bg-muted/50 border-b ${document.is_superseded ? 'opacity-60 bg-muted/30' : ''}`}>
+          {activeDocuments.map(document => <TableRow key={document.id} className="hover:bg-muted/50 border-b">
               <TableCell>
                 <Checkbox checked={selectedDocuments.has(document.id)} onCheckedChange={checked => handleSelectDocument(document.id, checked as boolean)} />
               </TableCell>
@@ -268,9 +287,6 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
               <TableCell className="font-medium">
                 <div className="flex items-center gap-2">
                   {document.title || document.name}
-                  {document.is_superseded && <Badge variant="outline" className="text-xs">
-                      Superseded
-                    </Badge>}
                 </div>
               </TableCell>
               
@@ -315,7 +331,7 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
               </TableCell>
 
               <TableCell>
-                <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={() => onViewDetails?.(document)}>
+                <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={() => handleViewHistory(document)}>
                   <Clock className="h-3 w-3" />
                 </Button>
               </TableCell>
@@ -337,7 +353,7 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
                       Download
                     </DropdownMenuItem>
                     
-                    {canEdit && <DropdownMenuItem onClick={() => handleEditDocument(document)}>
+                    {canEdit && <DropdownMenuItem onClick={() => handleSupersede(document)}>
                         <Edit className="h-3 w-3 mr-2" />
                         Supersede
                       </DropdownMenuItem>}
@@ -361,7 +377,7 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
         </TableBody>
       </Table>
       
-      {documents.length === 0 && <div className="text-center py-12 text-muted-foreground">
+      {activeDocuments.length === 0 && <div className="text-center py-12 text-muted-foreground">
           <FileTypeIcon fileName="document.pdf" className="h-12 w-12 mx-auto mb-2 opacity-50" />
           <p>No documents found</p>
         </div>}
@@ -379,6 +395,26 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
           setSharingDocument(null);
         }}
         projectId={selectedProject}
+      />
+
+      <DocumentHistoryDialog 
+        document={historyDocument} 
+        isOpen={isHistoryDialogOpen} 
+        onClose={() => {
+          setIsHistoryDialogOpen(false);
+          setHistoryDocument(null);
+        }}
+        onDownload={onDownload}
+      />
+
+      <SupersedeDocumentDialog
+        document={supersedeDocument}
+        isOpen={isSupersedeDialogOpen}
+        onClose={() => {
+          setIsSupersedeDialogOpen(false);
+          setSupersedeDocument(null);
+        }}
+        onSupersede={handleDocumentSupersede}
       />
     </div>;
 };
