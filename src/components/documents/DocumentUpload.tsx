@@ -335,7 +335,7 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
 
                       <div className="space-y-2">
                         <Label htmlFor={`filetype-${file.id}`}>
-                          File Type <span className="text-destructive">*</span>
+                          Category <span className="text-destructive">*</span>
                         </Label>
                         <Select
                           value={file.fileType}
@@ -343,7 +343,7 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
                           disabled={isUploading}
                         >
                           <SelectTrigger id={`filetype-${file.id}`}>
-                            <SelectValue placeholder="Select file type" />
+                            <SelectValue placeholder="Select category" />
                           </SelectTrigger>
                           <SelectContent>
                             {FILE_TYPE_OPTIONS.map((type) => (

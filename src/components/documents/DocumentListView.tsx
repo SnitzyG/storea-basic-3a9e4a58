@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Lock, Unlock, Eye, Settings, MoreHorizontal, Download, Edit, X } from 'lucide-react';
+import { Lock, Unlock, Eye, Clock, MoreHorizontal, Download, Edit, X, ArrowUpDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -174,15 +174,60 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
             <TableHead className="w-12"> Type</TableHead>
             <TableHead className="w-12">Lock</TableHead>
             
-            <TableHead className="w-32">Document No.</TableHead>
-            <TableHead className="min-w-[200px]">Title</TableHead>
-            <TableHead className="w-16">Rev</TableHead>
-            <TableHead className="w-24">Status</TableHead>
-            <TableHead className="w-24">Created</TableHead>
-            <TableHead className="w-24">Updated</TableHead>
-            <TableHead className="w-32">Created By</TableHead>
-            <TableHead className="w-32">Category</TableHead>
-            <TableHead className="w-32">Accessibility</TableHead>
+            <TableHead className="w-32">
+              <Button variant="ghost" className="h-auto p-0 font-semibold text-left justify-start">
+                Document No.
+                <ArrowUpDown className="ml-2 h-4 w-4" />
+              </Button>
+            </TableHead>
+            <TableHead className="min-w-[200px]">
+              <Button variant="ghost" className="h-auto p-0 font-semibold text-left justify-start">
+                Title
+                <ArrowUpDown className="ml-2 h-4 w-4" />
+              </Button>
+            </TableHead>
+            <TableHead className="w-16">
+              <Button variant="ghost" className="h-auto p-0 font-semibold text-left justify-start">
+                Rev
+                <ArrowUpDown className="ml-2 h-4 w-4" />
+              </Button>
+            </TableHead>
+            <TableHead className="w-24">
+              <Button variant="ghost" className="h-auto p-0 font-semibold text-left justify-start">
+                Status
+                <ArrowUpDown className="ml-2 h-4 w-4" />
+              </Button>
+            </TableHead>
+            <TableHead className="w-24">
+              <Button variant="ghost" className="h-auto p-0 font-semibold text-left justify-start">
+                Created
+                <ArrowUpDown className="ml-2 h-4 w-4" />
+              </Button>
+            </TableHead>
+            <TableHead className="w-24">
+              <Button variant="ghost" className="h-auto p-0 font-semibold text-left justify-start">
+                Updated
+                <ArrowUpDown className="ml-2 h-4 w-4" />
+              </Button>
+            </TableHead>
+            <TableHead className="w-32">
+              <Button variant="ghost" className="h-auto p-0 font-semibold text-left justify-start">
+                Created By
+                <ArrowUpDown className="ml-2 h-4 w-4" />
+              </Button>
+            </TableHead>
+            <TableHead className="w-32">
+              <Button variant="ghost" className="h-auto p-0 font-semibold text-left justify-start">
+                Category
+                <ArrowUpDown className="ml-2 h-4 w-4" />
+              </Button>
+            </TableHead>
+            <TableHead className="w-32">
+              <Button variant="ghost" className="h-auto p-0 font-semibold text-left justify-start">
+                Accessibility
+                <ArrowUpDown className="ml-2 h-4 w-4" />
+              </Button>
+            </TableHead>
             <TableHead className="w-16"> Preview</TableHead>
             <TableHead className="w-16"> History</TableHead>
             <TableHead className="w-12">Actions</TableHead>
@@ -259,7 +304,7 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
 
               <TableCell>
                 <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={() => onViewDetails?.(document)}>
-                  <Settings className="h-3 w-3" />
+                  <Clock className="h-3 w-3" />
                 </Button>
               </TableCell>
               
@@ -282,7 +327,7 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
                     
                     {canEdit && <DropdownMenuItem onClick={() => handleEditDocument(document)}>
                         <Edit className="h-3 w-3 mr-2" />
-                        Edit Document
+                        Supersede
                       </DropdownMenuItem>}
                     
                     {canEdit && onDelete && <DropdownMenuItem onClick={() => onDelete(document.id, document.file_path)} className="text-destructive">

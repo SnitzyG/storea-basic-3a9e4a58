@@ -28,7 +28,7 @@ interface DocumentFiltersProps {
 }
 const categories = [{
   value: 'all',
-  label: 'All File Types'
+  label: 'All Categories'
 }, {
   value: 'Architectural',
   label: 'Architectural'
@@ -62,10 +62,7 @@ export const DocumentFilters: React.FC<DocumentFiltersProps> = ({
         </div>
         
         <div className="flex items-center gap-2">
-          
-          <Button variant={viewMode === 'list' ? 'default' : 'outline'} size="sm" onClick={() => onViewModeChange('list')}>
-            <List className="h-4 w-4" />
-          </Button>
+          {/* List View button removed as requested */}
         </div>
       </div>
 
