@@ -58,7 +58,7 @@ export const DocumentFilters: React.FC<DocumentFiltersProps> = ({
       <div className="flex items-center gap-4">
         <div className="relative flex-1 max-w-md">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-          <Input placeholder="Search documents..." value={searchTerm} onChange={e => onSearchChange(e.target.value)} className="pl-10" />
+          <Input placeholder="Search by name, category, document number, revision..." value={searchTerm} onChange={e => onSearchChange(e.target.value)} className="pl-10" />
         </div>
         
         <div className="flex items-center gap-2">

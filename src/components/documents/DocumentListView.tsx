@@ -300,19 +300,19 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
                 </Badge>
               </TableCell>
               
-              <TableCell className="text-xs text-muted-foreground">
+              <TableCell className="text-xs text-foreground">
                 {format(new Date(document.created_at), 'dd/MM/yy')}
               </TableCell>
               
-              <TableCell className="text-xs text-muted-foreground">
+              <TableCell className="text-xs text-foreground">
                 {format(new Date(document.updated_at), 'dd/MM/yy')}
               </TableCell>
               
-              <TableCell className="text-xs text-muted-foreground">
+              <TableCell className="text-xs text-foreground">
                 {userNames[document.uploaded_by] || 'Loading...'}
               </TableCell>
               
-              <TableCell className="text-xs text-muted-foreground">
+              <TableCell className="text-xs text-foreground">
                 {(document.file_extension || getFileExtension(document.name || document.file_path || '')).toUpperCase()}
               </TableCell>
               

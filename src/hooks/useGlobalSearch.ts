@@ -28,7 +28,7 @@ export const useGlobalSearch = () => {
     try {
       const searchTerm = `%${query.toLowerCase()}%`;
       
-      // Search across multiple tables
+      // Search across multiple tables with enhanced search capabilities
       const [
         { data: projects },
         { data: documents },
@@ -43,19 +43,20 @@ export const useGlobalSearch = () => {
             id, name, description, created_at,
             project_users!inner(user_id)
           `)
-          .ilike('name', searchTerm)
+          .or(`name.ilike.${searchTerm},description.ilike.${searchTerm}`)
           .eq('project_users.user_id', user.id),
         
-        // Documents
+        // Documents - Enhanced search by name, title, category, document_number, version
         supabase
           .from('documents')
           .select(`
-            id, name, created_at,
+            id, name, title, category, document_number, version, created_at, uploaded_by, visibility_scope,
             projects!inner(name),
             project_users!inner(user_id)
           `)
-          .ilike('name', searchTerm)
-          .eq('project_users.user_id', user.id),
+          .or(`name.ilike.${searchTerm},title.ilike.${searchTerm},category.ilike.${searchTerm},document_number.ilike.${searchTerm}`)
+          .eq('project_users.user_id', user.id)
+          .neq('is_superseded', true),
         
         // Messages
         supabase
@@ -72,11 +73,11 @@ export const useGlobalSearch = () => {
         supabase
           .from('rfis')
           .select(`
-            id, question, created_at,
+            id, question, subject, rfi_number, created_at,
             projects!inner(name),
             project_users!inner(user_id)
           `)
-          .ilike('question', searchTerm)
+          .or(`question.ilike.${searchTerm},subject.ilike.${searchTerm},rfi_number.ilike.${searchTerm}`)
           .eq('project_users.user_id', user.id),
         
         // Tenders
@@ -87,7 +88,7 @@ export const useGlobalSearch = () => {
             projects!inner(name),
             project_users!inner(user_id)
           `)
-          .ilike('title', searchTerm)
+          .or(`title.ilike.${searchTerm},description.ilike.${searchTerm}`)
           .eq('project_users.user_id', user.id)
       ]);
 
@@ -103,11 +104,18 @@ export const useGlobalSearch = () => {
         ...(documents || []).map(d => ({
           id: d.id,
           type: 'document' as const,
-          title: d.name,
-          description: 'Document',
+          title: d.title || d.name,
+          description: `${d.category} • ${d.document_number || 'No number'} • Rev ${String.fromCharCode(64 + (d.version || 1))} • ${d.visibility_scope === 'private' ? 'Private' : 'Project'}`,
           url: `/documents`,
           project_name: d.projects?.name,
           created_at: d.created_at,
+          metadata: {
+            category: d.category,
+            document_number: d.document_number,
+            version: d.version,
+            visibility: d.visibility_scope,
+            uploaded_by: d.uploaded_by
+          }
         })),
         ...(messages || []).map(m => ({
           id: m.id,
@@ -121,8 +129,8 @@ export const useGlobalSearch = () => {
         ...(rfis || []).map(r => ({
           id: r.id,
           type: 'rfi' as const,
-          title: r.question.substring(0, 50) + (r.question.length > 50 ? '...' : ''),
-          description: 'RFI',
+          title: r.subject || r.question.substring(0, 50) + (r.question.length > 50 ? '...' : ''),
+          description: `RFI ${r.rfi_number || 'No number'}`,
           url: `/rfis`,
           project_name: r.projects?.name,
           created_at: r.created_at,

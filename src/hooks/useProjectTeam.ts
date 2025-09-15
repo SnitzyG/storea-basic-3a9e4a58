@@ -46,7 +46,7 @@ export const useProjectTeam = (projectId: string): UseProjectTeamReturn => {
   const { checkInviteLimit } = useRateLimit();
 
   const fetchTeamMembers = useCallback(async () => {
-    if (!projectId) {
+    if (!projectId || projectId === 'all') {
       setTeamMembers([]);
       setLoading(false);
       return;

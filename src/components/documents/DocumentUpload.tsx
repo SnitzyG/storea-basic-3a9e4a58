@@ -28,6 +28,8 @@ interface UploadFile {
   documentStatus?: 'For Tender' | 'For Information' | 'For Construction';
   fileType?: 'Architectural' | 'Structural' | 'Permit';
   isPrivate?: boolean;
+  revisionDisplay?: string;
+  version?: number;
 }
 
 const ACCEPTED_FILE_TYPES = {
@@ -62,7 +64,9 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
       title: file.name.replace(/\.[^/.]+$/, ""), // Remove extension for title
       documentStatus: 'For Information',
       fileType: 'Architectural',
-      isPrivate: false
+      isPrivate: false,
+      revisionDisplay: 'A',
+      version: 1
     }));
 
     setFiles(prev => [...prev, ...newFiles]);
@@ -331,6 +335,34 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
                             ))}
                           </SelectContent>
                         </Select>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor={`revision-${file.id}`}>
+                          Revision Number
+                        </Label>
+                        <Input
+                          id={`revision-${file.id}`}
+                          value={file.revisionDisplay || ''}
+                          onChange={(e) => {
+                            const value = e.target.value.trim();
+                            // Support A-Z, numbers, and alphanumeric combinations
+                            if (value === '' || /^[A-Za-z0-9]+$/.test(value)) {
+                              updateFileProperty(file.id, 'revisionDisplay', value.toUpperCase());
+                              // Convert to version number for storage
+                              const versionNum = value === '' ? 1 : 
+                                /^[A-Z]$/.test(value.toUpperCase()) ? value.toUpperCase().charCodeAt(0) - 64 :
+                                /^[0-9]+$/.test(value) ? parseInt(value) : 1;
+                              updateFileProperty(file.id, 'version', versionNum);
+                            }
+                          }}
+                          placeholder="A, 1, A1, etc."
+                          maxLength={10}
+                          disabled={isUploading}
+                        />
+                        <p className="text-xs text-muted-foreground">
+                          Supports letters (A-Z), numbers (1-100), or combinations (A1, B2, etc.)
+                        </p>
                       </div>
 
                       <div className="space-y-2">

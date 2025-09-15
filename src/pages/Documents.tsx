@@ -44,7 +44,16 @@ const Documents = () => {
   } = useDocuments(selectedProject === 'all' ? undefined : selectedProject);
   const filteredDocuments = useMemo(() => {
     return documents.filter(doc => {
-      const matchesSearch = (doc.title || doc.name).toLowerCase().includes(searchTerm.toLowerCase());
+      // Enhanced search - search in title, name, category, document number, and revision
+      const searchFields = [
+        doc.title || doc.name,
+        doc.category,
+        doc.document_number,
+        String.fromCharCode(64 + (doc.version || 1)), // Convert version to letter
+        `rev ${String.fromCharCode(64 + (doc.version || 1))}` // Include "rev" prefix
+      ].filter(Boolean).join(' ').toLowerCase();
+      
+      const matchesSearch = searchTerm === '' || searchFields.includes(searchTerm.toLowerCase());
       const matchesCategory = selectedCategory === 'all' || doc.category === selectedCategory;
       const matchesStatus = statusFilter === 'all' || doc.status === statusFilter;
       return matchesSearch && matchesCategory && matchesStatus;
