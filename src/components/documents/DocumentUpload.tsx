@@ -1,6 +1,6 @@
 import React, { useCallback, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { Upload, File, X, Check } from 'lucide-react';
+import { Upload, File, X, Check, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
@@ -355,22 +355,31 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
                         </Select>
                       </div>
 
-                      {/* Privacy Toggle */}
-                      <div className="col-span-2 flex items-center justify-between p-3 bg-muted/30 rounded-lg">
-                        <div className="space-y-0.5">
-                          <Label htmlFor={`private-${file.id}`} className="text-sm font-medium">
-                            Make Private
-                          </Label>
-                          <p className="text-xs text-muted-foreground">
-                            Only you can view this document
-                          </p>
+                      {/* Privacy Toggle - Enhanced visibility */}
+                      <div className="col-span-2 p-4 bg-muted/30 rounded-lg border border-dashed">
+                        <div className="flex items-center justify-between">
+                          <div className="space-y-1">
+                            <Label htmlFor={`private-${file.id}`} className="text-sm font-semibold flex items-center gap-2">
+                              <Lock className="h-4 w-4" />
+                              Document Privacy
+                            </Label>
+                            <p className="text-xs text-muted-foreground">
+                              Private documents are only visible to you and people you specifically share them with.
+                              Public documents are visible to all project members.
+                            </p>
+                          </div>
+                          <div className="flex flex-col items-end gap-1">
+                            <Switch
+                              id={`private-${file.id}`}
+                              checked={file.isPrivate || false}
+                              onCheckedChange={(checked) => updateFileProperty(file.id, 'isPrivate', checked)}
+                              disabled={isUploading}
+                            />
+                            <span className="text-xs font-medium">
+                              {file.isPrivate ? 'Private' : 'Public'}
+                            </span>
+                          </div>
                         </div>
-                        <Switch
-                          id={`private-${file.id}`}
-                          checked={file.isPrivate || false}
-                          onCheckedChange={(checked) => updateFileProperty(file.id, 'isPrivate', checked)}
-                          disabled={isUploading}
-                        />
                       </div>
                     </div>
                   )}

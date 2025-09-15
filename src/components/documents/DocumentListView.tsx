@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Lock, Unlock, Eye, Clock, MoreHorizontal, Download, Edit, X, ArrowUpDown } from 'lucide-react';
+import { Lock, Unlock, Eye, Clock, MoreHorizontal, Download, Edit, X, ArrowUpDown, Share } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -9,10 +9,12 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Document } from '@/hooks/useDocuments';
 import { useProjects } from '@/hooks/useProjects';
 import { useProjectTeam } from '@/hooks/useProjectTeam';
+import { useAuth } from '@/hooks/useAuth';
 import { format } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
 import { FileTypeIcon } from './FileTypeIcon';
 import { EditDocumentDialog } from './EditDocumentDialog';
+import { DocumentSharingDialog } from './DocumentSharingDialog';
 import { getFileExtension, getSafeFilename } from '@/utils/documentUtils';
 interface DocumentListViewProps {
   documents: Document[];
@@ -47,12 +49,15 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
   const [selectedDocuments, setSelectedDocuments] = useState<Set<string>>(new Set());
   const [editingDocument, setEditingDocument] = useState<Document | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [sharingDocument, setSharingDocument] = useState<Document | null>(null);
+  const [isSharingDialogOpen, setIsSharingDialogOpen] = useState(false);
   const {
     projects
   } = useProjects();
   const {
     teamMembers
   } = useProjectTeam(selectedProject);
+  const { profile } = useAuth();
   // Convert numeric version to alphanumeric (1=A, 2=B, etc.)
   const getVersionLabel = (version?: number) => {
     if (!version || version < 1) return 'A';
@@ -135,6 +140,11 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
   const handleEditSave = () => {
     // Refresh documents list after edit
     window.location.reload(); // Simple refresh for now
+  };
+
+  const handleShareDocument = (document: Document) => {
+    setSharingDocument(document);
+    setIsSharingDialogOpen(true);
   };
 
   // Get user name from user ID
@@ -291,9 +301,11 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
               </TableCell>
               
               <TableCell>
-                <Badge variant={document.visibility_scope === 'private' ? 'secondary' : 'outline'} className="text-xs">
-                  {document.visibility_scope === 'private' ? 'Private' : 'Public'}
-                </Badge>
+                <div className="flex items-center gap-1">
+                  <Badge variant={document.visibility_scope === 'private' ? 'secondary' : 'outline'} className="text-xs">
+                    {document.visibility_scope === 'private' ? 'Private' : 'Public'}
+                  </Badge>
+                </div>
               </TableCell>
               
               <TableCell>
@@ -330,6 +342,14 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
                         Supersede
                       </DropdownMenuItem>}
                     
+                    {/* Show sharing option for private documents or document owners */}
+                    {(document.visibility_scope === 'private' || document.uploaded_by === profile?.user_id) && (
+                      <DropdownMenuItem onClick={() => handleShareDocument(document)}>
+                        <Share className="h-3 w-3 mr-2" />
+                        Share
+                      </DropdownMenuItem>
+                    )}
+                    
                     {canEdit && onDelete && <DropdownMenuItem onClick={() => onDelete(document.id, document.file_path)} className="text-destructive">
                         <X className="h-3 w-3 mr-2" />
                         Delete
@@ -350,5 +370,15 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
       setIsEditDialogOpen(false);
       setEditingDocument(null);
     }} onSave={handleEditSave} />
+
+      <DocumentSharingDialog 
+        document={sharingDocument} 
+        isOpen={isSharingDialogOpen} 
+        onClose={() => {
+          setIsSharingDialogOpen(false);
+          setSharingDocument(null);
+        }}
+        projectId={selectedProject}
+      />
     </div>;
 };
