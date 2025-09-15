@@ -183,7 +183,7 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
             <TableHead className="w-32">Created By</TableHead>
             <TableHead className="w-32">File Type</TableHead>
             <TableHead className="w-32">Accessibility</TableHead>
-            <TableHead className="w-16"> Category</TableHead>
+            <TableHead className="w-16"> Preview</TableHead>
             <TableHead className="w-16"> History</TableHead>
             <TableHead className="w-12">Actions</TableHead>
           </TableRow>
