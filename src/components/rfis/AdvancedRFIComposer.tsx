@@ -442,10 +442,7 @@ export const AdvancedRFIComposer: React.FC<AdvancedRFIComposerProps> = ({
                 <Eye className="h-4 w-4 mr-2" />
                 Preview
               </Button>
-              <Button variant="outline" size="sm" onClick={handleSaveDraft}>
-                <Save className="h-4 w-4 mr-2" />
-                Save To Draft
-              </Button>
+              
             </div>
             
             <Button onClick={handleSubmit} disabled={loading || !isFormValid} className="bg-slate-900 hover:bg-slate-800 text-white">
