@@ -461,9 +461,7 @@ export const AdvancedRFIComposer: React.FC<AdvancedRFIComposerProps> = ({
               <TabsTrigger value="step-2" onClick={() => setCurrentStep(2)} className="data-[state=active]:bg-slate-900 data-[state=active]:text-white">
                 2. Message Composition
               </TabsTrigger>
-              <TabsTrigger value="step-3" onClick={() => setCurrentStep(3)} className="data-[state=active]:bg-slate-900 data-[state=active]:text-white">
-                3. Technical Details
-              </TabsTrigger>
+              <TabsTrigger value="step-3" onClick={() => setCurrentStep(3)} className="data-[state=active]:bg-slate-900 data-[state=active]:text-white">3. Attachments</TabsTrigger>
             </TabsList>
 
             <div className="flex-1 overflow-auto">
@@ -747,97 +745,13 @@ export const AdvancedRFIComposer: React.FC<AdvancedRFIComposerProps> = ({
               <TabsContent value="step-3" className="space-y-6 mt-0">
                 <div className="grid grid-cols-2 gap-6">
                   <div className="space-y-4">
-                    <div>
-                      <Label htmlFor="instrumentation-type">Instrumentation Type *</Label>
-                      <Select value={formData.instrumentationType} onValueChange={value => setFormData(prev => ({
-                      ...prev,
-                      instrumentationType: value
-                    }))}>
-                        <SelectTrigger className={!formData.instrumentationType ? 'border-red-300' : ''}>
-                          <SelectValue placeholder="Select type" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {instrumentationTypes.map(type => <SelectItem key={type} value={type}>{type}</SelectItem>)}
-                        </SelectContent>
-                      </Select>
-                      {!formData.instrumentationType && <p className="text-red-500 text-sm mt-1">Instrumentation type is required</p>}
-                    </div>
+                    
 
-                    <div>
-                      <Label htmlFor="discipline">Discipline *</Label>
-                      <Select value={formData.discipline} onValueChange={value => setFormData(prev => ({
-                      ...prev,
-                      discipline: value
-                    }))}>
-                        <SelectTrigger className={!formData.discipline ? 'border-red-300' : ''}>
-                          <SelectValue placeholder="Select discipline" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {disciplines.map(discipline => <SelectItem key={discipline} value={discipline}>{discipline}</SelectItem>)}
-                        </SelectContent>
-                      </Select>
-                      {!formData.discipline && <p className="text-red-500 text-sm mt-1">Discipline is required</p>}
-                    </div>
+                    
 
                   </div>
 
-                  <div className="space-y-4">
-                    <div>
-                      <Label>Schedule Impact</Label>
-                      <Select value={formData.scheduleImpact} onValueChange={value => setFormData(prev => ({
-                      ...prev,
-                      scheduleImpact: value
-                    }))}>
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="Yes">Yes</SelectItem>
-                          <SelectItem value="No">No</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      
-                      {formData.scheduleImpact === 'Yes' && <div className="mt-2">
-                          <Textarea value={formData.scheduleDetails} onChange={e => setFormData(prev => ({
-                        ...prev,
-                        scheduleDetails: e.target.value
-                      }))} placeholder="Describe schedule impact details..." className="min-h-[100px]" maxLength={4000} />
-                          <p className="text-sm text-muted-foreground mt-1">
-                            {scheduleCharacterCount}/4000 characters
-                          </p>
-                        </div>}
-                    </div>
-
-                    <div>
-                      <div className="flex items-center space-x-2">
-                        <Label>Cost Impact</Label>
-                        <Info className="h-4 w-4 text-muted-foreground" />
-                      </div>
-                      <Select value={formData.costImpact} onValueChange={value => setFormData(prev => ({
-                      ...prev,
-                      costImpact: value
-                    }))}>
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="Yes">Yes</SelectItem>
-                          <SelectItem value="No">No</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      
-                      {formData.costImpact === 'Yes' && <div className="mt-2">
-                          <Textarea value={formData.costDetails} onChange={e => setFormData(prev => ({
-                        ...prev,
-                        costDetails: e.target.value
-                      }))} placeholder="Describe cost impact details..." className="min-h-[100px]" maxLength={4000} />
-                          <p className="text-sm text-muted-foreground mt-1">
-                            {costCharacterCount}/4000 characters
-                          </p>
-                        </div>}
-                    </div>
-
-                  </div>
+                  
                 </div>
 
                 <div className="max-h-60 overflow-y-auto">
