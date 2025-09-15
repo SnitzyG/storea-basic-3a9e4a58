@@ -313,7 +313,7 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
               </TableCell>
               
               <TableCell className="text-xs text-foreground">
-                {(document.file_extension || getFileExtension(document.name || document.file_path || '')).toUpperCase()}
+                {document.category || 'General'}
               </TableCell>
               
               <TableCell>
