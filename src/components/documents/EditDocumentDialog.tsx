@@ -121,13 +121,7 @@ export const EditDocumentDialog: React.FC<EditDocumentDialogProps> = ({
           </div>
 
           {/* Description */}
-          <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
-            <Textarea id="description" value={formData.description} onChange={e => setFormData(prev => ({
-            ...prev,
-            description: e.target.value
-          }))} placeholder="Enter document description (optional)" rows={3} />
-          </div>
+          
 
           {/* Status and Type */}
           <div className="grid grid-cols-2 gap-4">
@@ -167,33 +161,10 @@ export const EditDocumentDialog: React.FC<EditDocumentDialogProps> = ({
           </div>
 
           {/* Tags */}
-          <div className="space-y-2">
-            <Label>Tags</Label>
-            <div className="flex gap-2 mb-2">
-              <Input value={newTag} onChange={e => setNewTag(e.target.value)} placeholder="Add a tag" onKeyPress={e => e.key === 'Enter' && handleAddTag()} />
-              <Button type="button" onClick={handleAddTag}>Add</Button>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {formData.tags.map(tag => <Badge key={tag} variant="secondary" className="flex items-center gap-1">
-                  {tag}
-                  <X className="h-3 w-3 cursor-pointer" onClick={() => handleRemoveTag(tag)} />
-                </Badge>)}
-            </div>
-          </div>
+          
 
           {/* Privacy Toggle */}
-          <div className="flex items-center justify-between">
-            <div className="space-y-0.5">
-              <Label htmlFor="privacy">Private Document</Label>
-              <p className="text-sm text-muted-foreground">
-                Only you can view this document
-              </p>
-            </div>
-            <Switch id="privacy" checked={formData.isPrivate} onCheckedChange={checked => setFormData(prev => ({
-            ...prev,
-            isPrivate: checked
-          }))} />
-          </div>
+          
 
           {/* New Version Upload */}
           <div className="space-y-2">
