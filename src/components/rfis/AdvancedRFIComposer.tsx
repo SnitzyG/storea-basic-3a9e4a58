@@ -455,9 +455,7 @@ export const AdvancedRFIComposer: React.FC<AdvancedRFIComposerProps> = ({
         <div className="flex-1 overflow-hidden">
           <Tabs value={`step-${currentStep}`} className="h-full flex flex-col">
             <TabsList className="grid w-full grid-cols-3 mb-4">
-              <TabsTrigger value="step-1" onClick={() => setCurrentStep(1)} className="data-[state=active]:bg-slate-900 data-[state=active]:text-white">
-                1. Email Configuration
-              </TabsTrigger>
+              <TabsTrigger value="step-1" onClick={() => setCurrentStep(1)} className="data-[state=active]:bg-slate-900 data-[state=active]:text-white">1. Recipients</TabsTrigger>
               <TabsTrigger value="step-2" onClick={() => setCurrentStep(2)} className="data-[state=active]:bg-slate-900 data-[state=active]:text-white">
                 2. Message Composition
               </TabsTrigger>
