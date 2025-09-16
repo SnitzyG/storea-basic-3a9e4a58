@@ -10,7 +10,7 @@ import { useTheme } from '@/context/ThemeContext';
 import { Badge } from '@/components/ui/badge';
 interface HeaderProps {
   user: User;
-  profile: Profile;
+  profile?: Profile | null;
 }
 export const Header = ({
   user,
@@ -26,7 +26,12 @@ export const Header = ({
     theme,
     toggleTheme
   } = useTheme();
-  const initials = profile.name.split(' ').map(name => name[0]).join('').toUpperCase();
+  const initials = ((profile?.name || user.email || 'U')
+    .split(' ')
+    .map((n) => n[0])
+    .join('') || 'U')
+    .toUpperCase()
+    .slice(0, 2);
   return <header className="h-16 border-b border-border bg-card px-6 flex items-center justify-between">
       <div className="flex items-center gap-4">
         
@@ -53,7 +58,7 @@ export const Header = ({
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="relative h-8 w-8 rounded-full">
               <Avatar className="h-8 w-8">
-                <AvatarImage src={profile.avatar_url || undefined} alt={profile.name} />
+                <AvatarImage src={profile?.avatar_url || undefined} alt={(profile?.name || user.email || 'User')} />
                 <AvatarFallback>{initials}</AvatarFallback>
               </Avatar>
             </Button>
@@ -61,12 +66,12 @@ export const Header = ({
           <DropdownMenuContent className="w-56" align="end" forceMount>
             <DropdownMenuLabel className="font-normal">
               <div className="flex flex-col space-y-1">
-                <p className="text-sm font-medium leading-none">{profile.name}</p>
+                <p className="text-sm font-medium leading-none">{profile?.name || user.email || 'User'}</p>
                 <p className="text-xs leading-none text-muted-foreground">
                   {user.email}
                 </p>
                 <p className="text-xs leading-none text-muted-foreground capitalize">
-                  {profile.role}
+                  {(profile?.role ?? 'member')}
                 </p>
               </div>
             </DropdownMenuLabel>
