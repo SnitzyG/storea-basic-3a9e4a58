@@ -190,28 +190,7 @@ serve(async (req) => {
     } catch (emailError) {
       console.error('Error sending email with Resend:', emailError);
       
-      // Check if this is a domain verification issue
-      const isConfigurationIssue = emailError?.error?.statusCode === 403 && 
-        (emailError?.error?.error?.includes('verify a domain') || 
-         emailError?.error?.error?.includes('testing emails'));
-      
-      if (isConfigurationIssue) {
-        console.log('Domain verification required for Resend - keeping invitation for manual verification');
-        return new Response(
-          JSON.stringify({ 
-            error: 'Email service requires domain verification. Please verify your domain in Resend at resend.com/domains to send invitations to external email addresses. The invitation has been created and can be accepted manually.',
-            isConfigurationIssue: true,
-            method: 'resend_domain_required',
-            invitationLink: `${Deno.env.get('SITE_URL')}/accept-invitation?token=${invitationToken}`
-          }),
-          { 
-            status: 200,  // Don't fail the request completely 
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-          }
-        );
-      }
-      
-      // If email failed for other reasons, clean up the invitation
+      // If email failed, clean up the invitation
       await supabase
         .from('invitations')
         .delete()

@@ -21,7 +21,7 @@ const roleOptions = [
   { value: 'architect', label: 'Architect' },
   { value: 'builder', label: 'Builder' },
   { value: 'contractor', label: 'Contractor' },
-  { value: 'homeowner', label: 'Homeowner' },
+  { value: 'client', label: 'Client' },
   { value: 'consultant', label: 'Consultant' },
   { value: 'project_manager', label: 'Project Manager' }
 ];
