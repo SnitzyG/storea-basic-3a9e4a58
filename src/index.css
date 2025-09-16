@@ -141,4 +141,13 @@ All colors MUST be HSL.
       opacity: 0.8;
     }
   }
+
+  @keyframes float {
+    0%, 100% {
+      transform: translateY(0px);
+    }
+    50% {
+      transform: translateY(-10px);
+    }
+  }
 }
