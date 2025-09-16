@@ -101,6 +101,11 @@ const Documents = () => {
       window.history.replaceState({}, document.title);
     }
   }, [location.state]);
+
+  // Fetch document groups on mount and when project changes
+  useEffect(() => {
+    fetchDocumentGroups();
+  }, [fetchDocumentGroups, selectedProject]);
   if (loading) {
     return <div className="space-y-6">
         <div className="flex items-center justify-between">
