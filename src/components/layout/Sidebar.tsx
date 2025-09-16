@@ -60,7 +60,7 @@ export const Sidebar = ({
   const visibleTabs = getVisibleTabs(userRole);
   return <div className="w-64 bg-sidebar-background border-r border-sidebar-border flex flex-col">
       <div className="p-6 border-b border-sidebar-border">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 mx-0 px-[50px]">
           <div>
             <h1 className="text-xl font-bold tracking-wider">
               <span className="bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
