@@ -14,14 +14,21 @@ Deno.serve(async (req) => {
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    
+    if (!supabaseUrl || !supabaseKey) {
+      console.error('Missing Supabase environment variables');
+      throw new Error('Server configuration error');
+    }
+
     const supabase = createClient(supabaseUrl, supabaseKey);
 
     const { projectId } = await req.json();
-    console.log('Generating invite link for project:', projectId);
+    console.log('Regenerating invite link for project:', projectId);
 
     if (!projectId) {
+      console.error('Missing projectId in request');
       return new Response(
-        JSON.stringify({ error: 'Missing projectId' }), 
+        JSON.stringify({ success: false, error: 'Missing projectId' }), 
         { 
           status: 400,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -29,18 +36,23 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Call the SQL function to generate a token
+    // Generate a new token using the database function
     const { data: tokenResult, error: tokenError } = await supabase
       .rpc('generate_project_invitation_token');
 
-    if (tokenError || !tokenResult) {
+    if (tokenError) {
       console.error('Token generation error:', tokenError);
-      throw tokenError || new Error('Failed to generate token');
+      throw new Error(`Token generation failed: ${tokenError.message}`);
     }
 
-    console.log('Generated token:', tokenResult);
+    if (!tokenResult) {
+      console.error('No token returned from function');
+      throw new Error('Token generation returned null');
+    }
 
-    // Save token into the project
+    console.log('Generated new token:', tokenResult);
+
+    // Update the project with the new token
     const { data, error } = await supabase
       .from('projects')
       .update({ invitation_token: tokenResult })
@@ -50,13 +62,18 @@ Deno.serve(async (req) => {
 
     if (error) {
       console.error('Database update error:', error);
-      throw error;
+      throw new Error(`Database update failed: ${error.message}`);
+    }
+
+    if (!data) {
+      console.error('No data returned from update');
+      throw new Error('Project not found or update failed');
     }
 
     console.log('Updated project with token:', data);
 
-    // Build the final link using the current origin
-    const origin = new URL(req.url).origin.replace('.supabase.co', '.lovableproject.com');
+    // Build the final link
+    const origin = req.headers.get('origin') || `${supabaseUrl.replace('.supabase.co', '.lovableproject.com')}`;
     const inviteUrl = `${origin}/invite/${data.invitation_token}`;
 
     console.log('Generated invite URL:', inviteUrl);
@@ -74,10 +91,11 @@ Deno.serve(async (req) => {
     );
   } catch (err) {
     console.error('Edge function error:', err);
+    const errorMessage = err instanceof Error ? err.message : String(err);
     return new Response(
       JSON.stringify({ 
         success: false,
-        error: String(err) 
+        error: errorMessage
       }), 
       {
         status: 500,

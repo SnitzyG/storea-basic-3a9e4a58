@@ -137,23 +137,28 @@ export const ProjectInviteLink = ({ projectId, projectName }: ProjectInvitationL
         </div>
 
         {!invitationToken ? (
-          <Button 
-            onClick={generateInvitationToken}
-            disabled={loading}
-            className="w-full"
-          >
-            {loading ? (
-              <>
-                <div className="animate-spin h-4 w-4 mr-2 border-2 border-white border-t-transparent rounded-full" />
-                Generating...
-              </>
-            ) : (
-              <>
-                <Link className="h-4 w-4 mr-2" />
-                Generate Invitation Link
-              </>
-            )}
-          </Button>
+          <div className="text-center py-4">
+            <p className="text-sm text-muted-foreground mb-2">
+              No invitation link available. Generate one to start inviting team members.
+            </p>
+            <Button 
+              onClick={generateInvitationToken}
+              disabled={loading}
+              className="w-full"
+            >
+              {loading ? (
+                <>
+                  <div className="animate-spin h-4 w-4 mr-2 border-2 border-white border-t-transparent rounded-full" />
+                  Generating...
+                </>
+              ) : (
+                <>
+                  <Link className="h-4 w-4 mr-2" />
+                  Generate Invitation Link
+                </>
+              )}
+            </Button>
+          </div>
         ) : (
           <div className="space-y-3">
             <div className="flex gap-2">
