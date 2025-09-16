@@ -16,7 +16,7 @@ interface EditDocumentDialogProps {
   document: DocumentGroup | null;
   isOpen: boolean;
   onClose: () => void;
-  onSave: (groupId: string, updates: any) => Promise<void>;
+  onSave: (groupId: string, updates: any) => Promise<boolean>;
 }
 export const EditDocumentDialog: React.FC<EditDocumentDialogProps> = ({
   document,
@@ -96,8 +96,15 @@ export const EditDocumentDialog: React.FC<EditDocumentDialogProps> = ({
       //   visibility_scope: formData.isPrivate ? 'private' : 'project'
       // });
 
-      await onSave(document.id, formData);
-      onClose();
+      const success = await onSave(document.id, {
+        title: formData.title,
+        category: formData.fileType,
+        status: formData.status,
+        visibility_scope: formData.isPrivate ? 'private' : 'project'
+      });
+      if (success) {
+        onClose();
+      }
     } catch (error) {
       console.error('Error updating document:', error);
     } finally {

@@ -16,6 +16,7 @@ import { DocumentFilters } from '@/components/documents/DocumentFilters';
 import { DocumentListView } from '@/components/documents/DocumentListView';
 import { DocumentActivity } from '@/components/documents/DocumentActivity';
 import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 const Documents = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedProject, setSelectedProject] = useState<string>('all');
@@ -28,6 +29,7 @@ const Documents = () => {
   const {
     profile
   } = useAuth();
+  const { toast } = useToast();
   const {
     projects
   } = useProjects();
@@ -38,7 +40,9 @@ const Documents = () => {
     fetchDocumentGroups,
     createDocumentGroup,
     supersedeDocument,
-    deleteDocumentGroup
+    deleteDocumentGroup,
+    toggleDocumentLock,
+    updateDocumentMetadata
   } = useDocumentGroups(selectedProject === 'all' ? undefined : selectedProject);
   const filteredDocuments = useMemo(() => {
     return documents.filter(doc => {
@@ -64,34 +68,61 @@ const Documents = () => {
   };
   const handleDownload = async (groupId: string) => {
     const group = documents.find(d => d.id === groupId);
-    if (!group?.current_revision?.file_path) return;
+    if (!group?.current_revision?.file_path) {
+      toast({
+        title: "Error",
+        description: "No file available for download",
+        variant: "destructive",
+      });
+      return;
+    }
     
     try {
+      // Always try signed URL first, fallback to public URL
       const { data, error } = await supabase.storage
         .from('documents')
         .createSignedUrl(group.current_revision.file_path, 60 * 60); // 1 hour
       
       if (error || !data?.signedUrl) {
-        const { data: pub } = supabase.storage
+        // Check if bucket exists and file exists
+        const { data: fileData, error: fileError } = await supabase.storage
           .from('documents')
-          .getPublicUrl(group.current_revision.file_path);
+          .download(group.current_revision.file_path);
+          
+        if (fileError) {
+          throw new Error(`File not found in storage: ${fileError.message}`);
+        }
         
-        const link = window.document.createElement('a');
-        link.href = pub.publicUrl;
+        // Create blob URL for download
+        const blob = new Blob([fileData]);
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
         link.download = group.current_revision.file_name || 'document';
-        window.document.body.appendChild(link);
+        document.body.appendChild(link);
         link.click();
-        window.document.body.removeChild(link);
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
       } else {
-        const link = window.document.createElement('a');
+        const link = document.createElement('a');
         link.href = data.signedUrl;
         link.download = group.current_revision.file_name || 'document';
-        window.document.body.appendChild(link);
+        document.body.appendChild(link);
         link.click();
-        window.document.body.removeChild(link);
+        document.body.removeChild(link);
       }
-    } catch (error) {
+      
+      toast({
+        title: "Success",
+        description: "File downloaded successfully",
+      });
+    } catch (error: any) {
       console.error('Download failed:', error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to download file",
+        variant: "destructive",
+      });
     }
   };
 
@@ -165,7 +196,10 @@ const Documents = () => {
               <DialogHeader>
                 <DialogTitle>Upload Documents</DialogTitle>
               </DialogHeader>
-              {projects.length > 0 ? <DocumentUpload projectId={selectedProject === 'all' ? projects[0]?.id : selectedProject} onUploadComplete={() => setUploadDialogOpen(false)} /> : <div className="text-center py-8">
+              {projects.length > 0 ? <DocumentUpload projectId={selectedProject === 'all' ? projects[0]?.id : selectedProject} onUploadComplete={() => {
+                setUploadDialogOpen(false);
+                fetchDocumentGroups(); // Refresh list after upload
+              }} /> : <div className="text-center py-8">
                   <p className="text-muted-foreground">
                     No projects available. Create a project first to upload documents.
                   </p>
@@ -211,9 +245,11 @@ const Documents = () => {
           onViewDetails={setDetailsDocument} 
           onViewActivity={setActivityDocument} 
           onSupersede={supersedeDocument}
+          onToggleLock={toggleDocumentLock}
+          onEdit={updateDocumentMetadata}
           canEdit={filteredDocuments.some(doc => canEditDocument(doc))} 
           canApprove={canApproveDocument()} 
-          selectedProject={selectedProject} 
+          selectedProject={selectedProject}
         />}
 
       {/* Document Preview Dialog */}

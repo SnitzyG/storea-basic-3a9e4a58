@@ -76,7 +76,7 @@ export const DocumentVersionHistory: React.FC<DocumentVersionHistoryProps> = ({
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => onDownloadVersion(version.file_path, `${String.fromCharCode(64 + version.version_number)}-document.pdf`)}
+                          onClick={() => onDownloadVersion(version.file_path, `Rev-${String.fromCharCode(64 + version.version_number)}.pdf`)}
                         >
                           <Download className="h-4 w-4" />
                         </Button>

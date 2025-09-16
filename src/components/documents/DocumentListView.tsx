@@ -41,6 +41,8 @@ interface DocumentListViewProps {
   onViewDetails: (group: DocumentGroup) => void;
   onViewActivity: (group: DocumentGroup) => void;
   onSupersede: (groupId: string, file: File, changesSummary?: string) => Promise<boolean>;
+  onToggleLock: (groupId: string, shouldLock: boolean) => Promise<boolean>;
+  onEdit: (groupId: string, updates: any) => Promise<boolean>;
   canEdit: boolean;
   canApprove: boolean;
   selectedProject: string;
@@ -56,6 +58,8 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
   onViewDetails,
   onViewActivity,
   onSupersede,
+  onToggleLock,
+  onEdit,
   canEdit,
   canApprove,
   selectedProject
@@ -185,14 +189,22 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
               </TableCell>
               <TableCell>
                 <Button
-                  variant="ghost"
+                  variant={group.is_locked ? "destructive" : "outline"}
                   size="sm"
-                  onClick={() => {
-                    // Toggle lock status logic here
-                    console.log('Toggle lock for:', group.id);
-                  }}
+                  onClick={() => onToggleLock(group.id, !group.is_locked)}
+                  className="h-8 px-2"
                 >
-                  {group.is_locked ? <Lock className="h-4 w-4" /> : <Unlock className="h-4 w-4" />}
+                  {group.is_locked ? (
+                    <>
+                      <Lock className="h-3 w-3 mr-1" />
+                      Unlock
+                    </>
+                  ) : (
+                    <>
+                      <Lock className="h-3 w-3 mr-1" />
+                      Lock
+                    </>
+                  )}
                 </Button>
               </TableCell>
               <TableCell>
@@ -225,12 +237,15 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
                     
                     <DropdownMenuSeparator />
                     
-                    {canEdit && (
-                      <DropdownMenuItem onClick={() => handleSupersede(group)}>
-                        <Upload className="h-3 w-3 mr-2" />
-                        Supersede
-                      </DropdownMenuItem>
-                    )}
+                     {canEdit && (
+                       <DropdownMenuItem 
+                         onClick={() => handleSupersede(group)}
+                         disabled={group.is_locked}
+                       >
+                         <Upload className="h-3 w-3 mr-2" />
+                         Supersede
+                       </DropdownMenuItem>
+                     )}
                     
                     {(group.visibility_scope === 'private' || group.created_by === profile?.user_id) && (
                       <DropdownMenuItem onClick={() => handleShareDocument(group)}>
@@ -240,18 +255,25 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
                     )}
 
                      {canEdit && (
-                       <DropdownMenuItem onClick={() => handleEditDocument(group)}>
+                       <DropdownMenuItem 
+                         onClick={() => handleEditDocument(group)}
+                         disabled={group.is_locked}
+                       >
                          <Edit className="h-3 w-3 mr-2" />
                          Edit
                        </DropdownMenuItem>
                      )}
                      
-                    {canEdit && (
-                      <DropdownMenuItem onClick={() => handleDeleteConfirm(group)} className="text-destructive">
-                        <X className="h-3 w-3 mr-2" />
-                        Delete Forever
-                      </DropdownMenuItem>
-                    )}
+                     {canEdit && (
+                       <DropdownMenuItem 
+                         onClick={() => handleDeleteConfirm(group)} 
+                         disabled={group.is_locked}
+                         className="text-destructive"
+                       >
+                         <X className="h-3 w-3 mr-2" />
+                         Delete Forever
+                       </DropdownMenuItem>
+                     )}
                   </DropdownMenuContent>
                 </DropdownMenu>
               </TableCell>
@@ -300,10 +322,12 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
           setEditDocument(null);
         }}
         onSave={async (groupId, updates) => {
-          // Implementation for saving document updates
-          console.log('Save document updates:', groupId, updates);
-          setIsEditDialogOpen(false);
-          setEditDocument(null);
+          const success = await onEdit(groupId, updates);
+          if (success) {
+            setIsEditDialogOpen(false);
+            setEditDocument(null);
+          }
+          return success;
         }}
       />
     </div>

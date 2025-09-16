@@ -351,6 +351,71 @@ export const useDocumentGroups = (projectId?: string) => {
     }
   }, []);
 
+  const toggleDocumentLock = useCallback(async (groupId: string, shouldLock: boolean): Promise<boolean> => {
+    try {
+      const { data, error } = await supabase.rpc('toggle_document_lock', {
+        group_id: groupId,
+        should_lock: shouldLock
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: `Document ${shouldLock ? 'locked' : 'unlocked'} successfully`,
+      });
+
+      await fetchDocumentGroups();
+      return true;
+    } catch (error: any) {
+      console.error('Error toggling document lock:', error);
+      toast({
+        title: "Error",
+        description: `Failed to ${shouldLock ? 'lock' : 'unlock'} document`,
+        variant: "destructive",
+      });
+      return false;
+    }
+  }, [fetchDocumentGroups, toast]);
+
+  const updateDocumentMetadata = useCallback(async (
+    groupId: string, 
+    updates: {
+      title?: string;
+      category?: string;
+      status?: string;
+      visibility_scope?: string;
+    }
+  ): Promise<boolean> => {
+    try {
+      const { data, error } = await supabase.rpc('update_document_group_metadata', {
+        group_id: groupId,
+        new_title: updates.title,
+        new_category: updates.category,
+        new_status: updates.status,
+        new_visibility_scope: updates.visibility_scope
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Document updated successfully",
+      });
+
+      await fetchDocumentGroups();
+      return true;
+    } catch (error: any) {
+      console.error('Error updating document metadata:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update document",
+        variant: "destructive",
+      });
+      return false;
+    }
+  }, [fetchDocumentGroups, toast]);
+
   return {
     documentGroups,
     loading,
@@ -358,6 +423,8 @@ export const useDocumentGroups = (projectId?: string) => {
     createDocumentGroup,
     supersedeDocument,
     deleteDocumentGroup,
-    getDocumentRevisions
+    getDocumentRevisions,
+    toggleDocumentLock,
+    updateDocumentMetadata
   };
 };

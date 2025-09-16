@@ -1549,6 +1549,20 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
+      toggle_document_lock: {
+        Args: { group_id: string; should_lock: boolean }
+        Returns: Json
+      }
+      update_document_group_metadata: {
+        Args: {
+          group_id: string
+          new_category?: string
+          new_status?: string
+          new_title?: string
+          new_visibility_scope?: string
+        }
+        Returns: Json
+      }
     }
     Enums: {
       document_status: "For Tender" | "For Information" | "For Construction"
