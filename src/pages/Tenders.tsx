@@ -100,6 +100,12 @@ const Tenders = () => {
         </Card>
       </div>;
   }
+  if (loading) {
+    return <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">Loading tenders...</div>
+      </div>;
+  }
+
   if (projects.length === 0) {
     return <div className="min-h-screen flex items-center justify-center">
         <Card className="w-96">
@@ -115,12 +121,6 @@ const Tenders = () => {
             </Button>
           </CardContent>
         </Card>
-      </div>;
-  }
-
-  if (loading) {
-    return <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">Loading tenders...</div>
       </div>;
   }
   if (!currentProject) {

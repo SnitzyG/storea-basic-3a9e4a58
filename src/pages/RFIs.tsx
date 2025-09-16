@@ -307,6 +307,12 @@ const RFIs = () => {
       }, 250);
     }
   };
+  if (loading) {
+    return <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">Loading RFIs...</div>
+      </div>;
+  }
+
   if (projects.length === 0) {
     return <div className="min-h-screen flex items-center justify-center">
         <Card className="w-96">
@@ -322,12 +328,6 @@ const RFIs = () => {
             </Button>
           </CardContent>
         </Card>
-      </div>;
-  }
-
-  if (loading) {
-    return <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">Loading RFIs...</div>
       </div>;
   }
   if (!currentProject) {

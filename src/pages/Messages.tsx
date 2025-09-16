@@ -173,6 +173,17 @@ const Messages = () => {
     return currentMsg.sender_id === previousMsg.sender_id && new Date(currentMsg.created_at).getTime() - new Date(previousMsg.created_at).getTime() < 300000 // 5 minutes
     ;
   };
+  if (loading) {
+    return <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <h1 className="text-3xl font-bold">Messages</h1>
+        </div>
+        <div className="text-center py-12">
+          <p className="text-muted-foreground">Loading messages...</p>
+        </div>
+      </div>;
+  }
+
   if (projects.length === 0) {
     return <div className="min-h-screen flex items-center justify-center">
         <Card className="w-96">
@@ -188,17 +199,6 @@ const Messages = () => {
             </Button>
           </CardContent>
         </Card>
-      </div>;
-  }
-
-  if (loading) {
-    return <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-bold">Messages</h1>
-        </div>
-        <div className="text-center py-12">
-          <p className="text-muted-foreground">Loading messages...</p>
-        </div>
       </div>;
   }
   return <div className="h-[calc(100vh-8rem)] flex gap-6 px-[25px]">
