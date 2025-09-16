@@ -125,7 +125,6 @@ export const AdvancedProjectWizard = ({
     number_of_floors: projectToEdit?.number_of_floors?.toString() || '',
     estimated_start_date: projectToEdit?.estimated_start_date ? new Date(projectToEdit.estimated_start_date) : undefined as Date | undefined,
     estimated_finish_date: projectToEdit?.estimated_finish_date ? new Date(projectToEdit.estimated_finish_date) : undefined as Date | undefined,
-    permit_status: projectToEdit?.permit_status || 'not_required',
     // Step 3: Client Information
     homeowners: projectToEdit?.homeowner_name ? [{
       name: projectToEdit.homeowner_name,
@@ -133,11 +132,7 @@ export const AdvancedProjectWizard = ({
       phone: projectToEdit.homeowner_phone || ''
     }] : [] as HomeownerData[],
     // Step 4: Team & Collaborators
-    collaborators: [] as CollaboratorData[],
-    // Step 5: Additional Settings
-    tags: projectToEdit?.tags || [],
-    weather_delays: projectToEdit?.weather_delays?.toString() || '0',
-    custom_fields: projectToEdit?.custom_fields || {}
+    collaborators: [] as CollaboratorData[]
   });
   const [newHomeowner, setNewHomeowner] = useState<HomeownerData>({
     name: '',
@@ -158,7 +153,6 @@ export const AdvancedProjectWizard = ({
       can_upload_documents: false
     }
   });
-  const [newTag, setNewTag] = useState('');
   const totalSteps = 4;
   const progressPercentage = currentStep / totalSteps * 100;
   const handleInputChange = (field: string, value: any) => {
@@ -188,7 +182,12 @@ export const AdvancedProjectWizard = ({
       });
     }
   };
-
+  
+  const nextStep = () => {
+    if (currentStep < totalSteps) {
+      setCurrentStep(currentStep + 1);
+    }
+  };
   const removeHomeowner = (index: number) => {
     setFormData(prev => ({
       ...prev,
@@ -223,26 +222,7 @@ export const AdvancedProjectWizard = ({
       collaborators: prev.collaborators.filter((_, i) => i !== index)
     }));
   };
-  const addTag = () => {
-    if (newTag.trim() && !formData.tags.includes(newTag.trim())) {
-      setFormData(prev => ({
-        ...prev,
-        tags: [...prev.tags, newTag.trim()]
-      }));
-      setNewTag('');
-    }
-  };
-  const removeTag = (tagToRemove: string) => {
-    setFormData(prev => ({
-      ...prev,
-      tags: prev.tags.filter(tag => tag !== tagToRemove)
-    }));
-  };
-  const nextStep = () => {
-    if (currentStep < totalSteps) {
-      setCurrentStep(currentStep + 1);
-    }
-  };
+  
   const prevStep = () => {
     if (currentStep > 1) {
       setCurrentStep(currentStep - 1);
@@ -282,14 +262,10 @@ export const AdvancedProjectWizard = ({
         number_of_floors: formData.number_of_floors ? parseInt(formData.number_of_floors) : undefined,
         estimated_start_date: formData.estimated_start_date?.toISOString().split('T')[0],
         estimated_finish_date: formData.estimated_finish_date?.toISOString().split('T')[0],
-        permit_status: formData.permit_status,
         homeowner_name: formData.homeowners.length > 0 ? formData.homeowners[0].name : undefined,
         homeowner_email: formData.homeowners.length > 0 ? formData.homeowners[0].email : undefined,
         homeowner_phone: formData.homeowners.length > 0 ? formData.homeowners[0].phone : undefined,
         additional_homeowners: formData.homeowners.length > 1 ? formData.homeowners.slice(1) : undefined,
-        weather_delays: formData.weather_delays ? parseInt(formData.weather_delays) : undefined,
-        tags: formData.tags.length > 0 ? formData.tags : undefined,
-        custom_fields: Object.keys(formData.custom_fields).length > 0 ? formData.custom_fields : undefined,
         collaborators: formData.collaborators
       };
       if (projectToEdit) {
@@ -310,12 +286,8 @@ export const AdvancedProjectWizard = ({
         number_of_floors: '',
         estimated_start_date: undefined,
         estimated_finish_date: undefined,
-        permit_status: 'not_required',
         homeowners: [],
-        collaborators: [],
-        tags: [],
-        weather_delays: '0',
-        custom_fields: {}
+        collaborators: []
       });
       setCurrentStep(1);
       onOpenChange(false);
@@ -682,76 +654,6 @@ export const AdvancedProjectWizard = ({
                 </div>}
             </div>
           </div>;
-      case 5:
-        return <div className="space-y-6">
-            <div>
-              
-              
-              <div className="space-y-4">
-                <div>
-                  <Label>Project Tags</Label>
-                  <div className="flex gap-2 mt-1">
-                    <Input value={newTag} onChange={e => setNewTag(e.target.value)} placeholder="Add a tag" onKeyPress={e => e.key === 'Enter' && addTag()} />
-                    <Button type="button" variant="outline" onClick={addTag}>
-                      Add
-                    </Button>
-                  </div>
-                  {formData.tags.length > 0 && <div className="flex flex-wrap gap-2 mt-3">
-                      {formData.tags.map((tag, index) => <Badge key={index} variant="secondary" className="flex items-center gap-1">
-                          {tag}
-                          <X className="h-3 w-3 cursor-pointer" onClick={() => removeTag(tag)} />
-                        </Badge>)}
-                    </div>}
-                </div>
-
-                
-
-                {/* Project Summary */}
-                <Card className="mt-6">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <FileText className="h-5 w-5" />
-                      Project Summary
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Project Name:</span>
-                      <span className="font-medium">{formData.name}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Type:</span>
-                      <span className="font-medium">
-                        {PROJECT_TYPES.find(t => t.value === formData.project_type)?.label}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Client:</span>
-                      <span className="font-medium">
-                        {formData.homeowners.length > 0 ? formData.homeowners[0].name : 'Not specified'}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Budget:</span>
-                      <span className="font-medium">
-                        {formData.budget ? `$${parseFloat(formData.budget).toLocaleString()}` : 'Not specified'}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Team Members:</span>
-                      <span className="font-medium">{formData.collaborators.length}</span>
-                    </div>
-                    {formData.estimated_start_date && formData.estimated_finish_date && <div className="flex justify-between">
-                        <span className="text-muted-foreground">Duration:</span>
-                        <span className="font-medium">
-                          {Math.ceil((formData.estimated_finish_date.getTime() - formData.estimated_start_date.getTime()) / (1000 * 60 * 60 * 24))} days
-                        </span>
-                      </div>}
-                  </CardContent>
-                </Card>
-              </div>
-            </div>
-          </div>;
       default:
         return null;
     }
@@ -812,3 +714,5 @@ export const AdvancedProjectWizard = ({
       </DialogContent>
     </Dialog>;
 };
+
+export default AdvancedProjectWizard;

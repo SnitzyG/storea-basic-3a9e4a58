@@ -28,8 +28,6 @@ export interface AdvancedProject {
   number_of_floors?: number;
   completion_percentage?: number;
   weather_delays?: number;
-  permit_status?: 'not_required' | 'pending' | 'approved' | 'rejected' | 'expired';
-  tags?: string[];
   custom_fields?: Record<string, any>;
 }
 
