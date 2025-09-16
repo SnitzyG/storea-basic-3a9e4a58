@@ -127,12 +127,12 @@ serve(async (req) => {
 
     try {
       const emailResponse = await resend.emails.send({
-        from: 'ID Platform <noreply@resend.dev>',
+        from: 'STOREA <noreply@resend.dev>',
         to: [email],
-        subject: `You've been invited to join ${projectName}`,
+        subject: `Verify your STOREA account to join ${projectName}`,
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-            <h1 style="color: #333; margin-bottom: 20px;">Project Invitation</h1>
+            <h1 style="color: #333; margin-bottom: 20px;">Welcome to STOREA</h1>
             
             <p style="font-size: 16px; line-height: 1.5; color: #555;">
               Hi there!
@@ -156,7 +156,7 @@ serve(async (req) => {
             <div style="text-align: center; margin: 30px 0;">
               <a href="${invitationLink}" 
                  style="background-color: #007bff; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">
-                Accept Invitation
+                Accept Invitation & Verify Account
               </a>
             </div>
             
@@ -169,7 +169,7 @@ serve(async (req) => {
             <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
             
             <p style="font-size: 12px; color: #999;">
-              This email was sent by the ID Platform. If you weren't expecting this invitation, 
+              This email was sent by STOREA. If you weren't expecting this invitation, 
               you can safely ignore this email.
             </p>
           </div>
@@ -190,7 +190,28 @@ serve(async (req) => {
     } catch (emailError) {
       console.error('Error sending email with Resend:', emailError);
       
-      // If email failed, clean up the invitation
+      // Check if this is a domain verification issue
+      const isConfigurationIssue = emailError?.error?.statusCode === 403 && 
+        (emailError?.error?.error?.includes('verify a domain') || 
+         emailError?.error?.error?.includes('testing emails'));
+      
+      if (isConfigurationIssue) {
+        console.log('Domain verification required for Resend - keeping invitation for manual verification');
+        return new Response(
+          JSON.stringify({ 
+            error: 'Email service requires domain verification. Please verify your domain in Resend at resend.com/domains to send invitations to external email addresses. The invitation has been created and can be accepted manually.',
+            isConfigurationIssue: true,
+            method: 'resend_domain_required',
+            invitationLink: `${Deno.env.get('SITE_URL')}/accept-invitation?token=${invitationToken}`
+          }),
+          { 
+            status: 200,  // Don't fail the request completely 
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+          }
+        );
+      }
+      
+      // If email failed for other reasons, clean up the invitation
       await supabase
         .from('invitations')
         .delete()

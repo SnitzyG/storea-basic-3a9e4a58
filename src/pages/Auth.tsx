@@ -58,8 +58,8 @@ const Auth = () => {
     value: 'contractor',
     label: 'Contractor'
   }, {
-    value: 'client',
-    label: 'Client'
+    value: 'homeowner',
+    label: 'Homeowner'
   }, {
     value: 'consultant',
     label: 'Consultant'
@@ -126,12 +126,12 @@ const Auth = () => {
                     <path d="M 50 120 Q 100 115 150 120" stroke="hsl(var(--primary-foreground))" strokeWidth="1" fill="none" />
                   </g>
                   
-                  {/* Smoke - sign of life/completion */}
-                  <g className="animate-[fadeIn_0.8s_ease-out_3s_both]">
-                    <circle cx="129" cy="80" r="2" className="fill-muted-foreground/40 animate-[smokeFloat_2s_ease-in-out_3.2s_infinite]" />
-                    <circle cx="131" cy="75" r="1.5" className="fill-muted-foreground/30 animate-[smokeFloat_2s_ease-in-out_3.4s_infinite]" />
-                    <circle cx="127" cy="72" r="1" className="fill-muted-foreground/20 animate-[smokeFloat_2s_ease-in-out_3.6s_infinite]" />
-                  </g>
+                     {/* Smoke - sign of life/completion */}
+                   <g className="animate-[fadeIn_0.8s_ease-out_3s_both]">
+                     <circle cx="129" cy="80" r="2" className="fill-muted-foreground/40 animate-[float_3s_ease-in-out_3.2s_infinite]" />
+                     <circle cx="131" cy="75" r="1.5" className="fill-muted-foreground/30 animate-[float_3s_ease-in-out_3.4s_infinite]" />
+                     <circle cx="127" cy="72" r="1" className="fill-muted-foreground/20 animate-[float_3s_ease-in-out_3.6s_infinite]" />
+                   </g>
                   
                   {/* Landscaping - final touch */}
                   <g className="animate-[fadeIn_0.6s_ease-out_3.2s_both]">
@@ -210,10 +210,10 @@ const Auth = () => {
                     <Label htmlFor="signup-password">Password</Label>
                     <Input id="signup-password" type="password" placeholder="Create a password" value={password} onChange={e => setPassword(e.target.value)} required />
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="company">Company Details</Label>
-                    <Input id="company" type="text" placeholder="Enter your company name" value={company} onChange={e => setCompany(e.target.value)} required />
-                  </div>
+                   <div className="space-y-2">
+                     <Label htmlFor="company">Company Details (Optional)</Label>
+                     <Input id="company" type="text" placeholder="Enter your company name" value={company} onChange={e => setCompany(e.target.value)} />
+                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="role">Your Role</Label>
                     <Select value={role} onValueChange={setRole} required>
@@ -227,9 +227,9 @@ const Auth = () => {
                       </SelectContent>
                     </Select>
                   </div>
-                  <Button type="submit" className="w-full" disabled={isSubmitting || !role || !company}>
-                    {isSubmitting ? 'Creating account...' : 'Create Account'}
-                  </Button>
+                   <Button type="submit" className="w-full" disabled={isSubmitting || !role}>
+                     {isSubmitting ? 'Creating account...' : 'Create Account'}
+                   </Button>
                 </form>
               </TabsContent>
             </Tabs>
