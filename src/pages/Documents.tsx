@@ -157,14 +157,21 @@ const Documents = () => {
               <DialogHeader>
                 <DialogTitle>Upload Documents</DialogTitle>
               </DialogHeader>
-              {projects.length > 0 ? <DocumentUpload projectId={selectedProject === 'all' ? projects[0]?.id : selectedProject} onUploadComplete={() => {
-                setUploadDialogOpen(false);
-                fetchDocumentGroups(); // Refresh list after upload
-              }} /> : <div className="text-center py-8">
+              {projects.length > 0 ? (
+                <DocumentUpload 
+                  projectId={selectedProject === 'all' ? projects[0]?.id : selectedProject} 
+                  onUploadComplete={() => {
+                    setUploadDialogOpen(false);
+                    fetchDocumentGroups(); // Refresh list after upload
+                  }} 
+                />
+              ) : (
+                <div className="text-center py-8">
                   <p className="text-muted-foreground">
                     No projects available. Create a project first to upload documents.
                   </p>
-                </div>}
+                </div>
+              )}
             </DialogContent>
           </Dialog>
         </div>
