@@ -921,6 +921,7 @@ export type Database = {
           homeowner_name: string | null
           homeowner_phone: string | null
           id: string
+          invitation_token: string | null
           name: string
           status: Database["public"]["Enums"]["project_status"]
           timeline: Json | null
@@ -939,6 +940,7 @@ export type Database = {
           homeowner_name?: string | null
           homeowner_phone?: string | null
           id?: string
+          invitation_token?: string | null
           name: string
           status?: Database["public"]["Enums"]["project_status"]
           timeline?: Json | null
@@ -957,6 +959,7 @@ export type Database = {
           homeowner_name?: string | null
           homeowner_phone?: string | null
           id?: string
+          invitation_token?: string | null
           name?: string
           status?: Database["public"]["Enums"]["project_status"]
           timeline?: Json | null
@@ -1527,6 +1530,10 @@ export type Database = {
       }
       generate_document_number: {
         Args: { project_id_param: string }
+        Returns: string
+      }
+      generate_project_invitation_token: {
+        Args: Record<PropertyKey, never>
         Returns: string
       }
       generate_rfi_number: {
