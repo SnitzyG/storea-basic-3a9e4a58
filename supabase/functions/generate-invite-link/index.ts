@@ -1,9 +1,9 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-}
+};
 
 Deno.serve(async (req) => {
   // Handle CORS preflight requests
@@ -13,19 +13,20 @@ Deno.serve(async (req) => {
 
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseKey);
 
     const { projectId } = await req.json();
-    
     console.log('Generating invite link for project:', projectId);
 
     if (!projectId) {
-      return new Response(JSON.stringify({ error: 'Missing projectId' }), {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+      return new Response(
+        JSON.stringify({ error: 'Missing projectId' }), 
+        { 
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        }
+      );
     }
 
     // Call the SQL function to generate a token
@@ -55,28 +56,33 @@ Deno.serve(async (req) => {
     console.log('Updated project with token:', data);
 
     // Build the final link using the current origin
-    const origin = req.headers.get('origin') || `${supabaseUrl.replace('.supabase.co', '.lovableproject.com')}`;
+    const origin = new URL(req.url).origin.replace('.supabase.co', '.lovableproject.com');
     const inviteUrl = `${origin}/invite/${data.invitation_token}`;
 
     console.log('Generated invite URL:', inviteUrl);
 
-    return new Response(JSON.stringify({ 
-      success: true,
-      link: inviteUrl,
-      token: data.invitation_token 
-    }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      status: 200,
-    });
-
+    return new Response(
+      JSON.stringify({ 
+        success: true,
+        link: inviteUrl,
+        token: data.invitation_token
+      }), 
+      {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 200,
+      }
+    );
   } catch (err) {
     console.error('Edge function error:', err);
-    return new Response(JSON.stringify({ 
-      success: false,
-      error: String(err) 
-    }), {
-      status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+    return new Response(
+      JSON.stringify({ 
+        success: false,
+        error: String(err) 
+      }), 
+      {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      }
+    );
   }
 });

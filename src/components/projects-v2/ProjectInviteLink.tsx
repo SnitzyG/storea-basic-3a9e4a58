@@ -47,16 +47,13 @@ export const ProjectInviteLink = ({ projectId, projectName }: ProjectInvitationL
   const generateInvitationToken = async () => {
     setLoading(true);
     try {
+      // Call the edge function to generate and save the token
       const { data, error } = await supabase.functions.invoke('generate-invite-link', {
         body: { projectId }
       });
 
-      if (error) {
-        throw error;
-      }
-
-      if (!data.success) {
-        throw new Error(data.error || 'Failed to generate invitation link');
+      if (error || !data?.success) {
+        throw new Error(data?.error || error?.message || 'Failed to generate invitation link');
       }
 
       setInvitationToken(data.token);
@@ -69,7 +66,7 @@ export const ProjectInviteLink = ({ projectId, projectName }: ProjectInvitationL
       console.error('Error generating invitation token:', error);
       toast({
         title: "Error",
-        description: "Failed to generate invitation link. Please try again.",
+        description: error.message || "Failed to generate invitation link. Please try again.",
         variant: "destructive"
       });
     } finally {
@@ -80,16 +77,13 @@ export const ProjectInviteLink = ({ projectId, projectName }: ProjectInvitationL
   const regenerateInvitationToken = async () => {
     setRegenerating(true);
     try {
+      // Call the edge function to generate and save the new token
       const { data, error } = await supabase.functions.invoke('generate-invite-link', {
         body: { projectId }
       });
 
-      if (error) {
-        throw error;
-      }
-
-      if (!data.success) {
-        throw new Error(data.error || 'Failed to regenerate invitation link');
+      if (error || !data?.success) {
+        throw new Error(data?.error || error?.message || 'Failed to regenerate invitation link');
       }
 
       setInvitationToken(data.token);
@@ -102,7 +96,7 @@ export const ProjectInviteLink = ({ projectId, projectName }: ProjectInvitationL
       console.error('Error regenerating invitation token:', error);
       toast({
         title: "Error",
-        description: "Failed to regenerate invitation link. Please try again.",
+        description: error.message || "Failed to regenerate invitation link. Please try again.",
         variant: "destructive"
       });
     } finally {
