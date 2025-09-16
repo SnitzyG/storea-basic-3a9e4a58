@@ -51,30 +51,62 @@ serve(async (req) => {
       );
     }
 
-    // Generate invitation token
+    // Create or refresh pending invitation (avoid duplicates)
+    // Check for existing pending invitation
+    const { data: existingInvite, error: existingInviteError } = await supabase
+      .from('invitations')
+      .select('id')
+      .eq('project_id', projectId)
+      .eq('email', email.toLowerCase())
+      .eq('status', 'pending')
+      .maybeSingle();
+
+    if (existingInviteError) {
+      console.error('Error checking existing invitation:', existingInviteError);
+    }
+
     const invitationToken = crypto.randomUUID();
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + 7); // 7 days expiry
 
-    // Create invitation record
-    const { error: inviteError } = await supabase
-      .from('invitations')
-      .insert({
-        project_id: projectId,
-        email: email.toLowerCase(),
-        role: role,
-        token: invitationToken,
-        inviter_id: user.id,
-        expires_at: expiresAt.toISOString(),
-        status: 'pending'
-      });
+    if (existingInvite) {
+      const { error: updateInviteError } = await supabase
+        .from('invitations')
+        .update({
+          token: invitationToken,
+          expires_at: expiresAt.toISOString(),
+          updated_at: new Date().toISOString(),
+          status: 'pending'
+        })
+        .eq('id', existingInvite.id);
 
-    if (inviteError) {
-      console.error('Error creating invitation:', inviteError);
-      return new Response(
-        JSON.stringify({ error: 'Failed to create invitation' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      if (updateInviteError) {
+        console.error('Error refreshing invitation:', updateInviteError);
+        return new Response(
+          JSON.stringify({ error: 'Failed to refresh invitation' }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+    } else {
+      const { error: inviteError } = await supabase
+        .from('invitations')
+        .insert({
+          project_id: projectId,
+          email: email.toLowerCase(),
+          role: role,
+          token: invitationToken,
+          inviter_id: user.id,
+          expires_at: expiresAt.toISOString(),
+          status: 'pending'
+        });
+
+      if (inviteError) {
+        console.error('Error creating invitation:', inviteError);
+        return new Response(
+          JSON.stringify({ error: 'Failed to create invitation' }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
     }
 
     // Send email using Resend

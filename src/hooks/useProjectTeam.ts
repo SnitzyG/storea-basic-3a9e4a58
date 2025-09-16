@@ -87,15 +87,11 @@ export const useProjectTeam = (projectId: string): UseProjectTeamReturn => {
         return;
       }
 
-      // Get user emails from auth (only if we have profiles)
-      const { data: authUsers } = await supabase.auth.admin.listUsers();
-      console.log(`Found ${projectUsersData.length} project users and ${profilesData?.length || 0} profiles`);
-      
+      // Note: We don't fetch emails via admin API on the client. Profiles don't include email.
+      // We keep displaying names/roles/avatars and omit email when not available.
       // Transform data to match interface
       const transformedMembers: TeamMember[] = projectUsersData.map(member => {
-        const authUser = authUsers?.users?.find((u: any) => u.id === member.user_id);
         const profile = profilesData?.find(p => p.user_id === member.user_id);
-        
         return {
           id: member.id,
           project_id: member.project_id,
@@ -103,9 +99,9 @@ export const useProjectTeam = (projectId: string): UseProjectTeamReturn => {
           role: member.role,
           added_at: member.joined_at || new Date().toISOString(),
           added_by: member.invited_by,
-          email: authUser?.email || '',
+          email: '', // email not available client-side without admin privileges
           full_name: profile?.full_name || profile?.name,
-          name: profile?.name || profile?.full_name || authUser?.email?.split('@')[0] || 'Unknown',
+          name: profile?.name || profile?.full_name || 'Unknown',
           avatar_url: profile?.avatar_url,
           online_status: profile?.online_status,
           last_seen: profile?.last_seen,
@@ -188,57 +184,7 @@ export const useProjectTeam = (projectId: string): UseProjectTeamReturn => {
 
       const inviterName = profile?.name || profile?.full_name || currentUser.user.email?.split('@')[0] || 'Someone';
 
-      // Check if email is already a team member or has pending invitation
-      const { data: authUsers } = await supabase.auth.admin.listUsers();
-      const existingUser = authUsers?.users?.find((u: any) => u.email === email);
-      
-      if (existingUser) {
-        // Check if already a team member
-        const { data: isTeamMember } = await supabase
-          .from('project_users')
-          .select('id')
-          .eq('project_id', projectId)
-          .eq('user_id', existingUser.id)
-          .single();
-
-        if (isTeamMember) {
-          toast({
-            title: "Already a member",
-            description: "This user is already a team member.",
-            variant: "destructive"
-          });
-          return false;
-        }
-
-        // User exists but not a member, add them directly
-        const { error } = await supabase
-          .from('project_users')
-          .insert({
-            project_id: projectId,
-            user_id: existingUser.id,
-            role: role as 'architect' | 'builder' | 'homeowner' | 'contractor',
-            invited_by: currentUser.user.id,
-            joined_at: new Date().toISOString()
-          });
-
-        if (error) {
-          console.error('Error adding existing user:', error);
-          toast({
-            title: "Error adding member",
-            description: error.message,
-            variant: "destructive"
-          });
-          return false;
-        }
-
-        toast({
-          title: "Member added!",
-          description: `${email} has been added to the team.`
-        });
-
-        await fetchTeamMembers();
-        return true;
-      }
+      // Always proceed with invitation flow via edge function; avoid admin API client-side
 
       // Check for existing pending invitation
       const { data: existingInvitation } = await supabase
@@ -247,7 +193,7 @@ export const useProjectTeam = (projectId: string): UseProjectTeamReturn => {
         .eq('project_id', projectId)
         .eq('email', email)
         .eq('status', 'pending')
-        .single();
+        .maybeSingle();
 
       if (existingInvitation) {
         toast({

@@ -6,8 +6,9 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 import { useProjectTeam, TeamMember } from '@/hooks/useProjectTeam';
-import { Users, UserPlus, MessageSquare, X } from 'lucide-react';
+import { Users, UserPlus, MessageSquare, X, Mail } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { PendingInvitesList } from './PendingInvitesList';
 
 
 interface ProjectContactsSectionProps {
@@ -153,9 +154,11 @@ export const ProjectContactsSection = ({
                       >
                         {roleLabels[user.role as keyof typeof roleLabels] || user.role}
                       </Badge>
-                      <p className="text-xs text-muted-foreground truncate">
-                        {user.email}
-                      </p>
+                      {user.email && (
+                        <p className="text-xs text-muted-foreground truncate">
+                          {user.email}
+                        </p>
+                      )}
                     </div>
                     {user.user_profile?.phone && (
                       <p className="text-xs text-muted-foreground mt-1">
@@ -194,6 +197,9 @@ export const ProjectContactsSection = ({
           </div>
         </div>
       ))}
+
+      {/* Pending Invitations Section */}
+      <PendingInvitesList projectId={projectId} />
 
       {/* Remove Confirmation Dialog */}
       <AlertDialog open={!!removeUserId} onOpenChange={() => setRemoveUserId(null)}>
