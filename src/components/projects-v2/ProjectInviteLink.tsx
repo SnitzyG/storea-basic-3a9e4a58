@@ -13,7 +13,7 @@ interface ProjectInvitationLinkProps {
 
 export const ProjectInviteLink = ({ projectId, projectName }: ProjectInvitationLinkProps) => {
   const [invitationToken, setInvitationToken] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [regenerating, setRegenerating] = useState(false);
   const { toast } = useToast();
 
@@ -26,6 +26,7 @@ export const ProjectInviteLink = ({ projectId, projectName }: ProjectInvitationL
   }, [projectId]);
 
   const fetchInvitationToken = async () => {
+    setLoading(true);
     try {
       const { data, error } = await supabase
         .from('projects')
@@ -38,37 +39,10 @@ export const ProjectInviteLink = ({ projectId, projectName }: ProjectInvitationL
         return;
       }
 
+      console.log('Fetched project data:', data);
       setInvitationToken(data.invitation_token);
     } catch (error) {
       console.error('Error:', error);
-    }
-  };
-
-  const generateInvitationToken = async () => {
-    setLoading(true);
-    try {
-      // Call the edge function to generate and save the token
-      const { data, error } = await supabase.functions.invoke('generate-invite-link', {
-        body: { projectId }
-      });
-
-      if (error || !data?.success) {
-        throw new Error(data?.error || error?.message || 'Failed to generate invitation link');
-      }
-
-      setInvitationToken(data.token);
-      
-      toast({
-        title: "Invitation link generated",
-        description: "Your project invitation link is ready to share!"
-      });
-    } catch (error: any) {
-      console.error('Error generating invitation token:', error);
-      toast({
-        title: "Error",
-        description: error.message || "Failed to generate invitation link. Please try again.",
-        variant: "destructive"
-      });
     } finally {
       setLoading(false);
     }
@@ -82,8 +56,16 @@ export const ProjectInviteLink = ({ projectId, projectName }: ProjectInvitationL
         body: { projectId }
       });
 
-      if (error || !data?.success) {
-        throw new Error(data?.error || error?.message || 'Failed to regenerate invitation link');
+      console.log('Edge function response:', { data, error });
+
+      if (error) {
+        console.error('Edge function error:', error);
+        throw new Error(error.message || 'Failed to call edge function');
+      }
+
+      if (!data?.success) {
+        console.error('Edge function failed:', data);
+        throw new Error(data?.error || 'Failed to regenerate invitation link');
       }
 
       setInvitationToken(data.token);
@@ -122,6 +104,25 @@ export const ProjectInviteLink = ({ projectId, projectName }: ProjectInvitationL
     }
   };
 
+  if (loading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Link className="h-5 w-5" />
+            Project Invitation Link
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="animate-pulse">
+            <div className="h-4 bg-muted rounded w-3/4 mb-2"></div>
+            <div className="h-10 bg-muted rounded"></div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card>
       <CardHeader>
@@ -136,30 +137,7 @@ export const ProjectInviteLink = ({ projectId, projectName }: ProjectInvitationL
           existing users will be logged in automatically.
         </div>
 
-        {!invitationToken ? (
-          <div className="text-center py-4">
-            <p className="text-sm text-muted-foreground mb-2">
-              No invitation link available. Generate one to start inviting team members.
-            </p>
-            <Button 
-              onClick={generateInvitationToken}
-              disabled={loading}
-              className="w-full"
-            >
-              {loading ? (
-                <>
-                  <div className="animate-spin h-4 w-4 mr-2 border-2 border-white border-t-transparent rounded-full" />
-                  Generating...
-                </>
-              ) : (
-                <>
-                  <Link className="h-4 w-4 mr-2" />
-                  Generate Invitation Link
-                </>
-              )}
-            </Button>
-          </div>
-        ) : (
+        {invitationToken && (
           <div className="space-y-3">
             <div className="flex gap-2">
               <Input
@@ -202,6 +180,12 @@ export const ProjectInviteLink = ({ projectId, projectName }: ProjectInvitationL
                 Regenerating will invalidate the previous link
               </div>
             </div>
+          </div>
+        )}
+
+        {!invitationToken && (
+          <div className="text-sm text-muted-foreground">
+            No invitation token found for this project. Try regenerating a new one.
           </div>
         )}
       </CardContent>
