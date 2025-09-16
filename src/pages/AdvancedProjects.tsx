@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Plus, BarChart3, Eye, Edit, Archive, Copy, Hash, UserPlus } from 'lucide-react';
+import { Plus, BarChart3, Eye, Archive, Hash, UserPlus } from 'lucide-react';
 import { useAdvancedProjects, AdvancedProject } from '@/hooks/useAdvancedProjects';
 import { AdvancedProjectWizard } from '@/components/projects-v2/AdvancedProjectWizard';
 import { ProjectDetailsDialog } from '@/components/projects-v2/ProjectDetailsDialog';
@@ -27,7 +27,6 @@ const AdvancedProjects = () => {
   const [projectToView, setProjectToView] = useState<AdvancedProject | null>(null);
   const isArchitect = profile?.role === 'architect';
   const statusColors = {
-    planning: 'bg-blue-100 text-blue-800',
     active: 'bg-green-100 text-green-800',
     on_hold: 'bg-yellow-100 text-yellow-800',
     completed: 'bg-gray-100 text-gray-800',
@@ -39,15 +38,8 @@ const AdvancedProjects = () => {
         setProjectToView(project);
         setDetailsDialogOpen(true);
         break;
-      case 'edit':
-        setSelectedProject(project);
-        setWizardOpen(true);
-        break;
       case 'archive':
         await archiveProject(project.id);
-        break;
-      case 'clone':
-        await cloneProject(project.id, `${project.name} (Copy)`);
         break;
     }
   };
@@ -182,29 +174,13 @@ const AdvancedProjects = () => {
                               <Eye className="h-3 w-3" />
                             </Button>
                             {isArchitect && (
-                              <>
-                                <Button 
-                                  variant="outline" 
-                                  size="sm" 
-                                  onClick={() => handleProjectAction('edit', project)}
-                                >
-                                  <Edit className="h-3 w-3" />
-                                </Button>
-                                <Button 
-                                  variant="outline" 
-                                  size="sm" 
-                                  onClick={() => handleProjectAction('archive', project)}
-                                >
-                                  <Archive className="h-3 w-3" />
-                                </Button>
-                                <Button 
-                                  variant="outline" 
-                                  size="sm" 
-                                  onClick={() => handleProjectAction('clone', project)}
-                                >
-                                  <Copy className="h-3 w-3" />
-                                </Button>
-                              </>
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                onClick={() => handleProjectAction('archive', project)}
+                              >
+                                <Archive className="h-3 w-3" />
+                              </Button>
                             )}
                           </div>
                         </TableCell>
