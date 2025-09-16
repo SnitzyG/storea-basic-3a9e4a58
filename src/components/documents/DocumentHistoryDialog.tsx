@@ -79,6 +79,7 @@ export const DocumentHistoryDialog: React.FC<DocumentHistoryDialogProps> = ({
       case 'superseded': return <Archive className="h-4 w-4 text-red-500" />;
       case 'archived': return <Archive className="h-4 w-4 text-gray-500" />;
       case 'reverted': return <RotateCcw className="h-4 w-4 text-yellow-500" />;
+      case 'transmitted': return <Share className="h-4 w-4 text-teal-500" />;
       default: return <Clock className="h-4 w-4 text-muted-foreground" />;
     }
   };
@@ -90,10 +91,11 @@ export const DocumentHistoryDialog: React.FC<DocumentHistoryDialogProps> = ({
       case 'edited': return 'Document Edited';
       case 'downloaded': return 'Document Downloaded';
       case 'shared': return 'Document Shared';
-      case 'version_created': return 'New Version Created';
+      case 'version_created': return 'Document Superseded';
       case 'superseded': return 'Document Superseded';
       case 'archived': return 'Document Archived';
       case 'reverted': return 'Reverted to Previous Version';
+      case 'transmitted': return 'Document Transmitted';
       default: return 'Activity';
     }
   };
@@ -159,16 +161,33 @@ export const DocumentHistoryDialog: React.FC<DocumentHistoryDialogProps> = ({
                               {activity.details}
                             </p>
                             
-                            <div className="flex items-center gap-2">
-                              <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                                <User className="h-3 w-3" />
-                                <span>{activity.user_name}</span>
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                                  <User className="h-3 w-3" />
+                                  <span>{activity.user_name}</span>
+                                </div>
+                                
+                                {activity.version && (
+                                  <Badge variant="outline" className="text-xs">
+                                    Rev {String.fromCharCode(64 + activity.version)}
+                                  </Badge>
+                                )}
                               </div>
                               
-                              {activity.version && (
-                                <Badge variant="outline" className="text-xs">
-                                  Rev {String.fromCharCode(64 + activity.version)}
-                                </Badge>
+                              {activity.metadata?.file_path && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => onDownload?.(
+                                    activity.metadata.file_path, 
+                                    activity.metadata.file_name || 'document'
+                                  )}
+                                  className="text-xs"
+                                >
+                                  <Download className="h-3 w-3 mr-1" />
+                                  Download
+                                </Button>
                               )}
                             </div>
                           </div>

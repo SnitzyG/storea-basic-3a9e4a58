@@ -42,7 +42,7 @@ export const useDocumentHistory = (): UseDocumentHistoryReturn => {
         .eq('entity_type', 'document')
         .order('created_at', { ascending: false });
 
-      // Get document versions
+      // Get document versions with file paths
       const { data: versions } = await supabase
         .from('document_versions')
         .select('*')
@@ -56,11 +56,27 @@ export const useDocumentHistory = (): UseDocumentHistoryReturn => {
         .eq('document_id', documentId)
         .order('created_at', { ascending: false });
 
+      // Get document shares
+      const { data: shares } = await supabase
+        .from('document_shares')
+        .select('*')
+        .eq('document_id', documentId)
+        .order('created_at', { ascending: false });
+
+      // Get document transmittals
+      const { data: transmittals } = await supabase
+        .from('document_transmittals')
+        .select('*')
+        .eq('document_id', documentId)
+        .order('sent_at', { ascending: false });
+
       // Get user profiles for all involved users
       const allUserIds = [
         ...(activityLogs?.map(log => log.user_id) || []),
         ...(versions?.map(version => version.uploaded_by) || []),
-        ...(events?.map(event => event.user_id).filter(Boolean) || [])
+        ...(events?.map(event => event.user_id).filter(Boolean) || []),
+        ...(shares?.map(share => share.shared_by) || []),
+        ...(transmittals?.map(t => t.sent_by).filter(Boolean) || [])
       ];
       const uniqueUserIds = [...new Set(allUserIds)];
 
@@ -92,16 +108,18 @@ export const useDocumentHistory = (): UseDocumentHistoryReturn => {
         });
       });
 
-      // Process versions
+      // Process versions with file names
       versions?.forEach(version => {
+        const fileName = version.file_path?.split('/').pop() || `Version ${String.fromCharCode(64 + version.version_number)}`;
         activities.push({
           id: `version-${version.id}`,
           type: 'version_created',
           user_id: version.uploaded_by,
           user_name: getUserName(version.uploaded_by),
           timestamp: version.created_at,
-          details: version.changes_summary || `Version ${String.fromCharCode(64 + version.version_number)} created`,
-          version: version.version_number
+          details: `Document superseded by ${fileName}${version.changes_summary ? ` - ${version.changes_summary}` : ''}`,
+          version: version.version_number,
+          metadata: { file_path: version.file_path, file_name: fileName }
         });
       });
 
@@ -118,6 +136,41 @@ export const useDocumentHistory = (): UseDocumentHistoryReturn => {
             metadata: event.metadata
           });
         }
+      });
+
+      // Process document shares
+      shares?.forEach(share => {
+        const sharedWithName = getUserName(share.shared_with);
+        activities.push({
+          id: `share-${share.id}`,
+          type: 'shared',
+          user_id: share.shared_by,
+          user_name: getUserName(share.shared_by),
+          timestamp: share.created_at,
+          details: `Shared with: ${sharedWithName} (${share.permission_level} access)${share.expires_at ? ` - Expires: ${new Date(share.expires_at).toLocaleDateString()}` : ''}`,
+          metadata: { 
+            shared_with: sharedWithName, 
+            permission_level: share.permission_level,
+            expires_at: share.expires_at
+          }
+        });
+      });
+
+      // Process transmittals
+      transmittals?.forEach(transmittal => {
+        activities.push({
+          id: `transmittal-${transmittal.id}`,
+          type: 'transmitted' as any,
+          user_id: transmittal.sent_by || '',
+          user_name: transmittal.sent_by ? getUserName(transmittal.sent_by) : 'System',
+          timestamp: transmittal.sent_at || transmittal.created_at || new Date().toISOString(),
+          details: `Document transmitted to ${transmittal.sent_to}${transmittal.purpose ? ` for ${transmittal.purpose}` : ''}${transmittal.notes ? ` - ${transmittal.notes}` : ''}`,
+          metadata: {
+            transmittal_number: transmittal.transmittal_number,
+            sent_to: transmittal.sent_to,
+            purpose: transmittal.purpose
+          }
+        });
       });
 
       // Sort by timestamp (most recent first)
