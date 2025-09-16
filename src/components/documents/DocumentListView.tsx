@@ -48,7 +48,7 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
   canApprove,
   selectedProject
 }) => {
-  // Filter out superseded documents from main list
+  // Filter out superseded documents and older versions from main list
   const activeDocuments = documents.filter(doc => !doc.is_superseded);
   const [selectedDocuments, setSelectedDocuments] = useState<Set<string>>(new Set());
   const [editingDocument, setEditingDocument] = useState<Document | null>(null);
