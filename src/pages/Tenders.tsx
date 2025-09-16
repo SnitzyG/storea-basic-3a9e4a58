@@ -100,6 +100,24 @@ const Tenders = () => {
         </Card>
       </div>;
   }
+  if (projects.length === 0) {
+    return <div className="min-h-screen flex items-center justify-center">
+        <Card className="w-96">
+          <CardHeader>
+            <CardTitle>Tenders</CardTitle>
+          </CardHeader>
+          <CardContent className="text-center py-8">
+            <p className="text-muted-foreground mb-4">
+              No projects available. Create a project first to create a Tender.
+            </p>
+            <Button asChild>
+              <Link to="/projects">Go to Projects</Link>
+            </Button>
+          </CardContent>
+        </Card>
+      </div>;
+  }
+
   if (loading) {
     return <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">Loading tenders...</div>

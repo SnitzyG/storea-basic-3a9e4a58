@@ -307,6 +307,24 @@ const RFIs = () => {
       }, 250);
     }
   };
+  if (projects.length === 0) {
+    return <div className="min-h-screen flex items-center justify-center">
+        <Card className="w-96">
+          <CardHeader>
+            <CardTitle>RFIs</CardTitle>
+          </CardHeader>
+          <CardContent className="text-center py-8">
+            <p className="text-muted-foreground mb-4">
+              No projects available. Create a project first to create an RFI.
+            </p>
+            <Button asChild>
+              <Link to="/projects">Go to Projects</Link>
+            </Button>
+          </CardContent>
+        </Card>
+      </div>;
+  }
+
   if (loading) {
     return <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">Loading RFIs...</div>

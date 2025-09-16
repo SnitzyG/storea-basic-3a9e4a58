@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { Link } from 'react-router-dom';
 import { Plus, Search, MessageSquare, Users2, Wifi, WifiOff, UserCircle, Circle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -172,6 +173,24 @@ const Messages = () => {
     return currentMsg.sender_id === previousMsg.sender_id && new Date(currentMsg.created_at).getTime() - new Date(previousMsg.created_at).getTime() < 300000 // 5 minutes
     ;
   };
+  if (projects.length === 0) {
+    return <div className="min-h-screen flex items-center justify-center">
+        <Card className="w-96">
+          <CardHeader>
+            <CardTitle>Messages</CardTitle>
+          </CardHeader>
+          <CardContent className="text-center py-8">
+            <p className="text-muted-foreground mb-4">
+              No projects available. Create a project first to create a message.
+            </p>
+            <Button asChild>
+              <Link to="/projects">Go to Projects</Link>
+            </Button>
+          </CardContent>
+        </Card>
+      </div>;
+  }
+
   if (loading) {
     return <div className="space-y-6">
         <div className="flex items-center justify-between">
