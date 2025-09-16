@@ -316,11 +316,11 @@ const RFIs = () => {
     return <div className="min-h-screen flex items-center justify-center">
         <Card className="w-96">
           <CardHeader>
-            <CardTitle>No Projects Found</CardTitle>
+            <CardTitle>RFIs</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="text-center py-8">
             <p className="text-muted-foreground mb-4">
-              You need to be part of a project to manage RFIs.
+              No projects available. Create a project first to create an RFI.
             </p>
             <Button asChild>
               <Link to="/projects">Go to Projects</Link>

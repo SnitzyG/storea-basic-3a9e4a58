@@ -193,50 +193,68 @@ const Messages = () => {
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between">
               <CardTitle className="text-sm">Messages</CardTitle>
-              <CreateThreadDialog projectId={selectedProject} onCreateThread={handleCreateThread}>
-                <Button size="sm" variant="outline">
+              {projects.length > 0 ? (
+                <CreateThreadDialog projectId={selectedProject} onCreateThread={handleCreateThread}>
+                  <Button size="sm" variant="outline">
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </CreateThreadDialog>
+              ) : (
+                <Button size="sm" variant="outline" disabled>
                   <Plus className="h-4 w-4" />
                 </Button>
-              </CreateThreadDialog>
+              )}
             </div>
           </CardHeader>
           
           <CardContent className="flex-1 flex flex-col pt-0">
-            {/* Message Type Selector */}
-            <div className="flex mb-4 bg-muted rounded-lg p-1">
-              <Button variant={messageType === 'direct' ? 'default' : 'ghost'} size="sm" className="flex-1" onClick={() => setMessageType('direct')}>
-                <UserCircle className="h-4 w-4 mr-2" />
-                Direct
-              </Button>
-              <Button variant={messageType === 'group' ? 'default' : 'ghost'} size="sm" className="flex-1" onClick={() => setMessageType('group')}>
-                <Users2 className="h-4 w-4 mr-2" />
-                Group
-              </Button>
-            </div>
+            {projects.length > 0 ? (
+              <>
+                {/* Message Type Selector */}
+                <div className="flex mb-4 bg-muted rounded-lg p-1">
+                  <Button variant={messageType === 'direct' ? 'default' : 'ghost'} size="sm" className="flex-1" onClick={() => setMessageType('direct')}>
+                    <UserCircle className="h-4 w-4 mr-2" />
+                    Direct
+                  </Button>
+                  <Button variant={messageType === 'group' ? 'default' : 'ghost'} size="sm" className="flex-1" onClick={() => setMessageType('group')}>
+                    <Users2 className="h-4 w-4 mr-2" />
+                    Group
+                  </Button>
+                </div>
 
-            {/* Search */}
-            <div className="relative mb-4">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-              <Input placeholder={`Search ${messageType} messages...`} value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="pl-10" />
-            </div>
+                {/* Search */}
+                <div className="relative mb-4">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                  <Input placeholder={`Search ${messageType} messages...`} value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="pl-10" />
+                </div>
 
-            {/* Thread List */}
-            <ScrollArea className="flex-1">
-              <div className="space-y-2">
-                {filteredThreads.map(thread => {
-                const isDirect = thread.participants.length === 2;
-                return <ThreadCard key={thread.id} thread={thread} unreadCount={0} // TODO: Calculate unread count
-                isSelected={currentThread === thread.id} onClick={() => setCurrentThread(thread.id)} isDirect={isDirect} onEdit={title => updateThreadTitle(thread.id, title)} onClose={() => closeThread(thread.id)} onDelete={() => deleteThread(thread.id)} />;
-              })}
-                
-                {filteredThreads.length === 0 && selectedProject && <div className="text-center py-8">
-                    <MessageSquare className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
-                    <p className="text-sm text-muted-foreground">
-                      No {messageType} messages found
-                    </p>
-                  </div>}
+                {/* Thread List */}
+                <ScrollArea className="flex-1">
+                  <div className="space-y-2">
+                    {filteredThreads.map(thread => {
+                    const isDirect = thread.participants.length === 2;
+                    return <ThreadCard key={thread.id} thread={thread} unreadCount={0} // TODO: Calculate unread count
+                    isSelected={currentThread === thread.id} onClick={() => setCurrentThread(thread.id)} isDirect={isDirect} onEdit={title => updateThreadTitle(thread.id, title)} onClose={() => closeThread(thread.id)} onDelete={() => deleteThread(thread.id)} />;
+                  })}
+                    
+                    {filteredThreads.length === 0 && selectedProject && <div className="text-center py-8">
+                        <MessageSquare className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
+                        <p className="text-sm text-muted-foreground">
+                          No {messageType} messages found
+                        </p>
+                      </div>}
+                  </div>
+                </ScrollArea>
+              </>
+            ) : (
+              <div className="text-center py-8">
+                <MessageSquare className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+                <h3 className="text-lg font-medium mb-2">Messages</h3>
+                <p className="text-muted-foreground">
+                  No projects available. Create a project first to create a message.
+                </p>
               </div>
-            </ScrollArea>
+            )}
           </CardContent>
         </Card>
       </div>

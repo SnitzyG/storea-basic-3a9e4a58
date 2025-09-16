@@ -109,11 +109,11 @@ const Tenders = () => {
     return <div className="min-h-screen flex items-center justify-center">
         <Card className="w-96">
           <CardHeader>
-            <CardTitle>No Projects Found</CardTitle>
+            <CardTitle>Tenders</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="text-center py-8">
             <p className="text-muted-foreground mb-4">
-              You need to be part of a project to manage tenders.
+              No projects available. Create a project first to create a Tender.
             </p>
             <Button asChild>
               <Link to="/projects">Go to Projects</Link>
