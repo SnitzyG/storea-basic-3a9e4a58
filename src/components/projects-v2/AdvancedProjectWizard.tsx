@@ -13,7 +13,7 @@ import { Separator } from '@/components/ui/separator';
 import { Progress } from '@/components/ui/progress';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Calendar as CalendarIcon, MapPin, DollarSign, Home, Building2, Factory, Plus, X, ChevronRight, ChevronLeft, Check, Users, Mail, Phone, User, Briefcase, Settings, FileText, Target, Clock } from 'lucide-react';
-import { format } from 'date-fns';
+import { format, addMonths } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { useAdvancedProjects, AdvancedProject, ProjectUser } from '@/hooks/useAdvancedProjects';
 import { useToast } from '@/hooks/use-toast';
@@ -153,6 +153,13 @@ export const AdvancedProjectWizard = ({
       ...prev,
       [field]: value
     }));
+  };
+
+  const setProjectDuration = (months: number) => {
+    if (formData.estimated_start_date) {
+      const finishDate = addMonths(formData.estimated_start_date, months);
+      handleInputChange('estimated_finish_date', finishDate);
+    }
   };
   const addCollaborator = () => {
     if (newCollaborator.email && newCollaborator.name) {
@@ -353,35 +360,96 @@ export const AdvancedProjectWizard = ({
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label>Start Date *</Label>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button variant="outline" className={cn("w-full justify-start text-left font-normal mt-1", !formData.estimated_start_date && "text-muted-foreground")}>
-                          <CalendarIcon className="mr-2 h-4 w-4" />
-                          {formData.estimated_start_date ? format(formData.estimated_start_date, "PPP") : <span>Pick a date</span>}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0">
-                        <Calendar mode="single" selected={formData.estimated_start_date} onSelect={date => handleInputChange('estimated_start_date', date)} initialFocus className="pointer-events-auto" />
-                      </PopoverContent>
-                    </Popover>
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <Label>Start Date *</Label>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !formData.estimated_start_date && "text-muted-foreground")}>
+                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            {formData.estimated_start_date ? format(formData.estimated_start_date, "PPP") : <span>Pick start date</span>}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar 
+                            mode="single" 
+                            selected={formData.estimated_start_date} 
+                            onSelect={date => handleInputChange('estimated_start_date', date)} 
+                            initialFocus 
+                            className="pointer-events-auto" 
+                          />
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Finish Date *</Label>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !formData.estimated_finish_date && "text-muted-foreground")}>
+                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            {formData.estimated_finish_date ? format(formData.estimated_finish_date, "PPP") : <span>Pick finish date</span>}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar 
+                            mode="single" 
+                            selected={formData.estimated_finish_date} 
+                            onSelect={date => handleInputChange('estimated_finish_date', date)} 
+                            disabled={date => formData.estimated_start_date ? date < formData.estimated_start_date : false} 
+                            initialFocus 
+                            className="pointer-events-auto" 
+                          />
+                        </PopoverContent>
+                      </Popover>
+                    </div>
                   </div>
 
-                  <div>
-                    <Label>Finish Date *</Label>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button variant="outline" className={cn("w-full justify-start text-left font-normal mt-1", !formData.estimated_finish_date && "text-muted-foreground")}>
-                          <CalendarIcon className="mr-2 h-4 w-4" />
-                          {formData.estimated_finish_date ? format(formData.estimated_finish_date, "PPP") : <span>Pick a date</span>}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0">
-                        <Calendar mode="single" selected={formData.estimated_finish_date} onSelect={date => handleInputChange('estimated_finish_date', date)} disabled={date => formData.estimated_start_date ? date < formData.estimated_start_date : false} initialFocus className="pointer-events-auto" />
-                      </PopoverContent>
-                    </Popover>
+                  {/* Quick Duration Buttons */}
+                  <div className="space-y-3">
+                    <Label className="text-sm font-medium">Quick Duration Setup</Label>
+                    <div className="flex flex-wrap gap-2">
+                      <Button
+                        type="button"
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => setProjectDuration(3)}
+                        disabled={!formData.estimated_start_date}
+                        className="flex items-center gap-1"
+                      >
+                        <Clock className="h-3 w-3" />
+                        3 Months
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => setProjectDuration(6)}
+                        disabled={!formData.estimated_start_date}
+                        className="flex items-center gap-1"
+                      >
+                        <Clock className="h-3 w-3" />
+                        6 Months
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => setProjectDuration(12)}
+                        disabled={!formData.estimated_start_date}
+                        className="flex items-center gap-1"
+                      >
+                        <Clock className="h-3 w-3" />
+                        12 Months
+                      </Button>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      {formData.estimated_start_date 
+                        ? "Select a duration to automatically set the finish date" 
+                        : "Please select a start date first"
+                      }
+                    </p>
                   </div>
                 </div>
 
