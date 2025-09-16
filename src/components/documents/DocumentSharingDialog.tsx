@@ -56,25 +56,46 @@ export const DocumentSharingDialog: React.FC<DocumentSharingDialogProps> = ({
     if (!document) return;
 
     try {
-      const { data, error } = await (supabase as any)
+      // First get the shares
+      const { data: shares, error: sharesError } = await supabase
         .from('document_shares')
-        .select(`
-          id,
-          shared_with,
-          permission_level,
-          created_at,
-          shared_with_profile:profiles!document_shares_shared_with_fkey(name, role)
-        `)
+        .select('id, shared_with, permission_level, created_at, shared_by')
         .eq('document_id', document.id);
 
-      if (error) throw error;
-      setExistingShares(data || []);
+      if (sharesError) throw sharesError;
+
+      if (shares && shares.length > 0) {
+        // Get profile information for shared users
+        const userIds = shares.map(share => share.shared_with);
+        const { data: profiles, error: profilesError } = await supabase
+          .from('profiles')
+          .select('user_id, name, role')
+          .in('user_id', userIds);
+
+        if (profilesError) {
+          console.warn('Could not load profile information:', profilesError);
+        }
+
+        // Combine shares with profile data
+        const sharesWithProfiles = shares.map(share => ({
+          ...share,
+          shared_with_profile: profiles?.find(p => p.user_id === share.shared_with) || {
+            name: 'Unknown User',
+            role: 'Unknown'
+          }
+        }));
+
+        setExistingShares(sharesWithProfiles);
+      } else {
+        setExistingShares([]);
+      }
     } catch (error) {
       console.error('Error loading shares:', error);
+      setExistingShares([]);
       toast({
-        title: "Error",
-        description: "Failed to load document shares",
-        variant: "destructive"
+        title: "Warning",
+        description: "Could not load existing shares. You can still create new shares.",
+        variant: "default"
       });
     }
   };
@@ -84,13 +105,13 @@ export const DocumentSharingDialog: React.FC<DocumentSharingDialogProps> = ({
 
     setLoading(true);
     try {
-      const { error } = await (supabase as any)
+      const { error } = await supabase
         .from('document_shares')
         .insert({
           document_id: document.id,
           shared_by: profile.user_id,
           shared_with: selectedUser,
-          permission_level: permissionLevel
+          permission_level: 'view' // Standard access for team members
         });
 
       if (error) throw error;
@@ -103,7 +124,6 @@ export const DocumentSharingDialog: React.FC<DocumentSharingDialogProps> = ({
       // Reload shares and reset form
       await loadExistingShares();
       setSelectedUser('');
-      setPermissionLevel('view');
     } catch (error: any) {
       console.error('Error sharing document:', error);
       toast({
@@ -194,7 +214,7 @@ export const DocumentSharingDialog: React.FC<DocumentSharingDialogProps> = ({
               <div className="space-y-4">
                 <h4 className="font-medium">Share with team member</h4>
                 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label>Team Member</Label>
                     <Select value={selectedUser} onValueChange={setSelectedUser}>
@@ -214,20 +234,9 @@ export const DocumentSharingDialog: React.FC<DocumentSharingDialogProps> = ({
                         ))}
                       </SelectContent>
                     </Select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label>Permission</Label>
-                    <Select value={permissionLevel} onValueChange={setPermissionLevel}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="view">View Only</SelectItem>
-                        <SelectItem value="download">View & Download</SelectItem>
-                        <SelectItem value="edit">View, Download & Edit</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <p className="text-xs text-muted-foreground">
+                      Team members will get standard view access to this document.
+                    </p>
                   </div>
 
                   <div className="flex items-end">
@@ -237,7 +246,7 @@ export const DocumentSharingDialog: React.FC<DocumentSharingDialogProps> = ({
                       className="w-full"
                     >
                       <Users className="h-4 w-4 mr-2" />
-                      {loading ? 'Sharing...' : 'Share'}
+                      {loading ? 'Sharing...' : 'Share with Team Member'}
                     </Button>
                   </div>
                 </div>

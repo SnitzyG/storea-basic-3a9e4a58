@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Lock, Unlock, Eye, Clock, MoreHorizontal, Download, Edit, X, ArrowUpDown, Share } from 'lucide-react';
+import { Lock, Unlock, Eye, Clock, MoreHorizontal, Download, Edit, X, ArrowUpDown, ArrowUp, ArrowDown, Share } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -33,6 +33,10 @@ interface DocumentListViewProps {
   canApprove: boolean;
   selectedProject?: string;
 }
+
+type SortField = 'document_number' | 'title' | 'version' | 'status' | 'created_at' | 'updated_at' | 'uploaded_by' | 'category';
+type SortDirection = 'asc' | 'desc';
+
 export const DocumentListView: React.FC<DocumentListViewProps> = ({
   documents,
   onDownload,
@@ -48,6 +52,10 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
   canApprove,
   selectedProject
 }) => {
+  // Sorting state
+  const [sortField, setSortField] = useState<SortField>('created_at');
+  const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
+
   // Filter out superseded documents and older versions from main list
   const activeDocuments = documents.filter(doc => !doc.is_superseded);
   const [selectedDocuments, setSelectedDocuments] = useState<Set<string>>(new Set());
@@ -193,6 +201,68 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
       loadUserNames();
     }
   }, [activeDocuments]);
+
+  // Handle sorting
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortDirection('asc');
+    }
+  };
+
+  // Sort documents
+  const sortedDocuments = useMemo(() => {
+    return [...activeDocuments].sort((a, b) => {
+      let aValue: any = a[sortField];
+      let bValue: any = b[sortField];
+
+      // Handle special cases
+      if (sortField === 'uploaded_by') {
+        aValue = userNames[a.uploaded_by] || 'Unknown';
+        bValue = userNames[b.uploaded_by] || 'Unknown';
+      } else if (sortField === 'category') {
+        aValue = a.category === 'Specifications' ? 'General' : (a.category || 'General');
+        bValue = b.category === 'Specifications' ? 'General' : (b.category || 'General');
+      } else if (sortField === 'created_at' || sortField === 'updated_at') {
+        aValue = new Date(aValue).getTime();
+        bValue = new Date(bValue).getTime();
+      }
+
+      if (aValue === null || aValue === undefined) aValue = '';
+      if (bValue === null || bValue === undefined) bValue = '';
+
+      if (typeof aValue === 'string' && typeof bValue === 'string') {
+        const comparison = aValue.localeCompare(bValue);
+        return sortDirection === 'asc' ? comparison : -comparison;
+      }
+
+      if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1;
+      if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
+      return 0;
+    });
+  }, [activeDocuments, sortField, sortDirection, userNames]);
+
+  const SortButton: React.FC<{ field: SortField; children: React.ReactNode }> = ({ field, children }) => (
+    <Button
+      variant="ghost"
+      className="h-auto p-0 font-semibold text-left justify-start"
+      onClick={() => handleSort(field)}
+    >
+      {children}
+      {sortField === field ? (
+        sortDirection === 'asc' ? (
+          <ArrowUp className="ml-2 h-4 w-4" />
+        ) : (
+          <ArrowDown className="ml-2 h-4 w-4" />
+        )
+      ) : (
+        <ArrowUpDown className="ml-2 h-4 w-4" />
+      )}
+    </Button>
+  );
+
   return <div className="border rounded-lg">
       <Table>
         <TableHeader>
@@ -204,52 +274,44 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
             <TableHead className="w-12">Lock</TableHead>
             
             <TableHead className="w-32">
-              <Button variant="ghost" className="h-auto p-0 font-semibold text-left justify-start">
+              <SortButton field="document_number">
                 Document No.
-                <ArrowUpDown className="ml-2 h-4 w-4" />
-              </Button>
+              </SortButton>
             </TableHead>
             <TableHead className="min-w-[200px]">
-              <Button variant="ghost" className="h-auto p-0 font-semibold text-left justify-start">
+              <SortButton field="title">
                 Title
-                <ArrowUpDown className="ml-2 h-4 w-4" />
-              </Button>
+              </SortButton>
             </TableHead>
             <TableHead className="w-16">
-              <Button variant="ghost" className="h-auto p-0 font-semibold text-left justify-start">
+              <SortButton field="version">
                 Rev
-                <ArrowUpDown className="ml-2 h-4 w-4" />
-              </Button>
+              </SortButton>
             </TableHead>
             <TableHead className="w-24">
-              <Button variant="ghost" className="h-auto p-0 font-semibold text-left justify-start">
+              <SortButton field="status">
                 Status
-                <ArrowUpDown className="ml-2 h-4 w-4" />
-              </Button>
+              </SortButton>
             </TableHead>
             <TableHead className="w-24">
-              <Button variant="ghost" className="h-auto p-0 font-semibold text-left justify-start">
+              <SortButton field="created_at">
                 Created
-                <ArrowUpDown className="ml-2 h-4 w-4" />
-              </Button>
+              </SortButton>
             </TableHead>
             <TableHead className="w-24">
-              <Button variant="ghost" className="h-auto p-0 font-semibold text-left justify-start">
+              <SortButton field="updated_at">
                 Updated
-                <ArrowUpDown className="ml-2 h-4 w-4" />
-              </Button>
+              </SortButton>
             </TableHead>
             <TableHead className="w-32">
-              <Button variant="ghost" className="h-auto p-0 font-semibold text-left justify-start">
+              <SortButton field="uploaded_by">
                 Created By
-                <ArrowUpDown className="ml-2 h-4 w-4" />
-              </Button>
+              </SortButton>
             </TableHead>
             <TableHead className="w-32">
-              <Button variant="ghost" className="h-auto p-0 font-semibold text-left justify-start">
+              <SortButton field="category">
                 Category
-                <ArrowUpDown className="ml-2 h-4 w-4" />
-              </Button>
+              </SortButton>
             </TableHead>
             <TableHead className="w-32">
               <Button variant="ghost" className="h-auto p-0 font-semibold text-left justify-start">
@@ -263,7 +325,7 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
           </TableRow>
         </TableHeader>
         <TableBody>
-          {activeDocuments.map(document => <TableRow key={document.id} className="hover:bg-muted/50 border-b">
+          {sortedDocuments.map(document => <TableRow key={document.id} className="hover:bg-muted/50 border-b">
               <TableCell>
                 <Checkbox checked={selectedDocuments.has(document.id)} onCheckedChange={checked => handleSelectDocument(document.id, checked as boolean)} />
               </TableCell>

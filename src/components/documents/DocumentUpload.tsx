@@ -246,7 +246,7 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
               </div>
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-4 max-h-96 overflow-y-auto">
               {files.map((file) => (
                 <div
                   key={file.id}
@@ -258,8 +258,11 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
                         <p className="text-sm font-medium truncate">{file.file.name}</p>
-                        <Badge variant={getStatusColor(file.status)}>
+                        <Badge variant={getStatusColor(file.status)} className="flex-shrink-0">
                           {file.status === 'success' && <Check className="h-3 w-3 mr-1" />}
+                          {file.status === 'uploading' && (
+                            <div className="h-3 w-3 mr-1 animate-spin rounded-full border-2 border-background border-t-transparent" />
+                          )}
                           {file.status}
                         </Badge>
                       </div>
@@ -272,7 +275,13 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
                       </div>
                       
                       {file.status === 'uploading' && (
-                        <Progress value={file.progress} className="mt-2 h-1" />
+                        <div className="mt-2">
+                          <div className="flex items-center justify-between text-xs mb-1">
+                            <span>Uploading...</span>
+                            <span>{file.progress}%</span>
+                          </div>
+                          <Progress value={file.progress} className="h-2" />
+                        </div>
                       )}
                     </div>
 
@@ -282,6 +291,7 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
                         size="sm"
                         onClick={() => removeFile(file.id)}
                         disabled={isUploading}
+                        className="flex-shrink-0"
                       >
                         <X className="h-4 w-4" />
                       </Button>
@@ -290,7 +300,7 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
 
                   {/* Document metadata fields - only show for pending files */}
                   {file.status === 'pending' && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-3 border-t">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 pt-3 border-t">
                       <div className="space-y-2">
                         <Label htmlFor={`title-${file.id}`}>
                           Title <span className="text-destructive">*</span>
