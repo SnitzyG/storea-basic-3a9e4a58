@@ -25,6 +25,8 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { DocumentGroup } from '@/hooks/useDocumentGroups';
 import { SupersedeDocumentDialog } from './SupersedeDocumentDialog';
+import { DocumentSharingDialog } from './DocumentSharingDialog';
+import { EditDocumentDialog } from './EditDocumentDialog';
 import { format } from 'date-fns';
 import { FileTypeIcon } from './FileTypeIcon';
 import { useAuth } from '@/hooks/useAuth';
@@ -61,6 +63,10 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
   const { profile } = useAuth();
   const [supersedeDocument, setSupersedeDocument] = useState<DocumentGroup | null>(null);
   const [isSupersedeDialogOpen, setIsSupersedeDialogOpen] = useState(false);
+  const [shareDocument, setShareDocument] = useState<DocumentGroup | null>(null);
+  const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
+  const [editDocument, setEditDocument] = useState<DocumentGroup | null>(null);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
   const handleSupersede = (group: DocumentGroup) => {
     setSupersedeDocument(group);
@@ -68,8 +74,8 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
   };
 
   const handleShareDocument = (group: DocumentGroup) => {
-    // TODO: Implement sharing
-    console.log('Share document:', group.id);
+    setShareDocument(group);
+    setIsShareDialogOpen(true);
   };
 
   const handleViewHistory = (group: DocumentGroup) => {
@@ -77,8 +83,8 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
   };
 
   const handleEditDocument = (group: DocumentGroup) => {
-    // TODO: Implement edit
-    console.log('Edit document:', group.id);
+    setEditDocument(group);
+    setIsEditDialogOpen(true);
   };
 
   const handleDeleteConfirm = async (group: DocumentGroup) => {
@@ -122,6 +128,7 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
             <TableHead>Rev</TableHead>
             <TableHead>Created</TableHead>
             <TableHead>Updated</TableHead>
+            <TableHead>Lock</TableHead>
             <TableHead className="w-[50px]">Actions</TableHead>
           </TableRow>
         </TableHeader>
@@ -177,6 +184,18 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
                 }
               </TableCell>
               <TableCell>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    // Toggle lock status logic here
+                    console.log('Toggle lock for:', group.id);
+                  }}
+                >
+                  {group.is_locked ? <Lock className="h-4 w-4" /> : <Unlock className="h-4 w-4" />}
+                </Button>
+              </TableCell>
+              <TableCell>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="sm" className="h-7 w-7 p-0">
@@ -220,12 +239,12 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
                       </DropdownMenuItem>
                     )}
 
-                    {canEdit && (
-                      <DropdownMenuItem onClick={() => handleEditDocument(group)}>
-                        <Edit className="h-3 w-3 mr-2" />
-                        Edit Details
-                      </DropdownMenuItem>
-                    )}
+                     {canEdit && (
+                       <DropdownMenuItem onClick={() => handleEditDocument(group)}>
+                         <Edit className="h-3 w-3 mr-2" />
+                         Edit
+                       </DropdownMenuItem>
+                     )}
                      
                     {canEdit && (
                       <DropdownMenuItem onClick={() => handleDeleteConfirm(group)} className="text-destructive">
@@ -261,6 +280,30 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
             setSupersedeDocument(null);
           }
           return success;
+        }}
+      />
+
+      {/* Share Dialog */}
+      <DocumentSharingDialog
+        document={shareDocument as any}
+        isOpen={isShareDialogOpen}
+        onClose={() => setIsShareDialogOpen(false)}
+        projectId={selectedProject === 'all' ? undefined : selectedProject}
+      />
+
+      {/* Edit Dialog */}
+      <EditDocumentDialog
+        document={editDocument}
+        isOpen={isEditDialogOpen}
+        onClose={() => {
+          setIsEditDialogOpen(false);
+          setEditDocument(null);
+        }}
+        onSave={async (groupId, updates) => {
+          // Implementation for saving document updates
+          console.log('Save document updates:', groupId, updates);
+          setIsEditDialogOpen(false);
+          setEditDocument(null);
         }}
       />
     </div>

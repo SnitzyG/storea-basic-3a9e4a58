@@ -43,8 +43,34 @@ export const DocumentDetailsDialog: React.FC<DocumentDetailsDialogProps> = ({
   };
 
   const handleDownloadRevision = async (revision: DocumentRevision) => {
-    // Implementation for downloading specific revision
-    console.log('Download revision:', revision.file_path);
+    try {
+      const { supabase } = await import('@/integrations/supabase/client');
+      const { data, error } = await supabase.storage
+        .from('documents')
+        .createSignedUrl(revision.file_path, 60 * 60); // 1 hour
+      
+      if (error || !data?.signedUrl) {
+        const { data: pub } = supabase.storage
+          .from('documents')
+          .getPublicUrl(revision.file_path);
+        
+        const link = window.document.createElement('a');
+        link.href = pub.publicUrl;
+        link.download = revision.file_name || 'document';
+        window.document.body.appendChild(link);
+        link.click();
+        window.document.body.removeChild(link);
+      } else {
+        const link = window.document.createElement('a');
+        link.href = data.signedUrl;
+        link.download = revision.file_name || 'document';
+        window.document.body.appendChild(link);
+        link.click();
+        window.document.body.removeChild(link);
+      }
+    } catch (error) {
+      console.error('Download failed:', error);
+    }
   };
 
   if (!document) return null;
@@ -75,7 +101,7 @@ export const DocumentDetailsDialog: React.FC<DocumentDetailsDialogProps> = ({
             
             <Button 
               variant="outline" 
-              onClick={() => console.log('Download current revision')}
+              onClick={() => currentRevision && handleDownloadRevision(currentRevision)}
               disabled={!currentRevision}
             >
               <Download className="h-4 w-4 mr-2" />

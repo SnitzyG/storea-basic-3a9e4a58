@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Archive, Upload, FileText } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent } from '@/components/ui/card';
@@ -24,6 +25,7 @@ export const SupersedeDocumentDialog: React.FC<SupersedeDocumentDialogProps> = (
 }) => {
   const [newFile, setNewFile] = useState<File | null>(null);
   const [changesSummary, setChangesSummary] = useState('');
+  const [customRevision, setCustomRevision] = useState('');
   const [isSuperseding, setIsSuperseding] = useState(false);
 
   const onDrop = (acceptedFiles: File[]) => {
@@ -61,6 +63,7 @@ export const SupersedeDocumentDialog: React.FC<SupersedeDocumentDialogProps> = (
   const handleClose = () => {
     setNewFile(null);
     setChangesSummary('');
+    setCustomRevision('');
     onClose();
   };
 
@@ -149,6 +152,20 @@ export const SupersedeDocumentDialog: React.FC<SupersedeDocumentDialogProps> = (
                 </CardContent>
               </Card>
             )}
+          </div>
+
+          {/* Custom Revision */}
+          <div className="space-y-2">
+            <Label htmlFor="revision">Revision Number/Letter (Optional)</Label>
+            <Input
+              id="revision"
+              placeholder="e.g., A, 1.1, RevB, etc."
+              value={customRevision}
+              onChange={(e) => setCustomRevision(e.target.value)}
+            />
+            <p className="text-xs text-muted-foreground">
+              Leave blank to auto-increment the revision number
+            </p>
           </div>
 
           {/* Changes Summary */}

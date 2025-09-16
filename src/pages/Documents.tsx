@@ -76,15 +76,19 @@ const Documents = () => {
           .from('documents')
           .getPublicUrl(group.current_revision.file_path);
         
-        const link = document.createElement('a');
+        const link = window.document.createElement('a');
         link.href = pub.publicUrl;
         link.download = group.current_revision.file_name || 'document';
+        window.document.body.appendChild(link);
         link.click();
+        window.document.body.removeChild(link);
       } else {
-        const link = document.createElement('a');
+        const link = window.document.createElement('a');
         link.href = data.signedUrl;
         link.download = group.current_revision.file_name || 'document';
+        window.document.body.appendChild(link);
         link.click();
+        window.document.body.removeChild(link);
       }
     } catch (error) {
       console.error('Download failed:', error);

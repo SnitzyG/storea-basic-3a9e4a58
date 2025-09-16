@@ -8,13 +8,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Document, useDocuments } from '@/hooks/useDocuments';
+import { DocumentGroup } from '@/hooks/useDocumentGroups';
 import { Upload, X } from 'lucide-react';
 import { useDropzone } from 'react-dropzone';
+
 interface EditDocumentDialogProps {
-  document: Document | null;
+  document: DocumentGroup | null;
   isOpen: boolean;
   onClose: () => void;
-  onSave: () => void;
+  onSave: (groupId: string, updates: any) => Promise<void>;
 }
 export const EditDocumentDialog: React.FC<EditDocumentDialogProps> = ({
   document,
@@ -39,12 +41,11 @@ export const EditDocumentDialog: React.FC<EditDocumentDialogProps> = ({
   useEffect(() => {
     if (document) {
       setFormData({
-        title: document.title || document.name,
+        title: document.title || '',
         description: '',
-        // Add description field to Document interface if needed
-        status: document.status,
+        status: document.status as any,
         fileType: document.category || 'Architectural',
-        tags: document.tags || [],
+        tags: [],
         isPrivate: document.visibility_scope === 'private'
       });
     }
@@ -95,7 +96,7 @@ export const EditDocumentDialog: React.FC<EditDocumentDialogProps> = ({
       //   visibility_scope: formData.isPrivate ? 'private' : 'project'
       // });
 
-      onSave();
+      await onSave(document.id, formData);
       onClose();
     } catch (error) {
       console.error('Error updating document:', error);
