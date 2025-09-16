@@ -69,6 +69,7 @@ export const useDocuments = (projectId?: string) => {
       let query = supabase
         .from('documents')
         .select('*')
+        .eq('is_superseded', false) // Only show latest revisions
         .order('created_at', { ascending: false });
 
       if (filterProjectId || projectId) {
