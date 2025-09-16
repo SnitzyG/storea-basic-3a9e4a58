@@ -385,21 +385,7 @@ export const AdvancedProjectWizard = ({
                   </div>
                 </div>
 
-                <div>
-                  <Label>Permit Status</Label>
-                  <Select value={formData.permit_status} onValueChange={value => handleInputChange('permit_status', value)}>
-                    <SelectTrigger className="mt-1">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="not_required">Not Required</SelectItem>
-                      <SelectItem value="pending">Pending Application</SelectItem>
-                      <SelectItem value="approved">Approved</SelectItem>
-                      <SelectItem value="rejected">Rejected</SelectItem>
-                      <SelectItem value="expired">Expired</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+                
               </div>
             </div>
           </div>;
