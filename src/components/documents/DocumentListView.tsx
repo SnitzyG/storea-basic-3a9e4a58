@@ -179,31 +179,25 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
                 </Badge>
               </TableCell>
               <TableCell className="text-xs text-muted-foreground">
-                {format(new Date(group.created_at), 'MMM dd, yyyy')}
+                {format(new Date(group.created_at), 'MMM dd, yyyy HH:mm.ss')}
               </TableCell>
               <TableCell className="text-xs text-muted-foreground">
                 {group.updated_at !== group.created_at 
-                  ? format(new Date(group.updated_at), 'MMM dd, yyyy')
+                  ? format(new Date(group.updated_at), 'MMM dd, yyyy HH:mm.ss')
                   : '-'
                 }
               </TableCell>
               <TableCell>
                 <Button
-                  variant={group.is_locked ? "destructive" : "outline"}
+                  variant="ghost"
                   size="sm"
                   onClick={() => onToggleLock(group.id, !group.is_locked)}
-                  className="h-8 px-2"
+                  className="h-8 w-8 p-0"
                 >
                   {group.is_locked ? (
-                    <>
-                      <Lock className="h-3 w-3 mr-1" />
-                      Unlock
-                    </>
+                    <Lock className="h-4 w-4" />
                   ) : (
-                    <>
-                      <Lock className="h-3 w-3 mr-1" />
-                      Lock
-                    </>
+                    <Unlock className="h-4 w-4" />
                   )}
                 </Button>
               </TableCell>
