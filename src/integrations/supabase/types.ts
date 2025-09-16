@@ -868,6 +868,7 @@ export type Database = {
       }
       project_join_requests: {
         Row: {
+          company: string | null
           created_at: string
           id: string
           message: string | null
@@ -878,10 +879,12 @@ export type Database = {
           requester_name: string | null
           responded_at: string | null
           responded_by: string | null
+          role: string | null
           status: string
           updated_at: string
         }
         Insert: {
+          company?: string | null
           created_at?: string
           id?: string
           message?: string | null
@@ -892,10 +895,12 @@ export type Database = {
           requester_name?: string | null
           responded_at?: string | null
           responded_by?: string | null
+          role?: string | null
           status?: string
           updated_at?: string
         }
         Update: {
+          company?: string | null
           created_at?: string
           id?: string
           message?: string | null
@@ -906,6 +911,7 @@ export type Database = {
           requester_name?: string | null
           responded_at?: string | null
           responded_by?: string | null
+          role?: string | null
           status?: string
           updated_at?: string
         }

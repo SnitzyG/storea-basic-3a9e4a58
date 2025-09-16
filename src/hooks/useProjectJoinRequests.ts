@@ -9,6 +9,8 @@ export interface ProjectJoinRequest {
   project_code: string;
   requester_name?: string;
   requester_email?: string;
+  company?: string;
+  role?: string;
   message?: string;
   status: 'pending' | 'approved' | 'rejected';
   created_at: string;

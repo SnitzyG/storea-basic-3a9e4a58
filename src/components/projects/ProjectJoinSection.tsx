@@ -193,6 +193,8 @@ export const ProjectJoinSection: React.FC<ProjectJoinSectionProps> = ({ classNam
                         {request.requester_name || request.requester_email}
                       </div>
                       <div className="text-sm text-muted-foreground">
+                        {request.company && <span>from {request.company} • </span>}
+                        {request.role && <span>Role: {request.role} • </span>}
                         wants to join • {formatDistanceToNow(new Date(request.created_at), { addSuffix: true })}
                       </div>
                     </div>
