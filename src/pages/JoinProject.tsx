@@ -18,17 +18,24 @@ const JoinProject = () => {
   const { toast } = useToast();
 
   useEffect(() => {
+    console.log('JoinProject: user=', !!user, 'token=', token);
+    
     if (user && token) {
       handleProjectJoin();
     } else if (!user && token) {
       // Store token for after authentication
       localStorage.setItem('pending_project_token', token);
       navigate('/auth');
+    } else if (!token) {
+      setError('No invitation token provided');
+      setLoading(false);
     }
   }, [user, token]);
 
   const handleProjectJoin = async () => {
     try {
+      console.log('JoinProject: handleProjectJoin called with token:', token);
+      
       if (!user) {
         setError('Please sign in to join the project');
         setLoading(false);
@@ -39,12 +46,16 @@ const JoinProject = () => {
         throw new Error('Invalid invitation link');
       }
 
+      console.log('JoinProject: Looking up project with token:', token);
+
       // Find project by invitation token
       const { data: project, error: projectError } = await supabase
         .from('projects')
         .select('id, name, description, created_by')
         .eq('invitation_token', token)
         .maybeSingle();
+
+      console.log('JoinProject: Project lookup result:', { project, projectError });
 
       if (projectError || !project) {
         throw new Error('Invalid or expired invitation link');

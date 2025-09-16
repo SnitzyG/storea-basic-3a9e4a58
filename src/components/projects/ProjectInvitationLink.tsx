@@ -34,9 +34,25 @@ export const ProjectInvitationLink = ({ projectId, projectName }: ProjectInvitat
         .single();
 
       if (error) throw error;
-      setInvitationToken(data.invitation_token);
+      
+      console.log('ProjectInvitationLink: Fetched token:', data.invitation_token);
+      
+      // If no token exists, generate one automatically
+      if (!data.invitation_token) {
+        console.log('ProjectInvitationLink: No token found, generating one...');
+        await generateInvitationLink();
+      } else {
+        setInvitationToken(data.invitation_token);
+      }
     } catch (error) {
       console.error('Error fetching invitation token:', error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch invitation token. Trying to generate a new one...",
+        variant: "destructive"
+      });
+      // Try to generate a new token if fetching failed
+      await generateInvitationLink();
     } finally {
       setIsLoading(false);
     }
@@ -45,9 +61,13 @@ export const ProjectInvitationLink = ({ projectId, projectName }: ProjectInvitat
   const generateInvitationLink = async () => {
     setIsGenerating(true);
     try {
+      console.log('ProjectInvitationLink: Generating token for project:', projectId);
+      
       // Generate new token
       const { data: tokenData, error: tokenError } = await supabase
         .rpc('generate_project_invitation_token');
+
+      console.log('ProjectInvitationLink: Token generation result:', { tokenData, tokenError });
 
       if (tokenError) throw tokenError;
 
@@ -56,6 +76,8 @@ export const ProjectInvitationLink = ({ projectId, projectName }: ProjectInvitat
         .from('projects')
         .update({ invitation_token: tokenData })
         .eq('id', projectId);
+
+      console.log('ProjectInvitationLink: Update result:', { updateError });
 
       if (updateError) throw updateError;
 
