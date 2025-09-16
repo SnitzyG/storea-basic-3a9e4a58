@@ -203,6 +203,12 @@ export const RecentActivity = () => {
                               <span>•</span>
                             </>
                           )}
+                          {!activity.project_id && (
+                            <>
+                              <span className="font-medium">General</span>
+                              <span>•</span>
+                            </>
+                          )}
                           <span>
                             {formatDistanceToNow(new Date(activity.created_at), { addSuffix: true })}
                           </span>

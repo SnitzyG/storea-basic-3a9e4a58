@@ -60,9 +60,15 @@ export const useActivity = (projectId?: string) => {
 
       if (error) throw error;
 
+      // Filter out activities for deleted projects first
+      const validActivities = activitiesData.filter(activity => 
+        !activity.project_id || 
+        activitiesData.some(a => a.entity_type === 'project' && a.entity_id === activity.project_id)
+      );
+
       // Fetch user profiles and project names
-      const userIds = [...new Set(activitiesData.map(a => a.user_id))];
-      const projectIds = [...new Set(activitiesData.map(a => a.project_id).filter(Boolean))];
+      const userIds = [...new Set(validActivities.map(a => a.user_id))];
+      const projectIds = [...new Set(validActivities.map(a => a.project_id).filter(Boolean))];
 
       const [{ data: profiles }, { data: projects }] = await Promise.all([
         supabase
@@ -82,11 +88,16 @@ export const useActivity = (projectId?: string) => {
       const projectMap = new Map<string, any>();
       projects?.forEach(p => projectMap.set(p.id, p));
 
-      const enrichedActivities = activitiesData.map(activity => ({
-        ...activity,
-        user_profile: profileMap.get(activity.user_id),
-        project: activity.project_id ? projectMap.get(activity.project_id) : undefined,
-      }));
+      // Only include activities that have valid projects (or no project requirement)
+      const enrichedActivities = validActivities
+        .filter(activity => 
+          !activity.project_id || projectMap.has(activity.project_id)
+        )
+        .map(activity => ({
+          ...activity,
+          user_profile: profileMap.get(activity.user_id),
+          project: activity.project_id ? projectMap.get(activity.project_id) : undefined,
+        }));
 
       setActivities(enrichedActivities as ActivityItem[]);
     } catch (error) {

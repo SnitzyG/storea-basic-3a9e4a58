@@ -32,8 +32,28 @@ export const useNotifications = () => {
 
       if (error) throw error;
 
-      setNotifications(data || []);
-      setUnreadCount(data?.filter(n => !n.read).length || 0);
+      // Filter out notifications for deleted projects
+      const validNotifications = [];
+      for (const notification of data || []) {
+        const notificationData = notification.data as any;
+        if (notificationData?.project_id) {
+          const { data: projectExists } = await supabase
+            .from('projects')
+            .select('id')
+            .eq('id', notificationData.project_id)
+            .single();
+          
+          if (projectExists) {
+            validNotifications.push(notification);
+          }
+        } else {
+          // Include notifications without project association
+          validNotifications.push(notification);
+        }
+      }
+
+      setNotifications(validNotifications);
+      setUnreadCount(validNotifications.filter(n => !n.read).length);
     } catch (error) {
       console.error('Error fetching notifications:', error);
     } finally {
@@ -104,24 +124,43 @@ export const useNotifications = () => {
   useEffect(() => {
     if (!user) return;
 
-    const channel = supabase
-      .channel('notifications-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'notifications',
-          filter: `user_id=eq.${user.id}`,
-        },
-        () => {
-          fetchNotifications();
-        }
-      )
-      .subscribe();
+    const channels = [
+      // Listen for notification changes
+      supabase
+        .channel('notifications-changes')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'notifications',
+            filter: `user_id=eq.${user.id}`,
+          },
+          () => {
+            fetchNotifications();
+          }
+        )
+        .subscribe(),
+      
+      // Listen for project deletions to refresh notifications
+      supabase
+        .channel('project-deletions')
+        .on(
+          'postgres_changes',
+          {
+            event: 'DELETE',
+            schema: 'public',
+            table: 'projects',
+          },
+          () => {
+            fetchNotifications();
+          }
+        )
+        .subscribe()
+    ];
 
     return () => {
-      supabase.removeChannel(channel);
+      channels.forEach(channel => supabase.removeChannel(channel));
     };
   }, [user]);
 

@@ -1,6 +1,8 @@
 import { cn } from '@/lib/utils';
 import { useLocation, Link } from 'react-router-dom';
 import { BarChart3, FolderOpen, FileStack, MessageSquare, HelpCircle, Briefcase, TestTube } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { useTabNotifications } from '@/hooks/useTabNotifications';
 interface SidebarProps {
   userRole: 'architect' | 'builder' | 'homeowner' | 'contractor';
 }
@@ -8,6 +10,7 @@ export const Sidebar = ({
   userRole
 }: SidebarProps) => {
   const location = useLocation();
+  const { counts, markTabAsRead } = useTabNotifications();
   const getVisibleTabs = (role: string) => {
     const allTabs = [{
       id: 'dashboard',
@@ -76,9 +79,30 @@ export const Sidebar = ({
           {visibleTabs.map(tab => {
           const Icon = tab.icon;
           const isActive = location.pathname.startsWith(tab.path);
-          return <Link key={tab.id} to={tab.path} className={cn("flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors", isActive ? "bg-sidebar-accent text-sidebar-accent-foreground" : "text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground")}>
+          const notificationCount = counts[tab.id as keyof typeof counts] || 0;
+          
+          const handleTabClick = () => {
+            if (notificationCount > 0) {
+              markTabAsRead(tab.id);
+            }
+          };
+          
+          return <Link 
+            key={tab.id} 
+            to={tab.path} 
+            onClick={handleTabClick}
+            className={cn("flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors relative", isActive ? "bg-sidebar-accent text-sidebar-accent-foreground" : "text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground")}
+          >
                 <Icon className="h-5 w-5" />
                 {tab.label}
+                {notificationCount > 0 && (
+                  <Badge 
+                    variant="destructive" 
+                    className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs"
+                  >
+                    {notificationCount > 99 ? '99+' : notificationCount}
+                  </Badge>
+                )}
               </Link>;
         })}
         </div>
