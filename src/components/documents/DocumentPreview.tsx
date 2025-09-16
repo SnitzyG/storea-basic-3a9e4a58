@@ -23,6 +23,7 @@ export const DocumentPreview: React.FC<DocumentPreviewProps> = ({
   const [zoom, setZoom] = useState(100);
   const [rotation, setRotation] = useState(0);
   const [previewUrl, setPreviewUrl] = useState<string>('');
+  const [previewError, setPreviewError] = useState<string>('');
 
   const handleZoomIn = () => setZoom(prev => Math.min(prev + 25, 200));
   const handleZoomOut = () => setZoom(prev => Math.max(prev - 25, 50));
@@ -36,26 +37,16 @@ export const DocumentPreview: React.FC<DocumentPreviewProps> = ({
       if (!currentRevision?.file_path) return;
       
       try {
-        // Prefer a signed URL (works with private buckets); fallback to public URL
-        const { data, error } = await supabase.storage
-          .from('documents')
-          .createSignedUrl(currentRevision.file_path, 60 * 60); // 1 hour
-
+        const { getDownloadUrl, normalizeStorageError } = await import('@/utils/storageUtils');
+        const { url } = await getDownloadUrl(currentRevision.file_path);
         if (!isMounted) return;
-
-        if (error || !data?.signedUrl) {
-          const { data: pub } = supabase.storage
-            .from('documents')
-            .getPublicUrl(currentRevision.file_path);
-          setPreviewUrl(pub.publicUrl);
-        } else {
-          setPreviewUrl(data.signedUrl);
-        }
-      } catch (e) {
-        const { data: pub } = supabase.storage
-          .from('documents')
-          .getPublicUrl(currentRevision.file_path);
-        setPreviewUrl(pub.publicUrl);
+        setPreviewUrl(url);
+        setPreviewError('');
+      } catch (e: any) {
+        if (!isMounted) return;
+        const { normalizeStorageError } = await import('@/utils/storageUtils');
+        setPreviewError(normalizeStorageError(e?.message));
+        setPreviewUrl('');
       }
     };
 
@@ -74,9 +65,21 @@ export const DocumentPreview: React.FC<DocumentPreviewProps> = ({
         <div className="flex flex-col justify-center items-center h-full bg-muted/20 rounded-lg text-center">
           <Eye className="h-16 w-16 text-muted-foreground mb-4" />
           <h3 className="text-lg font-medium mb-2">No file available</h3>
-          <p className="text-muted-foreground">
-            This document group has no current revision
-          </p>
+          <p className="text-muted-foreground">This document group has no current revision</p>
+        </div>
+      );
+    }
+
+    if (previewError) {
+      return (
+        <div className="flex flex-col justify-center items-center h-full bg-muted/20 rounded-lg text-center p-6">
+          <Eye className="h-16 w-16 text-muted-foreground mb-4" />
+          <h3 className="text-lg font-medium mb-2">Preview not available</h3>
+          <p className="text-muted-foreground mb-4">{previewError}</p>
+          <Button onClick={() => onDownload(document.id)}>
+            <Download className="h-4 w-4 mr-2" />
+            Download to View
+          </Button>
         </div>
       );
     }

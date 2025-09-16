@@ -69,60 +69,21 @@ const Documents = () => {
   const handleDownload = async (groupId: string) => {
     const group = documents.find(d => d.id === groupId);
     if (!group?.current_revision?.file_path) {
-      toast({
-        title: "Error",
-        description: "No file available for download",
-        variant: "destructive",
-      });
+      toast({ title: "Error", description: "No file available for download", variant: "destructive" });
       return;
     }
-    
+
     try {
-      // Always try signed URL first, fallback to public URL
-      const { data, error } = await supabase.storage
-        .from('documents')
-        .createSignedUrl(group.current_revision.file_path, 60 * 60); // 1 hour
-      
-      if (error || !data?.signedUrl) {
-        // Check if bucket exists and file exists
-        const { data: fileData, error: fileError } = await supabase.storage
-          .from('documents')
-          .download(group.current_revision.file_path);
-          
-        if (fileError) {
-          throw new Error(`File not found in storage: ${fileError.message}`);
-        }
-        
-        // Create blob URL for download
-        const blob = new Blob([fileData]);
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = group.current_revision.file_name || 'document';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
-      } else {
-        const link = document.createElement('a');
-        link.href = data.signedUrl;
-        link.download = group.current_revision.file_name || 'document';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-      }
-      
-      toast({
-        title: "Success",
-        description: "File downloaded successfully",
-      });
-    } catch (error: any) {
-      console.error('Download failed:', error);
-      toast({
-        title: "Error",
-        description: error.message || "Failed to download file",
-        variant: "destructive",
-      });
+      const { downloadFromStorage, normalizeStorageError } = await import('@/utils/storageUtils');
+      await downloadFromStorage(
+        group.current_revision.file_path,
+        group.current_revision.file_name || 'document'
+      );
+      toast({ title: "Success", description: "File downloaded successfully" });
+    } catch (e: any) {
+      console.error('Download failed:', e);
+      const { normalizeStorageError } = await import('@/utils/storageUtils');
+      toast({ title: "Error", description: normalizeStorageError(e?.message), variant: "destructive" });
     }
   };
 

@@ -353,27 +353,26 @@ export const useDocumentGroups = (projectId?: string) => {
 
   const toggleDocumentLock = useCallback(async (groupId: string, shouldLock: boolean): Promise<boolean> => {
     try {
-      const { data, error } = await supabase.rpc('toggle_document_lock', {
-        group_id: groupId,
-        should_lock: shouldLock
-      });
+      const { data: { user } } = await supabase.auth.getUser();
+      const updates: any = {
+        is_locked: shouldLock,
+        locked_at: shouldLock ? new Date().toISOString() : null,
+        locked_by: shouldLock ? user?.id ?? null : null,
+      };
+
+      const { error } = await supabase
+        .from('document_groups')
+        .update(updates)
+        .eq('id', groupId);
 
       if (error) throw error;
 
-      toast({
-        title: "Success",
-        description: `Document ${shouldLock ? 'locked' : 'unlocked'} successfully`,
-      });
-
+      toast({ title: "Success", description: `Document ${shouldLock ? 'locked' : 'unlocked'} successfully` });
       await fetchDocumentGroups();
       return true;
     } catch (error: any) {
       console.error('Error toggling document lock:', error);
-      toast({
-        title: "Error",
-        description: `Failed to ${shouldLock ? 'lock' : 'unlock'} document`,
-        variant: "destructive",
-      });
+      toast({ title: "Error", description: `Failed to ${shouldLock ? 'lock' : 'unlock'} document`, variant: "destructive" });
       return false;
     }
   }, [fetchDocumentGroups, toast]);
@@ -388,30 +387,25 @@ export const useDocumentGroups = (projectId?: string) => {
     }
   ): Promise<boolean> => {
     try {
-      const { data, error } = await supabase.rpc('update_document_group_metadata', {
-        group_id: groupId,
-        new_title: updates.title,
-        new_category: updates.category,
-        new_status: updates.status,
-        new_visibility_scope: updates.visibility_scope
-      });
+      const { error } = await supabase
+        .from('document_groups')
+        .update({
+          ...(updates.title !== undefined ? { title: updates.title } : {}),
+          ...(updates.category !== undefined ? { category: updates.category } : {}),
+          ...(updates.status !== undefined ? { status: updates.status } : {}),
+          ...(updates.visibility_scope !== undefined ? { visibility_scope: updates.visibility_scope } : {}),
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', groupId);
 
       if (error) throw error;
 
-      toast({
-        title: "Success",
-        description: "Document updated successfully",
-      });
-
+      toast({ title: "Success", description: "Document updated successfully" });
       await fetchDocumentGroups();
       return true;
     } catch (error: any) {
       console.error('Error updating document metadata:', error);
-      toast({
-        title: "Error",
-        description: "Failed to update document",
-        variant: "destructive",
-      });
+      toast({ title: "Error", description: "Failed to update document", variant: "destructive" });
       return false;
     }
   }, [fetchDocumentGroups, toast]);

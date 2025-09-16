@@ -44,31 +44,9 @@ export const DocumentDetailsDialog: React.FC<DocumentDetailsDialogProps> = ({
 
   const handleDownloadRevision = async (revision: DocumentRevision) => {
     try {
-      const { supabase } = await import('@/integrations/supabase/client');
-      const { data, error } = await supabase.storage
-        .from('documents')
-        .createSignedUrl(revision.file_path, 60 * 60); // 1 hour
-      
-      if (error || !data?.signedUrl) {
-        const { data: pub } = supabase.storage
-          .from('documents')
-          .getPublicUrl(revision.file_path);
-        
-        const link = window.document.createElement('a');
-        link.href = pub.publicUrl;
-        link.download = revision.file_name || 'document';
-        window.document.body.appendChild(link);
-        link.click();
-        window.document.body.removeChild(link);
-      } else {
-        const link = window.document.createElement('a');
-        link.href = data.signedUrl;
-        link.download = revision.file_name || 'document';
-        window.document.body.appendChild(link);
-        link.click();
-        window.document.body.removeChild(link);
-      }
-    } catch (error) {
+      const { downloadFromStorage, normalizeStorageError } = await import('@/utils/storageUtils');
+      await downloadFromStorage(revision.file_path, revision.file_name || 'document');
+    } catch (error: any) {
       console.error('Download failed:', error);
     }
   };
