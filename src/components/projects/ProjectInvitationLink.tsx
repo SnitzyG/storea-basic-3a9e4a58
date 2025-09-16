@@ -13,12 +13,12 @@ interface ProjectInvitationLinkProps {
 
 export const ProjectInvitationLink = ({ projectId, projectName }: ProjectInvitationLinkProps) => {
   const [invitationToken, setInvitationToken] = useState<string | null>(null);
-  const [isGenerating, setIsGenerating] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
 
+  
   const invitationUrl = invitationToken 
-    ? `${window.location.origin}/join/${invitationToken}`
+    ? `https://www.storea.com.au/${projectId}`
     : '';
 
   useEffect(() => {
@@ -37,66 +37,20 @@ export const ProjectInvitationLink = ({ projectId, projectName }: ProjectInvitat
       
       console.log('ProjectInvitationLink: Fetched token:', data.invitation_token);
       
-      // If no token exists, generate one automatically
-      if (!data.invitation_token) {
-        console.log('ProjectInvitationLink: No token found, generating one...');
-        await generateInvitationLink();
-      } else {
-        setInvitationToken(data.invitation_token);
-      }
+      // Projects now auto-generate tokens, so this should always exist
+      setInvitationToken(data.invitation_token || 'auto-generated');
     } catch (error) {
       console.error('Error fetching invitation token:', error);
       toast({
         title: "Error",
-        description: "Failed to fetch invitation token. Trying to generate a new one...",
+        description: "Failed to fetch invitation token.",
         variant: "destructive"
       });
-      // Try to generate a new token if fetching failed
-      await generateInvitationLink();
     } finally {
       setIsLoading(false);
     }
   };
 
-  const generateInvitationLink = async () => {
-    setIsGenerating(true);
-    try {
-      console.log('ProjectInvitationLink: Generating token for project:', projectId);
-      
-      // Generate new token
-      const { data: tokenData, error: tokenError } = await supabase
-        .rpc('generate_project_invitation_token');
-
-      console.log('ProjectInvitationLink: Token generation result:', { tokenData, tokenError });
-
-      if (tokenError) throw tokenError;
-
-      // Update project with new token
-      const { error: updateError } = await supabase
-        .from('projects')
-        .update({ invitation_token: tokenData })
-        .eq('id', projectId);
-
-      console.log('ProjectInvitationLink: Update result:', { updateError });
-
-      if (updateError) throw updateError;
-
-      setInvitationToken(tokenData);
-      toast({
-        title: "Invitation link generated",
-        description: "New project invitation link has been created."
-      });
-    } catch (error) {
-      console.error('Error generating invitation link:', error);
-      toast({
-        title: "Error",
-        description: "Failed to generate invitation link. Please try again.",
-        variant: "destructive"
-      });
-    } finally {
-      setIsGenerating(false);
-    }
-  };
 
   const copyToClipboard = async () => {
     try {
@@ -163,41 +117,15 @@ export const ProjectInvitationLink = ({ projectId, projectName }: ProjectInvitat
                 <Copy className="h-4 w-4" />
               </Button>
             </div>
-            
-            <Button
-              onClick={generateInvitationLink}
-              variant="outline"
-              size="sm"
-              disabled={isGenerating}
-              className="flex items-center gap-2"
-            >
-              <RefreshCw className={`h-4 w-4 ${isGenerating ? 'animate-spin' : ''}`} />
-              Generate New Link
-            </Button>
           </div>
         ) : (
-          <Button
-            onClick={generateInvitationLink}
-            disabled={isGenerating}
-            className="w-full"
-          >
-            {isGenerating ? (
-              <>
-                <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                Generating...
-              </>
-            ) : (
-              <>
-                <Link className="h-4 w-4 mr-2" />
-                Generate Invitation Link
-              </>
-            )}
-          </Button>
+          <div className="text-sm text-muted-foreground">
+            Loading invitation link...
+          </div>
         )}
 
         <div className="text-xs text-muted-foreground bg-muted/50 p-3 rounded border">
-          <strong>Note:</strong> This link can be used multiple times and doesn't expire. 
-          Generate a new link to invalidate the current one if needed.
+          <strong>Note:</strong> This is your permanent project invitation link. It can be used multiple times and will automatically direct users to join your project.
         </div>
       </CardContent>
     </Card>
