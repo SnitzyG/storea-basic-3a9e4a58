@@ -1545,6 +1545,10 @@ export type Database = {
         Args: { target_user_id: string; user_email: string }
         Returns: undefined
       }
+      migrate_existing_documents: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
     }
     Enums: {
       document_status: "For Tender" | "For Information" | "For Construction"

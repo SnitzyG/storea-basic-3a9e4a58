@@ -4,9 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Document, useDocuments } from '@/hooks/useDocuments';
+import { DocumentGroup } from '@/hooks/useDocumentGroups';
 import { useProjects } from '@/hooks/useProjects';
 import { useProjectTeam } from '@/hooks/useProjectTeam';
 import { useAuth } from '@/hooks/useAuth';
@@ -18,28 +17,29 @@ import { DocumentSharingDialog } from './DocumentSharingDialog';
 import { DocumentHistoryDialog } from './DocumentHistoryDialog';
 import { SupersedeDocumentDialog } from './SupersedeDocumentDialog';
 import { DocumentDeleteConfirmDialog } from './DocumentDeleteConfirmDialog';
-import { getFileExtension, getSafeFilename } from '@/utils/documentUtils';
+
 interface DocumentListViewProps {
-  documents: Document[];
+  documentGroups: DocumentGroup[];
   onDownload: (filePath: string, fileName: string) => void;
-  onDelete?: (documentId: string, filePath: string) => void;
-  onStatusChange?: (documentId: string, status: string) => void;
-  onTypeChange?: (documentId: string, type: string) => void;
-  onAccessibilityChange?: (documentId: string, accessibility: string) => void;
-  onPreview?: (document: Document) => void;
-  onViewDetails?: (document: Document) => void;
-  onViewActivity?: (document: Document) => void;
-  onToggleLock?: (documentId: string) => void;
+  onDelete?: (groupId: string) => void;
+  onStatusChange?: (groupId: string, status: string) => void;
+  onTypeChange?: (groupId: string, type: string) => void;
+  onAccessibilityChange?: (groupId: string, accessibility: string) => void;
+  onPreview?: (group: DocumentGroup) => void;
+  onViewDetails?: (group: DocumentGroup) => void;
+  onViewActivity?: (group: DocumentGroup) => void;
+  onToggleLock?: (groupId: string) => void;
+  onSupersede?: (group: DocumentGroup) => void;
   canEdit: boolean;
   canApprove: boolean;
   selectedProject?: string;
 }
 
-type SortField = 'document_number' | 'title' | 'version' | 'status' | 'created_at' | 'updated_at' | 'uploaded_by' | 'category';
+type SortField = 'document_number' | 'title' | 'category' | 'status' | 'created_at' | 'updated_at' | 'created_by';
 type SortDirection = 'asc' | 'desc';
 
 export const DocumentListView: React.FC<DocumentListViewProps> = ({
-  documents,
+  documentGroups,
   onDownload,
   onDelete,
   onStatusChange,
@@ -49,74 +49,66 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
   onViewDetails,
   onViewActivity,
   onToggleLock,
+  onSupersede,
   canEdit,
   canApprove,
   selectedProject
 }) => {
   // Sorting state
-  const [sortField, setSortField] = useState<SortField>('created_at');
+  const [sortField, setSortField] = useState<SortField>('updated_at');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
 
-  // Filter out superseded documents and older versions from main list
-  const activeDocuments = documents.filter(doc => !doc.is_superseded);
   const [selectedDocuments, setSelectedDocuments] = useState<Set<string>>(new Set());
-  const [editingDocument, setEditingDocument] = useState<Document | null>(null);
+  const [editingDocument, setEditingDocument] = useState<DocumentGroup | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [sharingDocument, setSharingDocument] = useState<Document | null>(null);
+  const [sharingDocument, setSharingDocument] = useState<DocumentGroup | null>(null);
   const [isSharingDialogOpen, setIsSharingDialogOpen] = useState(false);
-  const [historyDocument, setHistoryDocument] = useState<Document | null>(null);
+  const [historyDocument, setHistoryDocument] = useState<DocumentGroup | null>(null);
   const [isHistoryDialogOpen, setIsHistoryDialogOpen] = useState(false);
-  const [supersedeDocument, setSupersedeDocument] = useState<Document | null>(null);
+  const [supersedeDocument, setSupersedeDocument] = useState<DocumentGroup | null>(null);
   const [isSupersedeDialogOpen, setIsSupersedeDialogOpen] = useState(false);
-  const [deleteDocument, setDeleteDocument] = useState<Document | null>(null);
+  const [deleteDocument, setDeleteDocument] = useState<DocumentGroup | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const {
-    projects
-  } = useProjects();
-  const {
-    teamMembers
-  } = useProjectTeam(selectedProject);
+  
+  const { projects } = useProjects();
+  const { teamMembers } = useProjectTeam(selectedProject);
   const { profile } = useAuth();
-  const { supersedeDocument: handleDocumentSupersede } = useDocuments();
+
   // Convert numeric version to alphanumeric (1=A, 2=B, etc.)
-  const getVersionLabel = (version?: number) => {
-    if (!version || version < 1) return 'A';
-    return String.fromCharCode(64 + version); // 65 is 'A', so 64 + 1 = 'A'
+  const getVersionLabel = (revision?: DocumentGroup['current_revision']) => {
+    if (!revision || !revision.revision_number || revision.revision_number < 1) return 'A';
+    return String.fromCharCode(64 + revision.revision_number);
   };
+
   const getProjectNumber = (projectId: string) => {
     const project = projects.find(p => p.id === projectId);
     if (!project) return 'N/A';
-    // Generate project number from project name (first 3 chars + year)
     const code = project.name.substring(0, 3).toUpperCase();
     const year = new Date(project.created_at).getFullYear();
     return `${code}-${year}`;
   };
+
   const getStatusBadgeColor = (status: string) => {
     switch (status.toLowerCase()) {
-      case 'draft':
+      case 'for construction':
+        return 'default';
+      case 'for tender':
         return 'secondary';
-      case 'for review':
-      case 'under review':
+      case 'for information':
         return 'outline';
-      case 'approved':
-        return 'default';
-      case 'superseded':
-        return 'outline';
-      case 'void':
-        return 'destructive';
-      case 'final':
-        return 'default';
       default:
         return 'secondary';
     }
   };
+
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
-      setSelectedDocuments(new Set(activeDocuments.map(doc => doc.id)));
+      setSelectedDocuments(new Set(documentGroups.map(group => group.id)));
     } else {
       setSelectedDocuments(new Set());
     }
   };
+
   const handleSelectDocument = (documentId: string, checked: boolean) => {
     const newSelected = new Set(selectedDocuments);
     if (checked) {
@@ -126,97 +118,70 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
     }
     setSelectedDocuments(newSelected);
   };
-  const statusOptions = [{
-    value: "For Tender",
-    label: "For Tender"
-  }, {
-    value: "For Information",
-    label: "For Information"
-  }, {
-    value: "For Construction",
-    label: "For Construction"
-  }];
-  const typeOptions = [{
-    value: "Architectural",
-    label: "Architectural"
-  }, {
-    value: "Structural",
-    label: "Structural"
-  }, {
-    value: "Permit",
-    label: "Permit"
-  }];
-  const accessibilityOptions = [{
-    value: 'public',
-    label: 'Public'
-  }, {
-    value: 'private',
-    label: 'Private'
-  }];
-  const handleEditDocument = (document: Document) => {
-    setEditingDocument(document);
+
+  const handleEditDocument = (group: DocumentGroup) => {
+    setEditingDocument(group);
     setIsEditDialogOpen(true);
   };
+
   const handleEditSave = () => {
-    // Refresh documents list after edit
-    window.location.reload(); // Simple refresh for now
+    window.location.reload();
   };
 
-  const handleShareDocument = (document: Document) => {
-    setSharingDocument(document);
+  const handleShareDocument = (group: DocumentGroup) => {
+    setSharingDocument(group);
     setIsSharingDialogOpen(true);
   };
 
-  const handleViewHistory = (document: Document) => {
-    setHistoryDocument(document);
+  const handleViewHistory = (group: DocumentGroup) => {
+    setHistoryDocument(group);
     setIsHistoryDialogOpen(true);
   };
 
-  const handleSupersede = (document: Document) => {
-    setSupersedeDocument(document);
+  const handleSupersede = (group: DocumentGroup) => {
+    setSupersedeDocument(group);
     setIsSupersedeDialogOpen(true);
   };
 
-  const handleDeleteConfirm = (document: Document) => {
-    setDeleteDocument(document);
+  const handleDeleteConfirm = (group: DocumentGroup) => {
+    setDeleteDocument(group);
     setIsDeleteDialogOpen(true);
   };
 
-  const handleDeleteExecute = (documentId: string, filePath: string) => {
+  const handleDeleteExecute = (groupId: string) => {
     if (onDelete) {
-      onDelete(documentId, filePath);
+      onDelete(groupId);
     }
     setIsDeleteDialogOpen(false);
     setDeleteDocument(null);
   };
 
-  // Get user name from user ID
-  const getUserName = async (userId: string) => {
-    try {
-      const {
-        data: profile
-      } = await supabase.from('profiles').select('name').eq('user_id', userId).single();
-      return profile?.name || 'Unknown User';
-    } catch (error) {
-      return 'Unknown User';
-    }
-  };
+  // Get user names
   const [userNames, setUserNames] = useState<Record<string, string>>({});
 
-  // Load user names for all documents
   React.useEffect(() => {
     const loadUserNames = async () => {
-      const uniqueUserIds = [...new Set(activeDocuments.map(doc => doc.uploaded_by))];
+      const uniqueUserIds = [...new Set(documentGroups.map(group => group.created_by))];
       const names: Record<string, string> = {};
-      for (const userId of uniqueUserIds) {
-        names[userId] = await getUserName(userId);
+      
+      if (uniqueUserIds.length > 0) {
+        const { data: profiles } = await supabase
+          .from('profiles')
+          .select('user_id, name')
+          .in('user_id', uniqueUserIds);
+        
+        profiles?.forEach(profile => {
+          names[profile.user_id] = profile.name || 'Unknown User';
+        });
       }
+      
       setUserNames(names);
     };
-    if (activeDocuments.length > 0) {
+    
+    if (documentGroups.length > 0) {
       loadUserNames();
     }
-  }, [activeDocuments]);
+  }, [documentGroups]);
 
   // Handle sorting
   const handleSort = (field: SortField) => {
@@ -228,21 +193,20 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
     }
   };
 
-  // Sort documents
-  const sortedDocuments = useMemo(() => {
-    return [...activeDocuments].sort((a, b) => {
-      let aValue: any = a[sortField];
-      let bValue: any = b[sortField];
+  // Sort document groups
+  const sortedDocumentGroups = useMemo(() => {
+    return [...documentGroups].sort((a, b) => {
+      let aValue: any = a[sortField as keyof DocumentGroup];
+      let bValue: any = b[sortField as keyof DocumentGroup];
 
       // Handle special cases
-      if (sortField === 'uploaded_by') {
-        aValue = userNames[a.uploaded_by] || 'Unknown';
-        bValue = userNames[b.uploaded_by] || 'Unknown';
+      if (sortField === 'created_by') {
+        aValue = userNames[a.created_by] || 'Unknown';
+        bValue = userNames[b.created_by] || 'Unknown';
       } else if (sortField === 'category') {
-        // Ensure valid categories for sorting
-        const validCategories = ['Architectural', 'Structural', 'Permit', 'General'];
-        aValue = validCategories.includes(a.file_type_category) ? a.file_type_category : 'General';
-        bValue = validCategories.includes(b.file_type_category) ? b.file_type_category : 'General';
+        const validCategories = ['Architectural', 'Structural', 'Permit', 'Uncategorized'];
+        aValue = validCategories.includes(a.category) ? a.category : 'Uncategorized';
+        bValue = validCategories.includes(b.category) ? b.category : 'Uncategorized';
       } else if (sortField === 'created_at' || sortField === 'updated_at') {
         aValue = new Date(aValue).getTime();
         bValue = new Date(bValue).getTime();
@@ -260,7 +224,7 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
       if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
       return 0;
     });
-  }, [activeDocuments, sortField, sortDirection, userNames]);
+  }, [documentGroups, sortField, sortDirection, userNames]);
 
   const SortButton: React.FC<{ field: SortField; children: React.ReactNode }> = ({ field, children }) => (
     <Button
@@ -281,16 +245,19 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
     </Button>
   );
 
-  return <div className="border rounded-lg">
+  return (
+    <div className="border rounded-lg">
       <Table>
         <TableHeader>
           <TableRow className="bg-muted/50">
             <TableHead className="w-12">
-              <Checkbox checked={selectedDocuments.size === activeDocuments.length && activeDocuments.length > 0} onCheckedChange={handleSelectAll} />
+              <Checkbox 
+                checked={selectedDocuments.size === documentGroups.length && documentGroups.length > 0} 
+                onCheckedChange={handleSelectAll} 
+              />
             </TableHead>
-            <TableHead className="w-12"> Type</TableHead>
+            <TableHead className="w-12">Type</TableHead>
             <TableHead className="w-12">Lock</TableHead>
-            
             <TableHead className="w-32">
               <SortButton field="document_number">
                 Document No.
@@ -302,9 +269,7 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
               </SortButton>
             </TableHead>
             <TableHead className="w-16">
-              <SortButton field="version">
-                Rev
-              </SortButton>
+              Rev
             </TableHead>
             <TableHead className="w-24">
               <SortButton field="status">
@@ -322,7 +287,7 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
               </SortButton>
             </TableHead>
             <TableHead className="w-32">
-              <SortButton field="uploaded_by">
+              <SortButton field="created_by">
                 Created By
               </SortButton>
             </TableHead>
@@ -332,95 +297,102 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
               </SortButton>
             </TableHead>
             <TableHead className="w-32">
-              <Button variant="ghost" className="h-auto p-0 font-semibold text-left justify-start">
-                Accessibility
-                <ArrowUpDown className="ml-2 h-4 w-4" />
-              </Button>
+              Accessibility
             </TableHead>
-            <TableHead className="w-16"> Preview</TableHead>
-            <TableHead className="w-16"> History</TableHead>
+            <TableHead className="w-16">Preview</TableHead>
+            <TableHead className="w-16">History</TableHead>
             <TableHead className="w-12">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {sortedDocuments.map(document => <TableRow key={document.id} className="hover:bg-muted/50 border-b">
+          {sortedDocumentGroups.map(group => (
+            <TableRow key={group.id} className="hover:bg-muted/50 border-b">
               <TableCell>
-                <Checkbox checked={selectedDocuments.has(document.id)} onCheckedChange={checked => handleSelectDocument(document.id, checked as boolean)} />
+                <Checkbox 
+                  checked={selectedDocuments.has(group.id)} 
+                  onCheckedChange={checked => handleSelectDocument(group.id, checked as boolean)} 
+                />
               </TableCell>
               
               <TableCell>
-                <FileTypeIcon fileName={document.name} fileType={document.file_type} />
+                <FileTypeIcon 
+                  fileName={group.current_revision?.file_name || group.title} 
+                  fileType={group.current_revision?.file_type || 'application/octet-stream'} 
+                />
               </TableCell>
               
               <TableCell>
-                <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={() => onToggleLock?.(document.id)} disabled={!canEdit}>
-                  {document.is_locked ? <Lock className="h-4 w-4 text-destructive" /> : <Unlock className="h-4 w-4 text-muted-foreground" />}
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="h-7 w-7 p-0" 
+                  onClick={() => onToggleLock?.(group.id)} 
+                  disabled={!canEdit}
+                >
+                  {group.is_locked ? 
+                    <Lock className="h-4 w-4 text-destructive" /> : 
+                    <Unlock className="h-4 w-4 text-muted-foreground" />
+                  }
                 </Button>
               </TableCell>
               
-              
-              
               <TableCell className="font-mono text-xs">
-                {canEdit ? document.document_number || 'N/A' : '-'}
+                {canEdit ? group.document_number || 'N/A' : '-'}
               </TableCell>
               
               <TableCell className="font-medium">
                 <div className="flex items-center gap-2">
-                  {document.title || document.name}
+                  {group.title}
                 </div>
               </TableCell>
               
               <TableCell className="font-mono text-center">
-                {getVersionLabel(document.version)}
+                {getVersionLabel(group.current_revision)}
               </TableCell>
               
               <TableCell>
-                <Badge variant={getStatusBadgeColor(document.status)} className="text-xs">
-                  {document.status.replace('_', ' ')}
+                <Badge variant={getStatusBadgeColor(group.status)} className="text-xs">
+                  {group.status.replace('_', ' ')}
                 </Badge>
               </TableCell>
               
               <TableCell className="text-xs text-foreground">
-                {format(new Date(document.created_at), 'dd/MM/yy HH:mm')}
+                {format(new Date(group.created_at), 'dd/MM/yy HH:mm')}
               </TableCell>
               
               <TableCell className="text-xs text-foreground">
-                {format(new Date(document.updated_at), 'dd/MM/yy HH:mm')}
+                {format(new Date(group.updated_at), 'dd/MM/yy HH:mm')}
               </TableCell>
               
               <TableCell className="text-xs text-foreground">
-                {userNames[document.uploaded_by] || 'Loading...'}
+                {userNames[group.created_by] || 'Loading...'}
               </TableCell>
               
               <TableCell className="text-xs text-foreground">
-                {['Architectural', 'Structural', 'Permit'].includes(document.file_type_category) 
-                  ? document.file_type_category 
-                  : 'General'}
+                {['Architectural', 'Structural', 'Permit'].includes(group.category) 
+                  ? group.category 
+                  : 'Uncategorized'}
               </TableCell>
               
               <TableCell>
                 <div className="flex items-center gap-1">
-                  <Badge variant={document.visibility_scope === 'private' ? 'secondary' : 'outline'} className="text-xs">
-                    {document.visibility_scope === 'private' ? 'Private' : 'Public'}
+                  <Badge variant={group.visibility_scope === 'private' ? 'secondary' : 'outline'} className="text-xs">
+                    {group.visibility_scope === 'private' ? 'Private' : 'Public'}
                   </Badge>
                 </div>
               </TableCell>
               
               <TableCell>
-                <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={() => onPreview?.(document)}>
+                <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={() => onPreview?.(group)}>
                   <Eye className="h-3 w-3" />
                 </Button>
               </TableCell>
 
               <TableCell>
-                <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={() => handleViewHistory(document)}>
+                <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={() => handleViewHistory(group)}>
                   <Clock className="h-3 w-3" />
                 </Button>
               </TableCell>
-              
-              
-              
-              
               
               <TableCell>
                 <DropdownMenu>
@@ -430,83 +402,89 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="bg-background border">
-                    <DropdownMenuItem onClick={() => onDownload(document.file_path, getSafeFilename(document))}>
+                    <DropdownMenuItem 
+                      onClick={() => group.current_revision && onDownload(
+                        group.current_revision.file_path, 
+                        group.current_revision.file_name
+                      )}
+                    >
                       <Download className="h-3 w-3 mr-2" />
                       Download
                     </DropdownMenuItem>
                     
-                    {canEdit && <DropdownMenuItem onClick={() => handleSupersede(document)}>
+                    {canEdit && onSupersede && (
+                      <DropdownMenuItem onClick={() => handleSupersede(group)}>
                         <Edit className="h-3 w-3 mr-2" />
                         Supersede
-                      </DropdownMenuItem>}
+                      </DropdownMenuItem>
+                    )}
                     
-                    {/* Show sharing option for private documents or document owners */}
-                    {(document.visibility_scope === 'private' || document.uploaded_by === profile?.user_id) && (
-                      <DropdownMenuItem onClick={() => handleShareDocument(document)}>
+                    {(group.visibility_scope === 'private' || group.created_by === profile?.user_id) && (
+                      <DropdownMenuItem onClick={() => handleShareDocument(group)}>
                         <Share className="h-3 w-3 mr-2" />
                         Share
                       </DropdownMenuItem>
                     )}
                      
-                     {canEdit && onDelete && <DropdownMenuItem onClick={() => handleDeleteConfirm(document)} className="text-destructive">
-                         <X className="h-3 w-3 mr-2" />
-                         Delete Forever
-                       </DropdownMenuItem>}
+                    {canEdit && onDelete && (
+                      <DropdownMenuItem onClick={() => handleDeleteConfirm(group)} className="text-destructive">
+                        <X className="h-3 w-3 mr-2" />
+                        Delete Forever
+                      </DropdownMenuItem>
+                    )}
                   </DropdownMenuContent>
                 </DropdownMenu>
               </TableCell>
-            </TableRow>)}
+            </TableRow>
+          ))}
         </TableBody>
       </Table>
       
-      {activeDocuments.length === 0 && <div className="text-center py-12 text-muted-foreground">
+      {documentGroups.length === 0 && (
+        <div className="text-center py-12 text-muted-foreground">
           <FileTypeIcon fileName="document.pdf" className="h-12 w-12 mx-auto mb-2 opacity-50" />
           <p>No documents found</p>
-        </div>}
+          <p className="text-sm">Upload your first document to get started</p>
+        </div>
+      )}
 
-      <EditDocumentDialog document={editingDocument} isOpen={isEditDialogOpen} onClose={() => {
-      setIsEditDialogOpen(false);
-      setEditingDocument(null);
-    }} onSave={handleEditSave} />
-
-      <DocumentSharingDialog 
-        document={sharingDocument} 
-        isOpen={isSharingDialogOpen} 
-        onClose={() => {
-          setIsSharingDialogOpen(false);
-          setSharingDocument(null);
-        }}
-        projectId={selectedProject}
+      {/* Dialogs */}
+      <EditDocumentDialog
+        document={editingDocument}
+        isOpen={isEditDialogOpen}
+        onClose={() => setIsEditDialogOpen(false)}
+        onSave={handleEditSave}
       />
 
-      <DocumentHistoryDialog 
-        document={historyDocument} 
-        isOpen={isHistoryDialogOpen} 
-        onClose={() => {
-          setIsHistoryDialogOpen(false);
-          setHistoryDocument(null);
-        }}
+      <DocumentSharingDialog
+        document={sharingDocument}
+        isOpen={isSharingDialogOpen}
+        onClose={() => setIsSharingDialogOpen(false)}
+      />
+
+      <DocumentHistoryDialog
+        document={historyDocument}
+        isOpen={isHistoryDialogOpen}
+        onClose={() => setIsHistoryDialogOpen(false)}
         onDownload={onDownload}
       />
 
       <SupersedeDocumentDialog
         document={supersedeDocument}
         isOpen={isSupersedeDialogOpen}
-        onClose={() => {
+        onClose={() => setIsSupersedeDialogOpen(false)}
+        onSupersede={(group, file, summary) => {
+          onSupersede?.(group);
           setIsSupersedeDialogOpen(false);
-          setSupersedeDocument(null);
         }}
-        onSupersede={handleDocumentSupersede}
       />
 
       <DocumentDeleteConfirmDialog
         document={deleteDocument}
         isOpen={isDeleteDialogOpen}
-        onClose={() => {
-          setIsDeleteDialogOpen(false);
-          setDeleteDocument(null);
-        }}
-        onConfirmDelete={handleDeleteExecute}
+        onClose={() => setIsDeleteDialogOpen(false)}
+        onConfirm={handleDeleteExecute}
       />
-    </div>;
+    </div>
+  );
 };
