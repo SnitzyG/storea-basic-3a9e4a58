@@ -22,7 +22,7 @@ import AcceptInvitation from "./pages/AcceptInvitation.tsx";
 import ProjectJoin from "./pages/ProjectJoin.tsx";
 import ProjectInvite from "./pages/ProjectInvite.tsx";
 import JoinProject from "./pages/JoinProject.tsx";
-import ProjectRedirect from "./pages/ProjectRedirect.tsx";
+
 import "./index.css";
 import { ThemeProvider } from "./context/ThemeContext.tsx";
 import { ErrorBoundary } from "./components/ui/error-boundary.tsx";
@@ -58,7 +58,7 @@ createRoot(document.getElementById("root")!).render(
         <Route path="/projects/:projectId/join" element={<ProjectJoin />} />
         <Route path="/invite/:token" element={<ProjectInvite />} />
                     <Route path="/join/:token" element={<JoinProject />} />
-                    <Route path="/:projectId" element={<ProjectRedirect />} />
+                    
                     <Route path="*" element={<NotFound />} />
                   </Routes>
                 </BrowserRouter>

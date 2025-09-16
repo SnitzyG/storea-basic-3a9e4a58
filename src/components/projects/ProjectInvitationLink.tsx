@@ -17,8 +17,8 @@ export const ProjectInvitationLink = ({ projectId, projectName }: ProjectInvitat
   const { toast } = useToast();
 
   
-  const invitationUrl = invitationToken 
-    ? `https://www.storea.com.au/${projectId}`
+  const invitationUrl = invitationToken
+    ? `${window.location.origin}/projects/${projectId}/join`
     : '';
 
   useEffect(() => {
