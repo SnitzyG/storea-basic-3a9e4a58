@@ -33,7 +33,7 @@ const Projects = () => {
     open: false,
     project: null
   });
-  const isArchitect = profile?.role === 'architect';
+  const isArchitect = (profile?.role === 'architect') || ((useAuth().user?.user_metadata as any)?.role === 'architect');
 
   // Filter projects based on search and status
   const filteredProjects = projects.filter(project => {
