@@ -1,6 +1,5 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.0";
-import { Resend } from "npm:resend@2.0.0";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -93,12 +92,10 @@ serve(async (req) => {
       inviter_name: inviterName || 'Team Member'
     };
 
-    // VERIFY IN SUPABASE DASHBOARD: Auth > SMTP > Enable Custom SMTP
-    // Host: smtp.resend.com, Port: 465 (SSL) or 587 (TLS), User: 'resend', Pass: RESEND_API_KEY
-    // Sender: no-reply@yourdomain.com. Test via dashboard.
+    // Use Supabase's native auth invite system
     const redirectUrl = `${Deno.env.get('SITE_URL')}/projects/${projectId}/join?role=${role}&projectId=${projectId}`;
     
-    console.log('Attempting Supabase admin.inviteUserByEmail with:', { 
+    console.log('Sending Supabase admin.inviteUserByEmail:', { 
       email: email.toLowerCase(), 
       redirectUrl, 
       metadata: userMetadata 
@@ -112,7 +109,7 @@ serve(async (req) => {
       }
     );
 
-    // Log full response for debugging
+    // Log response for debugging
     console.log('Supabase invitation response:', { 
       success: !!inviteData && !inviteError, 
       error: inviteError?.message, 
@@ -120,46 +117,18 @@ serve(async (req) => {
       user_id: inviteData?.user?.id 
     });
 
-    // If Supabase SMTP fails, fallback to direct Resend API
     if (inviteError) {
-      console.warn('Supabase invitation failed, attempting Resend fallback:', inviteError.message);
-      
-      try {
-        const resend = new Resend(Deno.env.get('RESEND_API_KEY'));
-        const fallbackResponse = await resend.emails.send({
-          from: 'no-reply@yourdomain.com', // TODO: Configure your domain
-          to: [email.toLowerCase()],
-          subject: `Join Project Invitation - ${projectName}`,
-          html: `
-            <h2>You're invited to join ${projectName}</h2>
-            <p>Hi! You've been invited to join the project "${projectName}" as a <strong>${role}</strong>.</p>
-            ${userMetadata.inviter_name ? `<p>Invited by: ${userMetadata.inviter_name}</p>` : ''}
-            <p><a href="${redirectUrl}" style="background: #3b82f6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px;">Accept Invite</a></p>
-            <p><small>This invitation expires in 7 days.</small></p>
-          `
-        });
-        
-        console.log('Resend fallback response:', fallbackResponse);
-        
-        if (fallbackResponse.data) {
-          console.log('Fallback email sent successfully via Resend');
-          // Continue with invitation record creation below
-        } else {
-          throw new Error('Resend API failed');
-        }
-      } catch (resendError) {
-        console.error('Both Supabase and Resend failed:', resendError);
-        return new Response(
-          JSON.stringify({ 
-            error: 'Email delivery failed - check Supabase SMTP config and Resend API key',
-            details: `Supabase: ${inviteError.message}, Resend: ${resendError.message}` 
-          }),
-          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
-    } else {
-      console.log('Supabase invitation sent successfully:', inviteData);
+      console.error('Supabase invitation failed:', inviteError.message);
+      return new Response(
+        JSON.stringify({ 
+          error: 'Failed to send invitation email',
+          details: inviteError.message 
+        }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
+
+    console.log('Supabase invitation sent successfully:', inviteData);
 
     // Create invitation record for tracking
     const expiresAt = new Date();
