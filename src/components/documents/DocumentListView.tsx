@@ -1,7 +1,33 @@
 import React, { useState } from 'react';
-import { Upload } from 'lucide-react';
-import { DocumentCard } from './DocumentCard';
+import { 
+  MoreHorizontal, 
+  Download, 
+  Eye, 
+  FileText, 
+  History, 
+  Edit, 
+  Share, 
+  Lock, 
+  Unlock, 
+  X,
+  Upload,
+  MessageSquare
+} from 'lucide-react';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { DocumentGroup } from '@/hooks/useDocumentGroups';
+import { SupersedeDocumentDialog } from './SupersedeDocumentDialog';
+import { format } from 'date-fns';
+import { FileTypeIcon } from './FileTypeIcon';
+import { useAuth } from '@/hooks/useAuth';
 
 interface DocumentListViewProps {
   documentGroups: DocumentGroup[];
@@ -32,34 +58,211 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
   canApprove,
   selectedProject
 }) => {
+  const { profile } = useAuth();
+  const [supersedeDocument, setSupersedeDocument] = useState<DocumentGroup | null>(null);
+  const [isSupersedeDialogOpen, setIsSupersedeDialogOpen] = useState(false);
+
+  const handleSupersede = (group: DocumentGroup) => {
+    setSupersedeDocument(group);
+    setIsSupersedeDialogOpen(true);
+  };
+
+  const handleShareDocument = (group: DocumentGroup) => {
+    // TODO: Implement sharing
+    console.log('Share document:', group.id);
+  };
+
+  const handleViewHistory = (group: DocumentGroup) => {
+    onViewDetails(group);
+  };
+
+  const handleEditDocument = (group: DocumentGroup) => {
+    // TODO: Implement edit
+    console.log('Edit document:', group.id);
+  };
+
+  const handleDeleteConfirm = async (group: DocumentGroup) => {
+    if (confirm(`Are you sure you want to delete "${group.title}"?`)) {
+      await onDelete(group.id);
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'For Construction':
+        return 'bg-green-100 text-green-800 border-green-200';
+      case 'For Tender':
+        return 'bg-blue-100 text-blue-800 border-blue-200';
+      case 'For Information':
+        return 'bg-gray-100 text-gray-800 border-gray-200';
+      default:
+        return 'bg-gray-100 text-gray-800 border-gray-200';
+    }
+  };
+
+  const formatFileSize = (bytes?: number) => {
+    if (!bytes) return '-';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  };
+
   return (
     <div className="space-y-4">
-      {documentGroups.length === 0 ? (
-        <div className="text-center py-12">
-          <Upload className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-          <h3 className="text-lg font-medium mb-2">No documents found</h3>
-          <p className="text-muted-foreground">Upload your first document to get started</p>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead className="w-[60px]">Type</TableHead>
+            <TableHead>Document</TableHead>
+            <TableHead>Number</TableHead>
+            <TableHead>Category</TableHead>
+            <TableHead>Status</TableHead>
+            <TableHead>Size</TableHead>
+            <TableHead>Rev</TableHead>
+            <TableHead>Created</TableHead>
+            <TableHead>Updated</TableHead>
+            <TableHead className="w-[50px]">Actions</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
           {documentGroups.map((group) => (
-            <DocumentCard
-              key={group.id}
-              documentGroup={group}
-              onDownload={onDownload}
-              onDelete={onDelete}
-              onStatusChange={onStatusChange}
-              onTypeChange={onTypeChange}
-              onPreview={onPreview}
-              onViewDetails={onViewDetails}
-              onViewActivity={onViewActivity}
-              onSupersede={onSupersede}
-              canEdit={canEdit}
-              canApprove={canApprove}
-            />
+            <TableRow key={group.id} className="hover:bg-muted/50">
+              <TableCell>
+                <FileTypeIcon 
+                  fileName={group.current_revision?.file_name || ''} 
+                  className="h-6 w-6" 
+                />
+              </TableCell>
+              <TableCell>
+                <div className="space-y-1">
+                  <p className="font-medium text-sm leading-none">
+                    {group.title}
+                  </p>
+                  {group.current_revision?.file_name && (
+                    <p className="text-xs text-muted-foreground">
+                      {group.current_revision.file_name}
+                    </p>
+                  )}
+                </div>
+              </TableCell>
+              <TableCell className="font-mono text-xs">
+                {group.document_number || '-'}
+              </TableCell>
+              <TableCell>
+                <Badge variant="outline" className="text-xs">
+                  {group.category}
+                </Badge>
+              </TableCell>
+              <TableCell>
+                <Badge className={`text-xs ${getStatusColor(group.status)}`}>
+                  {group.status}
+                </Badge>
+              </TableCell>
+              <TableCell className="text-xs text-muted-foreground">
+                {formatFileSize(group.current_revision?.file_size)}
+              </TableCell>
+              <TableCell>
+                <Badge variant="secondary" className="text-xs font-mono">
+                  {group.current_revision?.revision_number || 1}
+                </Badge>
+              </TableCell>
+              <TableCell className="text-xs text-muted-foreground">
+                {format(new Date(group.created_at), 'MMM dd, yyyy')}
+              </TableCell>
+              <TableCell className="text-xs text-muted-foreground">
+                {group.updated_at !== group.created_at 
+                  ? format(new Date(group.updated_at), 'MMM dd, yyyy')
+                  : '-'
+                }
+              </TableCell>
+              <TableCell>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="sm" className="h-7 w-7 p-0">
+                      <MoreHorizontal className="h-3 w-3" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="bg-background border">
+                    <DropdownMenuItem onClick={() => onPreview(group)}>
+                      <Eye className="h-3 w-3 mr-2" />
+                      Preview
+                    </DropdownMenuItem>
+                    
+                    <DropdownMenuItem onClick={() => onDownload(group.id)}>
+                      <Download className="h-3 w-3 mr-2" />
+                      Download
+                    </DropdownMenuItem>
+                    
+                    <DropdownMenuItem onClick={() => handleViewHistory(group)}>
+                      <History className="h-3 w-3 mr-2" />
+                      Version History
+                    </DropdownMenuItem>
+
+                    <DropdownMenuItem onClick={() => onViewActivity(group)}>
+                      <MessageSquare className="h-3 w-3 mr-2" />
+                      Activity
+                    </DropdownMenuItem>
+                    
+                    <DropdownMenuSeparator />
+                    
+                    {canEdit && (
+                      <DropdownMenuItem onClick={() => handleSupersede(group)}>
+                        <Upload className="h-3 w-3 mr-2" />
+                        Supersede
+                      </DropdownMenuItem>
+                    )}
+                    
+                    {(group.visibility_scope === 'private' || group.created_by === profile?.user_id) && (
+                      <DropdownMenuItem onClick={() => handleShareDocument(group)}>
+                        <Share className="h-3 w-3 mr-2" />
+                        Share
+                      </DropdownMenuItem>
+                    )}
+
+                    {canEdit && (
+                      <DropdownMenuItem onClick={() => handleEditDocument(group)}>
+                        <Edit className="h-3 w-3 mr-2" />
+                        Edit Details
+                      </DropdownMenuItem>
+                    )}
+                     
+                    {canEdit && (
+                      <DropdownMenuItem onClick={() => handleDeleteConfirm(group)} className="text-destructive">
+                        <X className="h-3 w-3 mr-2" />
+                        Delete Forever
+                      </DropdownMenuItem>
+                    )}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </TableCell>
+            </TableRow>
           ))}
+        </TableBody>
+      </Table>
+      
+      {documentGroups.length === 0 && (
+        <div className="text-center py-12 text-muted-foreground">
+          <FileTypeIcon fileName="document.pdf" className="h-12 w-12 mx-auto mb-2 opacity-50" />
+          <p>No documents found</p>
+          <p className="text-sm">Upload your first document to get started</p>
         </div>
       )}
+
+      {/* Supersede Dialog */}
+      <SupersedeDocumentDialog
+        document={supersedeDocument}
+        isOpen={isSupersedeDialogOpen}
+        onClose={() => setIsSupersedeDialogOpen(false)}
+        onSupersede={async (groupId, file, summary) => {
+          const success = await onSupersede(groupId, file, summary);
+          if (success) {
+            setIsSupersedeDialogOpen(false);
+            setSupersedeDocument(null);
+          }
+          return success;
+        }}
+      />
     </div>
   );
 };

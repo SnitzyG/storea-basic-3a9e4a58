@@ -2,19 +2,18 @@ import React, { useState } from 'react';
 import { Archive, Upload, FileText } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent } from '@/components/ui/card';
 import { useDropzone } from 'react-dropzone';
-import { Document } from '@/hooks/useDocuments';
+import { DocumentGroup } from '@/hooks/useDocumentGroups';
 import { formatFileSize } from '@/utils/documentUtils';
 
 interface SupersedeDocumentDialogProps {
-  document: Document | null;
+  document: DocumentGroup | null;
   isOpen: boolean;
   onClose: () => void;
-  onSupersede: (documentId: string, newFile: File, changesSummary?: string) => Promise<boolean>;
+  onSupersede: (groupId: string, newFile: File, changesSummary?: string) => Promise<boolean>;
 }
 
 export const SupersedeDocumentDialog: React.FC<SupersedeDocumentDialogProps> = ({
@@ -67,13 +66,15 @@ export const SupersedeDocumentDialog: React.FC<SupersedeDocumentDialogProps> = (
 
   if (!document) return null;
 
+  const currentRevision = document.current_revision;
+
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Archive className="h-5 w-5" />
-            Supersede Document: {document.title || document.name}
+            Supersede Document: {document.title}
           </DialogTitle>
         </DialogHeader>
 
@@ -86,7 +87,7 @@ export const SupersedeDocumentDialog: React.FC<SupersedeDocumentDialogProps> = (
                 <div>
                   <h4 className="font-medium">Current Document</h4>
                   <p className="text-sm text-muted-foreground">
-                    {document.title || document.name} • Rev {String.fromCharCode(64 + (document.version || 1))}
+                    {document.title} • Rev {currentRevision?.revision_number || 1}
                   </p>
                   <p className="text-xs text-muted-foreground">
                     This document will be archived and replaced with the new version
