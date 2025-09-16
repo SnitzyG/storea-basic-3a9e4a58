@@ -11,33 +11,24 @@ export class StorageError extends Error {
   }
 }
 
-// Returns a signed URL when possible. If not available, falls back to a Blob URL.
-// Throws descriptive errors for missing/misconfigured bucket
+// Always downloads as blob to force download behavior instead of opening in browser
 export async function getDownloadUrl(filePath: string): Promise<{ url: string; revoke?: () => void }> {
   try {
-    const { data, error } = await supabase.storage
+    // Always use blob download to ensure files download instead of opening in new tab
+    const { data: fileData, error: downloadError } = await supabase.storage
       .from(DOCUMENTS_BUCKET)
-      .createSignedUrl(filePath, 60 * 60);
+      .download(filePath);
 
-    if (error || !data?.signedUrl) {
-      // Attempt blob download to avoid public bucket assumptions
-      const { data: fileData, error: downloadError } = await supabase.storage
-        .from(DOCUMENTS_BUCKET)
-        .download(filePath);
-
-      if (downloadError) {
-        const msg = normalizeStorageError(downloadError.message);
-        throw new StorageError(msg, (downloadError as any)?.statusCode?.toString());
-      }
-
-      const blobUrl = URL.createObjectURL(fileData);
-      return {
-        url: blobUrl,
-        revoke: () => URL.revokeObjectURL(blobUrl),
-      };
+    if (downloadError) {
+      const msg = normalizeStorageError(downloadError.message);
+      throw new StorageError(msg, (downloadError as any)?.statusCode?.toString());
     }
 
-    return { url: data.signedUrl };
+    const blobUrl = URL.createObjectURL(fileData);
+    return {
+      url: blobUrl,
+      revoke: () => URL.revokeObjectURL(blobUrl),
+    };
   } catch (e: any) {
     const msg = normalizeStorageError(e?.message || String(e));
     throw new StorageError(msg);
