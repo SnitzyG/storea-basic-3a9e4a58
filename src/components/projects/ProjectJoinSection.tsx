@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Separator } from '@/components/ui/separator';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { 
   UserPlus, 
   Clock, 
@@ -14,7 +14,12 @@ import {
   XCircle, 
   MessageSquare,
   Calendar,
-  Send
+  Send,
+  ChevronDown,
+  ChevronUp,
+  Building2,
+  User,
+  Briefcase
 } from 'lucide-react';
 import { useProjectJoinRequests } from '@/hooks/useProjectJoinRequests';
 import { formatDistanceToNow } from 'date-fns';
@@ -30,6 +35,8 @@ export const ProjectJoinSection: React.FC<ProjectJoinSectionProps> = ({ classNam
   const [company, setCompany] = useState('');
   const [role, setRole] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [myRequestsOpen, setMyRequestsOpen] = useState(true);
+  const [requestsForApprovalOpen, setRequestsForApprovalOpen] = useState(true);
   
   const { 
     joinRequests, 
@@ -81,9 +88,11 @@ export const ProjectJoinSection: React.FC<ProjectJoinSectionProps> = ({ classNam
     }
   };
 
-  const pendingRequests = joinRequests.filter(req => req.status === 'pending' && !req.requester_id);
+  // Filter requests properly - requests for approval are where I'm the project creator
+  const requestsForMyApproval = joinRequests.filter(req => 
+    req.project?.name && req.status === 'pending' && req.requester_id
+  );
   const myRequests = joinRequests.filter(req => req.requester_id);
-  const requestsForMyProjects = joinRequests.filter(req => req.project?.name && !req.requester_id);
 
   return (
     <div className={`space-y-6 ${className}`}>
@@ -168,120 +177,176 @@ export const ProjectJoinSection: React.FC<ProjectJoinSectionProps> = ({ classNam
         </CardContent>
       </Card>
 
-      {/* Pending Requests for My Projects */}
-      {pendingRequests.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <MessageSquare className="h-5 w-5" />
-              Pending Join Requests ({pendingRequests.length})
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {pendingRequests.map((request) => (
-              <div key={request.id} className="border rounded-lg p-4 space-y-3">
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-3">
-                    <Avatar className="h-10 w-10">
-                      <AvatarImage src={request.requester?.avatar_url} />
-                      <AvatarFallback>
-                        {request.requester_name?.charAt(0) || request.requester_email?.charAt(0) || 'U'}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <div className="font-medium">
-                        {request.requester_name || request.requester_email}
+      {/* Requests for Approval - Collapsible */}
+      {requestsForMyApproval.length > 0 && (
+        <Collapsible open={requestsForApprovalOpen} onOpenChange={setRequestsForApprovalOpen}>
+          <Card>
+            <CollapsibleTrigger asChild>
+              <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
+                <CardTitle className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <MessageSquare className="h-5 w-5" />
+                    Requests for Approval ({requestsForMyApproval.length})
+                  </div>
+                  {requestsForApprovalOpen ? (
+                    <ChevronUp className="h-4 w-4" />
+                  ) : (
+                    <ChevronDown className="h-4 w-4" />
+                  )}
+                </CardTitle>
+              </CardHeader>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <CardContent className="space-y-4 pt-0">
+                {requestsForMyApproval.map((request) => (
+                  <div key={request.id} className="border rounded-lg p-4 space-y-4">
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-center gap-3">
+                        <Avatar className="h-10 w-10">
+                          <AvatarImage src={request.requester?.avatar_url} />
+                          <AvatarFallback>
+                            {request.requester_name?.charAt(0) || request.requester_email?.charAt(0) || 'U'}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <div className="font-medium">
+                            {request.requester_name || request.requester_email}
+                          </div>
+                          <div className="text-sm text-muted-foreground">
+                            wants to join "{request.project?.name}" • {formatDistanceToNow(new Date(request.created_at), { addSuffix: true })}
+                          </div>
+                        </div>
                       </div>
-                      <div className="text-sm text-muted-foreground">
-                        {request.company && <span>from {request.company} • </span>}
-                        {request.role && <span>Role: {request.role} • </span>}
-                        wants to join • {formatDistanceToNow(new Date(request.created_at), { addSuffix: true })}
+                      <Badge className={getStatusColor(request.status)}>
+                        {getStatusIcon(request.status)}
+                        <span className="ml-1 capitalize">{request.status}</span>
+                      </Badge>
+                    </div>
+                    
+                    {/* Requester Details */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 bg-muted/30 p-3 rounded-md">
+                      {request.company && (
+                        <div className="flex items-center gap-2">
+                          <Building2 className="h-4 w-4 text-muted-foreground" />
+                          <div>
+                            <div className="text-xs text-muted-foreground">Company</div>
+                            <div className="text-sm font-medium">{request.company}</div>
+                          </div>
+                        </div>
+                      )}
+                      {request.role && (
+                        <div className="flex items-center gap-2">
+                          <Briefcase className="h-4 w-4 text-muted-foreground" />
+                          <div>
+                            <div className="text-xs text-muted-foreground">Role</div>
+                            <div className="text-sm font-medium capitalize">{request.role}</div>
+                          </div>
+                        </div>
+                      )}
+                      {request.requester_email && (
+                        <div className="flex items-center gap-2">
+                          <User className="h-4 w-4 text-muted-foreground" />
+                          <div>
+                            <div className="text-xs text-muted-foreground">Email</div>
+                            <div className="text-sm font-medium">{request.requester_email}</div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                    
+                    {request.message && (
+                      <div className="bg-background border p-3 rounded-md">
+                        <div className="text-xs text-muted-foreground mb-1">Message</div>
+                        <p className="text-sm">{request.message}</p>
                       </div>
+                    )}
+                    
+                    <div className="flex items-center gap-2 pt-2">
+                      <Button 
+                        size="sm" 
+                        onClick={() => handleRespondToRequest(request.id, 'approve')}
+                        className="bg-green-600 hover:bg-green-700"
+                      >
+                        <CheckCircle className="h-4 w-4 mr-1" />
+                        Approve
+                      </Button>
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        onClick={() => handleRespondToRequest(request.id, 'reject')}
+                        className="border-red-300 text-red-600 hover:bg-red-50"
+                      >
+                        <XCircle className="h-4 w-4 mr-1" />
+                        Reject
+                      </Button>
                     </div>
                   </div>
-                  <Badge className={getStatusColor(request.status)}>
-                    {getStatusIcon(request.status)}
-                    <span className="ml-1 capitalize">{request.status}</span>
-                  </Badge>
-                </div>
-                
-                {request.message && (
-                  <div className="bg-muted p-3 rounded-md">
-                    <p className="text-sm">{request.message}</p>
-                  </div>
-                )}
-                
-                <div className="flex items-center gap-2">
-                  <Button 
-                    size="sm" 
-                    onClick={() => handleRespondToRequest(request.id, 'approve')}
-                    className="bg-green-600 hover:bg-green-700"
-                  >
-                    <CheckCircle className="h-4 w-4 mr-1" />
-                    Approve
-                  </Button>
-                  <Button 
-                    size="sm" 
-                    variant="outline"
-                    onClick={() => handleRespondToRequest(request.id, 'reject')}
-                    className="border-red-300 text-red-600 hover:bg-red-50"
-                  >
-                    <XCircle className="h-4 w-4 mr-1" />
-                    Reject
-                  </Button>
-                </div>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
+                ))}
+              </CardContent>
+            </CollapsibleContent>
+          </Card>
+        </Collapsible>
       )}
 
-      {/* My Join Requests */}
+      {/* My Requests - Collapsible */}
       {myRequests.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Calendar className="h-5 w-5" />
-              Project Join Requests
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {myRequests.map((request) => (
-              <div key={request.id} className="border rounded-lg p-4 space-y-3">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <div className="font-medium">
-                      {request.project?.name || 'Unknown Project'}
-                    </div>
-                    <div className="text-sm text-muted-foreground">
-                      Code: {request.project_code} • {formatDistanceToNow(new Date(request.created_at), { addSuffix: true })}
-                    </div>
+        <Collapsible open={myRequestsOpen} onOpenChange={setMyRequestsOpen}>
+          <Card>
+            <CollapsibleTrigger asChild>
+              <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
+                <CardTitle className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Calendar className="h-5 w-5" />
+                    My Requests ({myRequests.length})
                   </div>
-                  <Badge className={getStatusColor(request.status)}>
-                    {getStatusIcon(request.status)}
-                    <span className="ml-1 capitalize">{request.status}</span>
-                  </Badge>
-                </div>
-                
-                {request.message && (
-                  <div className="bg-muted p-3 rounded-md">
-                    <p className="text-sm">{request.message}</p>
+                  {myRequestsOpen ? (
+                    <ChevronUp className="h-4 w-4" />
+                  ) : (
+                    <ChevronDown className="h-4 w-4" />
+                  )}
+                </CardTitle>
+              </CardHeader>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <CardContent className="space-y-4 pt-0">
+                {myRequests.map((request) => (
+                  <div key={request.id} className="border rounded-lg p-4 space-y-3">
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <div className="font-medium">
+                          {request.project?.name || 'Unknown Project'}
+                        </div>
+                        <div className="text-sm text-muted-foreground">
+                          Code: {request.project_code} • {formatDistanceToNow(new Date(request.created_at), { addSuffix: true })}
+                        </div>
+                      </div>
+                      <Badge className={getStatusColor(request.status)}>
+                        {getStatusIcon(request.status)}
+                        <span className="ml-1 capitalize">{request.status}</span>
+                      </Badge>
+                    </div>
+                    
+                    {request.message && (
+                      <div className="bg-muted p-3 rounded-md">
+                        <p className="text-sm">{request.message}</p>
+                      </div>
+                    )}
+                    
+                    {request.status === 'pending' && (
+                      <p className="text-sm text-muted-foreground">
+                        Waiting for project creator to respond...
+                      </p>
+                    )}
                   </div>
-                )}
-                
-                {request.status === 'pending' && (
-                  <p className="text-sm text-muted-foreground">
-                    Waiting for project creator to respond...
-                  </p>
-                )}
-              </div>
-            ))}
-          </CardContent>
-        </Card>
+                ))}
+              </CardContent>
+            </CollapsibleContent>
+          </Card>
+        </Collapsible>
       )}
 
       {/* No Requests State */}
-      {!loading && joinRequests.length === 0 && (
+      {!loading && requestsForMyApproval.length === 0 && myRequests.length === 0 && (
         <Card>
           <CardContent className="text-center py-8">
             <UserPlus className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
