@@ -866,6 +866,59 @@ export type Database = {
           },
         ]
       }
+      project_join_requests: {
+        Row: {
+          created_at: string
+          id: string
+          message: string | null
+          project_code: string
+          project_id: string
+          requester_email: string | null
+          requester_id: string
+          requester_name: string | null
+          responded_at: string | null
+          responded_by: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message?: string | null
+          project_code: string
+          project_id: string
+          requester_email?: string | null
+          requester_id: string
+          requester_name?: string | null
+          responded_at?: string | null
+          responded_by?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message?: string | null
+          project_code?: string
+          project_id?: string
+          requester_email?: string | null
+          requester_id?: string
+          requester_name?: string | null
+          responded_at?: string | null
+          responded_by?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_join_requests_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       project_users: {
         Row: {
           created_at: string
@@ -923,6 +976,7 @@ export type Database = {
           id: string
           invitation_token: string | null
           name: string
+          project_id: string | null
           status: Database["public"]["Enums"]["project_status"]
           timeline: Json | null
           updated_at: string
@@ -942,6 +996,7 @@ export type Database = {
           id?: string
           invitation_token?: string | null
           name: string
+          project_id?: string | null
           status?: Database["public"]["Enums"]["project_status"]
           timeline?: Json | null
           updated_at?: string
@@ -961,6 +1016,7 @@ export type Database = {
           id?: string
           invitation_token?: string | null
           name?: string
+          project_id?: string | null
           status?: Database["public"]["Enums"]["project_status"]
           timeline?: Json | null
           updated_at?: string
@@ -1538,6 +1594,10 @@ export type Database = {
       }
       generate_rfi_number: {
         Args: { project_id_param: string }
+        Returns: string
+      }
+      generate_unique_project_id: {
+        Args: Record<PropertyKey, never>
         Returns: string
       }
       is_project_creator: {
