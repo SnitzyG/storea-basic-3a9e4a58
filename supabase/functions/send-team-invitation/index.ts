@@ -114,11 +114,15 @@ serve(async (req) => {
       success: !!inviteData && !inviteError, 
       error: inviteError?.message, 
       token: inviteData?.user?.confirmation_sent_at,
-      user_id: inviteData?.user?.id 
+      user_id: inviteData?.user?.id,
+      user_email: inviteData?.user?.email,
+      user_email_confirmed_at: inviteData?.user?.email_confirmed_at,
+      invite_sent_at: inviteData?.user?.invite_sent_at
     });
 
     if (inviteError) {
       console.error('Supabase invitation failed:', inviteError.message);
+      console.error('Full error details:', inviteError);
       return new Response(
         JSON.stringify({ 
           error: 'Failed to send invitation email',
