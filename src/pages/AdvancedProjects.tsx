@@ -21,11 +21,14 @@ import {
   Eye,
   Edit,
   Archive,
-  Copy
+  Copy,
+  Hash,
+  UserPlus
 } from 'lucide-react';
 import { useAdvancedProjects, AdvancedProject } from '@/hooks/useAdvancedProjects';
 import { AdvancedProjectWizard } from '@/components/projects-v2/AdvancedProjectWizard';
 import { ProjectDetailsDialog } from '@/components/projects-v2/ProjectDetailsDialog';
+import { ProjectJoinSection } from '@/components/projects/ProjectJoinSection';
 import { useAuth } from '@/hooks/useAuth';
 
 const AdvancedProjects = () => {
@@ -113,6 +116,22 @@ const AdvancedProjects = () => {
           </Button>
         )}
       </div>
+
+      {/* Main Content Tabs */}
+      <Tabs defaultValue="projects" className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="projects" className="flex items-center gap-2">
+            <BarChart3 className="h-4 w-4" />
+            My Projects
+          </TabsTrigger>
+          <TabsTrigger value="join" className="flex items-center gap-2">
+            <UserPlus className="h-4 w-4" />
+            Join Projects
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="projects" className="space-y-6">
+          {/* Projects Content */}
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -211,97 +230,110 @@ const AdvancedProjects = () => {
         </div>
       </div>
 
-      {/* Projects Display */}
-      {projects.length === 0 ? (
-        <Card>
-          <CardContent className="text-center py-12">
-            <BarChart3 className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-lg font-medium mb-2">No projects found</h3>
-            <p className="text-muted-foreground mb-4">
-              {isArchitect ? "Create your first project to get started." : "You haven't been assigned to any projects yet."}
-            </p>
-            {isArchitect && (
-              <Button onClick={() => setWizardOpen(true)}>
-                <Plus className="h-4 w-4 mr-2" />
-                Create Your First Project
-              </Button>
-            )}
-          </CardContent>
-        </Card>
-      ) : (
-        <div className={viewMode === 'grid' ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" : "space-y-4"}>
-          {projects.map((project) => (
-            <Card key={project.id} className="hover:shadow-md transition-shadow">
-              <CardHeader className="pb-3">
-                <div className="flex items-start justify-between">
-                  <div className="space-y-1">
-                    <CardTitle className="text-lg">{project.name}</CardTitle>
-                    <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                      <MapPin className="h-3 w-3" />
-                      {project.address || 'No address specified'}
-                    </div>
-                  </div>
-                  <Badge className={statusColors[project.status]}>
-                    {project.status.replace('_', ' ')}
-                  </Badge>
-                </div>
-              </CardHeader>
-              
-              <CardContent className="space-y-4">
-                {project.description && (
-                  <p className="text-sm text-muted-foreground line-clamp-2">
-                    {project.description}
-                  </p>
-                )}
-                
-                <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                  {project.budget && (
-                    <div className="flex items-center gap-1">
-                      <DollarSign className="h-3 w-3" />
-                      ${project.budget.toLocaleString()}
-                    </div>
-                  )}
-                  <div className="flex items-center gap-1">
-                    <Clock className="h-3 w-3" />
-                    Health: {getProjectHealth(project)}%
-                  </div>
-                </div>
-                
-                <div className="flex gap-2 pt-2">
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => handleProjectAction('view', project)}
-                  >
-                    <Eye className="h-3 w-3 mr-1" />
-                    View
+          {/* Projects Display */}
+          {projects.length === 0 ? (
+            <Card>
+              <CardContent className="text-center py-12">
+                <BarChart3 className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <h3 className="text-lg font-medium mb-2">No projects found</h3>
+                <p className="text-muted-foreground mb-4">
+                  {isArchitect ? "Create your first project to get started." : "You haven't been assigned to any projects yet."}
+                </p>
+                {isArchitect && (
+                  <Button onClick={() => setWizardOpen(true)}>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Create Your First Project
                   </Button>
-                  {isArchitect && (
-                    <>
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => handleProjectAction('edit', project)}
-                      >
-                        <Edit className="h-3 w-3 mr-1" />
-                        Edit
-                      </Button>
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => handleProjectAction('clone', project)}
-                      >
-                        <Copy className="h-3 w-3 mr-1" />
-                        Clone
-                      </Button>
-                    </>
-                  )}
-                </div>
+                )}
               </CardContent>
             </Card>
-          ))}
-        </div>
-      )}
+          ) : (
+            <div className={viewMode === 'grid' ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" : "space-y-4"}>
+              {projects.map((project) => (
+                <Card key={project.id} className="hover:shadow-md transition-shadow">
+                  <CardHeader className="pb-3">
+                    <div className="flex items-start justify-between">
+                      <div className="space-y-1">
+                        <CardTitle className="text-lg">{project.name}</CardTitle>
+                        <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                          <MapPin className="h-3 w-3" />
+                          {project.address || 'No address specified'}
+                        </div>
+                        {/* Display Project ID */}
+                        {(project as any).project_id && (
+                          <div className="flex items-center gap-1 text-xs text-primary font-mono bg-primary/10 px-2 py-1 rounded">
+                            <Hash className="h-3 w-3" />
+                            ID: {(project as any).project_id}
+                          </div>
+                        )}
+                      </div>
+                      <Badge className={statusColors[project.status]}>
+                        {project.status.replace('_', ' ')}
+                      </Badge>
+                    </div>
+                  </CardHeader>
+                  
+                  <CardContent className="space-y-4">
+                    {project.description && (
+                      <p className="text-sm text-muted-foreground line-clamp-2">
+                        {project.description}
+                      </p>
+                    )}
+                    
+                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                      {project.budget && (
+                        <div className="flex items-center gap-1">
+                          <DollarSign className="h-3 w-3" />
+                          ${project.budget.toLocaleString()}
+                        </div>
+                      )}
+                      <div className="flex items-center gap-1">
+                        <Clock className="h-3 w-3" />
+                        Health: {getProjectHealth(project)}%
+                      </div>
+                    </div>
+                    
+                    <div className="flex gap-2 pt-2">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => handleProjectAction('view', project)}
+                      >
+                        <Eye className="h-3 w-3 mr-1" />
+                        View
+                      </Button>
+                      {isArchitect && (
+                        <>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => handleProjectAction('edit', project)}
+                          >
+                            <Edit className="h-3 w-3 mr-1" />
+                            Edit
+                          </Button>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => handleProjectAction('clone', project)}
+                          >
+                            <Copy className="h-3 w-3 mr-1" />
+                            Clone
+                          </Button>
+                        </>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+        </TabsContent>
+
+        <TabsContent value="join" className="space-y-6">
+          <ProjectJoinSection />
+        </TabsContent>
+      </Tabs>
 
       {/* Project Wizard */}
       <AdvancedProjectWizard

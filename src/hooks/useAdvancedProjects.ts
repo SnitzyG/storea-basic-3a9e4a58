@@ -19,6 +19,7 @@ export interface AdvancedProject {
   updated_at: string;
   company_id?: string;
   timeline?: any;
+  project_id?: string;
   // Extended fields for advanced project management
   project_type?: 'residential_new' | 'residential_renovation' | 'commercial_new' | 'commercial_renovation' | 'industrial' | 'infrastructure';
   priority?: 'low' | 'medium' | 'high' | 'urgent';
@@ -125,7 +126,7 @@ export const useAdvancedProjects = () => {
         .eq('user_id', userData.user.id)
         .single();
 
-      let query = supabase.from('projects').select('*');
+      let query = supabase.from('projects').select('*, project_id');
 
       // Apply filters based on user role
       if (profile?.role === 'homeowner') {
