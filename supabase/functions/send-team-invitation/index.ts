@@ -13,10 +13,10 @@ serve(async (req) => {
   }
 
   try {
-    console.log('Team invitation function called');
+    console.log('📨 Team invitation function called');
     
     const { projectId, email, role, projectName, inviterName } = await req.json();
-    console.log('Team invitation request:', { projectId, email, role, projectName, inviterName });
+    console.log('📨 Sending project invite:', { projectId, email, role, projectName, inviterName });
 
     // Validate required fields
     if (!projectId || !email || !role || !projectName) {
@@ -26,17 +26,19 @@ serve(async (req) => {
       );
     }
 
-    // Initialize Supabase admin client for admin operations
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false
+    // Initialize Supabase admin client
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
+      {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false
+        }
       }
-    });
+    );
 
-    // Get current user from the request token using regular client
+    // Get current user from the request token for validation
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
       return new Response(
@@ -61,7 +63,7 @@ serve(async (req) => {
     }
 
     // Check for existing pending invitation to avoid duplicates
-    const { data: existingInvite, error: existingInviteError } = await supabaseAdmin
+    const { data: existingInvite, error: existingInviteError } = await supabase
       .from('invitations')
       .select('id, status')
       .eq('project_id', projectId)
@@ -84,67 +86,41 @@ serve(async (req) => {
       );
     }
 
-    // Store project and role info in user metadata for the invite
-    const userMetadata = {
-      project_id: projectId,
-      project_name: projectName,
-      role: role,
-      inviter_name: inviterName || 'Team Member'
-    };
-
-    // Use Supabase's native auth invite system
-    const redirectUrl = `${Deno.env.get('SITE_URL')}/projects/${projectId}/join?role=${role}&projectId=${projectId}`;
-    
-    console.log('Sending Supabase admin.inviteUserByEmail:', { 
-      email: email.toLowerCase(), 
-      redirectUrl, 
-      metadata: userMetadata 
-    });
-    
-    const { data: inviteData, error: inviteError } = await supabaseAdmin.auth.admin.inviteUserByEmail(
-      email.toLowerCase(),
-      {
-        redirectTo: redirectUrl,
-        data: userMetadata // This metadata will be available in the auth flow
-      }
-    );
-
-    // Log response for debugging
-    console.log('Supabase invitation response:', { 
-      success: !!inviteData && !inviteError, 
-      error: inviteError?.message, 
-      token: inviteData?.user?.confirmation_sent_at,
-      user_id: inviteData?.user?.id,
-      user_email: inviteData?.user?.email,
-      user_email_confirmed_at: inviteData?.user?.email_confirmed_at,
-      invite_sent_at: inviteData?.user?.invite_sent_at
+    // Supabase will automatically send invitation email and handle new vs existing users
+    const { data, error } = await supabase.auth.admin.inviteUserByEmail(email.toLowerCase(), {
+      data: {
+        projectId,
+        role,
+        projectName,
+        inviterName: inviterName || 'Team Member',
+      },
+      redirectTo: `${Deno.env.get('SITE_URL')}/projects/${projectId}/join?role=${role}&projectId=${projectId}`
     });
 
-    if (inviteError) {
-      console.error('Supabase invitation failed:', inviteError.message);
-      console.error('Full error details:', inviteError);
+    if (error) {
+      console.error('❌ Error inviting user:', error.message);
       return new Response(
         JSON.stringify({ 
           error: 'Failed to send invitation email',
-          details: inviteError.message 
+          details: error.message 
         }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    console.log('Supabase invitation sent successfully:', inviteData);
+    console.log('✅ Supabase invitation sent successfully:', data);
 
     // Create invitation record for tracking
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + 7); // 7 days expiry
 
-    const { error: recordError } = await supabaseAdmin
+    const { error: recordError } = await supabase
       .from('invitations')
       .insert({
         project_id: projectId,
         email: email.toLowerCase(),
         role: role,
-        token: inviteData.user?.id || crypto.randomUUID(), // Use user ID or fallback
+        token: data.user?.id || crypto.randomUUID(),
         inviter_id: user.id,
         expires_at: expiresAt.toISOString(),
         status: 'pending'
@@ -157,16 +133,16 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({ 
         success: true, 
-        message: 'Invitation sent successfully via Supabase magic link',
-        method: 'supabase_admin_invite'
+        message: 'Invitation sent successfully via Supabase built-in mailer',
+        user: data
       }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
-  } catch (error) {
-    console.error('Error in send-team-invitation function:', error);
+  } catch (err) {
+    console.error('💥 Unexpected error:', err);
     return new Response(
-      JSON.stringify({ error: 'Internal server error', details: error.message }),
+      JSON.stringify({ error: 'Internal server error', details: err.message }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
