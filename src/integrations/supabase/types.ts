@@ -212,6 +212,121 @@ export type Database = {
           },
         ]
       }
+      document_groups: {
+        Row: {
+          category: string
+          created_at: string
+          created_by: string
+          current_revision_id: string | null
+          document_number: string | null
+          id: string
+          is_locked: boolean | null
+          locked_at: string | null
+          locked_by: string | null
+          project_id: string
+          status: string
+          title: string
+          updated_at: string
+          visibility_scope: string
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          created_by: string
+          current_revision_id?: string | null
+          document_number?: string | null
+          id?: string
+          is_locked?: boolean | null
+          locked_at?: string | null
+          locked_by?: string | null
+          project_id: string
+          status?: string
+          title: string
+          updated_at?: string
+          visibility_scope?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          created_by?: string
+          current_revision_id?: string | null
+          document_number?: string | null
+          id?: string
+          is_locked?: boolean | null
+          locked_at?: string | null
+          locked_by?: string | null
+          project_id?: string
+          status?: string
+          title?: string
+          updated_at?: string
+          visibility_scope?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_current_revision"
+            columns: ["current_revision_id"]
+            isOneToOne: false
+            referencedRelation: "document_revisions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      document_revisions: {
+        Row: {
+          changes_summary: string | null
+          created_at: string
+          document_group_id: string
+          file_extension: string | null
+          file_name: string
+          file_path: string
+          file_size: number | null
+          file_type: string
+          id: string
+          is_archived: boolean
+          is_current: boolean
+          revision_number: number
+          uploaded_by: string
+        }
+        Insert: {
+          changes_summary?: string | null
+          created_at?: string
+          document_group_id: string
+          file_extension?: string | null
+          file_name: string
+          file_path: string
+          file_size?: number | null
+          file_type: string
+          id?: string
+          is_archived?: boolean
+          is_current?: boolean
+          revision_number: number
+          uploaded_by: string
+        }
+        Update: {
+          changes_summary?: string | null
+          created_at?: string
+          document_group_id?: string
+          file_extension?: string | null
+          file_name?: string
+          file_path?: string
+          file_size?: number | null
+          file_type?: string
+          id?: string
+          is_archived?: boolean
+          is_current?: boolean
+          revision_number?: number
+          uploaded_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_revisions_document_group_id_fkey"
+            columns: ["document_group_id"]
+            isOneToOne: false
+            referencedRelation: "document_groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       document_shares: {
         Row: {
           created_at: string
@@ -1393,6 +1508,22 @@ export type Database = {
       cleanup_expired_invitations: {
         Args: Record<PropertyKey, never>
         Returns: undefined
+      }
+      create_document_supersede: {
+        Args: {
+          changes_summary?: string
+          group_id: string
+          new_file_extension: string
+          new_file_name: string
+          new_file_path: string
+          new_file_size: number
+          new_file_type: string
+        }
+        Returns: string
+      }
+      generate_document_group_number: {
+        Args: { project_id_param: string }
+        Returns: string
       }
       generate_document_number: {
         Args: { project_id_param: string }
