@@ -301,11 +301,11 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
               </TableCell>
               
               <TableCell className="text-xs text-foreground">
-                {format(new Date(document.created_at), 'dd/MM/yy')}
+                Created: {format(new Date(document.created_at), 'dd/MM/yy HH:mm')}
               </TableCell>
               
               <TableCell className="text-xs text-foreground">
-                {format(new Date(document.updated_at), 'dd/MM/yy')}
+                Updated: {format(new Date(document.updated_at), 'dd/MM/yy HH:mm')}
               </TableCell>
               
               <TableCell className="text-xs text-foreground">
@@ -313,7 +313,7 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
               </TableCell>
               
               <TableCell className="text-xs text-foreground">
-                {document.category || 'General'}
+                {document.category === 'Specifications' ? 'General' : (document.category || 'General')}
               </TableCell>
               
               <TableCell>
