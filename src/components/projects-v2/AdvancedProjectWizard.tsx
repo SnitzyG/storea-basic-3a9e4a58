@@ -28,6 +28,12 @@ interface CollaboratorData {
   role: ProjectUser['role'];
   permissions?: Partial<ProjectUser['permissions']>;
 }
+
+interface HomeownerData {
+  name: string;
+  email: string;
+  phone?: string;
+}
 const PROJECT_TYPES = [{
   value: 'residential_new',
   label: 'Residential New Build',
@@ -121,15 +127,22 @@ export const AdvancedProjectWizard = ({
     estimated_finish_date: projectToEdit?.estimated_finish_date ? new Date(projectToEdit.estimated_finish_date) : undefined as Date | undefined,
     permit_status: projectToEdit?.permit_status || 'not_required',
     // Step 3: Client Information
-    homeowner_name: projectToEdit?.homeowner_name || '',
-    homeowner_email: projectToEdit?.homeowner_email || '',
-    homeowner_phone: projectToEdit?.homeowner_phone || '',
+    homeowners: projectToEdit?.homeowner_name ? [{
+      name: projectToEdit.homeowner_name,
+      email: projectToEdit.homeowner_email || '',
+      phone: projectToEdit.homeowner_phone || ''
+    }] : [] as HomeownerData[],
     // Step 4: Team & Collaborators
     collaborators: [] as CollaboratorData[],
     // Step 5: Additional Settings
     tags: projectToEdit?.tags || [],
     weather_delays: projectToEdit?.weather_delays?.toString() || '0',
     custom_fields: projectToEdit?.custom_fields || {}
+  });
+  const [newHomeowner, setNewHomeowner] = useState<HomeownerData>({
+    name: '',
+    email: '',
+    phone: ''
   });
   const [newCollaborator, setNewCollaborator] = useState<CollaboratorData>({
     email: '',
@@ -160,6 +173,27 @@ export const AdvancedProjectWizard = ({
       const finishDate = addMonths(formData.estimated_start_date, months);
       handleInputChange('estimated_finish_date', finishDate);
     }
+  };
+
+  const addHomeowner = () => {
+    if (newHomeowner.name.trim() && newHomeowner.email.trim()) {
+      setFormData(prev => ({
+        ...prev,
+        homeowners: [...prev.homeowners, newHomeowner]
+      }));
+      setNewHomeowner({
+        name: '',
+        email: '',
+        phone: ''
+      });
+    }
+  };
+
+  const removeHomeowner = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      homeowners: prev.homeowners.filter((_, i) => i !== index)
+    }));
   };
   const addCollaborator = () => {
     if (newCollaborator.email && newCollaborator.name) {
@@ -221,7 +255,7 @@ export const AdvancedProjectWizard = ({
       case 2:
         return formData.estimated_start_date && formData.estimated_finish_date;
       case 3:
-        return formData.homeowner_name.trim() !== '' && formData.homeowner_email.trim() !== '';
+        return true; // No mandatory fields for homeowners
       default:
         return true;
     }
@@ -249,9 +283,10 @@ export const AdvancedProjectWizard = ({
         estimated_start_date: formData.estimated_start_date?.toISOString().split('T')[0],
         estimated_finish_date: formData.estimated_finish_date?.toISOString().split('T')[0],
         permit_status: formData.permit_status,
-        homeowner_name: formData.homeowner_name || undefined,
-        homeowner_email: formData.homeowner_email || undefined,
-        homeowner_phone: formData.homeowner_phone || undefined,
+        homeowner_name: formData.homeowners.length > 0 ? formData.homeowners[0].name : undefined,
+        homeowner_email: formData.homeowners.length > 0 ? formData.homeowners[0].email : undefined,
+        homeowner_phone: formData.homeowners.length > 0 ? formData.homeowners[0].phone : undefined,
+        additional_homeowners: formData.homeowners.length > 1 ? formData.homeowners.slice(1) : undefined,
         weather_delays: formData.weather_delays ? parseInt(formData.weather_delays) : undefined,
         tags: formData.tags.length > 0 ? formData.tags : undefined,
         custom_fields: Object.keys(formData.custom_fields).length > 0 ? formData.custom_fields : undefined,
@@ -276,9 +311,7 @@ export const AdvancedProjectWizard = ({
         estimated_start_date: undefined,
         estimated_finish_date: undefined,
         permit_status: 'not_required',
-        homeowner_name: '',
-        homeowner_email: '',
-        homeowner_phone: '',
+        homeowners: [],
         collaborators: [],
         tags: [],
         weather_delays: '0',
@@ -461,31 +494,108 @@ export const AdvancedProjectWizard = ({
         return <div className="space-y-6">
             <div>
               <h3 className="text-lg font-semibold mb-4">Client Information</h3>
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="homeowner_name">Client/Homeowner Name *</Label>
-                  <div className="relative mt-1">
-                    <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                    <Input id="homeowner_name" value={formData.homeowner_name} onChange={e => handleInputChange('homeowner_name', e.target.value)} placeholder="Enter client name" className="pl-10" />
-                  </div>
+              
+              {/* Existing Homeowners */}
+              {formData.homeowners.length > 0 && (
+                <div className="space-y-4 mb-6">
+                  <Label className="text-sm font-medium">Homeowners/Clients</Label>
+                  {formData.homeowners.map((homeowner, index) => (
+                    <Card key={index} className="p-4">
+                      <div className="flex items-start justify-between">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 flex-1">
+                          <div>
+                            <Label className="text-xs text-muted-foreground">Name</Label>
+                            <p className="font-medium">{homeowner.name}</p>
+                          </div>
+                          <div>
+                            <Label className="text-xs text-muted-foreground">Email</Label>
+                            <p className="text-sm">{homeowner.email}</p>
+                          </div>
+                          <div>
+                            <Label className="text-xs text-muted-foreground">Phone</Label>
+                            <p className="text-sm">{homeowner.phone || 'Not provided'}</p>
+                          </div>
+                        </div>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => removeHomeowner(index)}
+                          className="text-red-600 hover:text-red-700 ml-2"
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </Card>
+                  ))}
                 </div>
+              )}
 
-                <div>
-                  <Label htmlFor="homeowner_email">Email Address *</Label>
-                  <div className="relative mt-1">
-                    <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                    <Input id="homeowner_email" type="email" value={formData.homeowner_email} onChange={e => handleInputChange('homeowner_email', e.target.value)} placeholder="Enter email address" className="pl-10" />
+              {/* Add New Homeowner */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-base">
+                    <User className="h-4 w-4" />
+                    {formData.homeowners.length === 0 ? 'Add Homeowner/Client' : 'Add Another Homeowner'}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="new_homeowner_name">Name</Label>
+                      <div className="relative mt-1">
+                        <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                        <Input 
+                          id="new_homeowner_name" 
+                          value={newHomeowner.name} 
+                          onChange={e => setNewHomeowner(prev => ({ ...prev, name: e.target.value }))} 
+                          placeholder="Enter client name" 
+                          className="pl-10" 
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <Label htmlFor="new_homeowner_email">Email</Label>
+                      <div className="relative mt-1">
+                        <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                        <Input 
+                          id="new_homeowner_email" 
+                          type="email" 
+                          value={newHomeowner.email} 
+                          onChange={e => setNewHomeowner(prev => ({ ...prev, email: e.target.value }))} 
+                          placeholder="Enter email address" 
+                          className="pl-10" 
+                        />
+                      </div>
+                    </div>
                   </div>
-                </div>
+                  
+                  <div>
+                    <Label htmlFor="new_homeowner_phone">Phone Number (Optional)</Label>
+                    <div className="relative mt-1">
+                      <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                      <Input 
+                        id="new_homeowner_phone" 
+                        type="tel" 
+                        value={newHomeowner.phone} 
+                        onChange={e => setNewHomeowner(prev => ({ ...prev, phone: e.target.value }))} 
+                        placeholder="Enter phone number" 
+                        className="pl-10" 
+                      />
+                    </div>
+                  </div>
 
-                <div>
-                  <Label htmlFor="homeowner_phone">Phone Number</Label>
-                  <div className="relative mt-1">
-                    <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                    <Input id="homeowner_phone" type="tel" value={formData.homeowner_phone} onChange={e => handleInputChange('homeowner_phone', e.target.value)} placeholder="Enter phone number" className="pl-10" />
-                  </div>
-                </div>
-              </div>
+                  <Button 
+                    type="button"
+                    onClick={addHomeowner}
+                    disabled={!newHomeowner.name.trim() || !newHomeowner.email.trim()}
+                    className="w-full"
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Homeowner
+                  </Button>
+                </CardContent>
+              </Card>
             </div>
           </div>;
       case 4:
