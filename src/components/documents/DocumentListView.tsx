@@ -17,6 +17,7 @@ import { EditDocumentDialog } from './EditDocumentDialog';
 import { DocumentSharingDialog } from './DocumentSharingDialog';
 import { DocumentHistoryDialog } from './DocumentHistoryDialog';
 import { SupersedeDocumentDialog } from './SupersedeDocumentDialog';
+import { DocumentDeleteConfirmDialog } from './DocumentDeleteConfirmDialog';
 import { getFileExtension, getSafeFilename } from '@/utils/documentUtils';
 interface DocumentListViewProps {
   documents: Document[];
@@ -67,6 +68,8 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
   const [isHistoryDialogOpen, setIsHistoryDialogOpen] = useState(false);
   const [supersedeDocument, setSupersedeDocument] = useState<Document | null>(null);
   const [isSupersedeDialogOpen, setIsSupersedeDialogOpen] = useState(false);
+  const [deleteDocument, setDeleteDocument] = useState<Document | null>(null);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const {
     projects
   } = useProjects();
@@ -172,6 +175,19 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
   const handleSupersede = (document: Document) => {
     setSupersedeDocument(document);
     setIsSupersedeDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = (document: Document) => {
+    setDeleteDocument(document);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const handleDeleteExecute = (documentId: string, filePath: string) => {
+    if (onDelete) {
+      onDelete(documentId, filePath);
+    }
+    setIsDeleteDialogOpen(false);
+    setDeleteDocument(null);
   };
 
   // Get user name from user ID
@@ -427,11 +443,11 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
                         Share
                       </DropdownMenuItem>
                     )}
-                    
-                    {canEdit && onDelete && <DropdownMenuItem onClick={() => onDelete(document.id, document.file_path)} className="text-destructive">
-                        <X className="h-3 w-3 mr-2" />
-                        Delete
-                      </DropdownMenuItem>}
+                     
+                     {canEdit && onDelete && <DropdownMenuItem onClick={() => handleDeleteConfirm(document)} className="text-destructive">
+                         <X className="h-3 w-3 mr-2" />
+                         Delete Forever
+                       </DropdownMenuItem>}
                   </DropdownMenuContent>
                 </DropdownMenu>
               </TableCell>
@@ -477,6 +493,16 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
           setSupersedeDocument(null);
         }}
         onSupersede={handleDocumentSupersede}
+      />
+
+      <DocumentDeleteConfirmDialog
+        document={deleteDocument}
+        isOpen={isDeleteDialogOpen}
+        onClose={() => {
+          setIsDeleteDialogOpen(false);
+          setDeleteDocument(null);
+        }}
+        onConfirmDelete={handleDeleteExecute}
       />
     </div>;
 };

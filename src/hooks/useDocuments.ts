@@ -466,14 +466,64 @@ export const useDocuments = (projectId?: string) => {
 
   const deleteDocument = async (documentId: string, filePath: string) => {
     try {
-      // Delete from storage
+      // Get all versions of this document
+      const { data: versions } = await supabase
+        .from('document_versions')
+        .select('file_path')
+        .eq('document_id', documentId);
+
+      // Delete all version files from storage
+      if (versions && versions.length > 0) {
+        const versionFilePaths = versions.map(v => v.file_path);
+        const { error: versionStorageError } = await supabase.storage
+          .from('documents')
+          .remove(versionFilePaths);
+
+        if (versionStorageError) {
+          console.warn('Some version files could not be deleted:', versionStorageError);
+        }
+      }
+
+      // Delete current document file from storage
       const { error: storageError } = await supabase.storage
         .from('documents')
         .remove([filePath]);
 
-      if (storageError) throw storageError;
+      if (storageError) {
+        console.warn('Document file could not be deleted:', storageError);
+      }
 
-      // Delete from database
+      // Delete all document versions from database
+      const { error: versionsError } = await supabase
+        .from('document_versions')
+        .delete()
+        .eq('document_id', documentId);
+
+      if (versionsError) {
+        console.warn('Error deleting versions:', versionsError);
+      }
+
+      // Delete document shares
+      const { error: sharesError } = await supabase
+        .from('document_shares')
+        .delete()
+        .eq('document_id', documentId);
+
+      if (sharesError) {
+        console.warn('Error deleting shares:', sharesError);
+      }
+
+      // Delete document events/history
+      const { error: eventsError } = await supabase
+        .from('document_events')
+        .delete()
+        .eq('document_id', documentId);
+
+      if (eventsError) {
+        console.warn('Error deleting events:', eventsError);
+      }
+
+      // Finally, delete the main document record
       const { error: dbError } = await supabase
         .from('documents')
         .delete()
@@ -482,8 +532,8 @@ export const useDocuments = (projectId?: string) => {
       if (dbError) throw dbError;
 
       toast({
-        title: "Success",
-        description: "Document deleted successfully",
+        title: "Document Deleted",
+        description: "Document and all versions have been permanently deleted",
       });
 
       await fetchDocuments(projectId);
@@ -491,7 +541,7 @@ export const useDocuments = (projectId?: string) => {
       console.error('Error deleting document:', error);
       toast({
         title: "Error",
-        description: "Failed to delete document",
+        description: "Failed to delete document completely",
         variant: "destructive",
       });
     }
