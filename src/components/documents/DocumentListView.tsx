@@ -239,8 +239,10 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
         aValue = userNames[a.uploaded_by] || 'Unknown';
         bValue = userNames[b.uploaded_by] || 'Unknown';
       } else if (sortField === 'category') {
-        aValue = a.category === 'Specifications' ? 'General' : (a.category || 'General');
-        bValue = b.category === 'Specifications' ? 'General' : (b.category || 'General');
+        // Ensure valid categories for sorting
+        const validCategories = ['Architectural', 'Structural', 'Permit', 'General'];
+        aValue = validCategories.includes(a.file_type_category) ? a.file_type_category : 'General';
+        bValue = validCategories.includes(b.file_type_category) ? b.file_type_category : 'General';
       } else if (sortField === 'created_at' || sortField === 'updated_at') {
         aValue = new Date(aValue).getTime();
         bValue = new Date(bValue).getTime();
@@ -391,7 +393,9 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
               </TableCell>
               
               <TableCell className="text-xs text-foreground">
-                {document.category === 'Specifications' ? 'General' : (document.category || 'General')}
+                {['Architectural', 'Structural', 'Permit'].includes(document.file_type_category) 
+                  ? document.file_type_category 
+                  : 'General'}
               </TableCell>
               
               <TableCell>
