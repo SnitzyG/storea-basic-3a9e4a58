@@ -47,26 +47,19 @@ export const ProjectInviteLink = ({ projectId, projectName }: ProjectInvitationL
   const generateInvitationToken = async () => {
     setLoading(true);
     try {
-      // Generate a new token
-      const { data, error } = await supabase.rpc('generate_project_invitation_token');
-      
+      const { data, error } = await supabase.functions.invoke('generate-invite-link', {
+        body: { projectId }
+      });
+
       if (error) {
         throw error;
       }
 
-      const newToken = data;
-
-      // Update the project with the new token
-      const { error: updateError } = await supabase
-        .from('projects')
-        .update({ invitation_token: newToken })
-        .eq('id', projectId);
-
-      if (updateError) {
-        throw updateError;
+      if (!data.success) {
+        throw new Error(data.error || 'Failed to generate invitation link');
       }
 
-      setInvitationToken(newToken);
+      setInvitationToken(data.token);
       
       toast({
         title: "Invitation link generated",
@@ -87,26 +80,19 @@ export const ProjectInviteLink = ({ projectId, projectName }: ProjectInvitationL
   const regenerateInvitationToken = async () => {
     setRegenerating(true);
     try {
-      // Generate a new token
-      const { data, error } = await supabase.rpc('generate_project_invitation_token');
-      
+      const { data, error } = await supabase.functions.invoke('generate-invite-link', {
+        body: { projectId }
+      });
+
       if (error) {
         throw error;
       }
 
-      const newToken = data;
-
-      // Update the project with the new token
-      const { error: updateError } = await supabase
-        .from('projects')
-        .update({ invitation_token: newToken })
-        .eq('id', projectId);
-
-      if (updateError) {
-        throw updateError;
+      if (!data.success) {
+        throw new Error(data.error || 'Failed to regenerate invitation link');
       }
 
-      setInvitationToken(newToken);
+      setInvitationToken(data.token);
       
       toast({
         title: "New invitation link generated",
