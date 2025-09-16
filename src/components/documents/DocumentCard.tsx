@@ -195,11 +195,11 @@ export const DocumentCard: React.FC<DocumentCardProps> = ({
                 </span>
               </div>
               <div>
-                Uploaded {format(new Date(document.created_at), 'MMM dd, yyyy')}
+                {format(new Date(document.created_at), 'MMM dd, yyyy')}
               </div>
               {document.updated_at !== document.created_at && (
                 <div>
-                  Updated {format(new Date(document.updated_at), 'MMM dd, yyyy')}
+                  {format(new Date(document.updated_at), 'MMM dd, yyyy')}
                 </div>
               )}
             </div>

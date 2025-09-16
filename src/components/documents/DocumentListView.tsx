@@ -379,11 +379,11 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
               </TableCell>
               
               <TableCell className="text-xs text-foreground">
-                Created: {format(new Date(document.created_at), 'dd/MM/yy HH:mm')}
+                {format(new Date(document.created_at), 'dd/MM/yy HH:mm')}
               </TableCell>
               
               <TableCell className="text-xs text-foreground">
-                Updated: {format(new Date(document.updated_at), 'dd/MM/yy HH:mm')}
+                {format(new Date(document.updated_at), 'dd/MM/yy HH:mm')}
               </TableCell>
               
               <TableCell className="text-xs text-foreground">
