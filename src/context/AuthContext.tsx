@@ -55,15 +55,10 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         setSession(session);
         setUser(session?.user ?? null);
         
-        if (session?.user) {
-          // Only fetch profile if user is confirmed
-          if (session.user.email_confirmed_at) {
-            setTimeout(() => {
-              if (mounted) fetchUserProfile(session.user.id);
-            }, 0);
-          } else {
-            setProfile(null);
-          }
+        if (session?.user && session.user.email_confirmed_at) {
+          setTimeout(() => {
+            if (mounted) fetchUserProfile(session.user.id);
+          }, 0);
         } else {
           setProfile(null);
         }
@@ -136,16 +131,11 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         return { error };
       }
 
-      // Check if user needs email confirmation
-      if (data.user && !data.session) {
+      // Always require email verification
+      if (data.user) {
         toast({
-          title: "Sign up successful",
-          description: "Please check your email to confirm your account before signing in."
-        });
-      } else if (data.session) {
-        toast({
-          title: "Account created",
-          description: "Welcome to STOREA Lite!"
+          title: "Verification email sent",
+          description: "Please check your email and click the verification link to activate your account."
         });
       }
 
@@ -166,7 +156,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       if (error) {
         let description = error.message;
         if (error.message.includes('email_not_confirmed')) {
-          description = "Please check your email and click the confirmation link before signing in.";
+          description = "Please verify your email address before signing in. Check your inbox for the verification link.";
+        } else if (error.message.includes('Invalid login credentials')) {
+          description = "Invalid email or password. Please check your credentials and try again.";
         }
         
         toast({
@@ -175,6 +167,17 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           variant: "destructive"
         });
         return { error };
+      }
+
+      // Check if email is verified
+      if (data.user && !data.user.email_confirmed_at) {
+        await supabase.auth.signOut();
+        toast({
+          title: "Email verification required",
+          description: "Please verify your email address before signing in. Check your inbox for the verification link.",
+          variant: "destructive"
+        });
+        return { error: { message: "Email not verified" } };
       }
 
       if (data.user) {
