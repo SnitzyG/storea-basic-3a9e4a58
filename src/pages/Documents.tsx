@@ -15,6 +15,7 @@ import { DocumentDetailsDialog } from '@/components/documents/DocumentDetailsDia
 import { DocumentFilters } from '@/components/documents/DocumentFilters';
 import { DocumentListView } from '@/components/documents/DocumentListView';
 import { DocumentActivity } from '@/components/documents/DocumentActivity';
+import { supabase } from '@/integrations/supabase/client';
 const Documents = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedProject, setSelectedProject] = useState<string>('all');
@@ -64,8 +65,30 @@ const Documents = () => {
   const handleDownload = async (groupId: string) => {
     const group = documents.find(d => d.id === groupId);
     if (!group?.current_revision?.file_path) return;
-    // Implementation for download would go here
-    console.log('Download:', group.current_revision.file_path);
+    
+    try {
+      const { data, error } = await supabase.storage
+        .from('documents')
+        .createSignedUrl(group.current_revision.file_path, 60 * 60); // 1 hour
+      
+      if (error || !data?.signedUrl) {
+        const { data: pub } = supabase.storage
+          .from('documents')
+          .getPublicUrl(group.current_revision.file_path);
+        
+        const link = document.createElement('a');
+        link.href = pub.publicUrl;
+        link.download = group.current_revision.file_name || 'document';
+        link.click();
+      } else {
+        const link = document.createElement('a');
+        link.href = data.signedUrl;
+        link.download = group.current_revision.file_name || 'document';
+        link.click();
+      }
+    } catch (error) {
+      console.error('Download failed:', error);
+    }
   };
 
   const handleStatusChange = async (groupId: string, status: string) => {
