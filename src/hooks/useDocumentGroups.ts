@@ -23,7 +23,7 @@ export interface DocumentGroup {
 
 export interface DocumentRevision {
   id: string;
-  document_group_id: string;
+  document_group_id?: string; // Optional for joined data
   revision_number: number;
   file_name: string;
   file_path: string;

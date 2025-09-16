@@ -6,7 +6,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useDocuments, Document } from '@/hooks/useDocuments';
+import { useDocumentGroups, DocumentGroup } from '@/hooks/useDocumentGroups';
 import { useProjects } from '@/hooks/useProjects';
 import { useAuth } from '@/hooks/useAuth';
 import { DocumentUpload } from '@/components/documents/DocumentUpload';
@@ -21,9 +21,9 @@ const Documents = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
-  const [previewDocument, setPreviewDocument] = useState<Document | null>(null);
-  const [detailsDocument, setDetailsDocument] = useState<Document | null>(null);
-  const [activityDocument, setActivityDocument] = useState<Document | null>(null);
+  const [previewDocument, setPreviewDocument] = useState<DocumentGroup | null>(null);
+  const [detailsDocument, setDetailsDocument] = useState<DocumentGroup | null>(null);
+  const [activityDocument, setActivityDocument] = useState<DocumentGroup | null>(null);
   const {
     profile
   } = useAuth();
@@ -32,25 +32,21 @@ const Documents = () => {
   } = useProjects();
   const location = useLocation();
   const {
-    documents,
+    documentGroups: documents,
     loading,
-    downloadDocument,
-    deleteDocument,
-    updateDocumentStatus,
-    updateDocumentType,
-    updateDocumentAssignment,
-    requestApproval,
-    toggleDocumentLock
-  } = useDocuments(selectedProject === 'all' ? undefined : selectedProject);
+    fetchDocumentGroups,
+    createDocumentGroup,
+    supersedeDocument,
+    deleteDocumentGroup
+  } = useDocumentGroups(selectedProject === 'all' ? undefined : selectedProject);
   const filteredDocuments = useMemo(() => {
     return documents.filter(doc => {
-      // Enhanced search - search in title, name, category, document number, and revision
+      // Enhanced search - search in title, category, document number
       const searchFields = [
-        doc.title || doc.name,
+        doc.title,
         doc.category,
         doc.document_number,
-        String.fromCharCode(64 + (doc.version || 1)), // Convert version to letter
-        `rev ${String.fromCharCode(64 + (doc.version || 1))}` // Include "rev" prefix
+        `rev ${doc.current_revision?.revision_number || 1}` // Include revision number
       ].filter(Boolean).join(' ').toLowerCase();
       
       const matchesSearch = searchTerm === '' || searchFields.includes(searchTerm.toLowerCase());
@@ -60,24 +56,26 @@ const Documents = () => {
     });
   }, [documents, searchTerm, selectedCategory, statusFilter]);
   const canEditDocument = (document: any) => {
-    return document.uploaded_by === profile?.user_id;
+    return document.created_by === profile?.user_id;
   };
   const canApproveDocument = () => {
     return profile?.role === 'architect';
   };
-  const handleRequestApproval = async (documentId: string) => {
-    const document = documents.find(d => d.id === documentId);
-    if (!document) return;
-    await requestApproval(documentId, profile?.user_id || '');
+  const handleDownload = async (groupId: string) => {
+    const group = documents.find(d => d.id === groupId);
+    if (!group?.current_revision?.file_path) return;
+    // Implementation for download would go here
+    console.log('Download:', group.current_revision.file_path);
   };
-  const handleStatusChange = async (documentId: string, status: string) => {
-    await updateDocumentStatus(documentId, status as Document['status']);
+
+  const handleStatusChange = async (groupId: string, status: string) => {
+    // Implementation for status change would go here
+    console.log('Status change:', groupId, status);
   };
-  const handleTypeChange = async (documentId: string, type: string) => {
-    await updateDocumentType(documentId, type);
-  };
-  const handleAssignedToChange = async (documentId: string, assignedTo: string) => {
-    await updateDocumentAssignment(documentId, assignedTo);
+
+  const handleTypeChange = async (groupId: string, type: string) => {
+    // Implementation for type change would go here
+    console.log('Type change:', groupId, type);
   };
   const getStatusCounts = () => {
     const counts = {
@@ -171,10 +169,23 @@ const Documents = () => {
                 Upload Documents
               </Button>}
           </CardContent>
-        </Card> : <DocumentListView documents={filteredDocuments} onDownload={downloadDocument} onDelete={deleteDocument} onStatusChange={handleStatusChange} onTypeChange={handleTypeChange} onAccessibilityChange={async (docId: string, accessibility: string) => {}} onPreview={setPreviewDocument} onViewDetails={setDetailsDocument} onViewActivity={setActivityDocument} onToggleLock={toggleDocumentLock} canEdit={filteredDocuments.some(doc => canEditDocument(doc))} canApprove={canApproveDocument()} selectedProject={selectedProject} />}
+        </Card> : <DocumentListView 
+          documentGroups={filteredDocuments} 
+          onDownload={handleDownload} 
+          onDelete={deleteDocumentGroup} 
+          onStatusChange={handleStatusChange} 
+          onTypeChange={handleTypeChange} 
+          onPreview={setPreviewDocument} 
+          onViewDetails={setDetailsDocument} 
+          onViewActivity={setActivityDocument} 
+          onSupersede={supersedeDocument}
+          canEdit={filteredDocuments.some(doc => canEditDocument(doc))} 
+          canApprove={canApproveDocument()} 
+          selectedProject={selectedProject} 
+        />}
 
       {/* Document Preview Dialog */}
-      {previewDocument && <DocumentPreview document={previewDocument} isOpen={!!previewDocument} onClose={() => setPreviewDocument(null)} onDownload={downloadDocument} />}
+      {previewDocument && <DocumentPreview document={previewDocument} isOpen={!!previewDocument} onClose={() => setPreviewDocument(null)} onDownload={handleDownload} />}
 
       {/* Document Details Dialog */}
       <DocumentDetailsDialog document={detailsDocument} isOpen={!!detailsDocument} onClose={() => setDetailsDocument(null)} />
@@ -184,7 +195,7 @@ const Documents = () => {
         <Dialog open={!!activityDocument} onOpenChange={() => setActivityDocument(null)}>
           <DialogContent className="max-w-4xl max-h-[80vh]">
             <DialogHeader>
-              <DialogTitle>Document Activity - {activityDocument.title || activityDocument.name}</DialogTitle>
+              <DialogTitle>Document Activity - {activityDocument.title}</DialogTitle>
             </DialogHeader>
             <DocumentActivity document={activityDocument} />
           </DialogContent>

@@ -9,19 +9,21 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Document } from '@/hooks/useDocuments';
+import { DocumentGroup } from '@/hooks/useDocumentGroups';
 import { DocumentCard } from './DocumentCard';
 
 interface DocumentFolderProps {
   title: string;
-  documents: Document[];
+  documentGroups: DocumentGroup[];
   onUpload?: () => void;
-  onDownload: (filePath: string, fileName: string) => void;
-  onDelete?: (documentId: string, filePath: string) => void;
-  onStatusChange?: (documentId: string, status: Document['status']) => void;
-  onRequestApproval?: (documentId: string) => void;
-  onViewDetails?: (document: Document) => void;
-  onPreview?: (document: Document) => void;
+  onDownload: (groupId: string) => void;
+  onDelete: (groupId: string) => Promise<boolean>;
+  onStatusChange: (groupId: string, status: string) => Promise<void>;
+  onTypeChange: (groupId: string, type: string) => Promise<void>;
+  onViewDetails: (group: DocumentGroup) => void;
+  onPreview: (group: DocumentGroup) => void;
+  onViewActivity: (group: DocumentGroup) => void;
+  onSupersede: (groupId: string, file: File, changesSummary?: string) => Promise<boolean>;
   canEdit: boolean;
   canApprove: boolean;
   viewMode: 'grid' | 'list';
@@ -30,14 +32,16 @@ interface DocumentFolderProps {
 
 export const DocumentFolder: React.FC<DocumentFolderProps> = ({
   title,
-  documents,
+  documentGroups,
   onUpload,
   onDownload,
   onDelete,
   onStatusChange,
-  onRequestApproval,
+  onTypeChange,
   onViewDetails,
   onPreview,
+  onViewActivity,
+  onSupersede,
   canEdit,
   canApprove,
   viewMode,
@@ -45,9 +49,9 @@ export const DocumentFolder: React.FC<DocumentFolderProps> = ({
 }) => {
   const [isExpanded, setIsExpanded] = useState(defaultExpanded);
   
-  const documentCount = documents.length;
-    const constructionCount = documents.filter(doc => doc.status === 'For Construction').length;
-    const tenderCount = documents.filter(doc => doc.status === 'For Tender').length;
+  const documentCount = documentGroups.length;
+  const constructionCount = documentGroups.filter(doc => doc.status === 'For Construction').length;
+  const tenderCount = documentGroups.filter(doc => doc.status === 'For Tender').length;
 
   return (
     <Card className="mb-4">
@@ -119,20 +123,22 @@ export const DocumentFolder: React.FC<DocumentFolderProps> = ({
           </div>
         </div>
 
-        {isExpanded && documents.length > 0 && (
+        {isExpanded && documentGroups.length > 0 && (
           <div className="mt-4">
             {viewMode === 'grid' ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {documents.map((document) => (
+                {documentGroups.map((group) => (
                   <DocumentCard
-                    key={document.id}
-                    document={document}
+                    key={group.id}
+                    documentGroup={group}
                     onDownload={onDownload}
                     onDelete={onDelete}
                     onStatusChange={onStatusChange}
-                    onRequestApproval={onRequestApproval}
+                    onTypeChange={onTypeChange}
                     onViewDetails={onViewDetails}
                     onPreview={onPreview}
+                    onViewActivity={onViewActivity}
+                    onSupersede={onSupersede}
                     canEdit={canEdit}
                     canApprove={canApprove}
                   />
@@ -140,16 +146,18 @@ export const DocumentFolder: React.FC<DocumentFolderProps> = ({
               </div>
             ) : (
               <div className="space-y-2">
-                {documents.map((document) => (
+                {documentGroups.map((group) => (
                   <DocumentCard
-                    key={document.id}
-                    document={document}
+                    key={group.id}
+                    documentGroup={group}
                     onDownload={onDownload}
                     onDelete={onDelete}
                     onStatusChange={onStatusChange}
-                    onRequestApproval={onRequestApproval}
+                    onTypeChange={onTypeChange}
                     onViewDetails={onViewDetails}
                     onPreview={onPreview}
+                    onViewActivity={onViewActivity}
+                    onSupersede={onSupersede}
                     canEdit={canEdit}
                     canApprove={canApprove}
                   />
@@ -159,7 +167,7 @@ export const DocumentFolder: React.FC<DocumentFolderProps> = ({
           </div>
         )}
 
-        {isExpanded && documents.length === 0 && (
+        {isExpanded && documentGroups.length === 0 && (
           <div className="mt-4 text-center py-8 text-muted-foreground">
             <File className="h-12 w-12 mx-auto mb-2 opacity-50" />
             <p>No documents in this folder</p>

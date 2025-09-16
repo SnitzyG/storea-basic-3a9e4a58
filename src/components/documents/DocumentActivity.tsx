@@ -6,20 +6,20 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { format } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
-import { Document } from '@/hooks/useDocuments';
+import { DocumentGroup } from '@/hooks/useDocumentGroups';
 
 interface ActivityEntry {
   id: string;
-  type: 'viewed' | 'edited' | 'downloaded' | 'shared' | 'created' | 'version_created';
+  type: 'viewed' | 'edited' | 'downloaded' | 'shared' | 'created' | 'revision_created';
   user_id: string;
   user_name?: string;
   timestamp: string;
   details?: string;
-  version?: number;
+  revision?: number;
 }
 
 interface DocumentActivityProps {
-  document: Document;
+  document: DocumentGroup;
 }
 
 export const DocumentActivity: React.FC<DocumentActivityProps> = ({ document }) => {
@@ -34,11 +34,11 @@ export const DocumentActivity: React.FC<DocumentActivityProps> = ({ document }) 
     try {
       setLoading(true);
       
-      // Fetch document versions for version-related activities
-      const { data: versions } = await supabase
-        .from('document_versions')
+      // Fetch document revisions for revision-related activities
+      const { data: revisions } = await supabase
+        .from('document_revisions')
         .select('*')
-        .eq('document_id', document.id)
+        .eq('document_group_id', document.id)
         .order('created_at', { ascending: false });
 
       // Use existing activity_log table for document activities
@@ -46,7 +46,7 @@ export const DocumentActivity: React.FC<DocumentActivityProps> = ({ document }) 
         .from('activity_log')
         .select('*')
         .eq('entity_id', document.id)
-        .eq('entity_type', 'document')
+        .eq('entity_type', 'document_group')
         .order('created_at', { ascending: false });
 
       // Combine activities from different sources
@@ -56,20 +56,20 @@ export const DocumentActivity: React.FC<DocumentActivityProps> = ({ document }) 
       allActivities.push({
         id: `created-${document.id}`,
         type: 'created',
-        user_id: document.uploaded_by,
+        user_id: document.created_by,
         timestamp: document.created_at,
-        details: 'Document created'
+        details: 'Document group created'
       });
 
-      // Add version activities
-      versions?.forEach((version, index) => {
+      // Add revision activities
+      revisions?.forEach((revision) => {
         allActivities.push({
-          id: `version-${version.id}`,
-          type: 'version_created',
-          user_id: version.uploaded_by,
-          timestamp: version.created_at,
-          details: version.changes_summary || `Revision ${String.fromCharCode(65 + version.version_number - 1)} created`,
-          version: version.version_number
+          id: `revision-${revision.id}`,
+          type: 'revision_created',
+          user_id: revision.uploaded_by,
+          timestamp: revision.created_at,
+          details: revision.changes_summary || `Revision ${revision.revision_number} created`,
+          revision: revision.revision_number
         });
       });
 
@@ -130,7 +130,7 @@ export const DocumentActivity: React.FC<DocumentActivityProps> = ({ document }) 
         return <Share className="h-4 w-4 text-orange-500" />;
       case 'created':
         return <FileText className="h-4 w-4 text-blue-600" />;
-      case 'version_created':
+      case 'revision_created':
         return <Calendar className="h-4 w-4 text-indigo-500" />;
       default:
         return <Clock className="h-4 w-4 text-gray-500" />;
@@ -149,7 +149,7 @@ export const DocumentActivity: React.FC<DocumentActivityProps> = ({ document }) 
         return 'bg-orange-50 border-orange-200';
       case 'created':
         return 'bg-blue-100 border-blue-300';
-      case 'version_created':
+      case 'revision_created':
         return 'bg-indigo-50 border-indigo-200';
       default:
         return 'bg-gray-50 border-gray-200';
@@ -168,8 +168,8 @@ export const DocumentActivity: React.FC<DocumentActivityProps> = ({ document }) 
         return 'Shared';
       case 'created':
         return 'Created';
-      case 'version_created':
-        return 'New Version';
+      case 'revision_created':
+        return 'New Revision';
       default:
         return type;
     }
@@ -216,9 +216,9 @@ export const DocumentActivity: React.FC<DocumentActivityProps> = ({ document }) 
                       <Badge variant="outline" className="text-xs">
                         {formatActivityType(activity.type)}
                       </Badge>
-                      {activity.version && (
+                      {activity.revision && (
                         <Badge variant="secondary" className="text-xs">
-                          Rev {String.fromCharCode(64 + activity.version)}
+                          Rev {activity.revision}
                         </Badge>
                       )}
                     </div>

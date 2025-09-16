@@ -5,112 +5,67 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DocumentVersionHistory } from './DocumentVersionHistory';
-import { DocumentComments } from './DocumentComments';
-import { DocumentCollaboration } from './DocumentCollaboration';
-import { DocumentAnalytics } from './DocumentAnalytics';
-import { Document, DocumentVersion, useDocuments } from '@/hooks/useDocuments';
+import { DocumentGroup, DocumentRevision, useDocumentGroups } from '@/hooks/useDocumentGroups';
 import { format } from 'date-fns';
+
 interface DocumentDetailsDialogProps {
-  document: Document | null;
+  document: DocumentGroup | null;
   isOpen: boolean;
   onClose: () => void;
 }
+
 export const DocumentDetailsDialog: React.FC<DocumentDetailsDialogProps> = ({
   document,
   isOpen,
   onClose
 }) => {
-  const {
-    downloadDocument,
-    getDocumentVersions,
-    revertToVersion
-  } = useDocuments();
-  const [versions, setVersions] = useState<DocumentVersion[]>([]);
+  const { getDocumentRevisions } = useDocumentGroups();
+  const [revisions, setRevisions] = useState<DocumentRevision[]>([]);
   const [loading, setLoading] = useState(false);
+
   useEffect(() => {
     if (document && isOpen) {
-      loadVersions();
+      loadRevisions();
     }
   }, [document, isOpen]);
-  const loadVersions = async () => {
+
+  const loadRevisions = async () => {
     if (!document) return;
     setLoading(true);
     try {
-      const versionsData = await getDocumentVersions(document.id);
-      setVersions(versionsData);
+      const revisionsData = await getDocumentRevisions(document.id);
+      setRevisions(revisionsData);
     } catch (error) {
-      console.error('Error loading versions:', error);
+      console.error('Error loading revisions:', error);
     } finally {
       setLoading(false);
     }
   };
-  const handleRevertToVersion = async (versionId: string) => {
-    if (!document) return;
-    await revertToVersion(document.id, versionId);
-    await loadVersions();
+
+  const handleDownloadRevision = async (revision: DocumentRevision) => {
+    // Implementation for downloading specific revision
+    console.log('Download revision:', revision.file_path);
   };
-  const handleAddComment = async (content: string, type: 'comment' | 'suggestion' | 'approval') => {
-    // TODO: Implement comment creation
-    console.log('Adding comment:', {
-      content,
-      type
-    });
-  };
+
   if (!document) return null;
 
-  // Mock data for demo
-  const mockComments = [{
-    id: '1',
-    user_id: 'user1',
-    user_name: 'John Doe',
-    content: 'This looks great! Just a few minor adjustments needed.',
-    created_at: new Date().toISOString(),
-    type: 'comment' as const
-  }];
-  const mockCollaborators = [{
-    user_id: 'user1',
-    user_name: 'John Doe',
-    is_online: true,
-    last_activity: new Date().toISOString(),
-    current_action: 'viewing' as const
-  }, {
-    user_id: 'user2',
-    user_name: 'Jane Smith',
-    is_online: false,
-    last_activity: new Date(Date.now() - 86400000).toISOString()
-  }];
-  const mockAnalytics = {
-    views: 42,
-    downloads: 12,
-    collaborators: 5,
-    versions: versions.length || 1,
-    avgTimeSpent: '8m 30s',
-    popularActions: [{
-      action: 'view',
-      count: 25,
-      percentage: 60
-    }, {
-      action: 'download',
-      count: 12,
-      percentage: 29
-    }, {
-      action: 'comment',
-      count: 5,
-      percentage: 11
-    }]
-  };
-  return <Dialog open={isOpen} onOpenChange={onClose}>
+  const currentRevision = document.current_revision;
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl h-[80vh] flex flex-col">
         <DialogHeader className="flex-shrink-0">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <FileText className="h-6 w-6" />
               <div>
-                <DialogTitle className="text-xl">{document.name}</DialogTitle>
+                <DialogTitle className="text-xl">{document.title}</DialogTitle>
                 <div className="flex items-center gap-2 mt-1">
-                  <Badge variant="outline">
-                    {String.fromCharCode(64 + (document.version || 1))}
-                  </Badge>
+                  {currentRevision && (
+                    <Badge variant="outline">
+                      Rev {currentRevision.revision_number}
+                    </Badge>
+                  )}
                   <Badge variant="secondary">
                     {document.status.replace('_', ' ')}
                   </Badge>
@@ -118,7 +73,11 @@ export const DocumentDetailsDialog: React.FC<DocumentDetailsDialogProps> = ({
               </div>
             </div>
             
-            <Button variant="outline" onClick={() => downloadDocument(document.file_path, document.name)}>
+            <Button 
+              variant="outline" 
+              onClick={() => console.log('Download current revision')}
+              disabled={!currentRevision}
+            >
               <Download className="h-4 w-4 mr-2" />
               Download
             </Button>
@@ -128,28 +87,81 @@ export const DocumentDetailsDialog: React.FC<DocumentDetailsDialogProps> = ({
         <div className="flex-1 min-h-0">
           <Tabs defaultValue="versions" className="h-full flex flex-col">
             <TabsList className="grid w-full grid-cols-1">
-              <TabsTrigger value="versions">History</TabsTrigger>
+              <TabsTrigger value="versions">Version History</TabsTrigger>
             </TabsList>
             
             <div className="flex-1 min-h-0 pt-4">
               <TabsContent value="versions" className="h-full">
-                <DocumentVersionHistory documentId={document.id} versions={versions} onDownloadVersion={downloadDocument} onRevertToVersion={handleRevertToVersion} currentVersion={document.version} />
-              </TabsContent>
-
-              <TabsContent value="comments" className="h-full">
-                <DocumentComments documentId={document.id} comments={mockComments} onAddComment={handleAddComment} />
-              </TabsContent>
-
-              <TabsContent value="collaboration" className="h-full">
-                <DocumentCollaboration documentId={document.id} collaborators={mockCollaborators} currentUserId="current-user" />
-              </TabsContent>
-
-              <TabsContent value="analytics" className="h-full">
-                <DocumentAnalytics documentId={document.id} data={mockAnalytics} />
+                {loading ? (
+                  <div className="flex items-center justify-center h-full">
+                    <div className="text-muted-foreground">Loading revisions...</div>
+                  </div>
+                ) : (
+                  <div className="space-y-4 h-full overflow-auto">
+                    {revisions.length === 0 ? (
+                      <div className="flex flex-col items-center justify-center h-full text-center">
+                        <GitBranch className="h-12 w-12 text-muted-foreground mb-4" />
+                        <h3 className="text-lg font-medium mb-2">No revisions found</h3>
+                        <p className="text-muted-foreground">
+                          This document has no revision history
+                        </p>
+                      </div>
+                    ) : (
+                      revisions.map((revision) => (
+                        <div key={revision.id} className="border rounded-lg p-4">
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center gap-2">
+                              <Badge variant={revision.is_current ? "default" : "outline"}>
+                                Rev {revision.revision_number}
+                              </Badge>
+                              {revision.is_current && (
+                                <Badge variant="secondary" className="text-xs">
+                                  Current
+                                </Badge>
+                              )}
+                            </div>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleDownloadRevision(revision)}
+                            >
+                              <Download className="h-4 w-4" />
+                            </Button>
+                          </div>
+                          
+                          <h4 className="font-medium mb-1">{revision.file_name}</h4>
+                          
+                          {revision.changes_summary && (
+                            <p className="text-sm text-muted-foreground mb-2">
+                              {revision.changes_summary}
+                            </p>
+                          )}
+                          
+                          <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                            <span className="flex items-center gap-1">
+                              <User className="h-3 w-3" />
+                              {revision.uploaded_by_name}
+                            </span>
+                            <span className="flex items-center gap-1">
+                              <Calendar className="h-3 w-3" />
+                              {format(new Date(revision.created_at), 'MMM dd, yyyy HH:mm')}
+                            </span>
+                            {revision.file_size && (
+                              <span>
+                                {(revision.file_size / 1024 / 1024).toFixed(2)} MB
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                )}
               </TabsContent>
             </div>
           </Tabs>
         </div>
       </DialogContent>
-    </Dialog>;
+    </Dialog>
+  );
 };

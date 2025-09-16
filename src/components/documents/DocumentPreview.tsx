@@ -5,18 +5,13 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { getSafeMime, getFileExtension } from '@/utils/documentUtils';
+import { DocumentGroup } from '@/hooks/useDocumentGroups';
 
 interface DocumentPreviewProps {
-  document: {
-    id: string;
-    name: string;
-    file_path: string;
-    file_type: string;
-    version?: number;
-  };
+  document: DocumentGroup;
   isOpen: boolean;
   onClose: () => void;
-  onDownload: (filePath: string, fileName: string) => void;
+  onDownload: (groupId: string) => void;
 }
 
 export const DocumentPreview: React.FC<DocumentPreviewProps> = ({
@@ -33,21 +28,25 @@ export const DocumentPreview: React.FC<DocumentPreviewProps> = ({
   const handleZoomOut = () => setZoom(prev => Math.max(prev - 25, 50));
   const handleRotate = () => setRotation(prev => (prev + 90) % 360);
 
+  const currentRevision = document.current_revision;
+
   useEffect(() => {
     let isMounted = true;
     const generateUrl = async () => {
+      if (!currentRevision?.file_path) return;
+      
       try {
         // Prefer a signed URL (works with private buckets); fallback to public URL
         const { data, error } = await supabase.storage
           .from('documents')
-          .createSignedUrl(document.file_path, 60 * 60); // 1 hour
+          .createSignedUrl(currentRevision.file_path, 60 * 60); // 1 hour
 
         if (!isMounted) return;
 
         if (error || !data?.signedUrl) {
           const { data: pub } = supabase.storage
             .from('documents')
-            .getPublicUrl(document.file_path);
+            .getPublicUrl(currentRevision.file_path);
           setPreviewUrl(pub.publicUrl);
         } else {
           setPreviewUrl(data.signedUrl);
@@ -55,24 +54,36 @@ export const DocumentPreview: React.FC<DocumentPreviewProps> = ({
       } catch (e) {
         const { data: pub } = supabase.storage
           .from('documents')
-          .getPublicUrl(document.file_path);
+          .getPublicUrl(currentRevision.file_path);
         setPreviewUrl(pub.publicUrl);
       }
     };
 
     generateUrl();
     return () => { isMounted = false; };
-  }, [document.file_path]);
+  }, [currentRevision?.file_path]);
 
   // Use utility function for consistent extension extraction
   const getDocumentExtension = () => {
-    return getFileExtension(document.file_path) || getFileExtension(document.name);
+    return getFileExtension(currentRevision?.file_path || '') || getFileExtension(currentRevision?.file_name || '');
   };
 
   const renderPreview = () => {
+    if (!currentRevision) {
+      return (
+        <div className="flex flex-col justify-center items-center h-full bg-muted/20 rounded-lg text-center">
+          <Eye className="h-16 w-16 text-muted-foreground mb-4" />
+          <h3 className="text-lg font-medium mb-2">No file available</h3>
+          <p className="text-muted-foreground">
+            This document group has no current revision
+          </p>
+        </div>
+      );
+    }
+
     // ✅ BULLETPROOF TYPE DETECTION
-    const type = getSafeMime(document);
-    const ext = getFileExtension(document.name || document.file_path || '');
+    const type = currentRevision.file_type || 'application/octet-stream';
+    const ext = getFileExtension(currentRevision.file_name || currentRevision.file_path || '');
     const isImage = type.startsWith('image/');
     const isPdf = type === 'application/pdf';
     const isText = type.startsWith('text/') || ['txt','csv'].includes(ext);
@@ -83,7 +94,7 @@ export const DocumentPreview: React.FC<DocumentPreviewProps> = ({
         <div className="flex justify-center items-center h-full bg-muted/20 rounded-lg">
           <img
             src={previewUrl}
-            alt={`${document.name || 'image'}`}
+            alt={`${currentRevision.file_name || 'image'}`}
             className="max-w-full max-h-full object-contain"
             style={{
               transform: `scale(${zoom / 100}) rotate(${rotation}deg)`,
@@ -157,10 +168,7 @@ export const DocumentPreview: React.FC<DocumentPreviewProps> = ({
         <p className="text-muted-foreground mb-4">
           {ext.toUpperCase()} files cannot be previewed in the browser
         </p>
-        <Button onClick={() => onDownload(
-          document.file_path,
-          document.name && document.name.includes('.') ? document.name : `${document.name || 'document'}.${ext}`
-        )}>
+        <Button onClick={() => onDownload(document.id)}>
           <Download className="h-4 w-4 mr-2" />
           Download to View
         </Button>
@@ -174,14 +182,14 @@ export const DocumentPreview: React.FC<DocumentPreviewProps> = ({
         <DialogHeader className="flex-shrink-0">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <DialogTitle className="truncate">{document.name}</DialogTitle>
-              {document.version && (
-                <Badge variant="outline">v{document.version}</Badge>
+              <DialogTitle className="truncate">{document.title}</DialogTitle>
+              {currentRevision && currentRevision.revision_number > 1 && (
+                <Badge variant="outline">rev {currentRevision.revision_number}</Badge>
               )}
             </div>
             
             <div className="flex items-center gap-2">
-              {(document.file_type.startsWith('image/') || document.file_type === 'application/pdf') && (
+              {currentRevision && (currentRevision.file_type?.startsWith('image/') || currentRevision.file_type === 'application/pdf') && (
                 <>
                   <Button variant="ghost" size="sm" onClick={handleZoomOut}>
                     <ZoomOut className="h-4 w-4" />
@@ -193,7 +201,7 @@ export const DocumentPreview: React.FC<DocumentPreviewProps> = ({
                     <ZoomIn className="h-4 w-4" />
                   </Button>
                   
-                  {document.file_type.startsWith('image/') && (
+                  {currentRevision.file_type?.startsWith('image/') && (
                     <Button variant="ghost" size="sm" onClick={handleRotate}>
                       <RotateCw className="h-4 w-4" />
                     </Button>
@@ -204,10 +212,7 @@ export const DocumentPreview: React.FC<DocumentPreviewProps> = ({
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => onDownload(
-                  document.file_path,
-                  document.name && document.name.includes('.') ? document.name : `${document.name || 'document'}.${getFileExtension(document.name || document.file_path || '')}`
-                )}
+                onClick={() => onDownload(document.id)}
               >
                 <Download className="h-4 w-4" />
               </Button>

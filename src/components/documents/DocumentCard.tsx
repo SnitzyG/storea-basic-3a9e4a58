@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { 
   Download, 
   Eye, 
@@ -22,33 +22,39 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Document } from '@/hooks/useDocuments';
+import { DocumentGroup } from '@/hooks/useDocumentGroups';
 import { format } from 'date-fns';
 
 interface DocumentCardProps {
-  document: Document;
-  onDownload: (filePath: string, fileName: string) => void;
-  onDelete?: (documentId: string, filePath: string) => void;
-  onStatusChange?: (documentId: string, status: Document['status']) => void;
-  onRequestApproval?: (documentId: string) => void;
-  onViewDetails?: (document: Document) => void;
-  onPreview?: (document: Document) => void;
+  documentGroup: DocumentGroup;
+  onDownload: (groupId: string) => void;
+  onDelete: (groupId: string) => Promise<boolean>;
+  onStatusChange: (groupId: string, status: string) => Promise<void>;
+  onTypeChange: (groupId: string, type: string) => Promise<void>;
+  onPreview: (group: DocumentGroup) => void;
+  onViewDetails: (group: DocumentGroup) => void;
+  onViewActivity: (group: DocumentGroup) => void;
+  onSupersede: (groupId: string, file: File, changesSummary?: string) => Promise<boolean>;
   canEdit: boolean;
   canApprove: boolean;
 }
 
 export const DocumentCard: React.FC<DocumentCardProps> = ({
-  document,
+  documentGroup,
   onDownload,
   onDelete,
   onStatusChange,
-  onRequestApproval,
-  onViewDetails,
+  onTypeChange,
   onPreview,
+  onViewDetails,
+  onViewActivity,
+  onSupersede,
   canEdit,
   canApprove
 }) => {
-  const getFileIcon = (fileType: string) => {
+  const getFileIcon = (fileType?: string) => {
+    if (!fileType) return <File className="h-8 w-8 text-muted-foreground" />;
+    
     if (fileType.startsWith('image/')) {
       return <Image className="h-8 w-8 text-construction-info" />;
     } else if (fileType === 'application/pdf') {
@@ -58,7 +64,7 @@ export const DocumentCard: React.FC<DocumentCardProps> = ({
     }
   };
 
-  const getStatusIcon = (status: Document['status']) => {
+  const getStatusIcon = (status: string) => {
     switch (status) {
       case 'For Construction':
         return <CheckCircle className="h-4 w-4 text-construction-success" />;
@@ -71,7 +77,7 @@ export const DocumentCard: React.FC<DocumentCardProps> = ({
     }
   };
 
-  const getStatusColor = (status: Document['status']) => {
+  const getStatusColor = (status: string) => {
     switch (status) {
       case 'For Construction': return 'default';
       case 'For Tender': return 'secondary';
@@ -89,18 +95,20 @@ export const DocumentCard: React.FC<DocumentCardProps> = ({
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
+  const currentRevision = documentGroup.current_revision;
+
   return (
     <Card className="hover:shadow-md transition-shadow">
       <CardContent className="p-4">
         <div className="flex items-start gap-3">
           <div className="flex-shrink-0">
-            {getFileIcon(document.file_type)}
+            {getFileIcon(currentRevision?.file_type)}
           </div>
           
           <div className="flex-1 min-w-0">
             <div className="flex items-start justify-between mb-2">
               <h3 className="font-medium text-sm truncate pr-2">
-                {document.name}
+                {documentGroup.title}
               </h3>
               
               <DropdownMenu>
@@ -110,53 +118,41 @@ export const DocumentCard: React.FC<DocumentCardProps> = ({
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  {onPreview && (
-                    <DropdownMenuItem onClick={() => onPreview(document)}>
-                      <Eye className="h-4 w-4 mr-2" />
-                      Preview
-                    </DropdownMenuItem>
-                  )}
+                  <DropdownMenuItem onClick={() => onPreview(documentGroup)}>
+                    <Eye className="h-4 w-4 mr-2" />
+                    Preview
+                  </DropdownMenuItem>
                   
-                  <DropdownMenuItem 
-                    onClick={() => onDownload(document.file_path, document.name)}
-                  >
+                  <DropdownMenuItem onClick={() => onDownload(documentGroup.id)}>
                     <Download className="h-4 w-4 mr-2" />
                     Download
                   </DropdownMenuItem>
 
-                  {onViewDetails && (
-                    <DropdownMenuItem onClick={() => onViewDetails(document)}>
-                      <GitBranch className="h-4 w-4 mr-2" />
-                      Version History
-                    </DropdownMenuItem>
-                  )}
+                  <DropdownMenuItem onClick={() => onViewDetails(documentGroup)}>
+                    <GitBranch className="h-4 w-4 mr-2" />
+                    Version History
+                  </DropdownMenuItem>
                   
-                  {canApprove && onStatusChange && (
+                  {canApprove && (
                     <>
-                      <DropdownMenuItem 
-                        onClick={() => onStatusChange(document.id, 'For Tender')}
-                      >
+                      <DropdownMenuItem onClick={() => onStatusChange(documentGroup.id, 'For Tender')}>
                         <Clock className="h-4 w-4 mr-2" />
                         For Tender
                       </DropdownMenuItem>
-                      <DropdownMenuItem 
-                        onClick={() => onStatusChange(document.id, 'For Information')}
-                      >
+                      <DropdownMenuItem onClick={() => onStatusChange(documentGroup.id, 'For Information')}>
                         <FileText className="h-4 w-4 mr-2" />
                         For Information
                       </DropdownMenuItem>
-                      <DropdownMenuItem 
-                        onClick={() => onStatusChange(document.id, 'For Construction')}
-                      >
+                      <DropdownMenuItem onClick={() => onStatusChange(documentGroup.id, 'For Construction')}>
                         <CheckCircle className="h-4 w-4 mr-2" />
                         For Construction
                       </DropdownMenuItem>
                     </>
                   )}
                   
-                  {canEdit && onDelete && (
+                  {canEdit && (
                     <DropdownMenuItem 
-                      onClick={() => onDelete(document.id, document.file_path)}
+                      onClick={() => onDelete(documentGroup.id)}
                       className="text-destructive"
                     >
                       <XCircle className="h-4 w-4 mr-2" />
@@ -168,38 +164,40 @@ export const DocumentCard: React.FC<DocumentCardProps> = ({
             </div>
             
             <div className="flex items-center gap-2 mb-2">
-              <Badge variant={getStatusColor(document.status)} className="text-xs">
+              <Badge variant={getStatusColor(documentGroup.status)} className="text-xs">
                 <span className="flex items-center gap-1">
-                  {getStatusIcon(document.status)}
-                  {document.status.replace('_', ' ')}
+                  {getStatusIcon(documentGroup.status)}
+                  {documentGroup.status.replace('_', ' ')}
                 </span>
               </Badge>
               
-              {document.version && document.version > 1 && (
+              {currentRevision && currentRevision.revision_number > 1 && (
                 <Badge variant="outline" className="text-xs">
-                  v{document.version}
+                  rev {currentRevision.revision_number}
                 </Badge>
               )}
             </div>
             
             <div className="text-xs text-muted-foreground space-y-1">
               <div className="flex items-center gap-4">
-                <span>{formatFileSize(document.file_size)}</span>
+                <span>{formatFileSize(currentRevision?.file_size)}</span>
                 <span className="flex items-center gap-1">
                   <Users className="h-3 w-3" />
-                  3
+                  {/* TODO: Get actual collaborator count */}
+                  1
                 </span>
                 <span className="flex items-center gap-1">
                   <MessageSquare className="h-3 w-3" />
-                  2
+                  {/* TODO: Get actual comment count */}
+                  0
                 </span>
               </div>
               <div>
-                {format(new Date(document.created_at), 'MMM dd, yyyy')}
+                {format(new Date(documentGroup.created_at), 'MMM dd, yyyy')}
               </div>
-              {document.updated_at !== document.created_at && (
+              {documentGroup.updated_at !== documentGroup.created_at && (
                 <div>
-                  {format(new Date(document.updated_at), 'MMM dd, yyyy')}
+                  Updated: {format(new Date(documentGroup.updated_at), 'MMM dd, yyyy')}
                 </div>
               )}
             </div>
