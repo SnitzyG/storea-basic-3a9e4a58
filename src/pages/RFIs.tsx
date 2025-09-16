@@ -3,30 +3,23 @@ import { Link } from 'react-router-dom';
 import { useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, ToggleLeft, ToggleRight } from 'lucide-react';
 import { useRFIs, RFI } from '@/hooks/useRFIs';
 import { useProjects } from '@/hooks/useProjects';
 import { useAuth } from '@/hooks/useAuth';
-// Import new advanced components
-import { EnhancedRFIDashboard } from '@/components/rfis/EnhancedRFIDashboard';
-import { AdvancedRFIComposer } from '@/components/rfis/AdvancedRFIComposer';
+// Import email-style components
+import { EmailStyleRFIInbox } from '@/components/rfis/EmailStyleRFIInbox';
+import { SimplifiedRFIComposer } from '@/components/rfis/SimplifiedRFIComposer';
+import { RFIMessageComposer } from '@/components/messages/RFIMessageComposer';
 // Legacy components for fallback
-import { CreateRFIDialog } from '@/components/rfis/CreateRFIDialog';
 import { RFIDetailsDialog } from '@/components/rfis/RFIDetailsDialog';
-import { RFIFilters } from '@/components/rfis/RFIFilters';
-import { RFIListView } from '@/components/rfis/RFIListView';
 import { useProjectTeam } from '@/hooks/useProjectTeam';
 const RFIs = () => {
   const [selectedProject, setSelectedProject] = useState<string>('');
-  const [createDialogOpen, setCreateDialogOpen] = useState(false);
-  const [advancedComposerOpen, setAdvancedComposerOpen] = useState(false);
+  const [simplifiedComposerOpen, setSimplifiedComposerOpen] = useState(false);
+  const [messageComposerOpen, setMessageComposerOpen] = useState(false);
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
   const [selectedRFI, setSelectedRFI] = useState<RFI | null>(null);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [priorityFilter, setPriorityFilter] = useState('all');
-  const [assigneeFilter, setAssigneeFilter] = useState('all');
+  const [replyToRFI, setReplyToRFI] = useState<RFI | null>(null);
   const [projectUsers, setProjectUsers] = useState<any[]>([]);
   const {
     projects
@@ -53,71 +46,27 @@ const RFIs = () => {
   // Auto-open create dialog when navigated with state
   useEffect(() => {
     if ((location.state as any)?.openCreate) {
-      setAdvancedComposerOpen(true);
+      setSimplifiedComposerOpen(true);
       // Clear the flag to prevent reopening on internal state changes
       window.history.replaceState({}, document.title);
     }
   }, [location.state]);
 
-  // Filter RFIs based on search and filters
-  const filteredRFIs = useMemo(() => {
-    return rfis.filter(rfi => {
-      // Search filter
-      if (searchQuery) {
-        const query = searchQuery.toLowerCase();
-        if (!rfi.question.toLowerCase().includes(query) && !rfi.category?.toLowerCase().includes(query) && !rfi.raised_by_profile?.name?.toLowerCase().includes(query)) {
-          return false;
-        }
-      }
-
-      // Status filter
-      if (statusFilter !== 'all' && rfi.status !== statusFilter) {
-        return false;
-      }
-
-      // Priority filter
-      if (priorityFilter !== 'all' && rfi.priority !== priorityFilter) {
-        return false;
-      }
-
-      // Assignee filter
-      if (assigneeFilter !== 'all') {
-        if (assigneeFilter === 'unassigned' && rfi.assigned_to) {
-          return false;
-        }
-        if (assigneeFilter !== 'unassigned' && rfi.assigned_to !== assigneeFilter) {
-          return false;
-        }
-      }
-      return true;
-    });
-  }, [rfis, searchQuery, statusFilter, priorityFilter, assigneeFilter]);
+  // All RFIs for the current project (no filters needed in new design)
+  const projectRFIs = rfis;
   const handleViewRFI = (rfi: RFI) => {
     setSelectedRFI(rfi);
     setDetailsDialogOpen(true);
   };
-  const handleEditRFI = (rfi: RFI) => {
-    // For now, just open details dialog
-    // In a full implementation, you might want a separate edit dialog
+
+  const handleReplyToRFI = (rfi: RFI) => {
+    setReplyToRFI(rfi);
+    setSimplifiedComposerOpen(true);
+  };
+
+  const handleCreateMessageForRFI = (rfi: RFI) => {
     setSelectedRFI(rfi);
-    setDetailsDialogOpen(true);
-  };
-  const handleAssignRFI = async (rfi: RFI) => {
-    // In a full implementation, you'd show an assignment dialog
-    // For now, we'll just auto-assign to the first architect
-    const architect = teamMembers.find(user => user.role === 'architect');
-    if (architect) {
-      await updateRFI(rfi.id, {
-        assigned_to: architect.user_id,
-        status: 'outstanding'
-      });
-    }
-  };
-  const clearFilters = () => {
-    setSearchQuery('');
-    setStatusFilter('all');
-    setPriorityFilter('all');
-    setAssigneeFilter('all');
+    setMessageComposerOpen(true);
   };
   const handleExportPDF = (rfi: RFI) => {
     const printContent = `
@@ -381,16 +330,37 @@ const RFIs = () => {
       </div>;
   }
   return <div className="h-screen flex flex-col">
-      {/* Project selector only */}
-      
+      <EmailStyleRFIInbox 
+        rfis={projectRFIs} 
+        onView={handleViewRFI} 
+        onCreateNew={() => setSimplifiedComposerOpen(true)} 
+        onReply={handleReplyToRFI}
+        projectUsers={projectUsers} 
+        currentProject={currentProject} 
+      />
 
-      <div className="flex-1">
-        <EnhancedRFIDashboard rfis={filteredRFIs} onView={handleViewRFI} onCreateNew={() => setAdvancedComposerOpen(true)} onExportPDF={handleExportPDF} projectUsers={projectUsers} currentProject={currentProject} />
-      </div>
+      <SimplifiedRFIComposer 
+        open={simplifiedComposerOpen} 
+        onOpenChange={(open) => {
+          setSimplifiedComposerOpen(open);
+          if (!open) setReplyToRFI(null);
+        }} 
+        projectId={currentProject.id}
+        replyToRFI={replyToRFI}
+      />
 
-      <AdvancedRFIComposer open={advancedComposerOpen} onOpenChange={setAdvancedComposerOpen} projectId={currentProject.id} />
+      <RFIMessageComposer
+        open={messageComposerOpen}
+        onOpenChange={setMessageComposerOpen}
+        projectId={currentProject.id}
+        linkedRFI={selectedRFI}
+      />
 
-      <RFIDetailsDialog open={detailsDialogOpen} onOpenChange={setDetailsDialogOpen} rfi={selectedRFI} />
+      <RFIDetailsDialog 
+        open={detailsDialogOpen} 
+        onOpenChange={setDetailsDialogOpen} 
+        rfi={selectedRFI} 
+      />
     </div>;
 };
 export default RFIs;
