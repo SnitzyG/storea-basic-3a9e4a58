@@ -325,11 +325,14 @@ export const useRFIs = (projectId?: string) => {
     fetchRFIs();
   }, [projectId]);
 
-  // Set up real-time subscriptions
+  // Set up comprehensive real-time subscriptions for instant updates
   useEffect(() => {
     if (!projectId) return;
 
-    const channel = supabase
+    const channels = [];
+
+    // Subscribe to RFI table changes
+    const rfiChannel = supabase
       .channel('rfis-changes')
       .on(
         'postgres_changes',
@@ -339,16 +342,86 @@ export const useRFIs = (projectId?: string) => {
           table: 'rfis',
           filter: `project_id=eq.${projectId}`,
         },
-        () => {
+        (payload) => {
+          console.log('RFI change detected:', payload);
           fetchRFIs();
         }
       )
       .subscribe();
 
+    channels.push(rfiChannel);
+
+    // Subscribe to RFI activities changes for instant activity updates
+    const activitiesChannel = supabase
+      .channel('rfi-activities-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'rfi_activities',
+        },
+        (payload: any) => {
+          console.log('RFI activity change detected:', payload);
+          // Check if this activity belongs to an RFI in our project
+          if (rfis.some(rfi => rfi.id === payload.new?.rfi_id || rfi.id === payload.old?.rfi_id)) {
+            fetchRFIs();
+          }
+        }
+      )
+      .subscribe();
+
+    channels.push(activitiesChannel);
+
+    // Subscribe to RFI collaboration comments changes
+    const commentsChannel = supabase
+      .channel('rfi-comments-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'rfi_collaboration_comments',
+        },
+        (payload: any) => {
+          console.log('RFI comment change detected:', payload);
+          // Check if this comment belongs to an RFI in our project
+          if (rfis.some(rfi => rfi.id === payload.new?.rfi_id || rfi.id === payload.old?.rfi_id)) {
+            fetchRFIs();
+          }
+        }
+      )
+      .subscribe();
+
+    channels.push(commentsChannel);
+
+    // Subscribe to profile changes that might affect displayed names
+    const profilesChannel = supabase
+      .channel('profiles-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'profiles',
+        },
+        (payload: any) => {
+          console.log('Profile change detected:', payload);
+          // Check if this profile is referenced in any of our RFIs
+          const updatedUserId = payload.new?.user_id;
+          if (rfis.some(rfi => rfi.raised_by === updatedUserId || rfi.assigned_to === updatedUserId)) {
+            fetchRFIs();
+          }
+        }
+      )
+      .subscribe();
+
+    channels.push(profilesChannel);
+
     return () => {
-      supabase.removeChannel(channel);
+      channels.forEach(channel => supabase.removeChannel(channel));
     };
-  }, [projectId]);
+  }, [projectId, rfis.length]); // Include rfis.length to ensure we re-subscribe when RFIs change
 
   return {
     rfis,

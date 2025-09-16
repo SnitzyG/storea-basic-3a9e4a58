@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -56,7 +56,7 @@ export const EmailStyleRFIInbox: React.FC<EmailStyleRFIInboxProps> = ({
   const [statusFilter, setStatusFilter] = useState('all');
   const [selectedRFI, setSelectedRFI] = useState<RFI | null>(null);
 
-  // Filter RFIs based on search and filters
+  // Memoized filter function for better performance with real-time updates
   const filteredRFIs = useMemo(() => {
     return rfis.filter(rfi => {
       // Search filter
@@ -83,6 +83,18 @@ export const EmailStyleRFIInbox: React.FC<EmailStyleRFIInboxProps> = ({
     });
   }, [rfis, searchQuery, typeFilter, statusFilter]);
 
+  // Memoized callbacks to prevent unnecessary re-renders
+  const handleRFIClick = useCallback((rfi: RFI) => {
+    setSelectedRFI(rfi);
+    onView(rfi);
+  }, [onView]);
+
+  const handleClearFilters = useCallback(() => {
+    setSearchQuery('');
+    setTypeFilter('all');
+    setStatusFilter('all');
+  }, []);
+
   // Map existing categories to new RFI types
   const mapCategoryToType = (category?: string): RFIType => {
     if (!category) return 'General';
@@ -100,18 +112,9 @@ export const EmailStyleRFIInbox: React.FC<EmailStyleRFIInboxProps> = ({
     return rfiType === 'Request for Information';
   };
 
-  const clearFilters = () => {
-    setSearchQuery('');
-    setTypeFilter('all');
-    setStatusFilter('all');
-  };
+  const clearFilters = handleClearFilters;
 
   const hasActiveFilters = typeFilter !== 'all' || statusFilter !== 'all' || searchQuery;
-
-  const handleRFIClick = (rfi: RFI) => {
-    setSelectedRFI(rfi);
-    onView(rfi);
-  };
 
   return (
     <div className="flex h-screen bg-background">
