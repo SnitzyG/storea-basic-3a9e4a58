@@ -1,8 +1,9 @@
 import React, { useState, useMemo, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { Upload } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -125,6 +126,24 @@ const Documents = () => {
   useEffect(() => {
     fetchDocumentGroups();
   }, [fetchDocumentGroups, selectedProject]);
+  if (projects.length === 0) {
+    return <div className="min-h-screen flex items-center justify-center">
+        <Card className="w-96">
+          <CardHeader>
+            <CardTitle>Documents</CardTitle>
+          </CardHeader>
+          <CardContent className="text-center py-8">
+            <p className="text-muted-foreground mb-4">
+              No projects available. Create a project first to upload documents.
+            </p>
+            <Button asChild>
+              <Link to="/projects">Go to Projects</Link>
+            </Button>
+          </CardContent>
+        </Card>
+      </div>;
+  }
+
   if (loading) {
     return <div className="space-y-6">
         <div className="flex items-center justify-between">
