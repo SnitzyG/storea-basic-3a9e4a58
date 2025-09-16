@@ -180,7 +180,7 @@ const Documents = () => {
       {/* Filters */}
       <Card className="mb-6">
         <CardContent className="p-6">
-          <DocumentFilters searchTerm={searchTerm} onSearchChange={setSearchTerm} selectedProject={selectedProject} onProjectChange={setSelectedProject} selectedCategory={selectedCategory} onCategoryChange={setSelectedCategory} selectedStatus={statusFilter} onStatusChange={setStatusFilter} viewMode="list" onViewModeChange={() => {}} projects={projects} documentCounts={{
+          <DocumentFilters searchTerm={searchTerm} onSearchChange={setSearchTerm} selectedCategory={selectedCategory} onCategoryChange={setSelectedCategory} selectedStatus={statusFilter} onStatusChange={setStatusFilter} documentCounts={{
           total: statusCounts.all,
           'For Tender': statusCounts['For Tender'],
           'For Information': statusCounts['For Information'],

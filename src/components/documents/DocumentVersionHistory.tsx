@@ -43,7 +43,7 @@ export const DocumentVersionHistory: React.FC<DocumentVersionHistoryProps> = ({
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <GitBranch className="h-5 w-5" />
-          Version History
+          Revision History
         </CardTitle>
       </CardHeader>
       <CardContent>

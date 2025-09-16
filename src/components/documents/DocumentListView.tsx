@@ -123,15 +123,16 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead className="w-[60px]">Type</TableHead>
-            <TableHead>Document</TableHead>
-            <TableHead>Number</TableHead>
-            <TableHead>Category</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead>Size</TableHead>
-            <TableHead>Rev</TableHead>
-            <TableHead>Created</TableHead>
-            <TableHead>Updated</TableHead>
+            <TableHead className="w-[60px] cursor-pointer hover:bg-muted/50">Type</TableHead>
+            <TableHead className="cursor-pointer hover:bg-muted/50">Document</TableHead>
+            <TableHead className="cursor-pointer hover:bg-muted/50">Number</TableHead>
+            <TableHead className="cursor-pointer hover:bg-muted/50">Category</TableHead>
+            <TableHead className="cursor-pointer hover:bg-muted/50">Status</TableHead>
+            <TableHead className="cursor-pointer hover:bg-muted/50">Size</TableHead>
+            <TableHead className="cursor-pointer hover:bg-muted/50">Rev</TableHead>
+            <TableHead className="cursor-pointer hover:bg-muted/50">Uploaded By</TableHead>
+            <TableHead className="cursor-pointer hover:bg-muted/50">Created</TableHead>
+            <TableHead className="cursor-pointer hover:bg-muted/50">Updated</TableHead>
             <TableHead>Lock</TableHead>
             <TableHead className="w-[50px]">Actions</TableHead>
           </TableRow>
@@ -179,6 +180,9 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
                 </Badge>
               </TableCell>
               <TableCell className="text-xs text-muted-foreground">
+                {group.current_revision?.uploaded_by_name || 'Unknown'}
+              </TableCell>
+              <TableCell className="text-xs text-muted-foreground">
                 {format(new Date(group.created_at), 'MMM dd, yyyy HH:mm.ss')}
               </TableCell>
               <TableCell className="text-xs text-muted-foreground">
@@ -221,7 +225,7 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
                     
                     <DropdownMenuItem onClick={() => handleViewHistory(group)}>
                       <History className="h-3 w-3 mr-2" />
-                      Version History
+                      Revision History
                     </DropdownMenuItem>
 
                     <DropdownMenuItem onClick={() => onViewActivity(group)}>
@@ -259,15 +263,15 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
                      )}
                      
                      {canEdit && (
-                       <DropdownMenuItem 
-                         onClick={() => handleDeleteConfirm(group)} 
-                         disabled={group.is_locked}
-                         className="text-destructive"
-                       >
-                         <X className="h-3 w-3 mr-2" />
-                         Delete Forever
-                       </DropdownMenuItem>
-                     )}
+                        <DropdownMenuItem 
+                          onClick={() => handleDeleteConfirm(group)} 
+                          disabled={group.is_locked}
+                          className="text-destructive"
+                        >
+                          <X className="h-3 w-3 mr-2" />
+                          Delete
+                        </DropdownMenuItem>
+                      )}
                   </DropdownMenuContent>
                 </DropdownMenu>
               </TableCell>

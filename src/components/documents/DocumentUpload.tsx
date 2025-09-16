@@ -94,7 +94,7 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
 
     // Validate required fields
     const invalidFiles = files.filter(f => 
-      f.status === 'pending' && (!f.title?.trim() || !f.documentStatus || !f.fileType)
+      f.status === 'pending' && (!f.title?.trim() || !f.documentNumber?.trim() || !f.documentStatus || !f.fileType)
     );
 
     if (invalidFiles.length > 0) {
@@ -315,7 +315,9 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor={`docnum-${file.id}`}>Document No.</Label>
+                        <Label htmlFor={`docnum-${file.id}`}>
+                          Document No. <span className="text-destructive">*</span>
+                        </Label>
                         <Input
                           id={`docnum-${file.id}`}
                           value={file.documentNumber || ''}

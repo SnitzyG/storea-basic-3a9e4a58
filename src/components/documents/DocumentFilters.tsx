@@ -7,18 +7,10 @@ import { Badge } from '@/components/ui/badge';
 interface DocumentFiltersProps {
   searchTerm: string;
   onSearchChange: (value: string) => void;
-  selectedProject: string;
-  onProjectChange: (value: string) => void;
   selectedCategory: string;
   onCategoryChange: (value: string) => void;
   selectedStatus: string;
   onStatusChange: (value: string) => void;
-  viewMode: 'grid' | 'list';
-  onViewModeChange: (mode: 'grid' | 'list') => void;
-  projects: Array<{
-    id: string;
-    name: string;
-  }>;
   documentCounts: {
     total: number;
     'For Tender': number;
@@ -42,15 +34,10 @@ const categories = [{
 export const DocumentFilters: React.FC<DocumentFiltersProps> = ({
   searchTerm,
   onSearchChange,
-  selectedProject,
-  onProjectChange,
   selectedCategory,
   onCategoryChange,
   selectedStatus,
   onStatusChange,
-  viewMode,
-  onViewModeChange,
-  projects,
   documentCounts
 }) => {
   return <div className="space-y-4">
@@ -68,18 +55,6 @@ export const DocumentFilters: React.FC<DocumentFiltersProps> = ({
 
       {/* Filters */}
       <div className="flex flex-wrap items-center gap-4">
-        <Select value={selectedProject} onValueChange={onProjectChange}>
-          <SelectTrigger className="w-48">
-            <SelectValue placeholder="All Projects" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Projects</SelectItem>
-            {projects.map(project => <SelectItem key={project.id} value={project.id}>
-                {project.name}
-              </SelectItem>)}
-          </SelectContent>
-        </Select>
-
         <Select value={selectedCategory} onValueChange={onCategoryChange}>
           <SelectTrigger className="w-48">
             <SelectValue placeholder="All Categories" />
