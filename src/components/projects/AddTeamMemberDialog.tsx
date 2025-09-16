@@ -7,13 +7,14 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Loader2, Mail, AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { PendingInvitationsDialog } from './PendingInvitationsDialog';
+import { useProjectTeam } from '@/hooks/useProjectTeam';
 
 interface AddTeamMemberDialogProps {
   projectId: string;
   projectName: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onMemberAdded: (email: string, role: string, projectName?: string) => Promise<boolean>;
+  onMemberAdded: (email?: string, role?: string, projectName?: string) => Promise<boolean>;
 }
 
 const roleOptions = [
@@ -30,6 +31,7 @@ export function AddTeamMemberDialog({ projectId, projectName, open, onOpenChange
   const [role, setRole] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPendingInvitations, setShowPendingInvitations] = useState(false);
+  const { addMember } = useProjectTeam(projectId);
 
   const validateEmail = (email: string) => {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -48,11 +50,12 @@ export function AddTeamMemberDialog({ projectId, projectName, open, onOpenChange
 
     setLoading(true);
     try {
-      const success = await onMemberAdded(email, role, projectName);
+      const success = await addMember(email, role, projectName);
       if (success) {
         setEmail('');
         setRole('');
         onOpenChange(false);
+        await onMemberAdded(email, role, projectName);
       }
     } finally {
       setLoading(false);

@@ -107,6 +107,25 @@ export const useTeamSync = (projectId: string) => {
           }));
         }
       )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'invitations',
+          filter: `project_id=eq.${projectId}`
+        },
+        (payload) => {
+          console.log('Invitations changed:', payload);
+          // Immediate update for invitation changes
+          fetchTeamMembers();
+          
+          // Dispatch event for invitation updates
+          window.dispatchEvent(new CustomEvent('invitationsUpdated', { 
+            detail: { projectId, payload } 
+          }));
+        }
+      )
       .subscribe();
 
     // Subscribe to profiles changes to update user info immediately

@@ -462,7 +462,7 @@ export const useProjectTeam = (projectId: string): UseProjectTeamReturn => {
     return () => {
       subscription.unsubscribe();
     };
-  }, [projectId, fetchTeamMembers]); // Removed teamMembers from dependencies
+  }, [projectId, fetchTeamMembers]);
 
   return {
     teamMembers,

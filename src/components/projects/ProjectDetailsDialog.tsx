@@ -3,7 +3,7 @@ import { Project, useProjects } from '@/hooks/useProjects';
 import { useAuth } from '@/hooks/useAuth';
 import { useViewEditMode } from '@/hooks/useViewEditMode';
 import { ProjectContactsSection } from './ProjectContactsSection';
-import { AddUserDialog } from './AddUserDialog';
+import { AddTeamMemberDialog } from './AddTeamMemberDialog';
 import { UnifiedDialog } from '@/components/ui/unified-dialog';
 import { ViewEditField } from '@/components/ui/view-edit-field';
 import { CalendarDays, MapPin, DollarSign, Download } from 'lucide-react';
@@ -284,11 +284,15 @@ export const ProjectDetailsDialog = ({
         tabs={tabs}
       />
       
-      <AddUserDialog
+      <AddTeamMemberDialog
         open={addUserOpen}
         onOpenChange={setAddUserOpen}
         projectId={project?.id || ''}
-        onUserAdded={handleUserAdded}
+        projectName={project?.name || 'Project'}
+        onMemberAdded={async () => {
+          handleUserAdded();
+          return true;
+        }}
       />
     </>
   );
