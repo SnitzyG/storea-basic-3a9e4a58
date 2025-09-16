@@ -104,7 +104,7 @@ export const useProjectJoinRequests = () => {
     }
   }, [toast]);
 
-  const submitJoinRequest = async (projectCode: string, message?: string) => {
+  const submitJoinRequest = async (projectCode: string, message?: string, name?: string, company?: string, role?: string) => {
     try {
       const { data: userData } = await supabase.auth.getUser();
       if (!userData.user) throw new Error('User not authenticated');
@@ -162,9 +162,9 @@ export const useProjectJoinRequests = () => {
           project_id: project.id,
           requester_id: userData.user.id,
           project_code: projectCode.toUpperCase(),
-          requester_name: profile?.name || userData.user.email,
+          requester_name: name || profile?.name || userData.user.email,
           requester_email: userData.user.email,
-          message: message || `${profile?.name || userData.user.email} would like to join ${project.name}`
+          message: message || `${name || profile?.name || userData.user.email} would like to join ${project.name}${company ? ` representing ${company}` : ''}${role ? ` as ${role}` : ''}`
         });
 
       if (error) throw error;
@@ -183,13 +183,15 @@ export const useProjectJoinRequests = () => {
             user_id: projectData.created_by,
             type: 'join_request',
             title: 'New Team Member Request',
-            message: `${profile?.name || userData.user.email} wants to join "${projectData.name}"`,
+            message: `${name || profile?.name || userData.user.email} wants to join "${projectData.name}"${company ? ` representing ${company}` : ''}${role ? ` as ${role}` : ''}`,
             data: {
               project_id: project.id,
               project_name: projectData.name,
               requester_id: userData.user.id,
-              requester_name: profile?.name || userData.user.email,
-              project_code: projectCode.toUpperCase()
+              requester_name: name || profile?.name || userData.user.email,
+              project_code: projectCode.toUpperCase(),
+              company: company,
+              role: role
             }
           });
       }

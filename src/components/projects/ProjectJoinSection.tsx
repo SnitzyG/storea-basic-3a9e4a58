@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -25,6 +26,9 @@ interface ProjectJoinSectionProps {
 export const ProjectJoinSection: React.FC<ProjectJoinSectionProps> = ({ className }) => {
   const [projectCode, setProjectCode] = useState('');
   const [message, setMessage] = useState('');
+  const [name, setName] = useState('');
+  const [company, setCompany] = useState('');
+  const [role, setRole] = useState('');
   const [submitting, setSubmitting] = useState(false);
   
   const { 
@@ -35,13 +39,22 @@ export const ProjectJoinSection: React.FC<ProjectJoinSectionProps> = ({ classNam
   } = useProjectJoinRequests();
 
   const handleSubmitRequest = async () => {
-    if (!projectCode.trim()) return;
+    if (!projectCode.trim() || !name.trim() || !role) return;
     
     setSubmitting(true);
-    const success = await submitJoinRequest(projectCode.trim(), message.trim());
+    const success = await submitJoinRequest(
+      projectCode.trim(), 
+      message.trim(),
+      name.trim(),
+      company.trim(),
+      role
+    );
     if (success) {
       setProjectCode('');
       setMessage('');
+      setName('');
+      setCompany('');
+      setRole('');
     }
     setSubmitting(false);
   };
@@ -68,7 +81,7 @@ export const ProjectJoinSection: React.FC<ProjectJoinSectionProps> = ({ classNam
     }
   };
 
-  const pendingRequests = joinRequests.filter(req => req.status === 'pending');
+  const pendingRequests = joinRequests.filter(req => req.status === 'pending' && !req.requester_id);
   const myRequests = joinRequests.filter(req => req.requester_id);
   const requestsForMyProjects = joinRequests.filter(req => req.project?.name && !req.requester_id);
 
@@ -84,7 +97,7 @@ export const ProjectJoinSection: React.FC<ProjectJoinSectionProps> = ({ classNam
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <label className="text-sm font-medium">Project ID</label>
+            <label className="text-sm font-medium">Project ID *</label>
             <Input
               placeholder="Enter 15-character project ID (e.g., ABC123XYZ789DEF)"
               value={projectCode}
@@ -97,8 +110,45 @@ export const ProjectJoinSection: React.FC<ProjectJoinSectionProps> = ({ classNam
             </p>
           </div>
           
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Your Name *</label>
+              <Input
+                placeholder="Enter your full name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Company</label>
+              <Input
+                placeholder="Your company name"
+                value={company}
+                onChange={(e) => setCompany(e.target.value)}
+              />
+            </div>
+          </div>
+          
           <div className="space-y-2">
-            <label className="text-sm font-medium">Message (Optional)</label>
+            <label className="text-sm font-medium">Role *</label>
+            <Select value={role} onValueChange={setRole}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select your role" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="contractor">Contractor</SelectItem>
+                <SelectItem value="subcontractor">Subcontractor</SelectItem>
+                <SelectItem value="consultant">Consultant</SelectItem>
+                <SelectItem value="engineer">Engineer</SelectItem>
+                <SelectItem value="surveyor">Surveyor</SelectItem>
+                <SelectItem value="other">Other</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Message</label>
             <Textarea
               placeholder="Add a message to introduce yourself..."
               value={message}
@@ -109,7 +159,7 @@ export const ProjectJoinSection: React.FC<ProjectJoinSectionProps> = ({ classNam
           
           <Button 
             onClick={handleSubmitRequest}
-            disabled={!projectCode.trim() || submitting}
+            disabled={!projectCode.trim() || !name.trim() || !role || submitting}
             className="w-full"
           >
             <Send className="h-4 w-4 mr-2" />
@@ -190,7 +240,7 @@ export const ProjectJoinSection: React.FC<ProjectJoinSectionProps> = ({ classNam
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Calendar className="h-5 w-5" />
-              My Join Requests
+              Project Join Requests
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">

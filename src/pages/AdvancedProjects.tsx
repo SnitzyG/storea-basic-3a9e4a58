@@ -4,7 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Plus, BarChart3, Eye, Archive, Hash, UserPlus } from 'lucide-react';
+import { Plus, BarChart3, Eye, Archive, Hash, UserPlus, Copy } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 import { useAdvancedProjects, AdvancedProject } from '@/hooks/useAdvancedProjects';
 import { AdvancedProjectWizard } from '@/components/projects-v2/AdvancedProjectWizard';
 import { ProjectDetailsDialog } from '@/components/projects-v2/ProjectDetailsDialog';
@@ -21,6 +22,7 @@ const AdvancedProjects = () => {
   const {
     profile
   } = useAuth();
+  const { toast } = useToast();
   const [wizardOpen, setWizardOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState<AdvancedProject | null>(null);
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
@@ -32,6 +34,22 @@ const AdvancedProjects = () => {
     completed: 'bg-gray-100 text-gray-800',
     cancelled: 'bg-red-100 text-red-800'
   };
+  const copyProjectId = async (projectId: string) => {
+    try {
+      await navigator.clipboard.writeText(projectId);
+      toast({
+        title: "Project ID copied",
+        description: "Project ID has been copied to clipboard"
+      });
+    } catch (error) {
+      toast({
+        title: "Failed to copy",
+        description: "Please copy the Project ID manually",
+        variant: "destructive"
+      });
+    }
+  };
+
   const handleProjectAction = async (action: string, project: AdvancedProject) => {
     switch (action) {
       case 'view':
@@ -124,9 +142,19 @@ const AdvancedProjects = () => {
                         <TableCell className="font-medium">{project.name}</TableCell>
                         <TableCell>
                           {(project as any).project_id ? (
-                            <div className="flex items-center gap-1 text-xs text-primary font-mono bg-primary/10 px-2 py-1 rounded">
-                              <Hash className="h-3 w-3" />
-                              {(project as any).project_id}
+                            <div className="flex items-center gap-2">
+                              <div className="flex items-center gap-1 text-xs text-primary font-mono bg-primary/10 px-2 py-1 rounded">
+                                <Hash className="h-3 w-3" />
+                                {(project as any).project_id}
+                              </div>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => copyProjectId((project as any).project_id)}
+                                className="h-6 w-6 p-0"
+                              >
+                                <Copy className="h-3 w-3" />
+                              </Button>
                             </div>
                           ) : (
                             '-'
