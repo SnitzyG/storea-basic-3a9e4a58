@@ -29,17 +29,15 @@ const Auth = () => {
       setEmailConfirmed(true);
     }
   }, [searchParams]);
-
   useEffect(() => {
     if (user) {
       // Check for pending invitation tokens
       const pendingToken = localStorage.getItem('pending_project_token') || sessionStorage.getItem('pending_invitation_token');
-      
       if (pendingToken) {
         // Clear the stored token
         localStorage.removeItem('pending_project_token');
         sessionStorage.removeItem('pending_invitation_token');
-        
+
         // Navigate to the appropriate invitation handler
         if (pendingToken.startsWith('proj_')) {
           navigate(`/invite/${pendingToken}`);
@@ -229,7 +227,7 @@ const Auth = () => {
                     <Input id="signup-password" type="password" placeholder="Create a password" value={password} onChange={e => setPassword(e.target.value)} required />
                   </div>
                    <div className="space-y-2">
-                     <Label htmlFor="company">Company Details (Optional)</Label>
+                     <Label htmlFor="company">Company</Label>
                      <Input id="company" type="text" placeholder="Enter your company name" value={company} onChange={e => setCompany(e.target.value)} />
                    </div>
                   <div className="space-y-2">
