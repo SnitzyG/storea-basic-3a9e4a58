@@ -7,9 +7,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/hooks/useAuth';
-
 const Auth = () => {
-  const { user, signIn, signUp, loading } = useAuth();
+  const {
+    user,
+    signIn,
+    signUp,
+    loading
+  } = useAuth();
   const [searchParams] = useSearchParams();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -18,51 +22,52 @@ const Auth = () => {
   const [role, setRole] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [emailConfirmed, setEmailConfirmed] = useState(false);
-
   useEffect(() => {
     // Check if user came from email confirmation
     if (searchParams.get('confirmed') === 'true') {
       setEmailConfirmed(true);
     }
   }, [searchParams]);
-
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
+    return <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">Loading...</div>
-      </div>
-    );
+      </div>;
   }
-
   if (user) {
     return <Navigate to="/" replace />;
   }
-
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
     await signIn(email, password);
     setIsSubmitting(false);
   };
-
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
     await signUp(email, password, name, role, company);
     setIsSubmitting(false);
   };
-
-  const roleOptions = [
-    { value: 'architect', label: 'Architect' },
-    { value: 'builder', label: 'Builder' },
-    { value: 'contractor', label: 'Contractor' },
-    { value: 'client', label: 'Client' },
-    { value: 'consultant', label: 'Consultant' },
-    { value: 'project_manager', label: 'Project Manager' }
-  ];
-
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-background px-4">
+  const roleOptions = [{
+    value: 'architect',
+    label: 'Architect'
+  }, {
+    value: 'builder',
+    label: 'Builder'
+  }, {
+    value: 'contractor',
+    label: 'Contractor'
+  }, {
+    value: 'client',
+    label: 'Client'
+  }, {
+    value: 'consultant',
+    label: 'Consultant'
+  }, {
+    value: 'project_manager',
+    label: 'Project Manager'
+  }];
+  return <div className="min-h-screen flex items-center justify-center bg-background px-4">
       <div className="w-full max-w-6xl flex flex-col lg:flex-row items-center lg:items-stretch lg:justify-between gap-8">
         {/* Animated House Illustration */}
         <div className="w-full lg:w-1/2 flex justify-center lg:order-2">
@@ -73,88 +78,52 @@ const Auth = () => {
                   {/* Construction staging - appearing sequentially */}
                   
                   {/* Ground/Site preparation */}
-                  <rect 
-                    x="30" y="170" width="140" height="20" 
-                    className="fill-muted animate-[fadeInUp_0.6s_ease-out_0.2s_both]"
-                  />
+                  <rect x="30" y="170" width="140" height="20" className="fill-muted animate-[fadeInUp_0.6s_ease-out_0.2s_both]" />
                   
                   {/* Foundation */}
-                  <rect 
-                    x="40" y="160" width="120" height="10" 
-                    className="fill-muted-foreground animate-[fadeInUp_0.6s_ease-out_0.6s_both]"
-                  />
+                  <rect x="40" y="160" width="120" height="10" className="fill-muted-foreground animate-[fadeInUp_0.6s_ease-out_0.6s_both]" />
                   
                   {/* Building the frame/structure */}
                   <g className="animate-[fadeInUp_0.8s_ease-out_1s_both]">
-                    <rect 
-                      x="50" y="120" width="100" height="40" 
-                      className="fill-primary/10"
-                      stroke="hsl(var(--primary))" strokeWidth="2"
-                    />
+                    <rect x="50" y="120" width="100" height="40" className="fill-primary/10" stroke="hsl(var(--primary))" strokeWidth="2" />
                     {/* Frame details */}
-                    <line x1="70" y1="120" x2="70" y2="160" stroke="hsl(var(--primary))" strokeWidth="1"/>
-                    <line x1="100" y1="120" x2="100" y2="160" stroke="hsl(var(--primary))" strokeWidth="1"/>
-                    <line x1="130" y1="120" x2="130" y2="160" stroke="hsl(var(--primary))" strokeWidth="1"/>
+                    <line x1="70" y1="120" x2="70" y2="160" stroke="hsl(var(--primary))" strokeWidth="1" />
+                    <line x1="100" y1="120" x2="100" y2="160" stroke="hsl(var(--primary))" strokeWidth="1" />
+                    <line x1="130" y1="120" x2="130" y2="160" stroke="hsl(var(--primary))" strokeWidth="1" />
                   </g>
                   
                   {/* Roof construction */}
                   <g className="animate-[fadeInUp_0.8s_ease-out_1.4s_both]">
-                    <polygon 
-                      points="45,120 100,80 155,120" 
-                      className="fill-primary/80"
-                    />
+                    <polygon points="45,120 100,80 155,120" className="fill-primary/80" />
                     {/* Roof beams */}
-                    <line x1="100" y1="80" x2="75" y2="110" stroke="hsl(var(--primary-foreground))" strokeWidth="1"/>
-                    <line x1="100" y1="80" x2="125" y2="110" stroke="hsl(var(--primary-foreground))" strokeWidth="1"/>
+                    <line x1="100" y1="80" x2="75" y2="110" stroke="hsl(var(--primary-foreground))" strokeWidth="1" />
+                    <line x1="100" y1="80" x2="125" y2="110" stroke="hsl(var(--primary-foreground))" strokeWidth="1" />
                   </g>
                   
                   {/* Installing windows */}
                   <g className="animate-[fadeIn_0.6s_ease-out_1.8s_both]">
-                    <rect 
-                      x="65" y="135" width="15" height="15" 
-                      className="fill-secondary"
-                      stroke="hsl(var(--primary))" strokeWidth="1"
-                    />
-                    <line x1="72.5" y1="135" x2="72.5" y2="150" className="stroke-primary" strokeWidth="1"/>
-                    <line x1="65" y1="142.5" x2="80" y2="142.5" className="stroke-primary" strokeWidth="1"/>
+                    <rect x="65" y="135" width="15" height="15" className="fill-secondary" stroke="hsl(var(--primary))" strokeWidth="1" />
+                    <line x1="72.5" y1="135" x2="72.5" y2="150" className="stroke-primary" strokeWidth="1" />
+                    <line x1="65" y1="142.5" x2="80" y2="142.5" className="stroke-primary" strokeWidth="1" />
                   </g>
                   
                   <g className="animate-[fadeIn_0.6s_ease-out_2s_both]">
-                    <rect 
-                      x="120" y="135" width="15" height="15" 
-                      className="fill-secondary"
-                      stroke="hsl(var(--primary))" strokeWidth="1"
-                    />
-                    <line x1="127.5" y1="135" x2="127.5" y2="150" className="stroke-primary" strokeWidth="1"/>
-                    <line x1="120" y1="142.5" x2="135" y2="142.5" className="stroke-primary" strokeWidth="1"/>
+                    <rect x="120" y="135" width="15" height="15" className="fill-secondary" stroke="hsl(var(--primary))" strokeWidth="1" />
+                    <line x1="127.5" y1="135" x2="127.5" y2="150" className="stroke-primary" strokeWidth="1" />
+                    <line x1="120" y1="142.5" x2="135" y2="142.5" className="stroke-primary" strokeWidth="1" />
                   </g>
                   
                   {/* Door installation */}
                   <g className="animate-[fadeIn_0.6s_ease-out_2.2s_both]">
-                    <rect 
-                      x="90" y="145" width="20" height="25" 
-                      className="fill-accent"
-                      stroke="hsl(var(--primary))" strokeWidth="1"
-                    />
-                    <circle 
-                      cx="106" cy="157" r="1.5" 
-                      className="fill-primary animate-[fadeIn_0.4s_ease-out_2.8s_both]"
-                    />
+                    <rect x="90" y="145" width="20" height="25" className="fill-accent" stroke="hsl(var(--primary))" strokeWidth="1" />
+                    <circle cx="106" cy="157" r="1.5" className="fill-primary animate-[fadeIn_0.4s_ease-out_2.8s_both]" />
                   </g>
                   
                   {/* Final details - chimney and finishing touches */}
                   <g className="animate-[fadeInUp_0.6s_ease-out_2.4s_both]">
-                    <rect 
-                      x="125" y="85" width="8" height="20" 
-                      className="fill-muted-foreground"
-                    />
+                    <rect x="125" y="85" width="8" height="20" className="fill-muted-foreground" />
                     {/* Roofing tiles effect */}
-                    <path 
-                      d="M 50 120 Q 100 115 150 120" 
-                      stroke="hsl(var(--primary-foreground))" 
-                      strokeWidth="1" 
-                      fill="none"
-                    />
+                    <path d="M 50 120 Q 100 115 150 120" stroke="hsl(var(--primary-foreground))" strokeWidth="1" fill="none" />
                   </g>
                   
                   {/* Smoke - sign of life/completion */}
@@ -166,8 +135,8 @@ const Auth = () => {
                   
                   {/* Landscaping - final touch */}
                   <g className="animate-[fadeIn_0.6s_ease-out_3.2s_both]">
-                    <ellipse cx="30" cy="175" rx="8" ry="4" className="fill-green-500/60"/>
-                    <ellipse cx="170" cy="175" rx="10" ry="5" className="fill-green-500/60"/>
+                    <ellipse cx="30" cy="175" rx="8" ry="4" className="fill-green-500/60" />
+                    <ellipse cx="170" cy="175" rx="10" ry="5" className="fill-green-500/60" />
                   </g>
                 </svg>
                 
@@ -182,9 +151,7 @@ const Auth = () => {
                       <div className="absolute -bottom-1 left-0 w-full h-0.5 bg-gradient-to-r from-primary/50 to-transparent"></div>
                     </span>
                   </h1>
-                  <p className="text-sm text-muted-foreground mt-2 font-medium">
-                    Professional Project Management
-                  </p>
+                  
                 </div>
               </div>
             </CardContent>
@@ -194,13 +161,11 @@ const Auth = () => {
         {/* Login Form Section */}
         <div className="w-full lg:w-1/2 lg:order-1 flex justify-center">
           <div className="text-center mb-8">
-            {emailConfirmed && (
-              <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+            {emailConfirmed && <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
                 <p className="text-green-800 text-sm">
                   ✓ Email confirmed! You can now sign in to your account.
                 </p>
-              </div>
-            )}
+              </div>}
           </div>
 
         <Card className="w-full max-w-md">
@@ -219,25 +184,11 @@ const Auth = () => {
                 <form onSubmit={handleSignIn} className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="signin-email">Email</Label>
-                    <Input
-                      id="signin-email"
-                      type="email"
-                      placeholder="Enter your email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      required
-                    />
+                    <Input id="signin-email" type="email" placeholder="Enter your email" value={email} onChange={e => setEmail(e.target.value)} required />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="signin-password">Password</Label>
-                    <Input
-                      id="signin-password"
-                      type="password"
-                      placeholder="Enter your password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      required
-                    />
+                    <Input id="signin-password" type="password" placeholder="Enter your password" value={password} onChange={e => setPassword(e.target.value)} required />
                   </div>
                   <Button type="submit" className="w-full" disabled={isSubmitting}>
                     {isSubmitting ? 'Signing in...' : 'Sign In'}
@@ -249,47 +200,19 @@ const Auth = () => {
                 <form onSubmit={handleSignUp} className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="signup-name">Full Name</Label>
-                    <Input
-                      id="signup-name"
-                      type="text"
-                      placeholder="Enter your full name"
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      required
-                    />
+                    <Input id="signup-name" type="text" placeholder="Enter your full name" value={name} onChange={e => setName(e.target.value)} required />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="signup-email">Email</Label>
-                    <Input
-                      id="signup-email"
-                      type="email"
-                      placeholder="Enter your email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      required
-                    />
+                    <Input id="signup-email" type="email" placeholder="Enter your email" value={email} onChange={e => setEmail(e.target.value)} required />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="signup-password">Password</Label>
-                    <Input
-                      id="signup-password"
-                      type="password"
-                      placeholder="Create a password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      required
-                    />
+                    <Input id="signup-password" type="password" placeholder="Create a password" value={password} onChange={e => setPassword(e.target.value)} required />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="company">Company Details</Label>
-                    <Input
-                      id="company"
-                      type="text"
-                      placeholder="Enter your company name"
-                      value={company}
-                      onChange={(e) => setCompany(e.target.value)}
-                      required
-                    />
+                    <Input id="company" type="text" placeholder="Enter your company name" value={company} onChange={e => setCompany(e.target.value)} required />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="role">Your Role</Label>
@@ -298,11 +221,9 @@ const Auth = () => {
                         <SelectValue placeholder="Select your role" />
                       </SelectTrigger>
                       <SelectContent>
-                        {roleOptions.map((option) => (
-                          <SelectItem key={option.value} value={option.value}>
+                        {roleOptions.map(option => <SelectItem key={option.value} value={option.value}>
                             {option.label}
-                          </SelectItem>
-                        ))}
+                          </SelectItem>)}
                       </SelectContent>
                     </Select>
                   </div>
@@ -316,8 +237,6 @@ const Auth = () => {
         </Card>
         </div>
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default Auth;
