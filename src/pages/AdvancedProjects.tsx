@@ -25,6 +25,7 @@ import {
 } from 'lucide-react';
 import { useAdvancedProjects, AdvancedProject } from '@/hooks/useAdvancedProjects';
 import { AdvancedProjectWizard } from '@/components/projects-v2/AdvancedProjectWizard';
+import { ProjectDetailsDialog } from '@/components/projects-v2/ProjectDetailsDialog';
 import { useAuth } from '@/hooks/useAuth';
 
 const AdvancedProjects = () => {
@@ -39,13 +40,16 @@ const AdvancedProjects = () => {
     getOverdueProjects,
     getProjectHealth,
     archiveProject,
-    cloneProject
+    cloneProject,
+    deleteProject
   } = useAdvancedProjects();
 
   const { profile } = useAuth();
   const [viewMode, setViewMode] = useState<'grid' | 'list' | 'calendar'>('grid');
   const [wizardOpen, setWizardOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState<AdvancedProject | null>(null);
+  const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
+  const [projectToView, setProjectToView] = useState<AdvancedProject | null>(null);
 
   const isArchitect = profile?.role === 'architect';
   const statusStats = getProjectsByStatus();
@@ -61,6 +65,10 @@ const AdvancedProjects = () => {
 
   const handleProjectAction = async (action: string, project: AdvancedProject) => {
     switch (action) {
+      case 'view':
+        setProjectToView(project);
+        setDetailsDialogOpen(true);
+        break;
       case 'edit':
         setSelectedProject(project);
         setWizardOpen(true);
@@ -72,6 +80,10 @@ const AdvancedProjects = () => {
         await cloneProject(project.id, `${project.name} (Copy)`);
         break;
     }
+  };
+
+  const handleDeleteProject = async (projectId: string) => {
+    await deleteProject(projectId);
   };
 
   if (loading) {
@@ -256,7 +268,11 @@ const AdvancedProjects = () => {
                 </div>
                 
                 <div className="flex gap-2 pt-2">
-                  <Button variant="outline" size="sm">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => handleProjectAction('view', project)}
+                  >
                     <Eye className="h-3 w-3 mr-1" />
                     View
                   </Button>
@@ -295,6 +311,17 @@ const AdvancedProjects = () => {
           if (!open) setSelectedProject(null);
         }}
         projectToEdit={selectedProject}
+      />
+
+      {/* Project Details Dialog */}
+      <ProjectDetailsDialog
+        project={projectToView}
+        open={detailsDialogOpen}
+        onOpenChange={(open) => {
+          setDetailsDialogOpen(open);
+          if (!open) setProjectToView(null);
+        }}
+        onDelete={handleDeleteProject}
       />
     </div>
   );
