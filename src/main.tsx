@@ -19,6 +19,7 @@ import Auth from "./pages/Auth.tsx";
 import Testing from "./pages/Testing.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import AcceptInvitation from "./pages/AcceptInvitation.tsx";
+import ProjectJoin from "./pages/ProjectJoin.tsx";
 import "./index.css";
 import { ThemeProvider } from "./context/ThemeContext.tsx";
 import { ErrorBoundary } from "./components/ui/error-boundary.tsx";
@@ -51,6 +52,7 @@ createRoot(document.getElementById("root")!).render(
                     <Route path="/testing" element={<AppLayout><Testing /></AppLayout>} />
                     <Route path="/auth" element={<Auth />} />
                     <Route path="/accept-invitation" element={<AcceptInvitation />} />
+                    <Route path="/projects/:projectId/join" element={<ProjectJoin />} />
                     <Route path="*" element={<NotFound />} />
                   </Routes>
                 </BrowserRouter>

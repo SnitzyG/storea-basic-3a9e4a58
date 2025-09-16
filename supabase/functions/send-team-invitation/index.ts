@@ -1,5 +1,4 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { Resend } from "npm:resend@2.0.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.0";
 
 const corsHeaders = {
@@ -27,12 +26,17 @@ serve(async (req) => {
       );
     }
 
-    // Initialize Supabase client
+    // Initialize Supabase admin client for admin operations
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false
+      }
+    });
 
-    // Get current user from the request token
+    // Get current user from the request token using regular client
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
       return new Response(
@@ -42,7 +46,12 @@ serve(async (req) => {
     }
 
     const token = authHeader.replace('Bearer ', '');
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+    const supabasePublic = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_ANON_KEY')!
+    );
+    
+    const { data: { user }, error: authError } = await supabasePublic.auth.getUser(token);
     
     if (authError || !user) {
       return new Response(
@@ -51,180 +60,90 @@ serve(async (req) => {
       );
     }
 
-    // Create or refresh pending invitation (avoid duplicates)
-    // Check for existing pending invitation
-    const { data: existingInvite, error: existingInviteError } = await supabase
+    // Check for existing pending invitation to avoid duplicates
+    const { data: existingInvite, error: existingInviteError } = await supabaseAdmin
       .from('invitations')
-      .select('id')
+      .select('id, status')
       .eq('project_id', projectId)
       .eq('email', email.toLowerCase())
       .eq('status', 'pending')
+      .gt('expires_at', new Date().toISOString())
       .maybeSingle();
 
     if (existingInviteError) {
       console.error('Error checking existing invitation:', existingInviteError);
     }
 
-    const invitationToken = crypto.randomUUID();
-    const expiresAt = new Date();
-    expiresAt.setDate(expiresAt.getDate() + 7); // 7 days expiry
-
     if (existingInvite) {
-      const { error: updateInviteError } = await supabase
-        .from('invitations')
-        .update({
-          token: invitationToken,
-          expires_at: expiresAt.toISOString(),
-          updated_at: new Date().toISOString(),
-          status: 'pending'
-        })
-        .eq('id', existingInvite.id);
-
-      if (updateInviteError) {
-        console.error('Error refreshing invitation:', updateInviteError);
-        return new Response(
-          JSON.stringify({ error: 'Failed to refresh invitation' }),
-          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
-    } else {
-      const { error: inviteError } = await supabase
-        .from('invitations')
-        .insert({
-          project_id: projectId,
-          email: email.toLowerCase(),
-          role: role,
-          token: invitationToken,
-          inviter_id: user.id,
-          expires_at: expiresAt.toISOString(),
-          status: 'pending'
-        });
-
-      if (inviteError) {
-        console.error('Error creating invitation:', inviteError);
-        return new Response(
-          JSON.stringify({ error: 'Failed to create invitation' }),
-          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
-    }
-
-    // Send email using Resend
-    const resendApiKey = Deno.env.get('RESEND_API_KEY');
-    if (!resendApiKey) {
-      console.error('RESEND_API_KEY not configured');
       return new Response(
         JSON.stringify({ 
-          error: 'Email service not configured',
-          isConfigurationIssue: true 
+          error: 'An active invitation has already been sent to this email address',
+          duplicate: true 
         }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    const resend = new Resend(resendApiKey);
-    const invitationLink = `${Deno.env.get('SITE_URL')}/accept-invitation?token=${invitationToken}`;
+    // Store project and role info in user metadata for the invite
+    const userMetadata = {
+      project_id: projectId,
+      project_name: projectName,
+      role: role,
+      inviter_name: inviterName || 'Team Member'
+    };
 
-    try {
-      const emailResponse = await resend.emails.send({
-        from: 'STOREA <noreply@resend.dev>',
-        to: [email],
-        subject: `Verify your STOREA account to join ${projectName}`,
-        html: `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-            <h1 style="color: #333; margin-bottom: 20px;">Welcome to STOREA</h1>
-            
-            <p style="font-size: 16px; line-height: 1.5; color: #555;">
-              Hi there!
-            </p>
-            
-            <p style="font-size: 16px; line-height: 1.5; color: #555;">
-              <strong>${inviterName || 'Someone'}</strong> has invited you to join the project "<strong>${projectName}</strong>" as a <strong>${role}</strong>.
-            </p>
-            
-            <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
-              <h3 style="margin-top: 0; color: #333;">What you'll get access to:</h3>
-              <ul style="color: #555;">
-                <li>Project documents and files</li>
-                <li>Team communications and messages</li>
-                <li>RFI (Request for Information) management</li>
-                <li>Tender processes and bidding</li>
-                <li>Real-time project updates</li>
-              </ul>
-            </div>
-            
-            <div style="text-align: center; margin: 30px 0;">
-              <a href="${invitationLink}" 
-                 style="background-color: #007bff; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">
-                Accept Invitation & Verify Account
-              </a>
-            </div>
-            
-            <p style="font-size: 14px; color: #777; margin-top: 30px;">
-              This invitation will expire in 7 days. If you're unable to click the button above, 
-              you can copy and paste this link into your browser:<br>
-              <a href="${invitationLink}" style="color: #007bff;">${invitationLink}</a>
-            </p>
-            
-            <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
-            
-            <p style="font-size: 12px; color: #999;">
-              This email was sent by STOREA. If you weren't expecting this invitation, 
-              you can safely ignore this email.
-            </p>
-          </div>
-        `,
-      });
-
-      console.log('Email sent successfully:', emailResponse);
-
-      return new Response(
-        JSON.stringify({ 
-          success: true, 
-          message: 'Invitation sent successfully',
-          method: 'resend'
-        }),
-        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-
-    } catch (emailError) {
-      console.error('Error sending email with Resend:', emailError);
-      
-      // Check if this is a domain verification issue
-      const isConfigurationIssue = emailError?.error?.statusCode === 403 && 
-        (emailError?.error?.error?.includes('verify a domain') || 
-         emailError?.error?.error?.includes('testing emails'));
-      
-      if (isConfigurationIssue) {
-        console.log('Domain verification required for Resend - keeping invitation for manual verification');
-        return new Response(
-          JSON.stringify({ 
-            error: 'Email service requires domain verification. Please verify your domain in Resend at resend.com/domains to send invitations to external email addresses. The invitation has been created and can be accepted manually.',
-            isConfigurationIssue: true,
-            method: 'resend_domain_required',
-            invitationLink: `${Deno.env.get('SITE_URL')}/accept-invitation?token=${invitationToken}`
-          }),
-          { 
-            status: 200,  // Don't fail the request completely 
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-          }
-        );
+    // Use Supabase admin.inviteUserByEmail - this sends magic link via configured SMTP (Resend)
+    const redirectUrl = `${Deno.env.get('SITE_URL')}/projects/${projectId}/join`;
+    
+    const { data: inviteData, error: inviteError } = await supabaseAdmin.auth.admin.inviteUserByEmail(
+      email.toLowerCase(),
+      {
+        redirectTo: redirectUrl,
+        data: userMetadata // This metadata will be available in the auth flow
       }
-      
-      // If email failed for other reasons, clean up the invitation
-      await supabase
-        .from('invitations')
-        .delete()
-        .eq('token', invitationToken);
+    );
 
+    if (inviteError) {
+      console.error('Error sending Supabase invitation:', inviteError);
       return new Response(
         JSON.stringify({ 
           error: 'Failed to send invitation email',
-          details: emailError.message 
+          details: inviteError.message 
         }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+
+    console.log('Supabase invitation sent successfully:', inviteData);
+
+    // Create invitation record for tracking
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + 7); // 7 days expiry
+
+    const { error: recordError } = await supabaseAdmin
+      .from('invitations')
+      .insert({
+        project_id: projectId,
+        email: email.toLowerCase(),
+        role: role,
+        token: inviteData.user?.id || crypto.randomUUID(), // Use user ID or fallback
+        inviter_id: user.id,
+        expires_at: expiresAt.toISOString(),
+        status: 'pending'
+      });
+
+    if (recordError) {
+      console.warn('Failed to create invitation record (email still sent):', recordError);
+    }
+
+    return new Response(
+      JSON.stringify({ 
+        success: true, 
+        message: 'Invitation sent successfully via Supabase magic link',
+        method: 'supabase_admin_invite'
+      }),
+      { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
 
   } catch (error) {
     console.error('Error in send-team-invitation function:', error);
