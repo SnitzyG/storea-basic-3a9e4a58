@@ -1,11 +1,10 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Search, Filter, Grid, List, Calendar, Plus, BarChart3, TrendingUp, Clock, MapPin, DollarSign, Users, Eye, Edit, Archive, Copy, Hash, UserPlus } from 'lucide-react';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Plus, BarChart3, Eye, Edit, Archive, Copy, Hash, UserPlus } from 'lucide-react';
 import { useAdvancedProjects, AdvancedProject } from '@/hooks/useAdvancedProjects';
 import { AdvancedProjectWizard } from '@/components/projects-v2/AdvancedProjectWizard';
 import { ProjectDetailsDialog } from '@/components/projects-v2/ProjectDetailsDialog';
@@ -15,13 +14,6 @@ const AdvancedProjects = () => {
   const {
     projects,
     loading,
-    searchQuery,
-    setSearchQuery,
-    filters,
-    updateFilters,
-    getProjectsByStatus,
-    getOverdueProjects,
-    getProjectHealth,
     archiveProject,
     cloneProject,
     deleteProject
@@ -29,14 +21,11 @@ const AdvancedProjects = () => {
   const {
     profile
   } = useAuth();
-  const [viewMode, setViewMode] = useState<'grid' | 'list' | 'calendar'>('grid');
   const [wizardOpen, setWizardOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState<AdvancedProject | null>(null);
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
   const [projectToView, setProjectToView] = useState<AdvancedProject | null>(null);
   const isArchitect = profile?.role === 'architect';
-  const statusStats = getProjectsByStatus();
-  const overdueProjects = getOverdueProjects();
   const statusColors = {
     planning: 'bg-blue-100 text-blue-800',
     active: 'bg-green-100 text-green-800',
@@ -101,81 +90,131 @@ const AdvancedProjects = () => {
         </TabsList>
 
         <TabsContent value="projects" className="space-y-6">
-          {/* Projects Content */}
-
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        
-
-        
-
-        
-
-        
-      </div>
-
-      {/* Filters and Search */}
-      
-
-          {/* Projects Display */}
-          {projects.length === 0 ? <Card>
+          {/* Projects List View */}
+          {projects.length === 0 ? (
+            <Card>
               <CardContent className="text-center py-12">
                 <BarChart3 className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                 <h3 className="text-lg font-medium mb-2">No projects found</h3>
                 <p className="text-muted-foreground mb-4">
                   {isArchitect ? "Create your first project to get started." : "You haven't been assigned to any projects yet."}
                 </p>
-                {isArchitect && <Button onClick={() => setWizardOpen(true)}>
+                {isArchitect && (
+                  <Button onClick={() => setWizardOpen(true)}>
                     <Plus className="h-4 w-4 mr-2" />
                     Create Your First Project
-                  </Button>}
+                  </Button>
+                )}
               </CardContent>
-            </Card> : <div className={viewMode === 'grid' ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" : "space-y-4"}>
-              {projects.map(project => <Card key={project.id} className="hover:shadow-md transition-shadow">
-                  <CardHeader className="pb-3">
-                    <div className="flex items-start justify-between">
-                      <div className="space-y-1">
-                        <CardTitle className="text-lg">{project.name}</CardTitle>
-                        <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                          <MapPin className="h-3 w-3" />
-                          {project.address || 'No address specified'}
-                        </div>
-                        {/* Display Project ID */}
-                        {(project as any).project_id && <div className="flex items-center gap-1 text-xs text-primary font-mono bg-primary/10 px-2 py-1 rounded">
-                            <Hash className="h-3 w-3" />
-                            ID: {(project as any).project_id}
-                          </div>}
-                      </div>
-                      
-                    </div>
-                  </CardHeader>
-                  
-                  <CardContent className="space-y-4">
-                    {project.description && <p className="text-sm text-muted-foreground line-clamp-2">
-                        {project.description}
-                      </p>}
-                    
-                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                      {project.budget && <div className="flex items-center gap-1">
-                          <DollarSign className="h-3 w-3" />
-                          ${project.budget.toLocaleString()}
-                        </div>}
-                      
-                    </div>
-                    
-                    <div className="flex gap-2 pt-2">
-                      <Button variant="outline" size="sm" onClick={() => handleProjectAction('view', project)}>
-                        <Eye className="h-3 w-3 mr-1" />
-                        View
-                      </Button>
-                      {isArchitect && <>
-                          
-                          
-                        </>}
-                    </div>
-                  </CardContent>
-                </Card>)}
-            </div>}
+            </Card>
+          ) : (
+            <Card>
+              <CardContent className="p-0">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Project Name</TableHead>
+                      <TableHead>Project ID</TableHead>
+                      <TableHead>Address</TableHead>
+                      <TableHead>Description</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Budget</TableHead>
+                      <TableHead>Start Date</TableHead>
+                      <TableHead>Finish Date</TableHead>
+                      <TableHead>Homeowner</TableHead>
+                      <TableHead>Created</TableHead>
+                      <TableHead>Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {projects.map((project) => (
+                      <TableRow key={project.id}>
+                        <TableCell className="font-medium">{project.name}</TableCell>
+                        <TableCell>
+                          {(project as any).project_id ? (
+                            <div className="flex items-center gap-1 text-xs text-primary font-mono bg-primary/10 px-2 py-1 rounded">
+                              <Hash className="h-3 w-3" />
+                              {(project as any).project_id}
+                            </div>
+                          ) : (
+                            '-'
+                          )}
+                        </TableCell>
+                        <TableCell>{project.address || '-'}</TableCell>
+                        <TableCell className="max-w-xs">
+                          <div className="truncate" title={project.description}>
+                            {project.description || '-'}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge className={statusColors[project.status]}>
+                            {project.status.replace('_', ' ').toUpperCase()}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          {project.budget ? `$${project.budget.toLocaleString()}` : '-'}
+                        </TableCell>
+                        <TableCell>
+                          {project.estimated_start_date 
+                            ? new Date(project.estimated_start_date).toLocaleDateString() 
+                            : '-'
+                          }
+                        </TableCell>
+                        <TableCell>
+                          {project.estimated_finish_date 
+                            ? new Date(project.estimated_finish_date).toLocaleDateString() 
+                            : '-'
+                          }
+                        </TableCell>
+                        <TableCell>
+                          {project.homeowner_name || '-'}
+                        </TableCell>
+                        <TableCell>
+                          {new Date(project.created_at).toLocaleDateString()}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex gap-1">
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              onClick={() => handleProjectAction('view', project)}
+                            >
+                              <Eye className="h-3 w-3" />
+                            </Button>
+                            {isArchitect && (
+                              <>
+                                <Button 
+                                  variant="outline" 
+                                  size="sm" 
+                                  onClick={() => handleProjectAction('edit', project)}
+                                >
+                                  <Edit className="h-3 w-3" />
+                                </Button>
+                                <Button 
+                                  variant="outline" 
+                                  size="sm" 
+                                  onClick={() => handleProjectAction('archive', project)}
+                                >
+                                  <Archive className="h-3 w-3" />
+                                </Button>
+                                <Button 
+                                  variant="outline" 
+                                  size="sm" 
+                                  onClick={() => handleProjectAction('clone', project)}
+                                >
+                                  <Copy className="h-3 w-3" />
+                                </Button>
+                              </>
+                            )}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          )}
         </TabsContent>
 
         <TabsContent value="join" className="space-y-6">
