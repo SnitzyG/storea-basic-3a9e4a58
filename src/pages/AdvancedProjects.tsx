@@ -192,10 +192,7 @@ const AdvancedProjects = () => {
                           <DollarSign className="h-3 w-3" />
                           ${project.budget.toLocaleString()}
                         </div>}
-                      <div className="flex items-center gap-1">
-                        <Clock className="h-3 w-3" />
-                        Health: {getProjectHealth(project)}%
-                      </div>
+                      
                     </div>
                     
                     <div className="flex gap-2 pt-2">
