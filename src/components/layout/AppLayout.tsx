@@ -48,16 +48,10 @@ export const AppLayout = ({
       </div>
     );
   }
-  const userRole = profile?.role ?? 'contractor';
-
   return <div className="min-h-screen bg-background flex">
-      <Sidebar userRole={userRole} />
+      <Sidebar userRole={profile.role} />
       <div className="flex-1 flex flex-col min-h-screen">
-        {profile ? (
-          <Header user={user} profile={profile} />
-        ) : (
-          <div className="h-16 border-b bg-card/40" />
-        )}
+        <Header user={user} profile={profile} />
         <main className="flex-1 overflow-hidden mx-0 py-[10px]">
           {children}
         </main>

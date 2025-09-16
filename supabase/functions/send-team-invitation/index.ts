@@ -127,12 +127,12 @@ serve(async (req) => {
 
     try {
       const emailResponse = await resend.emails.send({
-        from: 'STOREA <noreply@resend.dev>',
+        from: 'ID Platform <noreply@resend.dev>',
         to: [email],
-        subject: `Verify your STOREA account to join ${projectName}`,
+        subject: `You've been invited to join ${projectName}`,
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-            <h1 style="color: #333; margin-bottom: 20px;">Welcome to STOREA</h1>
+            <h1 style="color: #333; margin-bottom: 20px;">Project Invitation</h1>
             
             <p style="font-size: 16px; line-height: 1.5; color: #555;">
               Hi there!
@@ -156,7 +156,7 @@ serve(async (req) => {
             <div style="text-align: center; margin: 30px 0;">
               <a href="${invitationLink}" 
                  style="background-color: #007bff; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">
-                Accept Invitation & Verify Account
+                Accept Invitation
               </a>
             </div>
             
@@ -169,7 +169,7 @@ serve(async (req) => {
             <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
             
             <p style="font-size: 12px; color: #999;">
-              This email was sent by STOREA. If you weren't expecting this invitation, 
+              This email was sent by the ID Platform. If you weren't expecting this invitation, 
               you can safely ignore this email.
             </p>
           </div>
