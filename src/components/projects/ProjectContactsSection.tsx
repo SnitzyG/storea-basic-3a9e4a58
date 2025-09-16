@@ -1,28 +1,14 @@
+import { useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
-import { useAuth } from '@/hooks/useAuth';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
-import { useProjectTeam } from '@/hooks/useProjectTeam';
-import { Users, Mail, Phone, Plus, Trash2, MessageCircle, Clock, Circle } from 'lucide-react';
+import { useProjectTeam, TeamMember } from '@/hooks/useProjectTeam';
+import { Users, UserPlus, MessageSquare, X } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
-interface ProjectUser {
-  id: string;
-  user_id: string;
-  role: string;
-  joined_at?: string;
-  user_profile: {
-    name: string;
-    role: string;
-    avatar_url?: string;
-    phone?: string;
-  } | null;
-  lastActive?: string;
-  isOnline?: boolean;
-}
 
 interface ProjectContactsSectionProps {
   projectId: string;
@@ -47,189 +33,189 @@ const roleLabels = {
 
 export const ProjectContactsSection = ({ 
   projectId, 
-  isEditing = false,
-  onUserRemove,
+  isEditing = false, 
+  onUserRemove, 
   onUserAdd 
 }: ProjectContactsSectionProps) => {
-  const { teamMembers: projectUsers, loading, error } = useProjectTeam(projectId);
-  const { profile } = useAuth();
-  const { toast } = useToast();
+  const { teamMembers, loading, error } = useProjectTeam(projectId);
   const navigate = useNavigate();
+  const [removeUserId, setRemoveUserId] = useState<string | null>(null);
 
-  // No longer needed as we use useTeamSync hook
-
-  const handleContactUser = (userId: string, userName: string) => {
-    // Store the target user for direct messaging
-    sessionStorage.setItem('targetUserId', userId);
-    sessionStorage.setItem('targetUserName', userName);
-    sessionStorage.setItem('currentProjectId', projectId);
-    
-    // Navigate to messages tab
+  const handleContactUser = (user: TeamMember) => {
+    // Store user and project IDs in session storage for messages
+    sessionStorage.setItem('selectedUserId', user.user_id);
+    sessionStorage.setItem('selectedProjectId', projectId);
     navigate('/messages');
   };
 
-  const groupedUsers = projectUsers.reduce((acc, user) => {
-    const role = user.role;
-    if (!acc[role]) {
-      acc[role] = [];
+  const handleRemoveUser = async (userId: string) => {
+    if (onUserRemove) {
+      await onUserRemove(userId);
+      setRemoveUserId(null);
     }
+  };
+
+  // Group users by role for better organization
+  const usersByRole = teamMembers.reduce((acc, user) => {
+    const role = user.role || 'other';
+    if (!acc[role]) acc[role] = [];
     acc[role].push(user);
     return acc;
-  }, {} as Record<string, ProjectUser[]>);
+  }, {} as Record<string, TeamMember[]>);
 
   if (loading) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Users className="h-5 w-5" />
-            Project Team
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-center py-4 text-muted-foreground">
-            Loading team members...
-          </div>
-        </CardContent>
-      </Card>
+      <div className="flex items-center justify-center py-8">
+        <div className="text-sm text-muted-foreground">Loading team members...</div>
+      </div>
     );
   }
 
   if (error) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Users className="h-5 w-5" />
-            Project Team
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-center py-4 text-destructive">
-            {error}
-          </div>
-        </CardContent>
-      </Card>
+      <div className="flex items-center justify-center py-8">
+        <div className="text-sm text-destructive">Error loading team members: {error}</div>
+      </div>
+    );
+  }
+
+  if (teamMembers.length === 0) {
+    return (
+      <div className="text-center py-8">
+        <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+        <h3 className="text-lg font-medium mb-2">No team members yet</h3>
+        <p className="text-muted-foreground mb-4">
+          Start building your project team by adding members.
+        </p>
+        {isEditing && onUserAdd && (
+          <Button onClick={onUserAdd} size="sm">
+            <UserPlus className="h-4 w-4 mr-2" />
+            Add First Member
+          </Button>
+        )}
+      </div>
     );
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center gap-2">
-            <Users className="h-5 w-5" />
-            Project Team ({projectUsers.length})
-          </CardTitle>
-          {isEditing && profile?.role === 'architect' && (
-            <Button size="sm" variant="outline" onClick={onUserAdd}>
-              <Plus className="h-4 w-4 mr-2" />
-              Add Member
-            </Button>
-          )}
+    <div className="space-y-6">
+      {/* Add Member Button */}
+      {isEditing && onUserAdd && (
+        <div className="flex justify-between items-center">
+          <h3 className="text-lg font-medium">Team Members ({teamMembers.length})</h3>
+          <Button onClick={onUserAdd} size="sm">
+            <UserPlus className="h-4 w-4 mr-2" />
+            Add Member
+          </Button>
         </div>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        {Object.entries(groupedUsers).map(([role, users], index) => (
-          <div key={role}>
-            {index > 0 && <Separator className="my-4" />}
-            <div className="space-y-3">
-              <div className="flex items-center gap-2">
-                <Badge className={roleColors[role as keyof typeof roleColors]}>
-                  {roleLabels[role as keyof typeof roleLabels]}
-                </Badge>
-                <span className="text-sm text-muted-foreground">
-                  ({users.length})
-                </span>
+      )}
+
+      {/* Team Members by Role */}
+      {Object.entries(usersByRole).map(([role, users]) => (
+        <div key={role} className="space-y-3">
+          <h4 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
+            {role.charAt(0).toUpperCase() + role.slice(1)}s ({users.length})
+          </h4>
+          
+          <div className="space-y-2">
+            {users.map((user) => (
+              <div
+                key={user.id}
+                className="flex items-center justify-between p-3 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors group"
+              >
+                <div className="flex items-center space-x-3">
+                  <Avatar className="h-10 w-10">
+                    <AvatarImage src={user.avatar_url} alt={user.name} />
+                    <AvatarFallback>
+                      {user.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                  
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center space-x-2">
+                      <p className="text-sm font-medium text-foreground truncate">
+                        {user.name}
+                      </p>
+                      {user.isOnline && (
+                        <div className="flex items-center space-x-1">
+                          <div className="h-2 w-2 bg-green-500 rounded-full"></div>
+                          <span className="text-xs text-muted-foreground">Online</span>
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex items-center space-x-2 mt-1">
+                      <Badge 
+                        variant="secondary" 
+                        className={cn(
+                          "text-xs",
+                          roleColors[user.role as keyof typeof roleColors] || "bg-gray-100 text-gray-800"
+                        )}
+                      >
+                        {roleLabels[user.role as keyof typeof roleLabels] || user.role}
+                      </Badge>
+                      <p className="text-xs text-muted-foreground truncate">
+                        {user.email}
+                      </p>
+                    </div>
+                    {user.user_profile?.phone && (
+                      <p className="text-xs text-muted-foreground mt-1">
+                        📞 {user.user_profile.phone}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex items-center space-x-2">
+                  {/* Contact Button */}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleContactUser(user)}
+                    className="opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <MessageSquare className="h-4 w-4 mr-1" />
+                    Contact via platform
+                  </Button>
+
+                  {/* Remove Button (only in editing mode and for non-architects) */}
+                  {isEditing && onUserRemove && user.role !== 'architect' && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setRemoveUserId(user.user_id)}
+                      className="opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive hover:bg-destructive/10"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
               </div>
-              
-              <div className="space-y-2">
-                 {users.map((user) => {
-                   if (!user.user_profile) return null;
-                   
-                   return (
-                     <div key={user.id} className="group relative p-4 rounded-lg border bg-card hover:bg-accent/30 transition-colors">
-                       <div className="flex items-start justify-between">
-                         <div className="flex items-start gap-3 flex-1">
-                           <div className="relative">
-                             <Avatar className="h-12 w-12">
-                               <AvatarFallback className="bg-primary/10 text-primary font-medium">
-                                 {user.user_profile.name.split(' ').map(n => n[0]).join('').toUpperCase()}
-                               </AvatarFallback>
-                             </Avatar>
-                             {user.isOnline && (
-                               <div className="absolute -bottom-1 -right-1 h-4 w-4 bg-construction-success border-2 border-background rounded-full"></div>
-                             )}
-                           </div>
-                           
-                           <div className="flex-1 space-y-2">
-                             <div className="flex items-center gap-2">
-                               <h4 className="font-medium text-foreground">{user.user_profile.name}</h4>
-                               <Badge variant="secondary" className={roleColors[user.role as keyof typeof roleColors]}>
-                                 {roleLabels[user.role as keyof typeof roleLabels]}
-                               </Badge>
-                             </div>
-                             
-                             <div className="space-y-1">
-                               <div className="flex items-center gap-4 text-sm">
-                                 <Button
-                                   variant="link"
-                                   size="sm"
-                                   className="h-auto p-0 text-sm text-primary hover:text-primary/80 font-medium"
-                                   onClick={() => handleContactUser(user.user_id, user.user_profile!.name)}
-                                 >
-                                   <MessageCircle className="h-3 w-3 mr-1" />
-                                   Contact via platform
-                                 </Button>
-                                 {user.user_profile.phone && (
-                                   <div className="flex items-center gap-1 text-muted-foreground">
-                                     <Phone className="h-3 w-3" />
-                                     <span className="text-xs">{user.user_profile.phone}</span>
-                                   </div>
-                                 )}
-                               </div>
-                               
-                               <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                                 {user.joined_at && (
-                                   <div className="flex items-center gap-1">
-                                     <Clock className="h-3 w-3" />
-                                     <span>Joined {new Date(user.joined_at).toLocaleDateString()}</span>
-                                   </div>
-                                 )}
-                                 <div className="flex items-center gap-1">
-                                   <Circle className={`h-2 w-2 ${user.isOnline ? 'fill-construction-success text-construction-success' : 'fill-muted text-muted'}`} />
-                                   <span>{user.isOnline ? 'Online' : 'Offline'}</span>
-                                 </div>
-                               </div>
-                             </div>
-                           </div>
-                         </div>
-                         
-                         {isEditing && profile?.role === 'architect' && user.role !== 'architect' && (
-                           <Button
-                             size="sm"
-                             variant="ghost"
-                             onClick={() => onUserRemove?.(user.user_id)}
-                             className="text-destructive hover:text-destructive hover:bg-destructive/10 opacity-0 group-hover:opacity-100 transition-opacity"
-                           >
-                             <Trash2 className="h-4 w-4" />
-                           </Button>
-                         )}
-                       </div>
-                     </div>
-                   );
-                 }).filter(Boolean)}
-              </div>
-            </div>
+            ))}
           </div>
-        ))}
-        
-        {projectUsers.length === 0 && (
-          <div className="text-center py-6 text-muted-foreground">
-            No team members assigned yet.
-          </div>
-        )}
-      </CardContent>
-    </Card>
+        </div>
+      ))}
+
+      {/* Remove Confirmation Dialog */}
+      <AlertDialog open={!!removeUserId} onOpenChange={() => setRemoveUserId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remove Team Member</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to remove this team member from the project? 
+              They will lose access to all project data.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => removeUserId && handleRemoveUser(removeUserId)}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Remove Member
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
   );
 };

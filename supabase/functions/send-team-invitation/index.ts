@@ -1,29 +1,26 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { Resend } from "npm:resend@2.0.0";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.0";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-}
-
-interface InvitationRequest {
-  projectId: string;
-  email: string;
-  role: string;
-}
+};
 
 serve(async (req) => {
+  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders })
+    return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    )
+    const { projectId, email, role, projectName, inviterName } = await req.json();
+    console.log('Team invitation request:', { projectId, email, role, projectName, inviterName });
 
-    const { projectId, email, role }: InvitationRequest = await req.json()
+    // Initialize Supabase client
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
     
     // Validate inputs
     if (!projectId || !email || !role) {
@@ -100,78 +97,101 @@ serve(async (req) => {
 
     if (inviteError) throw new Error('Failed to create invitation: ' + inviteError.message)
 
-    // Send email via Resend
-    const resendApiKey = Deno.env.get('RESEND_API_KEY')
-    if (!resendApiKey) throw new Error('Resend API key not configured')
+    // Send email using Resend
+    const resendApiKey = Deno.env.get('RESEND_API_KEY');
+    if (!resendApiKey) {
+      console.error('RESEND_API_KEY not configured');
+      return new Response(
+        JSON.stringify({ 
+          error: 'Email service not configured',
+          isConfigurationIssue: true 
+        }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
-    const appUrl = Deno.env.get('SITE_URL') || 'https://bd2e83dc-1d1d-4a73-96c2-6279990f514d.sandbox.lovable.dev'
-    
-    const emailResponse = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${resendApiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        from: 'Team Invitations <onboarding@resend.dev>',
+    const resend = new Resend(resendApiKey);
+    const invitationLink = `${Deno.env.get('SITE_URL')}/accept-invitation?token=${inviteToken}`;
+
+    try {
+      const emailResponse = await resend.emails.send({
+        from: 'ID Platform <noreply@resend.dev>',
         to: [email],
-        subject: `You've been invited to join ${project.name}`,
+        subject: `You've been invited to join ${projectName}`,
         html: `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-            <h1 style="color: #333; border-bottom: 2px solid #007bff; padding-bottom: 10px;">Team Invitation</h1>
-            <p style="font-size: 16px; line-height: 1.5;">You've been invited to join <strong style="color: #007bff;">${project.name}</strong> as a <strong>${role}</strong>.</p>
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h1 style="color: #333; margin-bottom: 20px;">Project Invitation</h1>
+            
+            <p style="font-size: 16px; line-height: 1.5; color: #555;">
+              Hi there!
+            </p>
+            
+            <p style="font-size: 16px; line-height: 1.5; color: #555;">
+              <strong>${inviterName}</strong> has invited you to join the project "<strong>${projectName}</strong>" as a <strong>${role}</strong>.
+            </p>
+            
+            <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
+              <h3 style="margin-top: 0; color: #333;">What you'll get access to:</h3>
+              <ul style="color: #555;">
+                <li>Project documents and files</li>
+                <li>Team communications and messages</li>
+                <li>RFI (Request for Information) management</li>
+                <li>Tender processes and bidding</li>
+                <li>Real-time project updates</li>
+              </ul>
+            </div>
             
             <div style="text-align: center; margin: 30px 0;">
-              <a href="${appUrl}/accept-invitation?token=${inviteToken}" 
-                 style="background-color: #007bff; color: white; padding: 15px 30px; text-decoration: none; border-radius: 5px; display: inline-block; font-weight: bold; font-size: 16px;">
-                🎉 Accept Invitation
+              <a href="${invitationLink}" 
+                 style="background-color: #007bff; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">
+                Accept Invitation
               </a>
             </div>
             
-            <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; margin: 20px 0;">
-              <h3 style="margin-top: 0; color: #495057;">Project Details:</h3>
-              <p style="margin: 5px 0;"><strong>Project:</strong> ${project.name}</p>
-              <p style="margin: 5px 0;"><strong>Your Role:</strong> ${role}</p>
-              <p style="margin: 5px 0;"><strong>Invited By:</strong> Project Owner</p>
-            </div>
+            <p style="font-size: 14px; color: #777; margin-top: 30px;">
+              This invitation will expire in 7 days. If you're unable to click the button above, 
+              you can copy and paste this link into your browser:<br>
+              <a href="${invitationLink}" style="color: #007bff;">${invitationLink}</a>
+            </p>
             
-            <p style="color: #666; font-size: 14px; border-top: 1px solid #dee2e6; padding-top: 15px;">
-              ⏰ This invitation expires in 7 days.<br>
-              🔗 If the button doesn't work, copy and paste this link: <br>
-              <code style="background-color: #f1f3f4; padding: 2px 4px; border-radius: 3px;">${appUrl}/accept-invitation?token=${inviteToken}</code>
+            <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
+            
+            <p style="font-size: 12px; color: #999;">
+              This email was sent by the ID Platform. If you weren't expecting this invitation, 
+              you can safely ignore this email.
             </p>
           </div>
-        `
-      })
-    })
+        `,
+      });
 
-    if (!emailResponse.ok) {
-      const emailError = await emailResponse.text()
-      console.error('Resend error:', emailError)
+      console.log('Email sent successfully:', emailResponse);
+
+      return new Response(
+        JSON.stringify({ 
+          success: true, 
+          message: 'Invitation sent successfully',
+          method: 'resend'
+        }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+
+    } catch (emailError) {
+      console.error('Error sending email with Resend:', emailError);
       
+      // If email failed, clean up the invitation
       await supabase
         .from('invitations')
-        .update({ status: 'failed' })
-        .eq('id', invitation.id)
-      
-      throw new Error('Failed to send email: ' + emailError)
+        .delete()
+        .eq('token', invitationToken);
+
+      return new Response(
+        JSON.stringify({ 
+          error: 'Failed to send invitation email',
+          details: emailError.message 
+        }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
-
-    const emailResult = await emailResponse.json()
-    console.log('✅ Email sent successfully:', emailResult)
-
-    return new Response(
-      JSON.stringify({ 
-        success: true, 
-        invitation,
-        emailId: emailResult.id,
-        message: 'Invitation sent successfully'
-      }),
-      {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 200,
-      }
-    )
 
   } catch (error) {
     console.error('❌ Function error:', error)
