@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { RoleTestingTools } from '@/components/testing/RoleTestingTools';
 import { PerformanceMonitor } from '@/components/testing/PerformanceMonitor';
+import { RealtimeTestingTools } from '@/components/testing/RealtimeTestingTools';
 import { SecurityTester } from '@/components/testing/SecurityTester';
 import { TabFunctionalityTester } from '@/components/testing/TabFunctionalityTester';
 import { InvitationSystemTester } from '@/components/testing/InvitationSystemTester';

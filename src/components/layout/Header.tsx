@@ -9,6 +9,7 @@ import { useNotifications } from '@/hooks/useNotifications';
 import { useTheme } from '@/context/ThemeContext';
 import { Badge } from '@/components/ui/badge';
 import { NotificationCenter } from '@/components/notifications/NotificationCenter';
+import { RealtimeIndicator } from '@/components/ui/realtime-indicator';
 interface HeaderProps {
   user: User;
   profile?: Profile | null;
@@ -45,6 +46,7 @@ export const Header = ({
           </Button>
         </div>
         
+        <RealtimeIndicator />
         <NotificationCenter />
 
         <Button variant="ghost" size="sm" onClick={toggleTheme} title={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}>

@@ -560,6 +560,53 @@ export const useAdvancedProjects = () => {
     fetchProjects();
   }, [fetchProjects]);
 
+  // Set up real-time subscriptions for instant updates
+  useEffect(() => {
+    const channels = [];
+
+    // Subscribe to project changes
+    const projectsChannel = supabase
+      .channel('projects-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'projects',
+        },
+        (payload) => {
+          console.log('Project change detected:', payload);
+          fetchProjects();
+        }
+      )
+      .subscribe();
+
+    channels.push(projectsChannel);
+
+    // Subscribe to project_users changes (for team updates)
+    const projectUsersChannel = supabase
+      .channel('project-users-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'project_users',
+        },
+        (payload) => {
+          console.log('Project users change detected:', payload);
+          fetchProjects();
+        }
+      )
+      .subscribe();
+
+    channels.push(projectUsersChannel);
+
+    return () => {
+      channels.forEach(channel => supabase.removeChannel(channel));
+    };
+  }, [fetchProjects]);
+
   useEffect(() => {
     fetchTemplates();
   }, [fetchTemplates]);

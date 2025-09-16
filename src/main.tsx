@@ -28,6 +28,7 @@ import { ThemeProvider } from "./context/ThemeContext.tsx";
 import { ErrorBoundary } from "./components/ui/error-boundary.tsx";
 import { NotificationProvider } from "./context/NotificationContext.tsx";
 import { AuthProvider } from "./context/AuthContext.tsx";
+import { RealtimeProvider } from "./context/RealtimeContext.tsx";
 
 const queryClient = new QueryClient();
 
@@ -35,8 +36,9 @@ createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <ErrorBoundary>
       <AuthProvider>
-        <ThemeProvider>
-          <NotificationProvider>
+        <RealtimeProvider>
+          <ThemeProvider>
+            <NotificationProvider>
             <QueryClientProvider client={queryClient}>
               <TooltipProvider>
                 <Toaster />
@@ -64,8 +66,9 @@ createRoot(document.getElementById("root")!).render(
                 </BrowserRouter>
               </TooltipProvider>
             </QueryClientProvider>
-          </NotificationProvider>
-        </ThemeProvider>
+            </NotificationProvider>
+          </ThemeProvider>
+        </RealtimeProvider>
       </AuthProvider>
     </ErrorBoundary>
   </StrictMode>

@@ -913,6 +913,83 @@ export const useDocuments = (projectId?: string) => {
     }
   };
 
+  // Set up real-time subscriptions for instant updates
+  useEffect(() => {
+    if (!projectId) return;
+
+    const channels = [];
+
+    // Subscribe to document changes
+    const documentsChannel = supabase
+      .channel('documents-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'documents',
+          filter: `project_id=eq.${projectId}`,
+        },
+        (payload) => {
+          console.log('Document change detected:', payload);
+          fetchDocuments(projectId);
+        }
+      )
+      .subscribe();
+
+    channels.push(documentsChannel);
+
+    // Subscribe to document groups changes (for new document system)
+    const documentGroupsChannel = supabase
+      .channel('document-groups-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'document_groups',
+          filter: `project_id=eq.${projectId}`,
+        },
+        (payload) => {
+          console.log('Document group change detected:', payload);
+          fetchDocuments(projectId);
+        }
+      )
+      .subscribe();
+
+    channels.push(documentGroupsChannel);
+
+    // Subscribe to document versions changes
+    const documentVersionsChannel = supabase
+      .channel('document-versions-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'document_versions',
+        },
+        (payload) => {
+          console.log('Document version change detected:', payload);
+          fetchDocuments(projectId);
+        }
+      )
+      .subscribe();
+
+    channels.push(documentVersionsChannel);
+
+    return () => {
+      channels.forEach(channel => supabase.removeChannel(channel));
+    };
+  }, [projectId]);
+
+  // Initial data load
+  useEffect(() => {
+    if (projectId) {
+      fetchDocuments(projectId);
+    }
+  }, [projectId]);
+
   return {
     documents,
     loading,

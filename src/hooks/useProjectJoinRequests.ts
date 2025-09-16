@@ -289,21 +289,69 @@ export const useProjectJoinRequests = () => {
     }
   };
 
-  // Set up real-time subscriptions
+  // Set up real-time subscriptions for instant updates
   useEffect(() => {
-    const channel = supabase
-      .channel('project_join_requests_changes')
-      .on('postgres_changes', {
-        event: '*',
-        schema: 'public',
-        table: 'project_join_requests'
-      }, () => {
-        fetchJoinRequests();
-      })
+    const channels = [];
+
+    // Subscribe to project join requests changes
+    const joinRequestsChannel = supabase
+      .channel('project-join-requests-realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'project_join_requests',
+        },
+        (payload) => {
+          console.log('Join request change detected:', payload);
+          fetchJoinRequests();
+        }
+      )
       .subscribe();
 
+    channels.push(joinRequestsChannel);
+
+    // Subscribe to projects changes (for project name updates)
+    const projectsChannel = supabase
+      .channel('projects-realtime-joinreq')
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'projects',
+        },
+        (payload) => {
+          console.log('Project change detected for join requests:', payload);
+          fetchJoinRequests();
+        }
+      )
+      .subscribe();
+
+    channels.push(projectsChannel);
+
+    // Subscribe to project_users changes (for when requests are approved)
+    const projectUsersChannel = supabase
+      .channel('project-users-realtime-joinreq')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'project_users',
+        },
+        (payload) => {
+          console.log('Project users change detected for join requests:', payload);
+          fetchJoinRequests();
+        }
+      )
+      .subscribe();
+
+    channels.push(projectUsersChannel);
+
     return () => {
-      supabase.removeChannel(channel);
+      channels.forEach(channel => supabase.removeChannel(channel));
     };
   }, [fetchJoinRequests]);
 
