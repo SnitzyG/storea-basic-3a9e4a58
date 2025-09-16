@@ -27,10 +27,11 @@ export const useProjectLinking = () => {
               description: `You've been automatically added to ${data.projectsLinked} project(s)!`
             });
             
-            // Dispatch custom event to refresh projects
+            // Dispatch custom event to refresh projects and team data
             window.dispatchEvent(new CustomEvent('projectsUpdated'));
+            window.dispatchEvent(new CustomEvent('teamMembersUpdated'));
             
-            // Delay reload to show toast first
+            // Delay reload to show toast first and let events propagate
             setTimeout(() => {
               window.location.reload();
             }, 1500);

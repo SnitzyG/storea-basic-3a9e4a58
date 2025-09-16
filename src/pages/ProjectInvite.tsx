@@ -118,6 +118,10 @@ const ProjectInvite = () => {
         description: `You've successfully joined ${project.name}.`
       });
 
+      // Trigger project refresh events
+      window.dispatchEvent(new CustomEvent('projectsUpdated'));
+      window.dispatchEvent(new CustomEvent('teamMembersUpdated'));
+
       // Redirect to project after 2 seconds
       setTimeout(() => {
         navigate('/projects');

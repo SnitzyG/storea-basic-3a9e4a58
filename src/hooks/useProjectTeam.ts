@@ -503,6 +503,14 @@ export const useProjectTeam = (projectId: string): UseProjectTeamReturn => {
         console.log('Team subscription status:', status);
       });
 
+    // Add global event listeners for manual refresh triggers
+    const handleGlobalTeamUpdate = () => {
+      console.log('Global team members update event received');
+      debouncedRefetch();
+    };
+
+    window.addEventListener('teamMembersUpdated', handleGlobalTeamUpdate);
+
     // Cleanup function
     return () => {
       isMountedRef.current = false;
@@ -510,6 +518,7 @@ export const useProjectTeam = (projectId: string): UseProjectTeamReturn => {
         clearTimeout(fetchTimeoutRef.current);
       }
       subscription.unsubscribe();
+      window.removeEventListener('teamMembersUpdated', handleGlobalTeamUpdate);
     };
   }, [stableProjectIdRef.current]); // Use stable ref instead of projectId
 

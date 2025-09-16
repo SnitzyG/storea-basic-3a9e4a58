@@ -354,6 +354,18 @@ export const useProjects = () => {
 
   useEffect(() => {
     fetchProjects();
+
+    // Listen for project updates from invitation flow
+    const handleProjectsUpdate = () => {
+      console.log('Projects updated event received, refetching...');
+      fetchProjects();
+    };
+
+    window.addEventListener('projectsUpdated', handleProjectsUpdate);
+    
+    return () => {
+      window.removeEventListener('projectsUpdated', handleProjectsUpdate);
+    };
   }, []);
 
   return {
