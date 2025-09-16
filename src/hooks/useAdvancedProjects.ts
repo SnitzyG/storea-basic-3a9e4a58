@@ -14,6 +14,7 @@ export interface AdvancedProject {
   homeowner_name?: string;
   homeowner_phone?: string;
   homeowner_email?: string;
+  additional_homeowners?: any; // JSON field from database
   created_by: string;
   created_at: string;
   updated_at: string;

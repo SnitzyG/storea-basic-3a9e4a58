@@ -727,7 +727,9 @@ export const AdvancedProjectWizard = ({
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Client:</span>
-                      <span className="font-medium">{formData.homeowner_name}</span>
+                      <span className="font-medium">
+                        {formData.homeowners.length > 0 ? formData.homeowners[0].name : 'Not specified'}
+                      </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Budget:</span>

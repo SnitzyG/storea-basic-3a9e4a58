@@ -968,6 +968,7 @@ export type Database = {
       }
       projects: {
         Row: {
+          additional_homeowners: Json | null
           address: string | null
           budget: number | null
           company_id: string | null
@@ -988,6 +989,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          additional_homeowners?: Json | null
           address?: string | null
           budget?: number | null
           company_id?: string | null
@@ -1008,6 +1010,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          additional_homeowners?: Json | null
           address?: string | null
           budget?: number | null
           company_id?: string | null
