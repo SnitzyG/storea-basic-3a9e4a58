@@ -486,71 +486,69 @@ export const CalendarWidget = () => {
           </div>
           
           <div className="flex-1 overflow-hidden">
-            <div className="h-full flex flex-col">
+            <div className="h-full flex flex-col border rounded-lg">
               {/* Days of week header */}
-              <div className="grid grid-cols-7 gap-1 mb-2 pb-2 border-b">
+              <div className="grid grid-cols-7 gap-px bg-border p-2 rounded-t-lg">
                 {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
-                  <div key={day} className="h-8 flex items-center justify-center text-sm font-medium text-muted-foreground">
+                  <div key={day} className="h-8 flex items-center justify-center text-sm font-medium text-muted-foreground bg-background">
                     {day}
                   </div>
                 ))}
               </div>
               
-              {/* Calendar grid */}
-              <div className="flex-1">
-                <Calendar
-                  mode="single"
-                  selected={selectedDate}
-                  onSelect={setSelectedDate}
-                  month={currentMonth}
-                  onMonthChange={setCurrentMonth}
-                  className="w-full h-full"
-                  classNames={{
-                    months: "flex w-full flex-col h-full",
-                    month: "w-full flex flex-col h-full",
-                    caption: "hidden", // Hide default caption since we have our own navigation
-                    nav: "hidden", // Hide default navigation
-                    table: "w-full h-full",
-                    head_row: "hidden", // Hide default header since we have our own
-                    row: "grid grid-cols-7 gap-1 mb-1",
-                    cell: "aspect-square",
-                    day: "h-full w-full p-0 font-normal rounded-md transition-colors relative flex flex-col items-center justify-start pt-1 hover:bg-accent hover:text-accent-foreground",
-                    day_selected: "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground",
-                    day_today: "bg-accent text-accent-foreground font-semibold",
-                    day_outside: "text-muted-foreground opacity-50",
-                    day_disabled: "text-muted-foreground opacity-30",
-                  }}
-                  components={{
-                    Day: ({ date, displayMonth, ...props }: any) => {
-                      if (!date) {
-                        return <div className="aspect-square" />;
-                      }
-                      const todosForDate = getTodosForDate(date);
-                      
-                      return (
-                        <button
-                          {...props}
-                          className={`${props.className || ''} aspect-square flex flex-col items-center justify-start pt-1 relative`}
-                        >
-                          <span className="text-sm">{date.getDate()}</span>
-                          {todosForDate.length > 0 && (
-                            <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2 flex gap-0.5">
-                              {todosForDate.slice(0, 3).map((_, index) => (
-                                <div 
-                                  key={index} 
-                                  className="w-1.5 h-1.5 rounded-full bg-primary"
-                                />
-                              ))}
-                              {todosForDate.length > 3 && (
-                                <div className="w-1.5 h-1.5 rounded-full bg-primary opacity-60" />
-                              )}
-                            </div>
-                          )}
-                        </button>
-                      );
-                    }
-                  }}
-                />
+              {/* Calendar dates grid */}
+              <div className="flex-1 p-2 bg-background rounded-b-lg">
+                {(() => {
+                  const start = startOfMonth(currentMonth);
+                  const end = endOfMonth(currentMonth);
+                  const startDate = new Date(start);
+                  startDate.setDate(startDate.getDate() - startDate.getDay()); // Start from Sunday
+                  
+                  const endDate = new Date(end);
+                  endDate.setDate(endDate.getDate() + (6 - endDate.getDay())); // End on Saturday
+                  
+                  const days = eachDayOfInterval({ start: startDate, end: endDate });
+                  
+                  return (
+                    <div className="grid grid-cols-7 gap-px h-full">
+                      {days.map((date) => {
+                        const todosForDate = getTodosForDate(date);
+                        const isCurrentMonth = date.getMonth() === currentMonth.getMonth();
+                        const isSelected = selectedDate && isSameDay(date, selectedDate);
+                        const isToday = isSameDay(date, new Date());
+                        
+                        return (
+                          <button
+                            key={date.toISOString()}
+                            onClick={() => setSelectedDate(date)}
+                            className={`
+                              aspect-square flex flex-col items-center justify-start pt-1 relative
+                              transition-colors rounded-sm text-sm
+                              ${isCurrentMonth ? 'text-foreground' : 'text-muted-foreground opacity-50'}
+                              ${isSelected ? 'bg-primary text-primary-foreground' : 'hover:bg-accent hover:text-accent-foreground'}
+                              ${isToday && !isSelected ? 'bg-accent text-accent-foreground font-semibold' : ''}
+                            `}
+                          >
+                            <span>{date.getDate()}</span>
+                            {todosForDate.length > 0 && (
+                              <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2 flex gap-0.5">
+                                {todosForDate.slice(0, 3).map((_, index) => (
+                                  <div 
+                                    key={index} 
+                                    className={`w-1.5 h-1.5 rounded-full ${isSelected ? 'bg-primary-foreground' : 'bg-primary'}`}
+                                  />
+                                ))}
+                                {todosForDate.length > 3 && (
+                                  <div className={`w-1.5 h-1.5 rounded-full opacity-60 ${isSelected ? 'bg-primary-foreground' : 'bg-primary'}`} />
+                                )}
+                              </div>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  );
+                })()}
               </div>
             </div>
           </div>
