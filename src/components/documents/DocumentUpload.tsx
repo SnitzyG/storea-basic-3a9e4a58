@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import { useDocuments } from '@/hooks/useDocuments';
+import { useDocumentGroups } from '@/hooks/useDocumentGroups';
 import { getFileExtension, formatFileSize } from '@/utils/documentUtils';
 
 interface DocumentUploadProps {
@@ -50,7 +50,7 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
 }) => {
   const [files, setFiles] = useState<UploadFile[]>([]);
   const [isUploading, setIsUploading] = useState(false);
-  const { uploadDocument } = useDocuments();
+  const { createDocumentGroup } = useDocumentGroups();
 
   const STATUS_OPTIONS = ['For Tender', 'For Information', 'For Construction'] as const;
   const FILE_TYPE_OPTIONS = ['Architectural', 'Structural', 'Permit'] as const;
@@ -136,14 +136,14 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
           projectId 
         });
         
-        const result = await uploadDocument(
-          file.file, // Pass the actual File object
-          projectId, 
-          file.title || file.file.name, // Use title if available, fallback to filename
+        const result = await createDocumentGroup(
+          file.file,
+          projectId,
+          file.title || file.file.name,
           {
             documentNumber: file.documentNumber,
             status: file.documentStatus!,
-            fileType: file.fileType!,
+            category: file.fileType!,
             isPrivate: file.isPrivate
           }
         );
