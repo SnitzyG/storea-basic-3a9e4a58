@@ -178,9 +178,7 @@ const AdvancedProjects = () => {
                             ID: {(project as any).project_id}
                           </div>}
                       </div>
-                      <Badge className={statusColors[project.status]}>
-                        {project.status.replace('_', ' ')}
-                      </Badge>
+                      
                     </div>
                   </CardHeader>
                   
