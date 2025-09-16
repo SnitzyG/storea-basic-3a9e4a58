@@ -76,7 +76,14 @@ export const DocumentVersionHistory: React.FC<DocumentVersionHistoryProps> = ({
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => onDownloadVersion(version.file_path, `Rev-${String.fromCharCode(64 + version.version_number)}.pdf`)}
+                          onClick={async () => {
+                            try {
+                              const { downloadFromStorage } = await import('@/utils/storageUtils');
+                              await downloadFromStorage(version.file_path, `Rev-${String.fromCharCode(64 + version.version_number)}.pdf`);
+                            } catch (error: any) {
+                              console.error('Download failed:', error);
+                            }
+                          }}
                         >
                           <Download className="h-4 w-4" />
                         </Button>
