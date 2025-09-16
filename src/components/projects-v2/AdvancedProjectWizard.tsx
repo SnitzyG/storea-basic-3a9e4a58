@@ -423,7 +423,91 @@ export const AdvancedProjectWizard = ({
       case 4:
         return <div className="space-y-6">
             <div>
-              <h3 className="text-lg font-semibold mb-4">Additional Settings</h3>
+              <h3 className="text-lg font-semibold mb-4">Team & Collaborators</h3>
+              
+              {/* Add New Collaborator */}
+              <Card className="mb-6">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-base">
+                    <Users className="h-4 w-4" />
+                    Add Team Member
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                      <Label htmlFor="collaborator_email">Email</Label>
+                      <Input id="collaborator_email" type="email" value={newCollaborator.email} onChange={e => setNewCollaborator(prev => ({
+                      ...prev,
+                      email: e.target.value
+                    }))} placeholder="Enter email" className="mt-1" />
+                    </div>
+                    <div>
+                      <Label htmlFor="collaborator_name">Name</Label>
+                      <Input id="collaborator_name" value={newCollaborator.name} onChange={e => setNewCollaborator(prev => ({
+                      ...prev,
+                      name: e.target.value
+                    }))} placeholder="Enter name" className="mt-1" />
+                    </div>
+                    <div>
+                      <Label htmlFor="collaborator_role">Role</Label>
+                      <Select value={newCollaborator.role} onValueChange={(value: ProjectUser['role']) => setNewCollaborator(prev => ({
+                      ...prev,
+                      role: value
+                    }))}>
+                        <SelectTrigger className="mt-1">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {ROLES.map(role => <SelectItem key={role.value} value={role.value}>
+                              {role.label}
+                            </SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  <Button type="button" variant="outline" onClick={addCollaborator} disabled={!newCollaborator.email || !newCollaborator.name} className="w-full">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Team Member
+                  </Button>
+                </CardContent>
+              </Card>
+
+              {/* Existing Collaborators */}
+              {formData.collaborators.length > 0 && <div>
+                  <Label className="text-base font-medium">Team Members ({formData.collaborators.length})</Label>
+                  <div className="space-y-3 mt-3">
+                    {formData.collaborators.map((collaborator, index) => <Card key={index}>
+                        <CardContent className="p-4">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-3">
+                              <Avatar>
+                                <AvatarFallback>
+                                  {collaborator.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div>
+                                <div className="font-medium">{collaborator.name}</div>
+                                <div className="text-sm text-muted-foreground">{collaborator.email}</div>
+                                <Badge variant="secondary" className="text-xs mt-1">
+                                  {ROLES.find(r => r.value === collaborator.role)?.label}
+                                </Badge>
+                              </div>
+                            </div>
+                            <Button type="button" variant="ghost" size="sm" onClick={() => removeCollaborator(index)} className="text-destructive hover:text-destructive">
+                              <X className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </CardContent>
+                      </Card>)}
+                  </div>
+                </div>}
+            </div>
+          </div>;
+      case 5:
+        return <div className="space-y-6">
+            <div>
+              
               
               <div className="space-y-4">
                 <div>
@@ -442,10 +526,7 @@ export const AdvancedProjectWizard = ({
                     </div>}
                 </div>
 
-                <div>
-                  <Label htmlFor="weather_delays">Expected Weather Delays (days)</Label>
-                  <Input id="weather_delays" type="number" value={formData.weather_delays} onChange={e => handleInputChange('weather_delays', e.target.value)} placeholder="0" className="mt-1" />
-                </div>
+                
 
                 {/* Project Summary */}
                 <Card className="mt-6">
