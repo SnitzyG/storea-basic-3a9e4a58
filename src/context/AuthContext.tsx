@@ -18,7 +18,7 @@ interface AuthContextType {
   session: Session | null;
   profile: Profile | null;
   loading: boolean;
-  signUp: (email: string, password: string, name: string, role: string) => Promise<{ error: any }>;
+  signUp: (email: string, password: string, name: string, role: string, company?: string) => Promise<{ error: any }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
 }
@@ -110,7 +110,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   };
 
-  const signUp = async (email: string, password: string, name: string, role: string) => {
+  const signUp = async (email: string, password: string, name: string, role: string, company?: string) => {
     try {
       const redirectUrl = `${window.location.origin}/auth?confirmed=true`;
       
@@ -121,7 +121,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           emailRedirectTo: redirectUrl,
           data: {
             name,
-            role
+            role,
+            company
           }
         }
       });
@@ -144,7 +145,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       } else if (data.session) {
         toast({
           title: "Account created",
-          description: "Welcome to STOREA Basic!"
+          description: "Welcome to STOREA Lite!"
         });
       }
 
