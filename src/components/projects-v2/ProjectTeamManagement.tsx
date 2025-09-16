@@ -18,7 +18,7 @@ import {
 import { useProjectTeam } from '@/hooks/useProjectTeam';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
-import { ProjectInvitationLink } from '@/components/projects/ProjectInvitationLink';
+import { ProjectInvitationLink } from './ProjectInvitationLink';
 
 interface ProjectTeamManagementProps {
   projectId: string;

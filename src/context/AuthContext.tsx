@@ -63,6 +63,17 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           setProfile(null);
         }
         
+        // Handle pending invitation token after authentication
+        if (session?.user) {
+          const pendingToken = sessionStorage.getItem('pending_invitation_token');
+          if (pendingToken) {
+            sessionStorage.removeItem('pending_invitation_token');
+            setTimeout(() => {
+              window.location.href = `/invite/${pendingToken}`;
+            }, 100);
+          }
+        }
+        
         // Only set loading to false once
         if (mounted) setLoading(false);
       }
