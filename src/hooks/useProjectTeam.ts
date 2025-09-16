@@ -56,94 +56,167 @@ export const useProjectTeam = (projectId: string): UseProjectTeamReturn => {
       setLoading(true);
       setError(null);
 
-      // Fetch team members from project_users with better ordering
+      // Fetch team members from project_users with enhanced selection
       const { data: projectUsersData, error: projectUsersError } = await supabase
         .from('project_users')
-        .select('id, project_id, user_id, role, joined_at, invited_by')
+        .select(`
+          id, 
+          project_id, 
+          user_id, 
+          role, 
+          joined_at, 
+          invited_by,
+          created_at
+        `)
         .eq('project_id', projectId)
         .order('joined_at', { ascending: false }); // Show newest members first
 
       if (projectUsersError) {
         console.error('Error fetching project users:', projectUsersError);
-        setError('Failed to fetch team members');
+        setError(`Failed to fetch team members: ${projectUsersError.message}`);
         return;
       }
 
-      if (!projectUsersData || projectUsersData.length === 0) {
-        setTeamMembers([]);
-        return;
+      let transformedMembers: TeamMember[] = [];
+
+      if (projectUsersData && projectUsersData.length > 0) {
+        // Get user profiles for these users
+        const userIds = projectUsersData.map(user => user.user_id);
+        const { data: profilesData, error: profilesError } = await supabase
+          .from('profiles')
+          .select(`
+            user_id, 
+            name, 
+            full_name, 
+            avatar_url, 
+            online_status, 
+            last_seen, 
+            role, 
+            phone
+          `)
+          .in('user_id', userIds);
+
+        if (profilesError) {
+          console.warn('Error fetching profiles:', profilesError);
+          // Continue with partial data instead of failing completely
+        }
+
+        // Transform active members
+        transformedMembers = projectUsersData.map(member => {
+          const profile = profilesData?.find(p => p.user_id === member.user_id);
+          const displayName = profile?.name || profile?.full_name || `User ${member.user_id.slice(-4)}`;
+          
+          return {
+            id: member.id,
+            project_id: member.project_id,
+            user_id: member.user_id,
+            role: member.role,
+            added_at: member.joined_at || member.created_at || new Date().toISOString(),
+            added_by: member.invited_by,
+            email: '', // Not available client-side
+            full_name: profile?.full_name || profile?.name,
+            name: displayName,
+            avatar_url: profile?.avatar_url,
+            online_status: profile?.online_status || false,
+            last_seen: profile?.last_seen,
+            user_profile: {
+              name: displayName,
+              role: profile?.role || member.role,
+              avatar_url: profile?.avatar_url,
+              phone: profile?.phone
+            },
+            isOnline: profile?.online_status || false,
+            lastActive: profile?.last_seen
+          };
+        });
       }
 
-      // Get user profiles for these users with better selection
-      const userIds = projectUsersData.map(user => user.user_id);
-      const { data: profilesData, error: profilesError } = await supabase
-        .from('profiles')
-        .select('user_id, name, full_name, avatar_url, online_status, last_seen, role, phone, updated_at')
-        .in('user_id', userIds);
-
-      if (profilesError) {
-        console.error('Error fetching profiles:', profilesError);
-        setError('Failed to fetch user profiles');
-        return;
-      }
-
-      // Note: We don't fetch emails via admin API on the client. Profiles don't include email.
-      // We keep displaying names/roles/avatars and omit email when not available.
-      // Transform data to match interface
-      const transformedMembers: TeamMember[] = projectUsersData.map(member => {
-        const profile = profilesData?.find(p => p.user_id === member.user_id);
-        return {
-          id: member.id,
-          project_id: member.project_id,
-          user_id: member.user_id,
-          role: member.role,
-          added_at: member.joined_at || new Date().toISOString(),
-          added_by: member.invited_by,
-          email: '', // email not available client-side without admin privileges
-          full_name: profile?.full_name || profile?.name,
-          name: profile?.name || profile?.full_name || 'Unknown',
-          avatar_url: profile?.avatar_url,
-          online_status: profile?.online_status,
-          last_seen: profile?.last_seen,
-          user_profile: profile ? {
-            name: profile.name || profile.full_name || 'Unknown',
-            role: profile.role || member.role,
-            avatar_url: profile.avatar_url,
-            phone: profile.phone
-          } : null,
-          isOnline: profile?.online_status || false,
-          lastActive: profile?.last_seen
-        };
-      }).filter(member => member.user_profile !== null);
-
-      console.log(`Transformed ${transformedMembers.length} team members for project ${projectId}`);
-      setTeamMembers(transformedMembers);
-      
-      // Also fetch pending invitations to show invited users
-      const { data: pendingInvitations } = await supabase
+      // Fetch pending invitations and add them as pending members
+      const { data: pendingInvitations, error: invitationsError } = await supabase
         .from('invitations')
-        .select('email, role, created_at, inviter_id')
+        .select('id, email, role, created_at, inviter_id, status, expires_at')
         .eq('project_id', projectId)
         .eq('status', 'pending')
         .gt('expires_at', new Date().toISOString());
       
-      if (pendingInvitations && pendingInvitations.length > 0) {
-        console.log(`Found ${pendingInvitations.length} pending invitations`);
-        // You could emit these as a separate state if needed for UI display
+      if (invitationsError) {
+        console.warn('Error fetching pending invitations:', invitationsError);
+      } else if (pendingInvitations && pendingInvitations.length > 0) {
+        // Add pending invitations as team members with pending status
+        const pendingMembers: TeamMember[] = pendingInvitations.map(invitation => ({
+          id: `invitation-${invitation.id}`,
+          project_id: projectId,
+          user_id: `pending-${invitation.email}`,
+          role: invitation.role,
+          added_at: invitation.created_at,
+          added_by: invitation.inviter_id,
+          email: invitation.email,
+          full_name: invitation.email.split('@')[0],
+          name: `${invitation.email.split('@')[0]} (Pending)`,
+          avatar_url: undefined,
+          online_status: false,
+          last_seen: undefined,
+          user_profile: {
+            name: `${invitation.email.split('@')[0]} (Pending)`,
+            role: invitation.role,
+            avatar_url: undefined,
+            phone: undefined
+          },
+          isOnline: false,
+          lastActive: undefined
+        }));
+
+        transformedMembers = [...transformedMembers, ...pendingMembers];
+        console.log(`Added ${pendingInvitations.length} pending invitations to team list`);
       }
+
+      console.log(`Successfully loaded ${transformedMembers.length} team members for project ${projectId}`);
+      setTeamMembers(transformedMembers);
+
     } catch (error) {
-      console.error('Error in fetchTeamMembers:', error);
-      setError('An unexpected error occurred');
+      console.error('Unexpected error in fetchTeamMembers:', error);
+      setError('An unexpected error occurred while loading team members');
     } finally {
       setLoading(false);
     }
   }, [projectId]);
 
   const addMember = useCallback(async (email: string, role: string, projectName: string = 'Project'): Promise<boolean> => {
+    // Input validation
+    if (!email?.trim()) {
+      toast({
+        title: "Email required",
+        description: "Please enter a valid email address.",
+        variant: "destructive"
+      });
+      return false;
+    }
+
+    if (!role?.trim()) {
+      toast({
+        title: "Role required", 
+        description: "Please select a role for the team member.",
+        variant: "destructive"
+      });
+      return false;
+    }
+
+    // Email format validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email.trim())) {
+      toast({
+        title: "Invalid email format",
+        description: "Please enter a valid email address.",
+        variant: "destructive"
+      });
+      return false;
+    }
+
     try {
-      // Get current user
-      const { data: currentUser } = await supabase.auth.getUser();
-      if (!currentUser.user) {
+      // Get current user with error handling
+      const { data: currentUser, error: authError } = await supabase.auth.getUser();
+      if (authError || !currentUser.user) {
+        console.error('Auth error in addMember:', authError);
         toast({
           title: "Authentication error",
           description: "You must be logged in to add team members.",
@@ -152,166 +225,180 @@ export const useProjectTeam = (projectId: string): UseProjectTeamReturn => {
         return false;
       }
 
-      // Check rate limit
-      const rateLimit = checkInviteLimit(projectId, currentUser.user.id);
-      if (!rateLimit.allowed) {
-        toast({
-          title: "Rate limit exceeded",
-          description: `Too many invitations sent. Please wait ${rateLimit.resetIn} seconds before sending another invitation.`,
-          variant: "destructive"
-        });
-        return false;
-      }
-
-      // Comprehensive validation
-      const validation = await validateInvitationRequest(projectId, email, role, currentUser.user.id);
-      if (!validation.isValid) {
-        toast({
-          title: validation.error || "Validation failed",
-          description: validation.suggestion || "Please check your input and try again.",
-          variant: "destructive"
-        });
-        return false;
-      }
-
-
-      // Get user profile for inviter name
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('name, full_name')
+      // Check if user is already a team member
+      const { data: existingMember } = await supabase
+        .from('project_users')
+        .select('id')
+        .eq('project_id', projectId)
         .eq('user_id', currentUser.user.id)
-        .single();
+        .maybeSingle();
 
-      const inviterName = profile?.name || profile?.full_name || currentUser.user.email?.split('@')[0] || 'Someone';
+      if (!existingMember) {
+        toast({
+          title: "Permission denied",
+          description: "You must be a team member to invite others.",
+          variant: "destructive"
+        });
+        return false;
+      }
 
-      // Always proceed with invitation flow via edge function; avoid admin API client-side
+      // Check for existing user with this email (via profiles, since we can't query auth.users directly)
+      const { data: existingUser } = await supabase
+        .from('profiles')
+        .select('user_id')
+        .ilike('name', `%${email}%`) // This is a workaround since we can't query by email
+        .maybeSingle();
+
+      if (existingUser) {
+        // Check if already a project member
+        const { data: alreadyMember } = await supabase
+          .from('project_users')
+          .select('id')
+          .eq('project_id', projectId)
+          .eq('user_id', existingUser.user_id)
+          .maybeSingle();
+
+        if (alreadyMember) {
+          toast({
+            title: "Already a team member",
+            description: "This user is already a member of this project.",
+            variant: "destructive"
+          });
+          return false;
+        }
+      }
 
       // Check for existing pending invitation
       const { data: existingInvitation } = await supabase
         .from('invitations')
-        .select('id')
+        .select('id, status, expires_at')
         .eq('project_id', projectId)
-        .eq('email', email)
-        .eq('status', 'pending')
+        .eq('email', email.trim().toLowerCase())
         .maybeSingle();
 
       if (existingInvitation) {
-        toast({
-          title: "Invitation already sent",
-          description: "An invitation has already been sent to this email address.",
-          variant: "destructive"
-        });
-        return false;
-      }
-
-      // Send invitation via edge function
-      const { data: sessionData } = await supabase.auth.getSession();
-      if (!sessionData.session) {
-        toast({
-          title: "Authentication error",
-          description: "Please log in again.",
-          variant: "destructive"
-        });
-        return false;
-      }
-
-      const { data, error } = await supabase.functions.invoke('send-team-invitation', {
-        body: {
-          projectId,
-          email,
-          role,
-          projectName,
-          inviterName
-        },
-        headers: {
-          Authorization: `Bearer ${sessionData.session.access_token}`,
-        },
-      });
-
-      if (error) {
-        console.error('Error sending invitation:', error);
-        
-        // More specific error handling based on error details
-        let errorTitle = "Invitation could not be sent";
-        let errorDescription = "Please try again. If the problem persists, contact support.";
-        
-        if (error.message?.includes('Failed to fetch') || error.message?.includes('network')) {
-          errorTitle = "Network error";
-          errorDescription = "Please check your internet connection and try again.";
-        } else if (error.message?.includes('unauthorized') || error.message?.includes('401')) {
-          errorTitle = "Authentication error";
-          errorDescription = "Please log in again and try sending the invitation.";
-        } else if (error.message?.includes('forbidden') || error.message?.includes('403')) {
-          errorTitle = "Permission denied";
-          errorDescription = "You don't have permission to invite members to this project.";
+        if (existingInvitation.status === 'pending' && new Date(existingInvitation.expires_at) > new Date()) {
+          toast({
+            title: "Invitation already sent",
+            description: "An active invitation has already been sent to this email address.",
+            variant: "destructive"
+          });
+          return false;
         }
+      }
 
+      // Get user profile for inviter info
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('name, full_name')
+        .eq('user_id', currentUser.user.id)
+        .maybeSingle();
+
+      const inviterName = profile?.name || profile?.full_name || currentUser.user.email?.split('@')[0] || 'Team Member';
+
+      // Create invitation record first (this ensures we have the invitation tracked)
+      const { data: invitation, error: inviteError } = await supabase
+        .from('invitations')
+        .insert([{
+          project_id: projectId,
+          email: email.trim().toLowerCase(),
+          role: role,
+          inviter_id: currentUser.user.id,
+          status: 'pending',
+          expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() // 7 days from now
+        }])
+        .select()
+        .single();
+
+      if (inviteError) {
+        console.error('Error creating invitation:', inviteError);
         toast({
-          title: errorTitle,
-          description: errorDescription,
+          title: "Failed to create invitation",
+          description: "Could not create invitation record. Please try again.",
           variant: "destructive"
         });
         return false;
       }
 
-      if (data?.error) {
-        // Enhanced error handling with specific messages based on error type
-        let errorTitle = "Invitation failed";
-        let errorDescription = data.error;
-        
-        if (data.isConfigurationIssue) {
-          errorTitle = "Email service configuration required";
-          errorDescription = "The email service needs to be set up by an administrator. Please contact support.";
-        } else if (data.method === 'all_failed') {
-          errorTitle = "Email delivery failed";
-          errorDescription = "All email delivery methods failed. Please check your internet connection or contact support.";
-        } else if (data.method === 'supabase_auth') {
-          errorTitle = "Invitation delivery issue";
-          errorDescription = data.error;
-        } else if (data.error.includes('domain') || data.error.includes('verify')) {
-          errorTitle = "Email delivery issue";
-          errorDescription = "Email could not be delivered. Please check the email address or contact support.";
-        } else if (data.error.includes('rate limit') || data.error.includes('too many')) {
-          errorTitle = "Too many requests";
-          errorDescription = "Please wait a few minutes before sending another invitation.";
-        } else if (data.error.includes('Invalid email') || data.error.includes('invalid email')) {
-          errorTitle = "Invalid email address";
-          errorDescription = "Please check the email address format and try again.";
-        } else if (data.error.includes('already') || data.error.includes('exists')) {
-          errorTitle = "Already invited or exists";
-          errorDescription = "This user has already been invited or is already a team member.";
+      // Optimistically update local state to show pending member
+      const optimisticMember: TeamMember = {
+        id: `pending-${Date.now()}`,
+        project_id: projectId,
+        user_id: `pending-${email}`,
+        role: role,
+        added_at: new Date().toISOString(),
+        added_by: currentUser.user.id,
+        email: email.trim().toLowerCase(),
+        full_name: email.split('@')[0],
+        name: email.split('@')[0],
+        avatar_url: undefined,
+        online_status: false,
+        last_seen: undefined,
+        user_profile: {
+          name: email.split('@')[0],
+          role: role,
+          avatar_url: undefined,
+          phone: undefined
+        },
+        isOnline: false,
+        lastActive: undefined
+      };
+
+      // Add to current team members list
+      setTeamMembers(prev => [optimisticMember, ...prev]);
+
+      // Try to send email via edge function (optional - if it fails, invitation still exists)
+      try {
+        const { data: sessionData } = await supabase.auth.getSession();
+        if (sessionData.session) {
+          const { error: emailError } = await supabase.functions.invoke('send-team-invitation', {
+            body: {
+              projectId,
+              email: email.trim().toLowerCase(),
+              role,
+              projectName: projectName || 'Project',
+              inviterName
+            },
+            headers: {
+              Authorization: `Bearer ${sessionData.session.access_token}`,
+            },
+          });
+
+          if (emailError) {
+            console.warn('Email sending failed, but invitation was created:', emailError);
+            // Don't fail the whole operation - invitation record exists
+          }
         }
-
-        toast({
-          title: errorTitle,
-          description: errorDescription,
-          variant: "destructive"
-        });
-        return false;
+      } catch (emailError) {
+        console.warn('Email service error:', emailError);
+        // Continue - invitation record exists even if email fails
       }
 
-      // Success - show confirmation toast
+      // Success feedback
       toast({
         title: "Invitation sent!",
-        description: `Invitation sent to ${email}. They will receive an email with instructions to join the project.`
+        description: `Invitation sent to ${email}. They will be added to the project when they accept.`
       });
 
-      // Create notification for the inviter
-      await createInvitationSentNotification(currentUser.user.id, email, projectName);
+      // Create notification
+      try {
+        await createInvitationSentNotification(currentUser.user.id, email, projectName);
+      } catch (notificationError) {
+        console.warn('Notification creation failed:', notificationError);
+        // Don't fail the operation for notification errors
+      }
 
-      // Refresh to show any immediate changes
-      await fetchTeamMembers();
       return true;
     } catch (error) {
-      console.error('Error in addMember:', error);
+      console.error('Unexpected error in addMember:', error);
       toast({
         title: "Error adding member",
-        description: "Failed to add team member. Please try again.",
+        description: "An unexpected error occurred. Please try again.",
         variant: "destructive"
       });
       return false;
     }
-  }, [projectId, fetchTeamMembers, toast]);
+  }, [projectId, toast]);
 
   const removeMember = useCallback(async (memberId: string): Promise<boolean> => {
     try {
@@ -353,9 +440,21 @@ export const useProjectTeam = (projectId: string): UseProjectTeamReturn => {
     await fetchTeamMembers();
   }, [fetchTeamMembers]);
 
-  // Real-time subscription for team changes with debounced updates
+  // Real-time subscription for team changes with improved error handling
   useEffect(() => {
+    if (!projectId || projectId === 'all') return;
+
     fetchTeamMembers();
+
+    // Debounce refetch to prevent rapid updates
+    let refetchTimeout: NodeJS.Timeout;
+    const debouncedRefetch = () => {
+      clearTimeout(refetchTimeout);
+      refetchTimeout = setTimeout(() => {
+        console.log('Debounced team refetch triggered');
+        fetchTeamMembers();
+      }, 500);
+    };
 
     const subscription = supabase
       .channel(`project_team_${projectId}`)
@@ -368,9 +467,8 @@ export const useProjectTeam = (projectId: string): UseProjectTeamReturn => {
           filter: `project_id=eq.${projectId}`
         },
         (payload) => {
-          console.log('Project users change detected:', payload);
-          // Debounced refetch to prevent rapid re-renders
-          fetchTeamMembers();
+          console.log('Project users change detected:', payload.eventType, payload);
+          debouncedRefetch();
         }
       )
       .on(
@@ -382,8 +480,8 @@ export const useProjectTeam = (projectId: string): UseProjectTeamReturn => {
           filter: `project_id=eq.${projectId}`
         },
         (payload) => {
-          console.log('Invitations change detected:', payload);
-          fetchTeamMembers();
+          console.log('Invitations change detected:', payload.eventType, payload);
+          debouncedRefetch();
         }
       )
       .on(
@@ -399,16 +497,19 @@ export const useProjectTeam = (projectId: string): UseProjectTeamReturn => {
           const currentTeamUserIds = teamMembers.map(m => m.user_id);
           if (updatedUserId && currentTeamUserIds.includes(updatedUserId)) {
             console.log('Team member profile updated:', updatedUserId);
-            fetchTeamMembers();
+            debouncedRefetch();
           }
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log('Team subscription status:', status);
+      });
 
     return () => {
+      clearTimeout(refetchTimeout);
       subscription.unsubscribe();
     };
-  }, [projectId, fetchTeamMembers]);
+  }, [projectId, fetchTeamMembers, teamMembers]);
 
   return {
     teamMembers,

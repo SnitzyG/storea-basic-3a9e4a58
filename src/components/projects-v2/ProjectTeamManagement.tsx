@@ -53,8 +53,14 @@ export const ProjectTeamManagement = ({ projectId, projectName }: ProjectTeamMan
     consultant: 'Consultant'
   };
 
-  const handleAddMember = async () => {
-    if (!newMemberEmail.trim()) {
+  const handleAddMember = async (e?: React.FormEvent) => {
+    if (e) {
+      e.preventDefault();
+    }
+
+    const email = newMemberEmail.trim();
+    
+    if (!email) {
       toast({
         title: "Email required",
         description: "Please enter an email address to invite a team member.",
@@ -63,15 +69,42 @@ export const ProjectTeamManagement = ({ projectId, projectName }: ProjectTeamMan
       return;
     }
 
+    // Email format validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      toast({
+        title: "Invalid email",
+        description: "Please enter a valid email address.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setIsInviting(true);
     try {
-      const success = await addMember(newMemberEmail, newMemberRole, projectName);
+      console.log('Attempting to add member:', { email, role: newMemberRole, projectName });
+      const success = await addMember(email, newMemberRole, projectName);
+      
       if (success) {
+        console.log('Successfully added member');
         setNewMemberEmail('');
         setNewMemberRole('contractor');
+        
+        // Show success feedback
+        toast({
+          title: "Invitation sent!",
+          description: `Successfully sent invitation to ${email}`,
+        });
+      } else {
+        console.log('Failed to add member');
       }
     } catch (error) {
-      console.error('Error adding member:', error);
+      console.error('Error in handleAddMember:', error);
+      toast({
+        title: "Error sending invitation",
+        description: "An unexpected error occurred. Please try again.",
+        variant: "destructive"
+      });
     } finally {
       setIsInviting(false);
     }
@@ -79,7 +112,14 @@ export const ProjectTeamManagement = ({ projectId, projectName }: ProjectTeamMan
 
   const handleRemoveMember = async (memberId: string, memberName: string) => {
     try {
-      await removeMember(memberId);
+      console.log('Removing member:', { memberId, memberName });
+      const success = await removeMember(memberId);
+      if (success) {
+        toast({
+          title: "Member removed",
+          description: `${memberName} has been removed from the project.`,
+        });
+      }
     } catch (error) {
       console.error('Error removing member:', error);
       toast({
@@ -93,8 +133,9 @@ export const ProjectTeamManagement = ({ projectId, projectName }: ProjectTeamMan
   if (loading) {
     return (
       <div className="text-center py-8">
-        <Users className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+        <Users className="h-12 w-12 mx-auto mb-4 text-muted-foreground animate-pulse" />
         <div>Loading team members...</div>
+        <div className="text-sm text-muted-foreground mt-2">Fetching team data...</div>
       </div>
     );
   }
@@ -111,19 +152,21 @@ export const ProjectTeamManagement = ({ projectId, projectName }: ProjectTeamMan
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="flex gap-4">
+            <form onSubmit={handleAddMember} className="flex gap-4">
               <div className="flex-1">
                 <Input
                   type="email"
-                  placeholder="Enter email address"
+                  placeholder="Enter email address (e.g., john@example.com)"
                   value={newMemberEmail}
                   onChange={(e) => setNewMemberEmail(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleAddMember()}
+                  disabled={isInviting}
+                  className="focus:ring-2 focus:ring-primary"
+                  autoComplete="email"
                 />
               </div>
-              <Select value={newMemberRole} onValueChange={setNewMemberRole}>
+              <Select value={newMemberRole} onValueChange={setNewMemberRole} disabled={isInviting}>
                 <SelectTrigger className="w-[180px]">
-                  <SelectValue />
+                  <SelectValue placeholder="Select role" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="contractor">Contractor</SelectItem>
@@ -134,11 +177,25 @@ export const ProjectTeamManagement = ({ projectId, projectName }: ProjectTeamMan
                 </SelectContent>
               </Select>
               <Button 
-                onClick={handleAddMember} 
+                type="submit"
                 disabled={isInviting || !newMemberEmail.trim()}
+                className="min-w-[100px]"
               >
-                {isInviting ? 'Inviting...' : 'Invite'}
+                {isInviting ? (
+                  <>
+                    <div className="animate-spin h-4 w-4 mr-2 border-2 border-white border-t-transparent rounded-full" />
+                    Inviting...
+                  </>
+                ) : (
+                  <>
+                    <Mail className="h-4 w-4 mr-2" />
+                    Invite
+                  </>
+                )}
               </Button>
+            </form>
+            <div className="text-xs text-muted-foreground">
+              An invitation email will be sent to the specified address.
             </div>
           </CardContent>
         </Card>
