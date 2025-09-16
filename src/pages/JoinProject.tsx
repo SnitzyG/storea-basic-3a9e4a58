@@ -84,6 +84,35 @@ const JoinProject = () => {
         throw new Error('Failed to join the project: ' + memberError.message);
       }
 
+      // Get user profile for notification
+      const { data: userProfile } = await supabase
+        .from('profiles')
+        .select('name')
+        .eq('user_id', user.id)
+        .single();
+
+      // Create notification for project creator
+      const { error: notificationError } = await supabase
+        .from('notifications')
+        .insert({
+          user_id: project.created_by,
+          type: 'team_member_joined',
+          title: 'New Team Member Joined',
+          message: `${userProfile?.name || 'New member'} has joined "${project.name}" as a contractor.`,
+          data: {
+            project_id: project.id,
+            project_name: project.name,
+            member_name: userProfile?.name || 'New member',
+            member_role: 'contractor',
+            action_url: `/projects`
+          }
+        });
+
+      if (notificationError) {
+        console.warn('Failed to create notification:', notificationError);
+      }
+
+
       // Clear any stored token
       localStorage.removeItem('pending_project_token');
 

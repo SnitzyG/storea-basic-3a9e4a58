@@ -23,14 +23,17 @@ export const useProjectLinking = () => {
           // Show toast if projects were linked
           if (data?.projectsLinked > 0) {
             toast({
-              title: "Project Access Granted",
-              description: `You've been automatically linked to ${data.projectsLinked} project(s)!`
+              title: "Welcome to the team!",
+              description: `You've been automatically added to ${data.projectsLinked} project(s)!`
             });
+            
+            // Dispatch custom event to refresh projects
+            window.dispatchEvent(new CustomEvent('projectsUpdated'));
             
             // Delay reload to show toast first
             setTimeout(() => {
               window.location.reload();
-            }, 1000);
+            }, 1500);
           }
         }
       } catch (error) {

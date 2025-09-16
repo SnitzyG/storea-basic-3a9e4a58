@@ -134,6 +134,10 @@ export const useProjectTeam = (projectId: string): UseProjectTeamReturn => {
           const profile = profilesData?.find(p => p.user_id === member.user_id);
           const displayName = profile?.name || profile?.full_name || `User ${member.user_id.slice(-4)}`;
           
+          // Check if this is a recently joined member (within last 5 minutes)
+          const joinedAt = new Date(member.joined_at || member.created_at || new Date());
+          const isRecentlyJoined = (Date.now() - joinedAt.getTime()) < 5 * 60 * 1000;
+          
           return {
             // Use consistent ID to prevent React key changes
             id: member.id,
@@ -146,16 +150,16 @@ export const useProjectTeam = (projectId: string): UseProjectTeamReturn => {
             full_name: profile?.full_name || profile?.name,
             name: displayName,
             avatar_url: profile?.avatar_url,
-            online_status: profile?.online_status || false,
-            last_seen: profile?.last_seen,
+            online_status: profile?.online_status || isRecentlyJoined, // Show as online if recently joined
+            last_seen: profile?.last_seen || (isRecentlyJoined ? new Date().toISOString() : undefined),
             user_profile: {
               name: displayName,
               role: profile?.role || member.role,
               avatar_url: profile?.avatar_url,
               phone: profile?.phone
             },
-            isOnline: profile?.online_status || false,
-            lastActive: profile?.last_seen
+            isOnline: profile?.online_status || isRecentlyJoined,
+            lastActive: profile?.last_seen || (isRecentlyJoined ? new Date().toISOString() : undefined)
           };
         });
       }

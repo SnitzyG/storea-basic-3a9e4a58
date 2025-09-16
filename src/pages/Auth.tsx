@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Navigate, useSearchParams } from 'react-router-dom';
+import { Navigate, useSearchParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -15,6 +15,7 @@ const Auth = () => {
     loading
   } = useAuth();
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
@@ -28,14 +29,35 @@ const Auth = () => {
       setEmailConfirmed(true);
     }
   }, [searchParams]);
+
+  useEffect(() => {
+    if (user) {
+      // Check for pending invitation tokens
+      const pendingToken = localStorage.getItem('pending_project_token') || sessionStorage.getItem('pending_invitation_token');
+      
+      if (pendingToken) {
+        // Clear the stored token
+        localStorage.removeItem('pending_project_token');
+        sessionStorage.removeItem('pending_invitation_token');
+        
+        // Navigate to the appropriate invitation handler
+        if (pendingToken.startsWith('proj_')) {
+          navigate(`/invite/${pendingToken}`);
+        } else {
+          navigate(`/join/${pendingToken}`);
+        }
+      } else {
+        navigate('/projects');
+      }
+    }
+  }, [user, navigate]);
   if (loading) {
     return <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">Loading...</div>
       </div>;
   }
-  if (user) {
-    return <Navigate to="/" replace />;
-  }
+  // Remove this since navigation is now handled in useEffect
+  // This prevents double navigation
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
