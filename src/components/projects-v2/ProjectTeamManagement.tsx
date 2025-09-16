@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -35,23 +35,24 @@ export const ProjectTeamManagement = ({ projectId, projectName }: ProjectTeamMan
 
   const isArchitect = profile?.role === 'architect';
 
-  const roleColors = {
+  // Memoized role configurations to prevent re-renders
+  const roleColors = useMemo(() => ({
     architect: 'bg-primary/10 text-primary',
     builder: 'bg-blue-500/10 text-blue-600',
     homeowner: 'bg-purple-500/10 text-purple-600',
     contractor: 'bg-orange-500/10 text-orange-600',
     project_manager: 'bg-green-500/10 text-green-600',
     consultant: 'bg-indigo-500/10 text-indigo-600'
-  };
+  }), []);
 
-  const roleLabels = {
+  const roleLabels = useMemo(() => ({
     architect: 'Architect',
     builder: 'Builder', 
     homeowner: 'Homeowner',
     contractor: 'Contractor',
     project_manager: 'Project Manager',
     consultant: 'Consultant'
-  };
+  }), []);
 
   const handleAddMember = async (e?: React.FormEvent) => {
     if (e) {
@@ -220,76 +221,104 @@ export const ProjectTeamManagement = ({ projectId, projectName }: ProjectTeamMan
             </div>
           ) : (
             <div className="space-y-4">
-              {teamMembers.map((member) => (
-                <div key={member.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent/50 transition-colors">
-                  <div className="flex items-center gap-3">
-                    <div className="relative">
-                      <Avatar className="h-10 w-10">
-                        <AvatarFallback className="bg-primary/10 text-primary font-medium">
-                          {member.name.split(' ').map(n => n[0]).join('').toUpperCase()}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className={`absolute -bottom-1 -right-1 h-3 w-3 border-2 border-background rounded-full ${
-                        member.isOnline ? 'bg-green-500' : 'bg-gray-400'
-                      }`}></div>
-                    </div>
-                    
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium">{member.name}</span>
-                        <Badge 
-                          variant="secondary" 
-                          className={roleColors[member.role as keyof typeof roleColors]}
-                        >
-                          {roleLabels[member.role as keyof typeof roleLabels] || member.role}
-                        </Badge>
-                      </div>
-                      
-                      <div className="flex items-center gap-4 text-xs text-muted-foreground mt-1">
-                        <div className="flex items-center gap-1">
-                          <Circle className={`h-2 w-2 ${member.isOnline ? 'fill-green-500 text-green-500' : 'fill-gray-400 text-gray-400'}`} />
-                          <span>{member.isOnline ? 'Online' : 'Offline'}</span>
-                        </div>
-                        
-                        {member.added_at && (
-                          <div className="flex items-center gap-1">
-                            <Clock className="h-3 w-3" />
-                            <span>Joined {new Date(member.added_at).toLocaleDateString()}</span>
-                          </div>
+              {teamMembers.map((member) => {
+                const isPending = member.id.startsWith('invitation-');
+                
+                return (
+                  <div 
+                    key={member.id} // Use stable ID to prevent React key issues
+                    className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent/50 transition-colors"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="relative">
+                        <Avatar className="h-10 w-10">
+                          <AvatarFallback className="bg-primary/10 text-primary font-medium">
+                            {member.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
+                          </AvatarFallback>
+                        </Avatar>
+                        {!isPending && (
+                          <div className={`absolute -bottom-1 -right-1 h-3 w-3 border-2 border-background rounded-full ${
+                            member.isOnline ? 'bg-green-500' : 'bg-gray-400'
+                          }`}></div>
                         )}
                       </div>
-                    </div>
-                  </div>
-
-                  {isArchitect && member.user_id !== profile?.user_id && (
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button variant="outline" size="sm" className="text-destructive hover:text-destructive">
-                          <UserMinus className="h-4 w-4" />
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>Remove Team Member</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            Are you sure you want to remove {member.name} from this project? 
-                            They will lose access to all project documents and conversations.
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Cancel</AlertDialogCancel>
-                          <AlertDialogAction 
-                            onClick={() => handleRemoveMember(member.id, member.name)}
-                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                      
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium">{member.name}</span>
+                          <Badge 
+                            variant="secondary" 
+                            className={roleColors[member.role as keyof typeof roleColors]}
                           >
-                            Remove Member
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
-                  )}
-                </div>
-              ))}
+                            {roleLabels[member.role as keyof typeof roleLabels] || member.role}
+                          </Badge>
+                          {isPending && (
+                            <Badge variant="outline" className="text-yellow-600 border-yellow-300">
+                              Pending
+                            </Badge>
+                          )}
+                        </div>
+                        
+                        <div className="flex items-center gap-4 text-xs text-muted-foreground mt-1">
+                          {!isPending && (
+                            <div className="flex items-center gap-1">
+                              <Circle className={`h-2 w-2 ${member.isOnline ? 'fill-green-500 text-green-500' : 'fill-gray-400 text-gray-400'}`} />
+                              <span>{member.isOnline ? 'Online' : 'Offline'}</span>
+                            </div>
+                          )}
+                          
+                          {member.added_at && (
+                            <div className="flex items-center gap-1">
+                              <Clock className="h-3 w-3" />
+                              <span>
+                                {isPending ? 'Invited' : 'Joined'} {new Date(member.added_at).toLocaleDateString()}
+                              </span>
+                            </div>
+                          )}
+                          
+                          {isPending && member.email && (
+                            <div className="flex items-center gap-1">
+                              <Mail className="h-3 w-3" />
+                              <span>{member.email}</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {isArchitect && member.user_id !== profile?.user_id && (
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button variant="outline" size="sm" className="text-destructive hover:text-destructive">
+                            <UserMinus className="h-4 w-4" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Remove Team Member</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Are you sure you want to remove {member.name} from this project? 
+                              {isPending 
+                                ? ' This will cancel their pending invitation.'
+                                : ' They will lose access to all project documents and conversations.'
+                              }
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction 
+                              onClick={() => handleRemoveMember(member.id, member.name)}
+                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            >
+                              {isPending ? 'Cancel Invitation' : 'Remove Member'}
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           )}
         </CardContent>

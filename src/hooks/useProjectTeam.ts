@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useRateLimit } from '@/hooks/useRateLimit';
@@ -44,17 +44,43 @@ export const useProjectTeam = (projectId: string): UseProjectTeamReturn => {
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
   const { checkInviteLimit } = useRateLimit();
+  
+  // Refs to prevent unnecessary re-renders and manage debouncing
+  const fetchTimeoutRef = useRef<NodeJS.Timeout>();
+  const lastFetchRef = useRef<number>(0);
+  const isMountedRef = useRef(true);
+  const stableProjectIdRef = useRef(projectId);
+  
+  // Update stable ref when projectId changes
+  if (stableProjectIdRef.current !== projectId) {
+    stableProjectIdRef.current = projectId;
+  }
 
-  const fetchTeamMembers = useCallback(async () => {
-    if (!projectId || projectId === 'all') {
-      setTeamMembers([]);
-      setLoading(false);
+  // Memoized fetch function to prevent unnecessary re-creation
+  const fetchTeamMembers = useCallback(async (force = false) => {
+    const currentProjectId = stableProjectIdRef.current;
+    
+    if (!currentProjectId || currentProjectId === 'all') {
+      if (isMountedRef.current) {
+        setTeamMembers([]);
+        setLoading(false);
+      }
       return;
     }
 
+    // Debounce rapid calls unless forced
+    const now = Date.now();
+    if (!force && now - lastFetchRef.current < 1000) {
+      console.log('Debouncing team fetch, too soon since last call');
+      return;
+    }
+    lastFetchRef.current = now;
+
     try {
-      setLoading(true);
-      setError(null);
+      if (isMountedRef.current) {
+        setLoading(true);
+        setError(null);
+      }
 
       // Fetch team members from project_users with enhanced selection
       const { data: projectUsersData, error: projectUsersError } = await supabase
@@ -68,12 +94,14 @@ export const useProjectTeam = (projectId: string): UseProjectTeamReturn => {
           invited_by,
           created_at
         `)
-        .eq('project_id', projectId)
+        .eq('project_id', currentProjectId)
         .order('joined_at', { ascending: false }); // Show newest members first
 
       if (projectUsersError) {
         console.error('Error fetching project users:', projectUsersError);
-        setError(`Failed to fetch team members: ${projectUsersError.message}`);
+        if (isMountedRef.current) {
+          setError(`Failed to fetch team members: ${projectUsersError.message}`);
+        }
         return;
       }
 
@@ -101,12 +129,13 @@ export const useProjectTeam = (projectId: string): UseProjectTeamReturn => {
           // Continue with partial data instead of failing completely
         }
 
-        // Transform active members
+        // Transform active members with stable IDs
         transformedMembers = projectUsersData.map(member => {
           const profile = profilesData?.find(p => p.user_id === member.user_id);
           const displayName = profile?.name || profile?.full_name || `User ${member.user_id.slice(-4)}`;
           
           return {
+            // Use consistent ID to prevent React key changes
             id: member.id,
             project_id: member.project_id,
             user_id: member.user_id,
@@ -131,21 +160,22 @@ export const useProjectTeam = (projectId: string): UseProjectTeamReturn => {
         });
       }
 
-      // Fetch pending invitations and add them as pending members
+      // Fetch pending invitations separately to avoid flickering
       const { data: pendingInvitations, error: invitationsError } = await supabase
         .from('invitations')
         .select('id, email, role, created_at, inviter_id, status, expires_at')
-        .eq('project_id', projectId)
+        .eq('project_id', currentProjectId)
         .eq('status', 'pending')
         .gt('expires_at', new Date().toISOString());
       
       if (invitationsError) {
         console.warn('Error fetching pending invitations:', invitationsError);
       } else if (pendingInvitations && pendingInvitations.length > 0) {
-        // Add pending invitations as team members with pending status
+        // Add pending invitations with consistent IDs
         const pendingMembers: TeamMember[] = pendingInvitations.map(invitation => ({
+          // Use invitation ID to ensure stable React keys
           id: `invitation-${invitation.id}`,
-          project_id: projectId,
+          project_id: currentProjectId,
           user_id: `pending-${invitation.email}`,
           role: invitation.role,
           added_at: invitation.created_at,
@@ -167,19 +197,25 @@ export const useProjectTeam = (projectId: string): UseProjectTeamReturn => {
         }));
 
         transformedMembers = [...transformedMembers, ...pendingMembers];
-        console.log(`Added ${pendingInvitations.length} pending invitations to team list`);
       }
 
-      console.log(`Successfully loaded ${transformedMembers.length} team members for project ${projectId}`);
-      setTeamMembers(transformedMembers);
+      // Only update state if component is still mounted
+      if (isMountedRef.current) {
+        console.log(`Successfully loaded ${transformedMembers.length} team members for project ${currentProjectId}`);
+        setTeamMembers(transformedMembers);
+      }
 
     } catch (error) {
       console.error('Unexpected error in fetchTeamMembers:', error);
-      setError('An unexpected error occurred while loading team members');
+      if (isMountedRef.current) {
+        setError('An unexpected error occurred while loading team members');
+      }
     } finally {
-      setLoading(false);
+      if (isMountedRef.current) {
+        setLoading(false);
+      }
     }
-  }, [projectId]);
+  }, []); // Empty deps to prevent recreation
 
   const addMember = useCallback(async (email: string, role: string, projectName: string = 'Project'): Promise<boolean> => {
     // Input validation
@@ -229,7 +265,7 @@ export const useProjectTeam = (projectId: string): UseProjectTeamReturn => {
       const { data: existingMember } = await supabase
         .from('project_users')
         .select('id')
-        .eq('project_id', projectId)
+        .eq('project_id', stableProjectIdRef.current)
         .eq('user_id', currentUser.user.id)
         .maybeSingle();
 
@@ -242,37 +278,11 @@ export const useProjectTeam = (projectId: string): UseProjectTeamReturn => {
         return false;
       }
 
-      // Check for existing user with this email (via profiles, since we can't query auth.users directly)
-      const { data: existingUser } = await supabase
-        .from('profiles')
-        .select('user_id')
-        .ilike('name', `%${email}%`) // This is a workaround since we can't query by email
-        .maybeSingle();
-
-      if (existingUser) {
-        // Check if already a project member
-        const { data: alreadyMember } = await supabase
-          .from('project_users')
-          .select('id')
-          .eq('project_id', projectId)
-          .eq('user_id', existingUser.user_id)
-          .maybeSingle();
-
-        if (alreadyMember) {
-          toast({
-            title: "Already a team member",
-            description: "This user is already a member of this project.",
-            variant: "destructive"
-          });
-          return false;
-        }
-      }
-
       // Check for existing pending invitation
       const { data: existingInvitation } = await supabase
         .from('invitations')
         .select('id, status, expires_at')
-        .eq('project_id', projectId)
+        .eq('project_id', stableProjectIdRef.current)
         .eq('email', email.trim().toLowerCase())
         .maybeSingle();
 
@@ -296,16 +306,16 @@ export const useProjectTeam = (projectId: string): UseProjectTeamReturn => {
 
       const inviterName = profile?.name || profile?.full_name || currentUser.user.email?.split('@')[0] || 'Team Member';
 
-      // Create invitation record first (this ensures we have the invitation tracked)
+      // Create invitation record first
       const { data: invitation, error: inviteError } = await supabase
         .from('invitations')
         .insert([{
-          project_id: projectId,
+          project_id: stableProjectIdRef.current,
           email: email.trim().toLowerCase(),
           role: role,
           inviter_id: currentUser.user.id,
           status: 'pending',
-          expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() // 7 days from now
+          expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
         }])
         .select()
         .single();
@@ -320,40 +330,13 @@ export const useProjectTeam = (projectId: string): UseProjectTeamReturn => {
         return false;
       }
 
-      // Optimistically update local state to show pending member
-      const optimisticMember: TeamMember = {
-        id: `pending-${Date.now()}`,
-        project_id: projectId,
-        user_id: `pending-${email}`,
-        role: role,
-        added_at: new Date().toISOString(),
-        added_by: currentUser.user.id,
-        email: email.trim().toLowerCase(),
-        full_name: email.split('@')[0],
-        name: email.split('@')[0],
-        avatar_url: undefined,
-        online_status: false,
-        last_seen: undefined,
-        user_profile: {
-          name: email.split('@')[0],
-          role: role,
-          avatar_url: undefined,
-          phone: undefined
-        },
-        isOnline: false,
-        lastActive: undefined
-      };
-
-      // Add to current team members list
-      setTeamMembers(prev => [optimisticMember, ...prev]);
-
-      // Try to send email via edge function (optional - if it fails, invitation still exists)
+      // Try to send email via edge function (optional)
       try {
         const { data: sessionData } = await supabase.auth.getSession();
         if (sessionData.session) {
           const { error: emailError } = await supabase.functions.invoke('send-team-invitation', {
             body: {
-              projectId,
+              projectId: stableProjectIdRef.current,
               email: email.trim().toLowerCase(),
               role,
               projectName: projectName || 'Project',
@@ -366,12 +349,10 @@ export const useProjectTeam = (projectId: string): UseProjectTeamReturn => {
 
           if (emailError) {
             console.warn('Email sending failed, but invitation was created:', emailError);
-            // Don't fail the whole operation - invitation record exists
           }
         }
       } catch (emailError) {
         console.warn('Email service error:', emailError);
-        // Continue - invitation record exists even if email fails
       }
 
       // Success feedback
@@ -385,8 +366,10 @@ export const useProjectTeam = (projectId: string): UseProjectTeamReturn => {
         await createInvitationSentNotification(currentUser.user.id, email, projectName);
       } catch (notificationError) {
         console.warn('Notification creation failed:', notificationError);
-        // Don't fail the operation for notification errors
       }
+
+      // Refresh team data after successful invitation
+      setTimeout(() => fetchTeamMembers(true), 500);
 
       return true;
     } catch (error) {
@@ -398,7 +381,7 @@ export const useProjectTeam = (projectId: string): UseProjectTeamReturn => {
       });
       return false;
     }
-  }, [projectId, toast]);
+  }, [toast, fetchTeamMembers]); // Stable dependencies
 
   const removeMember = useCallback(async (memberId: string): Promise<boolean> => {
     try {
@@ -440,34 +423,46 @@ export const useProjectTeam = (projectId: string): UseProjectTeamReturn => {
     await fetchTeamMembers();
   }, [fetchTeamMembers]);
 
-  // Real-time subscription for team changes with improved error handling
+  // Real-time subscription with improved debouncing and stability
   useEffect(() => {
-    if (!projectId || projectId === 'all') return;
+    // Set mounted flag
+    isMountedRef.current = true;
+    
+    const currentProjectId = stableProjectIdRef.current;
+    if (!currentProjectId || currentProjectId === 'all') {
+      isMountedRef.current = false;
+      return;
+    }
 
-    fetchTeamMembers();
+    // Initial fetch
+    fetchTeamMembers(true);
 
-    // Debounce refetch to prevent rapid updates
-    let refetchTimeout: NodeJS.Timeout;
+    // Debounced refetch function with better error handling
     const debouncedRefetch = () => {
-      clearTimeout(refetchTimeout);
-      refetchTimeout = setTimeout(() => {
-        console.log('Debounced team refetch triggered');
-        fetchTeamMembers();
-      }, 500);
+      if (fetchTimeoutRef.current) {
+        clearTimeout(fetchTimeoutRef.current);
+      }
+      
+      fetchTimeoutRef.current = setTimeout(() => {
+        if (isMountedRef.current) {
+          console.log('Debounced team refetch triggered for project:', currentProjectId);
+          fetchTeamMembers();
+        }
+      }, 1500); // Increased debounce time to reduce flickering
     };
 
     const subscription = supabase
-      .channel(`project_team_${projectId}`)
+      .channel(`project_team_${currentProjectId}`)
       .on(
         'postgres_changes',
         {
           event: '*',
           schema: 'public',
           table: 'project_users',
-          filter: `project_id=eq.${projectId}`
+          filter: `project_id=eq.${currentProjectId}`
         },
         (payload) => {
-          console.log('Project users change detected:', payload.eventType, payload);
+          console.log('Project users change detected:', payload.eventType);
           debouncedRefetch();
         }
       )
@@ -477,10 +472,10 @@ export const useProjectTeam = (projectId: string): UseProjectTeamReturn => {
           event: '*',
           schema: 'public',
           table: 'invitations',
-          filter: `project_id=eq.${projectId}`
+          filter: `project_id=eq.${currentProjectId}`
         },
         (payload) => {
-          console.log('Invitations change detected:', payload.eventType, payload);
+          console.log('Invitations change detected:', payload.eventType);
           debouncedRefetch();
         }
       )
@@ -494,8 +489,7 @@ export const useProjectTeam = (projectId: string): UseProjectTeamReturn => {
         (payload) => {
           // Only refetch if a team member's profile was updated
           const updatedUserId = payload.new?.user_id;
-          const currentTeamUserIds = teamMembers.map(m => m.user_id);
-          if (updatedUserId && currentTeamUserIds.includes(updatedUserId)) {
+          if (updatedUserId && teamMembers.some(m => m.user_id === updatedUserId)) {
             console.log('Team member profile updated:', updatedUserId);
             debouncedRefetch();
           }
@@ -505,13 +499,18 @@ export const useProjectTeam = (projectId: string): UseProjectTeamReturn => {
         console.log('Team subscription status:', status);
       });
 
+    // Cleanup function
     return () => {
-      clearTimeout(refetchTimeout);
+      isMountedRef.current = false;
+      if (fetchTimeoutRef.current) {
+        clearTimeout(fetchTimeoutRef.current);
+      }
       subscription.unsubscribe();
     };
-  }, [projectId, fetchTeamMembers, teamMembers]);
+  }, [stableProjectIdRef.current]); // Use stable ref instead of projectId
 
-  return {
+  // Memoized return value to prevent unnecessary re-renders
+  return useMemo(() => ({
     teamMembers,
     loading,
     error,
@@ -519,5 +518,5 @@ export const useProjectTeam = (projectId: string): UseProjectTeamReturn => {
     addMember,
     removeMember,
     refreshTeam
-  };
+  }), [teamMembers, loading, error, addMember, removeMember, refreshTeam]);
 };
