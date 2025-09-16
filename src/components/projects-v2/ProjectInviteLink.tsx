@@ -11,7 +11,7 @@ interface ProjectInvitationLinkProps {
   projectName: string;
 }
 
-export const ProjectInvitationLink = ({ projectId, projectName }: ProjectInvitationLinkProps) => {
+export const ProjectInviteLink = ({ projectId, projectName }: ProjectInvitationLinkProps) => {
   const [invitationToken, setInvitationToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [regenerating, setRegenerating] = useState(false);

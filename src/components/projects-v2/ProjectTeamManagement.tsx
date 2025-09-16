@@ -18,7 +18,7 @@ import {
 import { useProjectTeam } from '@/hooks/useProjectTeam';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
-import { ProjectInvitationLink } from './ProjectInvitationLink';
+import { ProjectInviteLink } from './ProjectInviteLink';
 
 interface ProjectTeamManagementProps {
   projectId: string;
@@ -146,7 +146,7 @@ export const ProjectTeamManagement = ({ projectId, projectName }: ProjectTeamMan
     <div className="space-y-6">
       {/* Project Invitation Link */}
       {isArchitect && (
-        <ProjectInvitationLink projectId={projectId} projectName={projectName} />
+        <ProjectInviteLink projectId={projectId} projectName={projectName} />
       )}
 
       {/* Add New Member Section */}
