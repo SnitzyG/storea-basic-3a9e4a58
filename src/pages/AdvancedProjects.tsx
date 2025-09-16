@@ -5,32 +5,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { 
-  Search, 
-  Filter, 
-  Grid, 
-  List, 
-  Calendar, 
-  Plus, 
-  BarChart3, 
-  TrendingUp, 
-  Clock,
-  MapPin,
-  DollarSign,
-  Users,
-  Eye,
-  Edit,
-  Archive,
-  Copy,
-  Hash,
-  UserPlus
-} from 'lucide-react';
+import { Search, Filter, Grid, List, Calendar, Plus, BarChart3, TrendingUp, Clock, MapPin, DollarSign, Users, Eye, Edit, Archive, Copy, Hash, UserPlus } from 'lucide-react';
 import { useAdvancedProjects, AdvancedProject } from '@/hooks/useAdvancedProjects';
 import { AdvancedProjectWizard } from '@/components/projects-v2/AdvancedProjectWizard';
 import { ProjectDetailsDialog } from '@/components/projects-v2/ProjectDetailsDialog';
 import { ProjectJoinSection } from '@/components/projects/ProjectJoinSection';
 import { useAuth } from '@/hooks/useAuth';
-
 const AdvancedProjects = () => {
   const {
     projects,
@@ -46,18 +26,17 @@ const AdvancedProjects = () => {
     cloneProject,
     deleteProject
   } = useAdvancedProjects();
-
-  const { profile } = useAuth();
+  const {
+    profile
+  } = useAuth();
   const [viewMode, setViewMode] = useState<'grid' | 'list' | 'calendar'>('grid');
   const [wizardOpen, setWizardOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState<AdvancedProject | null>(null);
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
   const [projectToView, setProjectToView] = useState<AdvancedProject | null>(null);
-
   const isArchitect = profile?.role === 'architect';
   const statusStats = getProjectsByStatus();
   const overdueProjects = getOverdueProjects();
-
   const statusColors = {
     planning: 'bg-blue-100 text-blue-800',
     active: 'bg-green-100 text-green-800',
@@ -65,7 +44,6 @@ const AdvancedProjects = () => {
     completed: 'bg-gray-100 text-gray-800',
     cancelled: 'bg-red-100 text-red-800'
   };
-
   const handleProjectAction = async (action: string, project: AdvancedProject) => {
     switch (action) {
       case 'view':
@@ -84,23 +62,17 @@ const AdvancedProjects = () => {
         break;
     }
   };
-
   const handleDeleteProject = async (projectId: string) => {
     await deleteProject(projectId);
   };
-
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
+    return <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center">
           <div className="text-lg">Loading advanced projects...</div>
         </div>
-      </div>
-    );
+      </div>;
   }
-
-  return (
-    <div className="max-w-7xl space-y-6 mx-[25px]">
+  return <div className="max-w-7xl space-y-6 mx-[25px]">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -109,12 +81,10 @@ const AdvancedProjects = () => {
             Advanced construction project management and collaboration
           </p>
         </div>
-        {isArchitect && (
-          <Button onClick={() => setWizardOpen(true)}>
+        {isArchitect && <Button onClick={() => setWizardOpen(true)}>
             <Plus className="h-4 w-4 mr-2" />
             New Project
-          </Button>
-        )}
+          </Button>}
       </div>
 
       {/* Main Content Tabs */}
@@ -135,53 +105,13 @@ const AdvancedProjects = () => {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center space-x-3">
-              <BarChart3 className="h-5 w-5 text-primary" />
-              <div>
-                <div className="text-2xl font-bold">{projects.length}</div>
-                <div className="text-sm text-muted-foreground">Total Projects</div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        
 
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center space-x-3">
-              <TrendingUp className="h-5 w-5 text-green-600" />
-              <div>
-                <div className="text-2xl font-bold">{statusStats.active || 0}</div>
-                <div className="text-sm text-muted-foreground">Active Projects</div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        
 
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center space-x-3">
-              <Clock className="h-5 w-5 text-orange-600" />
-              <div>
-                <div className="text-2xl font-bold">{overdueProjects.length}</div>
-                <div className="text-sm text-muted-foreground">Overdue</div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        
 
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center space-x-3">
-              <Users className="h-5 w-5 text-blue-600" />
-              <div>
-                <div className="text-2xl font-bold">{statusStats.completed || 0}</div>
-                <div className="text-sm text-muted-foreground">Completed</div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        
       </div>
 
       {/* Filters and Search */}
@@ -189,15 +119,12 @@ const AdvancedProjects = () => {
         <div className="flex flex-1 gap-4 items-center">
           <div className="relative flex-1 max-w-sm">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search projects..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
-            />
+            <Input placeholder="Search projects..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="pl-10" />
           </div>
           
-          <Select value={filters.status} onValueChange={(value) => updateFilters({ status: value })}>
+          <Select value={filters.status} onValueChange={value => updateFilters({
+              status: value
+            })}>
             <SelectTrigger className="w-[180px]">
               <Filter className="h-4 w-4 mr-2" />
               <SelectValue placeholder="Filter by status" />
@@ -213,44 +140,30 @@ const AdvancedProjects = () => {
         </div>
 
         <div className="flex gap-2">
-          <Button
-            variant={viewMode === 'grid' ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => setViewMode('grid')}
-          >
+          <Button variant={viewMode === 'grid' ? 'default' : 'outline'} size="sm" onClick={() => setViewMode('grid')}>
             <Grid className="h-4 w-4" />
           </Button>
-          <Button
-            variant={viewMode === 'list' ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => setViewMode('list')}
-          >
+          <Button variant={viewMode === 'list' ? 'default' : 'outline'} size="sm" onClick={() => setViewMode('list')}>
             <List className="h-4 w-4" />
           </Button>
         </div>
       </div>
 
           {/* Projects Display */}
-          {projects.length === 0 ? (
-            <Card>
+          {projects.length === 0 ? <Card>
               <CardContent className="text-center py-12">
                 <BarChart3 className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                 <h3 className="text-lg font-medium mb-2">No projects found</h3>
                 <p className="text-muted-foreground mb-4">
                   {isArchitect ? "Create your first project to get started." : "You haven't been assigned to any projects yet."}
                 </p>
-                {isArchitect && (
-                  <Button onClick={() => setWizardOpen(true)}>
+                {isArchitect && <Button onClick={() => setWizardOpen(true)}>
                     <Plus className="h-4 w-4 mr-2" />
                     Create Your First Project
-                  </Button>
-                )}
+                  </Button>}
               </CardContent>
-            </Card>
-          ) : (
-            <div className={viewMode === 'grid' ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" : "space-y-4"}>
-              {projects.map((project) => (
-                <Card key={project.id} className="hover:shadow-md transition-shadow">
+            </Card> : <div className={viewMode === 'grid' ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" : "space-y-4"}>
+              {projects.map(project => <Card key={project.id} className="hover:shadow-md transition-shadow">
                   <CardHeader className="pb-3">
                     <div className="flex items-start justify-between">
                       <div className="space-y-1">
@@ -260,12 +173,10 @@ const AdvancedProjects = () => {
                           {project.address || 'No address specified'}
                         </div>
                         {/* Display Project ID */}
-                        {(project as any).project_id && (
-                          <div className="flex items-center gap-1 text-xs text-primary font-mono bg-primary/10 px-2 py-1 rounded">
+                        {(project as any).project_id && <div className="flex items-center gap-1 text-xs text-primary font-mono bg-primary/10 px-2 py-1 rounded">
                             <Hash className="h-3 w-3" />
                             ID: {(project as any).project_id}
-                          </div>
-                        )}
+                          </div>}
                       </div>
                       <Badge className={statusColors[project.status]}>
                         {project.status.replace('_', ' ')}
@@ -274,19 +185,15 @@ const AdvancedProjects = () => {
                   </CardHeader>
                   
                   <CardContent className="space-y-4">
-                    {project.description && (
-                      <p className="text-sm text-muted-foreground line-clamp-2">
+                    {project.description && <p className="text-sm text-muted-foreground line-clamp-2">
                         {project.description}
-                      </p>
-                    )}
+                      </p>}
                     
                     <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                      {project.budget && (
-                        <div className="flex items-center gap-1">
+                      {project.budget && <div className="flex items-center gap-1">
                           <DollarSign className="h-3 w-3" />
                           ${project.budget.toLocaleString()}
-                        </div>
-                      )}
+                        </div>}
                       <div className="flex items-center gap-1">
                         <Clock className="h-3 w-3" />
                         Health: {getProjectHealth(project)}%
@@ -294,40 +201,24 @@ const AdvancedProjects = () => {
                     </div>
                     
                     <div className="flex gap-2 pt-2">
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => handleProjectAction('view', project)}
-                      >
+                      <Button variant="outline" size="sm" onClick={() => handleProjectAction('view', project)}>
                         <Eye className="h-3 w-3 mr-1" />
                         View
                       </Button>
-                      {isArchitect && (
-                        <>
-                          <Button 
-                            variant="outline" 
-                            size="sm"
-                            onClick={() => handleProjectAction('edit', project)}
-                          >
+                      {isArchitect && <>
+                          <Button variant="outline" size="sm" onClick={() => handleProjectAction('edit', project)}>
                             <Edit className="h-3 w-3 mr-1" />
                             Edit
                           </Button>
-                          <Button 
-                            variant="outline" 
-                            size="sm"
-                            onClick={() => handleProjectAction('clone', project)}
-                          >
+                          <Button variant="outline" size="sm" onClick={() => handleProjectAction('clone', project)}>
                             <Copy className="h-3 w-3 mr-1" />
                             Clone
                           </Button>
-                        </>
-                      )}
+                        </>}
                     </div>
                   </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
+                </Card>)}
+            </div>}
         </TabsContent>
 
         <TabsContent value="join" className="space-y-6">
@@ -336,27 +227,16 @@ const AdvancedProjects = () => {
       </Tabs>
 
       {/* Project Wizard */}
-      <AdvancedProjectWizard
-        open={wizardOpen}
-        onOpenChange={(open) => {
-          setWizardOpen(open);
-          if (!open) setSelectedProject(null);
-        }}
-        projectToEdit={selectedProject}
-      />
+      <AdvancedProjectWizard open={wizardOpen} onOpenChange={open => {
+      setWizardOpen(open);
+      if (!open) setSelectedProject(null);
+    }} projectToEdit={selectedProject} />
 
       {/* Project Details Dialog */}
-      <ProjectDetailsDialog
-        project={projectToView}
-        open={detailsDialogOpen}
-        onOpenChange={(open) => {
-          setDetailsDialogOpen(open);
-          if (!open) setProjectToView(null);
-        }}
-        onDelete={handleDeleteProject}
-      />
-    </div>
-  );
+      <ProjectDetailsDialog project={projectToView} open={detailsDialogOpen} onOpenChange={open => {
+      setDetailsDialogOpen(open);
+      if (!open) setProjectToView(null);
+    }} onDelete={handleDeleteProject} />
+    </div>;
 };
-
 export default AdvancedProjects;
