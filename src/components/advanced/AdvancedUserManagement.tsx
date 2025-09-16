@@ -164,6 +164,8 @@ export const AdvancedUserManagement = ({ projectId }: { projectId: string }) => 
 
     for (const invite of bulkInviteData) {
       try {
+        const { data: sessionData } = await supabase.auth.getSession();
+        const accessToken = sessionData.session?.access_token;
         const { error } = await supabase.functions.invoke('send-team-invitation', {
           body: {
             projectId,
@@ -171,7 +173,8 @@ export const AdvancedUserManagement = ({ projectId }: { projectId: string }) => 
             role: invite.role,
             customMessage: customMessage || undefined,
             inviteeName: invite.name
-          }
+          },
+          headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined
         });
 
         if (error) throw error;

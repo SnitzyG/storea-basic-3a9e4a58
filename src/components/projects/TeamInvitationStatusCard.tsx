@@ -115,12 +115,17 @@ export function TeamInvitationStatusCard({ projectId, onInvitationUpdate }: Team
       const inviterName = inviter?.name || inviter?.full_name || 'Someone';
       const projectName = project?.name || 'Project';
 
+      const { data: sessionData } = await supabase.auth.getSession();
+      const accessToken = sessionData.session?.access_token;
       const { data, error } = await supabase.functions.invoke('send-team-invitation', {
         body: {
           projectId,
           email: invitation.email,
-          role: invitation.role
+          role: invitation.role,
+          projectName,
+          inviterName,
         },
+        headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined,
       });
 
       if (error) {
