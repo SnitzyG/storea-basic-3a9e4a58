@@ -201,10 +201,7 @@ const AdvancedProjects = () => {
                         View
                       </Button>
                       {isArchitect && <>
-                          <Button variant="outline" size="sm" onClick={() => handleProjectAction('edit', project)}>
-                            <Edit className="h-3 w-3 mr-1" />
-                            Edit
-                          </Button>
+                          
                           <Button variant="outline" size="sm" onClick={() => handleProjectAction('clone', project)}>
                             <Copy className="h-3 w-3 mr-1" />
                             Clone
