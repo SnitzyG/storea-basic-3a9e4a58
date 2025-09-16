@@ -17,8 +17,8 @@ All colors MUST be HSL.
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
 
-    /* Professional construction theme - deep blue primary */
-    --primary: 217 91% 19%;
+    /* STOREALite modern theme - emerald green and navy */
+    --primary: 160 84% 39%;
     --primary-foreground: 0 0% 98%;
 
     --secondary: 210 40% 96.1%;
@@ -27,36 +27,36 @@ All colors MUST be HSL.
     --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
 
-    /* Subtle accent for professional appearance */
-    --accent: 217 91% 95%;
-    --accent-foreground: 217 91% 19%;
+    /* Vibrant accent for modern appearance */
+    --accent: 160 84% 95%;
+    --accent-foreground: 160 84% 39%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
 
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 217 91% 19%;
+    --ring: 160 84% 39%;
 
     --radius: 0.5rem;
 
-    /* Sidebar styling - dark blue background */
-    --sidebar-background: 220 39% 11%;
+    /* Sidebar styling - modern dark navy background */
+    --sidebar-background: 217 32% 14%;
     --sidebar-foreground: 0 0% 0%;
-    --sidebar-primary: 220 91% 69%;
-    --sidebar-primary-foreground: 220 39% 11%;
-    --sidebar-accent: 220 30% 18%;
+    --sidebar-primary: 160 84% 39%;
+    --sidebar-primary-foreground: 217 32% 14%;
+    --sidebar-accent: 217 20% 20%;
     --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 220 30% 18%;
-    --sidebar-ring: 220 91% 69%;
+    --sidebar-border: 217 20% 20%;
+    --sidebar-ring: 160 84% 39%;
 
-    /* Professional construction colors */
+    /* STOREALite brand colors */
     --construction-warning: 45 93% 47%;
-    --construction-success: 142 76% 36%;
+    --construction-success: 160 84% 39%;
     --construction-info: 217 91% 60%;
     
     /* Role-specific colors */
-    --role-architect: 217 91% 19%;
+    --role-architect: 160 84% 39%;
     --role-builder: 142 76% 36%;
     --role-homeowner: 271 81% 56%;
     --role-contractor: 45 93% 47%;
@@ -90,14 +90,14 @@ All colors MUST be HSL.
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
     --ring: 212.7 26.8% 83.9%;
-    --sidebar-background: 220 39% 11%;
+    --sidebar-background: 217 32% 14%;
     --sidebar-foreground: 0 0% 0%;
-    --sidebar-primary: 220 91% 69%;
-    --sidebar-primary-foreground: 220 39% 11%;
-    --sidebar-accent: 220 30% 18%;
+    --sidebar-primary: 160 84% 39%;
+    --sidebar-primary-foreground: 217 32% 14%;
+    --sidebar-accent: 217 20% 20%;
     --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 220 30% 18%;
-    --sidebar-ring: 220 91% 69%;
+    --sidebar-border: 217 20% 20%;
+    --sidebar-ring: 160 84% 39%;
   }
 }
 

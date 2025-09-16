@@ -175,11 +175,7 @@ const Tenders = () => {
               <div className="mt-6 text-center animate-[fadeIn_0.8s_ease-out_3.4s_both]">
                 <h1 className="text-4xl font-bold tracking-wider">
                   <span className="bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-                    STOREA
-                  </span>
-                  <span className="text-lg font-light text-muted-foreground ml-1 relative">
-                    Lite
-                    <div className="absolute -bottom-1 left-0 w-full h-0.5 bg-gradient-to-r from-primary/50 to-transparent"></div>
+                    STOREALite
                   </span>
                 </h1>
               </div>
