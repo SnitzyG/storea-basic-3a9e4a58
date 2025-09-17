@@ -295,7 +295,7 @@ const Messages = () => {
           </div>
           <div className="flex items-center gap-1 text-sm text-muted-foreground">
             <Circle className={cn("h-2 w-2 fill-current", connectionStatus === 'connected' ? 'text-green-500' : 'text-red-500')} />
-            {onlineUsers.length} online
+            {onlineUsers.size} online
           </div>
         </div>
 
@@ -459,17 +459,17 @@ const Messages = () => {
                           key={message.id}
                           message={message}
                           isOwnMessage={message.sender_id === profile?.user_id}
-                          senderName={senderProfile?.profiles?.name || 'Unknown User'}
+                          senderName={senderProfile?.user_profile?.name || 'Unknown User'}
                           showAvatar={!isConsecutive}
                           isConsecutive={isConsecutive}
                         />
                       );
                     })}
                     
-                    {typingUsers.length > 0 && (
+                    {typingUsers.size > 0 && (
                       <div className="px-3">
                         <TypingIndicator
-                          typingUsers={typingUsers}
+                          typingUsers={Array.from(typingUsers)}
                           currentUserId={profile?.user_id}
                         />
                       </div>
@@ -522,7 +522,7 @@ const Messages = () => {
           <ScrollArea className="h-full p-3">
             <div className="space-y-1">
               {projectUsers.map((user) => {
-                const isOnline = onlineUsers.includes(user.user_id);
+                const isOnline = onlineUsers.has(user.user_id);
                 const isCurrentUser = user.user_id === profile?.user_id;
                 
                 return (
@@ -542,7 +542,7 @@ const Messages = () => {
                         if (existingThread) {
                           setCurrentThread(existingThread.id);
                         } else {
-                          createThread(`Direct message with ${user.profiles?.name || 'User'}`, [user.user_id]);
+                          createThread(`Direct message with ${user.user_profile?.name || 'User'}`, [user.user_id]);
                         }
                       }
                     }}
@@ -550,7 +550,7 @@ const Messages = () => {
                     <div className="relative">
                       <Avatar className="h-8 w-8">
                         <AvatarFallback className="text-xs font-medium bg-primary/10 text-primary">
-                          {user.profiles?.name?.charAt(0)?.toUpperCase() || 'U'}
+                          {user.user_profile?.name?.charAt(0)?.toUpperCase() || 'U'}
                         </AvatarFallback>
                       </Avatar>
                       <div className={cn(
@@ -562,7 +562,7 @@ const Messages = () => {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
                         <p className="text-sm font-medium truncate text-foreground">
-                          {user.profiles?.name || 'Unknown User'}
+                          {user.user_profile?.name || 'Unknown User'}
                         </p>
                         {isCurrentUser && (
                           <span className="text-xs text-muted-foreground">(you)</span>
