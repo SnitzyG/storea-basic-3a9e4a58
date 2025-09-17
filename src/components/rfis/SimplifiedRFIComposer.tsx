@@ -97,7 +97,16 @@ export const SimplifiedRFIComposer: React.FC<SimplifiedRFIComposerProps> = ({
   };
 
   const handleSubmit = async () => {
-    if (!formData.message || !formData.subject) return;
+    if (!formData.subject) return;
+
+    // Check response requirement based on RFI type
+    const isResponseRequired = formData.rfi_type === 'Request for Information';
+    
+    // For new RFIs: message is always required, response date required only for "Request for Information"
+    if (!isReply) {
+      if (!formData.message) return;
+      if (isResponseRequired && !requiredResponseDate) return;
+    }
 
     // For replies, require message/notes
     if (isReply && !formData.message) return;
@@ -283,8 +292,9 @@ export const SimplifiedRFIComposer: React.FC<SimplifiedRFIComposerProps> = ({
             onClick={handleSubmit} 
             disabled={
               loading || 
-              !formData.message || 
               !formData.subject ||
+              (!isReply && !formData.message) ||
+              (!isReply && formData.rfi_type === 'Request for Information' && !requiredResponseDate) ||
               (isReply && !formData.message)
             }
           >
