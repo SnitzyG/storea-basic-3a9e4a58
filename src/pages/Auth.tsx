@@ -20,12 +20,15 @@ const Auth = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [name, setName] = useState('');
   const [company, setCompany] = useState('');
   const [role, setRole] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [emailConfirmed, setEmailConfirmed] = useState(false);
   const [showWipeButton, setShowWipeButton] = useState(false);
+  const [resetEmail, setResetEmail] = useState('');
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
 
   // Early return for loading to prevent conditional hook execution
   if (loading) {
@@ -71,9 +74,37 @@ const Auth = () => {
   };
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (password !== confirmPassword) {
+      toast.error('Passwords do not match');
+      return;
+    }
     setIsSubmitting(true);
     await signUp(email, password, name, role, company);
     setIsSubmitting(false);
+  };
+
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!resetEmail) {
+      toast.error('Please enter your email address');
+      return;
+    }
+    
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
+        redirectTo: `${window.location.origin}/auth?reset=true`,
+      });
+      
+      if (error) {
+        toast.error(error.message);
+      } else {
+        toast.success('Password reset email sent! Check your inbox.');
+        setShowForgotPassword(false);
+        setResetEmail('');
+      }
+    } catch (error) {
+      toast.error('An unexpected error occurred');
+    }
   };
 
   const handleDataWipe = async () => {
@@ -142,23 +173,17 @@ const Auth = () => {
     };
   }, []);
   const roleOptions = [{
-    value: 'architect',
-    label: 'Architect'
-  }, {
     value: 'builder',
     label: 'Builder'
   }, {
-    value: 'contractor',
-    label: 'Contractor'
+    value: 'architect',
+    label: 'Architect'
   }, {
     value: 'homeowner',
     label: 'Homeowner'
   }, {
-    value: 'consultant',
-    label: 'Consultant'
-  }, {
-    value: 'project_manager',
-    label: 'Project Manager'
+    value: 'contractor',
+    label: 'Contractor'
   }];
   return <div className="min-h-screen flex items-center justify-center bg-background px-4">
       <div className="w-full max-w-6xl flex flex-col lg:flex-row items-center lg:items-stretch lg:justify-between gap-8">
@@ -248,14 +273,12 @@ const Auth = () => {
         </div>
 
         {/* Login Form Section */}
-        <div className="w-full lg:w-1/2 lg:order-1 flex justify-center">
-          <div className="text-center mb-8">
-            {emailConfirmed && <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
-                <p className="text-green-800 text-sm">
-                  ✓ Email confirmed! You can now sign in to your account.
-                </p>
-              </div>}
-          </div>
+        <div className="w-full lg:w-1/2 lg:order-1 flex flex-col items-center justify-center">
+          {emailConfirmed && <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+              <p className="text-green-800 text-sm">
+                ✓ Email confirmed! You can now sign in to your account.
+              </p>
+            </div>}
 
         <Card className="w-full max-w-md">
           <CardHeader>
@@ -270,19 +293,54 @@ const Auth = () => {
               </TabsList>
 
               <TabsContent value="signin">
-                <form onSubmit={handleSignIn} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="signin-email">Email</Label>
-                    <Input id="signin-email" type="email" placeholder="Enter your email" value={email} onChange={e => setEmail(e.target.value)} required />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="signin-password">Password</Label>
-                    <Input id="signin-password" type="password" placeholder="Enter your password" value={password} onChange={e => setPassword(e.target.value)} required />
-                  </div>
-                  <Button type="submit" className="w-full" disabled={isSubmitting}>
-                    {isSubmitting ? 'Signing in...' : 'Sign In'}
-                  </Button>
-                </form>
+                {!showForgotPassword ? (
+                  <form onSubmit={handleSignIn} className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="signin-email">Email</Label>
+                      <Input id="signin-email" type="email" placeholder="Enter your email" value={email} onChange={e => setEmail(e.target.value)} required />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="signin-password">Password</Label>
+                      <Input id="signin-password" type="password" placeholder="Enter your password" value={password} onChange={e => setPassword(e.target.value)} required />
+                    </div>
+                    <Button type="submit" className="w-full" disabled={isSubmitting}>
+                      {isSubmitting ? 'Signing in...' : 'Sign In'}
+                    </Button>
+                    <Button 
+                      type="button" 
+                      variant="ghost" 
+                      className="w-full text-sm" 
+                      onClick={() => setShowForgotPassword(true)}
+                    >
+                      Forgot Password?
+                    </Button>
+                  </form>
+                ) : (
+                  <form onSubmit={handleForgotPassword} className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="reset-email">Email</Label>
+                      <Input 
+                        id="reset-email" 
+                        type="email" 
+                        placeholder="Enter your email to reset password" 
+                        value={resetEmail} 
+                        onChange={e => setResetEmail(e.target.value)} 
+                        required 
+                      />
+                    </div>
+                    <Button type="submit" className="w-full">
+                      Send Reset Email
+                    </Button>
+                    <Button 
+                      type="button" 
+                      variant="ghost" 
+                      className="w-full text-sm" 
+                      onClick={() => setShowForgotPassword(false)}
+                    >
+                      Back to Sign In
+                    </Button>
+                  </form>
+                )}
               </TabsContent>
 
               <TabsContent value="signup">
@@ -298,6 +356,10 @@ const Auth = () => {
                   <div className="space-y-2">
                     <Label htmlFor="signup-password">Password</Label>
                     <Input id="signup-password" type="password" placeholder="Create a password" value={password} onChange={e => setPassword(e.target.value)} required />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="confirm-password">Confirm Password</Label>
+                    <Input id="confirm-password" type="password" placeholder="Confirm your password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} required />
                   </div>
                    <div className="space-y-2">
                      <Label htmlFor="company">Company</Label>
