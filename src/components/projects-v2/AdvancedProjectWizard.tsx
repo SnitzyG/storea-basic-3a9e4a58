@@ -34,31 +34,54 @@ interface HomeownerData {
   email: string;
   phone?: string;
 }
-const PROJECT_TYPES = [{
-  value: 'residential_new',
-  label: 'Residential New Build',
+const PROJECT_CATEGORIES = [{
+  value: 'new_construction',
+  label: 'New Construction',
   icon: Home
 }, {
-  value: 'residential_renovation',
-  label: 'Home Renovation',
-  icon: Home
-}, {
-  value: 'commercial_new',
-  label: 'Commercial New Build',
+  value: 'renovations_extensions',
+  label: 'Renovations/Extensions',
   icon: Building2
 }, {
-  value: 'commercial_renovation',
-  label: 'Commercial Renovation',
-  icon: Building2
-}, {
-  value: 'industrial',
-  label: 'Industrial Project',
+  value: 'multi_unit_developments',
+  label: 'Multi-Unit Developments',
   icon: Factory
-}, {
-  value: 'infrastructure',
-  label: 'Infrastructure',
-  icon: Building2
 }];
+
+const PROJECT_TYPES = [{
+  value: 'detached_home',
+  label: 'Detached Home',
+  icon: Home
+}, {
+  value: 'duplex',
+  label: 'Duplex',
+  icon: Home
+}, {
+  value: 'townhouses',
+  label: 'Townhouses',
+  icon: Building2
+}, {
+  value: 'apartment',
+  label: 'Apartment',
+  icon: Building2
+}, {
+  value: 'villa',
+  label: 'Villa',
+  icon: Home
+}];
+
+const PROJECT_DESCRIPTIONS = [
+  "Single-family residential construction with modern design elements and sustainable materials.",
+  "Multi-story commercial building featuring contemporary architecture and energy-efficient systems.",
+  "Luxury residential development with premium finishes and smart home technology integration.",
+  "Renovation project to modernize existing structure while preserving historical character.",
+  "Mixed-use development combining residential units with retail and office spaces.",
+  "High-end custom home with unique architectural features and landscaped outdoor areas.",
+  "Affordable housing project focused on community development and sustainable living.",
+  "Industrial facility renovation to meet current safety and operational standards.",
+  "Residential extension project to expand living space and improve functionality.",
+  "Green building project incorporating renewable energy and eco-friendly materials."
+];
 const PRIORITY_LEVELS = [{
   value: 'low',
   label: 'Low Priority',
@@ -116,7 +139,8 @@ export const AdvancedProjectWizard = ({
     // Step 1: Basic Information
     name: projectToEdit?.name || '',
     description: projectToEdit?.description || '',
-    project_type: projectToEdit?.project_type || 'residential_new',
+    project_category: projectToEdit?.project_type || 'new_construction',
+    project_type: projectToEdit?.project_type || 'detached_home',
     priority: projectToEdit?.priority || 'medium',
     address: projectToEdit?.address || '',
     // Step 2: Project Details
@@ -131,8 +155,6 @@ export const AdvancedProjectWizard = ({
       email: projectToEdit.homeowner_email || '',
       phone: projectToEdit.homeowner_phone || ''
     }] : [] as HomeownerData[],
-    // Step 4: Team & Collaborators
-    collaborators: [] as CollaboratorData[]
   });
   const [newHomeowner, setNewHomeowner] = useState<HomeownerData>({
     name: '',
@@ -153,7 +175,7 @@ export const AdvancedProjectWizard = ({
       can_upload_documents: false
     }
   });
-  const totalSteps = 4;
+  const totalSteps = 3;
   const progressPercentage = currentStep / totalSteps * 100;
   const handleInputChange = (field: string, value: any) => {
     setFormData(prev => ({
@@ -194,34 +216,6 @@ export const AdvancedProjectWizard = ({
       homeowners: prev.homeowners.filter((_, i) => i !== index)
     }));
   };
-  const addCollaborator = () => {
-    if (newCollaborator.email && newCollaborator.name) {
-      setFormData(prev => ({
-        ...prev,
-        collaborators: [...prev.collaborators, newCollaborator]
-      }));
-      setNewCollaborator({
-        email: '',
-        name: '',
-        role: 'contractor',
-        permissions: {
-          can_edit_project: false,
-          can_manage_team: false,
-          can_view_budget: true,
-          can_edit_budget: false,
-          can_approve_changes: false,
-          can_view_documents: true,
-          can_upload_documents: false
-        }
-      });
-    }
-  };
-  const removeCollaborator = (index: number) => {
-    setFormData(prev => ({
-      ...prev,
-      collaborators: prev.collaborators.filter((_, i) => i !== index)
-    }));
-  };
   
   const prevStep = () => {
     if (currentStep > 1) {
@@ -254,7 +248,7 @@ export const AdvancedProjectWizard = ({
       const projectData = {
         name: formData.name,
         description: formData.description || undefined,
-        project_type: formData.project_type,
+        project_type: formData.project_type as any,
         priority: formData.priority,
         address: formData.address || undefined,
         budget: formData.budget ? parseFloat(formData.budget) : undefined,
@@ -265,8 +259,7 @@ export const AdvancedProjectWizard = ({
         homeowner_name: formData.homeowners.length > 0 ? formData.homeowners[0].name : undefined,
         homeowner_email: formData.homeowners.length > 0 ? formData.homeowners[0].email : undefined,
         homeowner_phone: formData.homeowners.length > 0 ? formData.homeowners[0].phone : undefined,
-        additional_homeowners: formData.homeowners.length > 1 ? formData.homeowners.slice(1) : undefined,
-        collaborators: formData.collaborators
+        additional_homeowners: formData.homeowners.length > 1 ? formData.homeowners.slice(1) : undefined
       };
       if (projectToEdit) {
         await updateProject(projectToEdit.id, projectData);
@@ -278,7 +271,8 @@ export const AdvancedProjectWizard = ({
       setFormData({
         name: '',
         description: '',
-        project_type: 'residential_new',
+        project_category: 'new_construction',
+        project_type: 'detached_home',
         priority: 'medium',
         address: '',
         budget: '',
@@ -286,8 +280,7 @@ export const AdvancedProjectWizard = ({
         number_of_floors: '',
         estimated_start_date: undefined,
         estimated_finish_date: undefined,
-        homeowners: [],
-        collaborators: []
+        homeowners: []
       });
       setCurrentStep(1);
       onOpenChange(false);
@@ -310,8 +303,42 @@ export const AdvancedProjectWizard = ({
                 </div>
 
                 <div>
+                  <Label>Project Category</Label>
+                  <div className="grid grid-cols-1 gap-3 mt-2">
+                    {PROJECT_CATEGORIES.map(category => {
+                    const Icon = category.icon;
+                    return <Card key={category.value} className={cn("cursor-pointer transition-all hover:shadow-md", formData.project_category === category.value ? "border-primary bg-primary/5" : "")} onClick={() => handleInputChange('project_category', category.value)}>
+                          <CardContent className="p-4 flex items-center space-x-3">
+                            <Icon className="h-5 w-5 text-primary" />
+                            <span className="text-sm font-medium">{category.label}</span>
+                          </CardContent>
+                        </Card>;
+                  })}
+                  </div>
+                </div>
+
+                <div>
                   <Label htmlFor="description">Project Description</Label>
-                  <Textarea id="description" value={formData.description} onChange={e => handleInputChange('description', e.target.value)} placeholder="Describe your project" rows={3} className="mt-1" />
+                  <Select value={formData.description} onValueChange={(value) => handleInputChange('description', value)}>
+                    <SelectTrigger className="mt-1">
+                      <SelectValue placeholder="Select a project description or type custom..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {PROJECT_DESCRIPTIONS.map((desc, index) => (
+                        <SelectItem key={index} value={desc}>
+                          {desc.substring(0, 60)}...
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Textarea 
+                    id="description" 
+                    value={formData.description} 
+                    onChange={e => handleInputChange('description', e.target.value)} 
+                    placeholder="Or type your custom project description..." 
+                    rows={3} 
+                    className="mt-2" 
+                  />
                 </div>
 
                 <div>
@@ -335,7 +362,21 @@ export const AdvancedProjectWizard = ({
                   <Label htmlFor="address">Project Address</Label>
                   <div className="relative mt-1">
                     <MapPin className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                    <Input id="address" value={formData.address} onChange={e => handleInputChange('address', e.target.value)} placeholder="Enter project address" className="pl-10" />
+                    <Input 
+                      id="address" 
+                      value={formData.address} 
+                      onChange={e => handleInputChange('address', e.target.value)} 
+                      placeholder="Start typing address for autocomplete..." 
+                      className="pl-10" 
+                      list="address-suggestions"
+                    />
+                    <datalist id="address-suggestions">
+                      <option value="123 Main Street, Sydney NSW 2000" />
+                      <option value="456 George Street, Melbourne VIC 3000" />
+                      <option value="789 Queen Street, Brisbane QLD 4000" />
+                      <option value="321 King Street, Perth WA 6000" />
+                      <option value="654 Collins Street, Adelaide SA 5000" />
+                    </datalist>
                   </div>
                 </div>
               </div>
@@ -389,7 +430,7 @@ export const AdvancedProjectWizard = ({
                     </div>
 
                     <div className="space-y-2">
-                      <Label>Finish Date *</Label>
+                      <Label>Estimated Finish Date *</Label>
                       <Popover>
                         <PopoverTrigger asChild>
                           <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !formData.estimated_finish_date && "text-muted-foreground")}>
@@ -415,6 +456,28 @@ export const AdvancedProjectWizard = ({
                   <div className="space-y-3">
                     <Label className="text-sm font-medium">Quick Duration Setup</Label>
                     <div className="flex flex-wrap gap-2">
+                      <Button
+                        type="button"
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => setProjectDuration(1)}
+                        disabled={!formData.estimated_start_date}
+                        className="flex items-center gap-1"
+                      >
+                        <Clock className="h-3 w-3" />
+                        1 Month
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => setProjectDuration(2)}
+                        disabled={!formData.estimated_start_date}
+                        className="flex items-center gap-1"
+                      >
+                        <Clock className="h-3 w-3" />
+                        2 Months
+                      </Button>
                       <Button
                         type="button"
                         variant="outline" 
@@ -448,13 +511,29 @@ export const AdvancedProjectWizard = ({
                         <Clock className="h-3 w-3" />
                         12 Months
                       </Button>
+                      <Button
+                        type="button"
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => setProjectDuration(18)}
+                        disabled={!formData.estimated_start_date}
+                        className="flex items-center gap-1"
+                      >
+                        <Clock className="h-3 w-3" />
+                        18 Months
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => setProjectDuration(24)}
+                        disabled={!formData.estimated_start_date}
+                        className="flex items-center gap-1"
+                      >
+                        <Clock className="h-3 w-3" />
+                        24 Months
+                      </Button>
                     </div>
-                    <p className="text-xs text-muted-foreground">
-                      {formData.estimated_start_date 
-                        ? "Select a duration to automatically set the finish date" 
-                        : "Please select a start date first"
-                      }
-                    </p>
                   </div>
                 </div>
 
@@ -474,14 +553,10 @@ export const AdvancedProjectWizard = ({
                   {formData.homeowners.map((homeowner, index) => (
                     <Card key={index} className="p-4">
                       <div className="flex items-start justify-between">
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 flex-1">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 flex-1">
                           <div>
                             <Label className="text-xs text-muted-foreground">Name</Label>
                             <p className="font-medium">{homeowner.name}</p>
-                          </div>
-                          <div>
-                            <Label className="text-xs text-muted-foreground">Email</Label>
-                            <p className="text-sm">{homeowner.email}</p>
                           </div>
                           <div>
                             <Label className="text-xs text-muted-foreground">Phone</Label>
@@ -512,33 +587,17 @@ export const AdvancedProjectWizard = ({
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="new_homeowner_name">Name</Label>
-                      <div className="relative mt-1">
-                        <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                        <Input 
-                          id="new_homeowner_name" 
-                          value={newHomeowner.name} 
-                          onChange={e => setNewHomeowner(prev => ({ ...prev, name: e.target.value }))} 
-                          placeholder="Enter client name" 
-                          className="pl-10" 
-                        />
-                      </div>
-                    </div>
-                    <div>
-                      <Label htmlFor="new_homeowner_email">Email</Label>
-                      <div className="relative mt-1">
-                        <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                        <Input 
-                          id="new_homeowner_email" 
-                          type="email" 
-                          value={newHomeowner.email} 
-                          onChange={e => setNewHomeowner(prev => ({ ...prev, email: e.target.value }))} 
-                          placeholder="Enter email address" 
-                          className="pl-10" 
-                        />
-                      </div>
+                  <div>
+                    <Label htmlFor="new_homeowner_name">Name</Label>
+                    <div className="relative mt-1">
+                      <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                      <Input 
+                        id="new_homeowner_name" 
+                        value={newHomeowner.name} 
+                        onChange={e => setNewHomeowner(prev => ({ ...prev, name: e.target.value }))} 
+                        placeholder="Enter client name" 
+                        className="pl-10" 
+                      />
                     </div>
                   </div>
                   
@@ -560,7 +619,7 @@ export const AdvancedProjectWizard = ({
                   <Button 
                     type="button"
                     onClick={addHomeowner}
-                    disabled={!newHomeowner.name.trim() || !newHomeowner.email.trim()}
+                    disabled={!newHomeowner.name.trim()}
                     className="w-full"
                   >
                     <Plus className="h-4 w-4 mr-2" />
@@ -568,90 +627,6 @@ export const AdvancedProjectWizard = ({
                   </Button>
                 </CardContent>
               </Card>
-            </div>
-          </div>;
-      case 4:
-        return <div className="space-y-6">
-            <div>
-              <h3 className="text-lg font-semibold mb-4">Team & Collaborators</h3>
-              
-              {/* Add New Collaborator */}
-              <Card className="mb-6">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-base">
-                    <Users className="h-4 w-4" />
-                    Add Team Member
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div>
-                      <Label htmlFor="collaborator_email">Email</Label>
-                      <Input id="collaborator_email" type="email" value={newCollaborator.email} onChange={e => setNewCollaborator(prev => ({
-                      ...prev,
-                      email: e.target.value
-                    }))} placeholder="Enter email" className="mt-1" />
-                    </div>
-                    <div>
-                      <Label htmlFor="collaborator_name">Name</Label>
-                      <Input id="collaborator_name" value={newCollaborator.name} onChange={e => setNewCollaborator(prev => ({
-                      ...prev,
-                      name: e.target.value
-                    }))} placeholder="Enter name" className="mt-1" />
-                    </div>
-                    <div>
-                      <Label htmlFor="collaborator_role">Role</Label>
-                      <Select value={newCollaborator.role} onValueChange={(value: ProjectUser['role']) => setNewCollaborator(prev => ({
-                      ...prev,
-                      role: value
-                    }))}>
-                        <SelectTrigger className="mt-1">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {ROLES.map(role => <SelectItem key={role.value} value={role.value}>
-                              {role.label}
-                            </SelectItem>)}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                  <Button type="button" variant="outline" onClick={addCollaborator} disabled={!newCollaborator.email || !newCollaborator.name} className="w-full">
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add Team Member
-                  </Button>
-                </CardContent>
-              </Card>
-
-              {/* Existing Collaborators */}
-              {formData.collaborators.length > 0 && <div>
-                  <Label className="text-base font-medium">Team Members ({formData.collaborators.length})</Label>
-                  <div className="space-y-3 mt-3">
-                    {formData.collaborators.map((collaborator, index) => <Card key={index}>
-                        <CardContent className="p-4">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center space-x-3">
-                              <Avatar>
-                                <AvatarFallback>
-                                  {collaborator.name.split(' ').map(n => n[0]).join('').toUpperCase()}
-                                </AvatarFallback>
-                              </Avatar>
-                              <div>
-                                <div className="font-medium">{collaborator.name}</div>
-                                <div className="text-sm text-muted-foreground">{collaborator.email}</div>
-                                <Badge variant="secondary" className="text-xs mt-1">
-                                  {ROLES.find(r => r.value === collaborator.role)?.label}
-                                </Badge>
-                              </div>
-                            </div>
-                            <Button type="button" variant="ghost" size="sm" onClick={() => removeCollaborator(index)} className="text-destructive hover:text-destructive">
-                              <X className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </CardContent>
-                      </Card>)}
-                  </div>
-                </div>}
             </div>
           </div>;
       default:
