@@ -41,6 +41,7 @@ const RFIs = () => {
     teamMembers
   } = useProjectTeam(currentProject?.id || '');
   const location = useLocation();
+  const showDebug = process.env.NODE_ENV === 'development' && new URLSearchParams(location.search).get('debug') === 'rfi';
 
   // Update project users from teamMembers
   React.useEffect(() => {
@@ -430,7 +431,7 @@ const RFIs = () => {
   }
   return <div className="h-screen flex flex-col">
       {/* Development validators */}
-      {process.env.NODE_ENV === 'development' && currentProject && (
+      {showDebug && currentProject && (
         <div className="px-4 py-2 space-y-2">
           <ProjectScopeValidator
             projectId={currentProject.id}
