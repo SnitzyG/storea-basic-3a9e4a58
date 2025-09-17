@@ -141,13 +141,20 @@ export const useProjects = () => {
 
       const currentUser = (await supabase.auth.getUser()).data.user;
 
-      // Add the creator as a project user
+      // Get the current user's profile to use their actual role
+      const { data: userProfile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('user_id', currentUser?.id)
+        .single();
+
+      // Add the creator as a project user with their actual role
       await supabase
         .from('project_users')
         .insert([{
           project_id: data.id,
           user_id: currentUser?.id,
-          role: 'architect',
+          role: userProfile?.role || 'contractor', // Default to contractor if no role found
           invited_by: currentUser?.id
         }]);
 
