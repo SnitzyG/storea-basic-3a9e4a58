@@ -188,85 +188,137 @@ const Auth = () => {
         </div>
       )}
       <div className="w-full max-w-6xl flex flex-col lg:flex-row items-center lg:items-stretch lg:justify-between gap-8">
-        {/* Animated House Illustration */}
+        {/* Animated Construction Scene */}
         <div className="w-full lg:w-1/2 flex justify-center lg:order-2">
           <Card className="w-full max-w-md">
             <CardContent>
               <div className="relative w-full">
-                <svg viewBox="0 0 200 200" className="w-full h-auto">
-                  {/* Construction staging - appearing sequentially */}
+                <svg viewBox="0 0 240 200" className="w-full h-auto">
+                  {/* Sky background */}
+                  <rect x="0" y="0" width="240" height="120" className="fill-blue-100/50" />
                   
-                  {/* Ground/Site preparation */}
-                  <rect x="30" y="170" width="140" height="20" className="fill-muted animate-[fadeInUp_0.6s_ease-out_0.2s_both]" />
+                  {/* Ground */}
+                  <rect x="0" y="170" width="240" height="30" className="fill-green-200/60 animate-[fadeInUp_0.6s_ease-out_0.2s_both]" />
                   
-                  {/* Foundation */}
-                  <rect x="40" y="160" width="120" height="10" className="fill-muted-foreground animate-[fadeInUp_0.6s_ease-out_0.6s_both]" />
-                  
-                  {/* Building the frame/structure */}
-                  <g className="animate-[fadeInUp_0.8s_ease-out_1s_both]">
-                    <rect x="50" y="120" width="100" height="40" className="fill-primary/10" stroke="hsl(var(--primary))" strokeWidth="2" />
-                    {/* Frame details */}
-                    <line x1="70" y1="120" x2="70" y2="160" stroke="hsl(var(--primary))" strokeWidth="1" />
-                    <line x1="100" y1="120" x2="100" y2="160" stroke="hsl(var(--primary))" strokeWidth="1" />
-                    <line x1="130" y1="120" x2="130" y2="160" stroke="hsl(var(--primary))" strokeWidth="1" />
+                  {/* Foundation and building structure */}
+                  <g className="animate-[fadeInUp_0.8s_ease-out_0.8s_both]">
+                    <rect x="60" y="160" width="120" height="10" className="fill-gray-400" />
+                    <rect x="70" y="120" width="100" height="40" className="fill-primary/10" stroke="hsl(var(--primary))" strokeWidth="2" />
+                    {/* Structural beams */}
+                    <line x1="90" y1="120" x2="90" y2="160" stroke="hsl(var(--primary))" strokeWidth="2" />
+                    <line x1="120" y1="120" x2="120" y2="160" stroke="hsl(var(--primary))" strokeWidth="2" />
+                    <line x1="150" y1="120" x2="150" y2="160" stroke="hsl(var(--primary))" strokeWidth="2" />
                   </g>
                   
                   {/* Roof construction */}
-                  <g className="animate-[fadeInUp_0.8s_ease-out_1.4s_both]">
-                    <polygon points="45,120 100,80 155,120" className="fill-primary/80" />
-                    {/* Roof beams */}
-                    <line x1="100" y1="80" x2="75" y2="110" stroke="hsl(var(--primary-foreground))" strokeWidth="1" />
-                    <line x1="100" y1="80" x2="125" y2="110" stroke="hsl(var(--primary-foreground))" strokeWidth="1" />
+                  <g className="animate-[fadeInUp_0.8s_ease-out_1.2s_both]">
+                    <polygon points="65,120 120,80 175,120" className="fill-red-400/80" />
+                    <line x1="120" y1="80" x2="95" y2="110" stroke="hsl(var(--foreground))" strokeWidth="1" />
+                    <line x1="120" y1="80" x2="145" y2="110" stroke="hsl(var(--foreground))" strokeWidth="1" />
                   </g>
                   
-                  {/* Installing windows */}
+                  {/* Builder/Contractor at work */}
+                  <g className="animate-[fadeIn_0.6s_ease-out_1.6s_both]">
+                    {/* Builder on roof */}
+                    <circle cx="110" cy="100" r="4" className="fill-orange-300" />
+                    <rect x="108" y="104" width="4" height="8" className="fill-orange-400" />
+                    <rect x="106" y="112" width="8" height="6" className="fill-blue-600" />
+                    {/* Hard hat */}
+                    <ellipse cx="110" cy="97" rx="5" ry="3" className="fill-yellow-400" />
+                    {/* Tool in hand */}
+                    <line x1="115" y1="108" x2="122" y2="105" stroke="hsl(var(--foreground))" strokeWidth="1" />
+                  </g>
+                  
+                  {/* Architect with plans */}
                   <g className="animate-[fadeIn_0.6s_ease-out_1.8s_both]">
-                    <rect x="65" y="135" width="15" height="15" className="fill-secondary" stroke="hsl(var(--primary))" strokeWidth="1" />
-                    <line x1="72.5" y1="135" x2="72.5" y2="150" className="stroke-primary" strokeWidth="1" />
-                    <line x1="65" y1="142.5" x2="80" y2="142.5" className="stroke-primary" strokeWidth="1" />
+                    <circle cx="40" cy="150" r="4" className="fill-pink-200" />
+                    <rect x="38" y="154" width="4" height="8" className="fill-blue-500" />
+                    <rect x="36" y="162" width="8" height="6" className="fill-gray-600" />
+                    {/* Blueprint/plans */}
+                    <rect x="30" y="148" width="8" height="6" className="fill-white" stroke="hsl(var(--primary))" strokeWidth="0.5" />
                   </g>
                   
+                  {/* Homeowner couple watching */}
                   <g className="animate-[fadeIn_0.6s_ease-out_2s_both]">
-                    <rect x="120" y="135" width="15" height="15" className="fill-secondary" stroke="hsl(var(--primary))" strokeWidth="1" />
-                    <line x1="127.5" y1="135" x2="127.5" y2="150" className="stroke-primary" strokeWidth="1" />
-                    <line x1="120" y1="142.5" x2="135" y2="142.5" className="stroke-primary" strokeWidth="1" />
+                    {/* Homeowner 1 */}
+                    <circle cx="200" cy="150" r="4" className="fill-green-200" />
+                    <rect x="198" y="154" width="4" height="8" className="fill-green-400" />
+                    <rect x="196" y="162" width="8" height="6" className="fill-brown-400" />
+                    
+                    {/* Homeowner 2 */}
+                    <circle cx="215" cy="152" r="4" className="fill-blue-200" />
+                    <rect x="213" y="156" width="4" height="8" className="fill-purple-400" />
+                    <rect x="211" y="164" width="8" height="6" className="fill-gray-500" />
+                  </g>
+                  
+                  {/* Electrician/Trade worker */}
+                  <g className="animate-[fadeIn_0.6s_ease-out_2.2s_both]">
+                    <circle cx="180" cy="145" r="4" className="fill-yellow-200" />
+                    <rect x="178" y="149" width="4" height="8" className="fill-yellow-500" />
+                    <rect x="176" y="157" width="8" height="6" className="fill-black" />
+                    {/* Tool belt */}
+                    <rect x="175" y="155" width="10" height="2" className="fill-brown-600" />
+                    {/* Wire/cable */}
+                    <path d="M 185 153 Q 190 150 195 155" stroke="hsl(var(--orange-500))" strokeWidth="1" fill="none" />
+                  </g>
+                  
+                  {/* Windows being installed */}
+                  <g className="animate-[fadeIn_0.6s_ease-out_2.4s_both]">
+                    <rect x="85" y="135" width="12" height="12" className="fill-blue-100" stroke="hsl(var(--primary))" strokeWidth="1" />
+                    <line x1="91" y1="135" x2="91" y2="147" className="stroke-primary" strokeWidth="0.5" />
+                    <line x1="85" y1="141" x2="97" y2="141" className="stroke-primary" strokeWidth="0.5" />
+                    
+                    <rect x="143" y="135" width="12" height="12" className="fill-blue-100" stroke="hsl(var(--primary))" strokeWidth="1" />
+                    <line x1="149" y1="135" x2="149" y2="147" className="stroke-primary" strokeWidth="0.5" />
+                    <line x1="143" y1="141" x2="155" y2="141" className="stroke-primary" strokeWidth="0.5" />
                   </g>
                   
                   {/* Door installation */}
-                  <g className="animate-[fadeIn_0.6s_ease-out_2.2s_both]">
-                    <rect x="90" y="145" width="20" height="25" className="fill-accent" stroke="hsl(var(--primary))" strokeWidth="1" />
-                    <circle cx="106" cy="157" r="1.5" className="fill-primary animate-[fadeIn_0.4s_ease-out_2.8s_both]" />
+                  <g className="animate-[fadeIn_0.6s_ease-out_2.6s_both]">
+                    <rect x="115" y="148" width="10" height="18" className="fill-brown-400" stroke="hsl(var(--primary))" strokeWidth="1" />
+                    <circle cx="122" cy="157" r="1" className="fill-yellow-500" />
                   </g>
                   
-                  {/* Final details - chimney and finishing touches */}
-                  <g className="animate-[fadeInUp_0.6s_ease-out_2.4s_both]">
-                    <rect x="125" y="85" width="8" height="20" className="fill-muted-foreground" />
-                    {/* Roofing tiles effect */}
-                    <path d="M 50 120 Q 100 115 150 120" stroke="hsl(var(--primary-foreground))" strokeWidth="1" fill="none" />
+                  {/* Construction equipment */}
+                  <g className="animate-[fadeIn_0.6s_ease-out_2.8s_both]">
+                    {/* Crane arm */}
+                    <line x1="20" y1="80" x2="50" y2="120" stroke="hsl(var(--orange-600))" strokeWidth="2" />
+                    <line x1="15" y1="170" x2="15" y2="80" stroke="hsl(var(--orange-600))" strokeWidth="3" />
+                    {/* Construction materials pile */}
+                    <rect x="185" y="165" width="8" height="5" className="fill-brown-500" />
+                    <rect x="188" y="162" width="8" height="3" className="fill-brown-600" />
                   </g>
                   
-                     {/* Smoke - sign of life/completion */}
-                   <g className="animate-[fadeIn_0.8s_ease-out_3s_both]">
-                     <circle cx="129" cy="80" r="2" className="fill-muted-foreground/40 animate-[float_3s_ease-in-out_3.2s_infinite]" />
-                     <circle cx="131" cy="75" r="1.5" className="fill-muted-foreground/30 animate-[float_3s_ease-in-out_3.4s_infinite]" />
-                     <circle cx="127" cy="72" r="1" className="fill-muted-foreground/20 animate-[float_3s_ease-in-out_3.6s_infinite]" />
-                   </g>
-                  
-                  {/* Landscaping - final touch */}
+                  {/* Final landscaping touches */}
                   <g className="animate-[fadeIn_0.6s_ease-out_3.2s_both]">
-                    <ellipse cx="30" cy="175" rx="8" ry="4" className="fill-green-500/60" />
-                    <ellipse cx="170" cy="175" rx="10" ry="5" className="fill-green-500/60" />
+                    <ellipse cx="45" cy="178" rx="8" ry="4" className="fill-green-400/80" />
+                    <ellipse cx="195" cy="180" rx="10" ry="5" className="fill-green-400/80" />
+                    {/* Small trees */}
+                    <circle cx="35" cy="175" r="3" className="fill-green-500" />
+                    <line x1="35" y1="175" x2="35" y2="182" stroke="hsl(var(--brown-600))" strokeWidth="1" />
+                  </g>
+                  
+                  {/* Communication/collaboration indicators */}
+                  <g className="animate-[fadeIn_0.8s_ease-out_3.4s_both]">
+                    {/* Speech bubbles/communication lines */}
+                    <path d="M 45 145 Q 80 130 110 145" stroke="hsl(var(--blue-400))" strokeWidth="1" fill="none" strokeDasharray="2,2" />
+                    <path d="M 200 145 Q 160 130 120 145" stroke="hsl(var(--green-400))" strokeWidth="1" fill="none" strokeDasharray="2,2" />
                   </g>
                 </svg>
                 
-                {/* Enhanced STOREA Lite Logo */}
-                <div className="mt-6 text-center animate-[fadeIn_0.8s_ease-out_3.4s_both]">
+                {/* Updated STOREALite Logo */}
+                <div className="mt-6 text-center animate-[fadeIn_0.8s_ease-out_3.6s_both]">
                   <h1 className="text-4xl font-bold tracking-wider">
-                    <span className="bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-                      STOREALite
+                    <span className="bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent font-black">
+                      STOREA
+                    </span>
+                    <span className="bg-gradient-to-r from-accent to-accent/70 bg-clip-text text-transparent font-light ml-1">
+                      Lite
                     </span>
                   </h1>
-                  
+                  <p className="text-sm text-muted-foreground mt-2 font-medium">
+                    Building collaboration, simplified
+                  </p>
                 </div>
               </div>
             </CardContent>
