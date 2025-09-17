@@ -66,7 +66,11 @@ export const useRFIs = (projectId?: string) => {
   const { toast } = useToast();
 
   const fetchRFIs = async () => {
-    if (!projectId) return;
+    if (!projectId) {
+      setRFIs([]);
+      setLoading(false);
+      return;
+    }
     
     try {
       const { data: rfisData, error } = await supabase

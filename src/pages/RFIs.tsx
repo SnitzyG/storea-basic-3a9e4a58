@@ -52,8 +52,8 @@ const RFIs = () => {
     }
   }, [location.state]);
 
-  // All RFIs for the current project (no filters needed in new design)
-  const projectRFIs = rfis;
+  // All RFIs for the current project - ensure proper project scoping
+  const projectRFIs = rfis.filter(rfi => rfi.project_id === currentProject?.id);
   const handleViewRFI = (rfi: RFI) => {
     setSelectedRFI(rfi);
     setDetailsDialogOpen(true);
