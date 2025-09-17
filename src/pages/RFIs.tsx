@@ -14,6 +14,7 @@ import { RFIMessageComposer } from '@/components/messages/RFIMessageComposer';
 // Legacy components for fallback
 import { RFIDetailsDialog } from '@/components/rfis/RFIDetailsDialog';
 import { ProjectScopeValidator } from '@/components/rfis/ProjectScopeValidator';
+import { RFIPermissionsValidator } from '@/components/rfis/RFIPermissionsValidator';
 import { useProjectTeam } from '@/hooks/useProjectTeam';
 const RFIs = () => {
   const [selectedProject, setSelectedProject] = useState<string>('');
@@ -427,13 +428,17 @@ const RFIs = () => {
       </div>;
   }
   return <div className="h-screen flex flex-col">
-      {/* Project Scope Validator - only in development */}
+      {/* Development validators */}
       {process.env.NODE_ENV === 'development' && currentProject && (
-        <div className="px-4 py-2">
+        <div className="px-4 py-2 space-y-2">
           <ProjectScopeValidator
             projectId={currentProject.id}
             rfis={rfis}
             onViolationFound={(violation) => console.error('Project scope violation:', violation)}
+          />
+          <RFIPermissionsValidator
+            projectId={currentProject.id}
+            projectUsers={projectUsers}
           />
         </div>
       )}
