@@ -7,6 +7,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { FileSelector } from './FileSelector';
 import { cn } from '@/lib/utils';
 
@@ -169,30 +170,32 @@ export const MessageInput: React.FC<MessageInputProps> = ({
   }, []);
 
   return (
-    <div className="border-t bg-background">
-      {/* Inquiry Mode Toggle */}
-      <div className="px-4 py-2 border-b bg-muted/20">
-        <div className="flex items-center space-x-2">
-          <Switch
-            id="inquiry-mode"
-            checked={isInquiry}
-            onCheckedChange={setIsInquiry}
-          />
-          <Label htmlFor="inquiry-mode" className="text-sm flex items-center gap-2">
-            <AlertCircle className="h-4 w-4" />
-            Send as formal inquiry
-          </Label>
+    <div className="border-t border-border bg-background">
+      {/* Inquiry Mode Toggle - Compact */}
+      {onCreateRFI && (
+        <div className="px-4 py-2 border-b border-border/50">
+          <div className="flex items-center space-x-2">
+            <Switch
+              id="inquiry-mode"
+              checked={isInquiry}
+              onCheckedChange={setIsInquiry}
+            />
+            <Label htmlFor="inquiry-mode" className="text-xs flex items-center gap-1.5 text-muted-foreground">
+              <AlertCircle className="h-3 w-3" />
+              Formal inquiry
+            </Label>
+          </div>
+          {isInquiry && (
+            <p className="text-xs text-muted-foreground mt-1 ml-6">
+              Creates an RFI entry requiring response
+            </p>
+          )}
         </div>
-        {isInquiry && (
-          <p className="text-xs text-muted-foreground mt-1">
-            This will send the message as a formal inquiry requiring a response and create an entry in the RFI module
-          </p>
-        )}
-      </div>
+      )}
 
       {/* File Selector */}
       {showFileSelector && (
-        <div className="p-4 border-b bg-muted/10">
+        <div className="p-4 border-b border-border/50 bg-muted/20">
           <FileSelector
             projectId={projectId}
             selectedFiles={attachments}
@@ -203,109 +206,137 @@ export const MessageInput: React.FC<MessageInputProps> = ({
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="p-4">
-        <div className="flex gap-2 items-end">
-          {/* Attachment Button */}
-          {supportAttachments && (
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              className="h-10 w-10 p-0"
-              disabled={disabled || sending}
-              onClick={() => setShowFileSelector(!showFileSelector)}
-            >
-              <Paperclip className="h-4 w-4" />
-            </Button>
-          )}
-          
-          {/* Message Input with Mentions */}
-          <div className="flex-1 relative">
-            <Textarea
-              ref={textareaRef}
-              placeholder={placeholder}
-              value={message}
-              onChange={handleInputChange}
-              onKeyDown={handleKeyDown}
-              disabled={disabled || sending}
-              className={cn(
-                "min-h-[40px] max-h-[100px] resize-none border rounded-lg",
-                "focus:ring-2 focus:ring-primary focus:border-transparent"
-              )}
-              rows={1}
-            />
-            
-            {/* Mentions Popup */}
-            {supportMentions && showMentions && filteredUsers.length > 0 && (
-              <div className="absolute bottom-full left-0 right-0 mb-2 bg-background border rounded-lg shadow-lg max-h-40 overflow-hidden z-50">
-                <ScrollArea className="h-full">
-                  <div className="p-2">
-                    <p className="text-xs text-muted-foreground mb-2">Mention someone:</p>
-                    {filteredUsers.slice(0, 5).map((user) => (
-                      <div
-                        key={user.user_id}
-                        className="flex items-center gap-2 p-2 rounded hover:bg-muted cursor-pointer"
-                        onClick={() => insertMention(user)}
-                      >
-                        <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center">
-                          <span className="text-xs">
-                            {user.profiles?.name?.charAt(0)?.toUpperCase() || 'U'}
-                          </span>
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium">{user.profiles?.name || 'Unknown User'}</p>
-                          <p className="text-xs text-muted-foreground capitalize">{user.role}</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </ScrollArea>
+      {/* Attachments Preview */}
+      {attachments.length > 0 && !showFileSelector && (
+        <div className="px-4 py-2 border-b border-border/50">
+          <div className="flex flex-wrap gap-2">
+            {attachments.map((attachment, index) => (
+              <div key={index} className="flex items-center gap-2 bg-muted/50 rounded px-2 py-1 text-xs">
+                <span>📎 {attachment.name || 'Attachment'}</span>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="h-4 w-4 p-0 hover:bg-destructive/20"
+                  onClick={() => removeAttachment(index)}
+                >
+                  <X className="h-3 w-3" />
+                </Button>
               </div>
-            )}
+            ))}
           </div>
-
-          {/* Mention Button */}
-          {supportMentions && (
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              className="h-10 w-10 p-0"
-              disabled={disabled || sending}
-              onClick={() => {
-                setMessage(prev => prev + '@');
-                textareaRef.current?.focus();
-              }}
-            >
-              <AtSign className="h-4 w-4" />
-            </Button>
-          )}
-
-          {/* Emoji Button */}
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            className="h-10 w-10 p-0"
-            disabled={disabled}
-          >
-            <Smile className="h-4 w-4" />
-          </Button>
-          
-          <Button
-            type="submit"
-            size="sm"
-            disabled={(!message.trim() && attachments.length === 0) || sending || disabled}
-            className="h-10 px-4"
-          >
-            {sending ? (
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" />
-            ) : (
-              <Send className="h-4 w-4" />
-            )}
-          </Button>
         </div>
-      </form>
+      )}
+
+      <div className="p-4">
+        <form onSubmit={handleSubmit}>
+          <div className="flex gap-2 items-end bg-background border border-border rounded-lg focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary">
+            {/* Left Actions */}
+            <div className="flex items-end p-2 gap-1">
+              {supportAttachments && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
+                  disabled={disabled || sending}
+                  onClick={() => setShowFileSelector(!showFileSelector)}
+                >
+                  <Paperclip className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
+            
+            {/* Message Input with Mentions */}
+            <div className="flex-1 relative">
+              <Textarea
+                ref={textareaRef}
+                placeholder={placeholder}
+                value={message}
+                onChange={handleInputChange}
+                onKeyDown={handleKeyDown}
+                disabled={disabled || sending}
+                className={cn(
+                  "min-h-[40px] max-h-[120px] resize-none border-0 bg-transparent",
+                  "focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-muted-foreground/70",
+                  "text-sm leading-relaxed"
+                )}
+                rows={1}
+              />
+              
+              {/* Mentions Popup */}
+              {supportMentions && showMentions && filteredUsers.length > 0 && (
+                <div className="absolute bottom-full left-0 right-0 mb-2 bg-popover border rounded-lg shadow-lg max-h-40 overflow-hidden z-50">
+                  <ScrollArea className="h-full">
+                    <div className="p-2">
+                      <p className="text-xs text-muted-foreground mb-2 px-2">Mention someone:</p>
+                      {filteredUsers.slice(0, 5).map((user) => (
+                        <div
+                          key={user.user_id}
+                          className="flex items-center gap-3 p-2 rounded-md hover:bg-muted cursor-pointer"
+                          onClick={() => insertMention(user)}
+                        >
+                          <Avatar className="h-6 w-6">
+                            <AvatarFallback className="text-xs bg-primary/10 text-primary">
+                              {user.profiles?.name?.charAt(0)?.toUpperCase() || 'U'}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium truncate">{user.profiles?.name || 'Unknown User'}</p>
+                            <p className="text-xs text-muted-foreground capitalize">{user.role}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </ScrollArea>
+                </div>
+              )}
+            </div>
+
+            {/* Right Actions */}
+            <div className="flex items-end p-2 gap-1">
+              {supportMentions && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
+                  disabled={disabled || sending}
+                  onClick={() => {
+                    setMessage(prev => prev + '@');
+                    textareaRef.current?.focus();
+                  }}
+                >
+                  <AtSign className="h-4 w-4" />
+                </Button>
+              )}
+
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
+                disabled={disabled}
+              >
+                <Smile className="h-4 w-4" />
+              </Button>
+              
+              <Button
+                type="submit"
+                size="sm"
+                disabled={(!message.trim() && attachments.length === 0) || sending || disabled}
+                className="h-8 w-8 p-0 ml-1"
+              >
+                {sending ? (
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current" />
+                ) : (
+                  <Send className="h-4 w-4" />
+                )}
+              </Button>
+            </div>
+          </div>
+        </form>
+      </div>
     </div>
   );
 };

@@ -35,62 +35,79 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
 
   return (
     <div className={cn(
-      "flex gap-3 mb-4",
-      isOwnMessage ? "justify-end" : "justify-start"
+      "group hover:bg-muted/30 px-3 py-1 rounded transition-colors",
+      isConsecutive ? "py-0.5" : "py-2"
     )}>
-      {!isOwnMessage && showAvatar && !isConsecutive && (
-        <Avatar className="h-8 w-8 flex-shrink-0">
-          <AvatarFallback className="text-xs">
-            {getInitials(senderName)}
-          </AvatarFallback>
-        </Avatar>
-      )}
-      
-      {!isOwnMessage && (!showAvatar || isConsecutive) && (
-        <div className="w-8 flex-shrink-0" />
-      )}
-      
       <div className={cn(
-        "flex flex-col max-w-[70%]",
-        isOwnMessage ? "items-end" : "items-start"
+        "flex gap-3",
+        isOwnMessage ? "justify-end" : "justify-start"
       )}>
-        {!isConsecutive && (
-          <div className="text-xs font-medium text-muted-foreground mb-1 px-3">
-            {isOwnMessage ? 'You' : senderName}
-          </div>
+        {!isOwnMessage && showAvatar && !isConsecutive && (
+          <Avatar className="h-9 w-9 flex-shrink-0 mt-0.5">
+            <AvatarFallback className="text-xs font-medium bg-primary/10 text-primary">
+              {getInitials(senderName)}
+            </AvatarFallback>
+          </Avatar>
+        )}
+        
+        {!isOwnMessage && (!showAvatar || isConsecutive) && (
+          <div className="w-9 flex-shrink-0" />
         )}
         
         <div className={cn(
-          "px-3 py-2 rounded-lg break-words",
-          isOwnMessage
-            ? "bg-primary text-primary-foreground rounded-br-sm"
-            : "bg-muted rounded-bl-sm"
+          "flex flex-col min-w-0",
+          isOwnMessage ? "items-end max-w-[70%]" : "items-start flex-1"
         )}>
-          <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+          {!isConsecutive && (
+            <div className="flex items-baseline gap-2 mb-1">
+              <span className="text-sm font-semibold text-foreground">
+                {isOwnMessage ? 'You' : senderName}
+              </span>
+              <span className="text-xs text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity">
+                {formatTime(message.created_at)}
+              </span>
+            </div>
+          )}
           
-          {message.attachments && message.attachments.length > 0 && (
-            <div className="mt-2 space-y-1">
-              {message.attachments.map((attachment, index) => (
-                <Badge key={index} variant="outline" className="text-xs">
-                  📎 {attachment.name || 'Attachment'}
-                </Badge>
-              ))}
+          <div className={cn(
+            "rounded-lg break-words max-w-full",
+            isOwnMessage
+              ? "bg-primary text-primary-foreground px-3 py-2"
+              : "text-foreground"
+          )}>
+            <p className="text-sm whitespace-pre-wrap leading-relaxed">
+              {message.content}
+            </p>
+            
+            {message.attachments && message.attachments.length > 0 && (
+              <div className="mt-2 space-y-1">
+                {message.attachments.map((attachment, index) => (
+                  <div key={index} className="flex items-center gap-2 p-2 rounded border bg-background/50">
+                    <div className="text-sm">📎</div>
+                    <span className="text-xs font-medium truncate">
+                      {attachment.name || 'Attachment'}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+          
+          {isConsecutive && (
+            <div className="text-xs text-muted-foreground mt-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+              {formatTime(message.created_at)}
             </div>
           )}
         </div>
         
-        <div className="text-xs text-muted-foreground mt-1 px-1">
-          {formatTime(message.created_at)}
-        </div>
+        {isOwnMessage && showAvatar && !isConsecutive && (
+          <Avatar className="h-9 w-9 flex-shrink-0 mt-0.5">
+            <AvatarFallback className="text-xs font-medium bg-primary/10 text-primary">
+              {getInitials(senderName)}
+            </AvatarFallback>
+          </Avatar>
+        )}
       </div>
-      
-      {isOwnMessage && showAvatar && !isConsecutive && (
-        <Avatar className="h-8 w-8 flex-shrink-0">
-          <AvatarFallback className="text-xs">
-            {getInitials(senderName)}
-          </AvatarFallback>
-        </Avatar>
-      )}
     </div>
   );
 };

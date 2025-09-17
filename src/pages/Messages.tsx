@@ -18,6 +18,8 @@ import { CreateThreadDialog } from '@/components/messages/CreateThreadDialog';
 import { MessageBubble } from '@/components/messages/MessageBubble';
 import { MessageInput } from '@/components/messages/MessageInput';
 import { TypingIndicator } from '@/components/messages/TypingIndicator';
+import { cn } from '@/lib/utils';
+
 const Messages = () => {
   const [selectedProject, setSelectedProject] = useState<string>('');
   const [searchTerm, setSearchTerm] = useState('');
@@ -278,182 +280,312 @@ const Messages = () => {
         </div>
       </div>;
   }
-  return <div className="h-[calc(100vh-8rem)] flex gap-6 px-[25px]">
-      {/* Sidebar */}
-      <div className="w-80 flex flex-col">
-        {/* Project Header */}
-        
 
-        {/* Messages Management */}
-        <Card className="flex-1 flex flex-col">
-          <CardHeader className="pb-2">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-sm">Messages</CardTitle>
-              {projects.length > 0 ? (
-                <CreateThreadDialog projectId={selectedProject} onCreateThread={handleCreateThread}>
-                  <Button size="sm" variant="outline">
-                    <Plus className="h-4 w-4" />
-                  </Button>
-                </CreateThreadDialog>
-              ) : (
-                <Button size="sm" variant="outline" disabled>
-                  <Plus className="h-4 w-4" />
-                </Button>
-              )}
+  return (
+    <div className="h-[calc(100vh-8rem)] flex bg-background">
+      {/* Sidebar - Slack-inspired */}
+      <div className="w-80 border-r border-border bg-muted/30 flex flex-col">
+        {/* Workspace Header */}
+        <div className="p-4 border-b border-border">
+          <div className="flex items-center gap-2 mb-2">
+            <div className="w-6 h-6 rounded bg-primary text-primary-foreground flex items-center justify-center text-sm font-semibold">
+              {getCurrentProjectName().charAt(0).toUpperCase()}
             </div>
-          </CardHeader>
-          
-          <CardContent className="flex-1 flex flex-col pt-0">
+            <span className="font-semibold text-foreground">{getCurrentProjectName()}</span>
+          </div>
+          <div className="flex items-center gap-1 text-sm text-muted-foreground">
+            <Circle className={cn("h-2 w-2 fill-current", connectionStatus === 'connected' ? 'text-green-500' : 'text-red-500')} />
+            {onlineUsers.length} online
+          </div>
+        </div>
+
+        {/* Quick Actions */}
+        <div className="p-3 border-b border-border">
+          <div className="flex gap-2">
             {projects.length > 0 ? (
-              <>
-                {/* Message Type Selector */}
-                <div className="flex mb-4 bg-muted rounded-lg p-1">
-                  <Button variant={messageType === 'direct' ? 'default' : 'ghost'} size="sm" className="flex-1" onClick={() => setMessageType('direct')}>
-                    <UserCircle className="h-4 w-4 mr-2" />
-                    Direct
-                  </Button>
-                  <Button variant={messageType === 'group' ? 'default' : 'ghost'} size="sm" className="flex-1" onClick={() => setMessageType('group')}>
-                    <Users2 className="h-4 w-4 mr-2" />
-                    Group
-                  </Button>
-                </div>
-
-                {/* Search */}
-                <div className="relative mb-4">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                  <Input placeholder={`Search ${messageType} messages...`} value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="pl-10" />
-                </div>
-
-                {/* Thread List */}
-                <ScrollArea className="flex-1">
-                  <div className="space-y-2">
-                    {filteredThreads.map(thread => {
-                    const isDirect = thread.participants.length === 2;
-                    return <ThreadCard key={thread.id} thread={thread} unreadCount={0} // TODO: Calculate unread count
-                    isSelected={currentThread === thread.id} onClick={() => setCurrentThread(thread.id)} isDirect={isDirect} onEdit={title => updateThreadTitle(thread.id, title)} onClose={() => closeThread(thread.id)} onDelete={() => deleteThread(thread.id)} />;
-                  })}
-                    
-                    {filteredThreads.length === 0 && selectedProject && <div className="text-center py-8">
-                        <MessageSquare className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
-                        <p className="text-sm text-muted-foreground">
-                          No {messageType} messages found
-                        </p>
-                      </div>}
-                  </div>
-                </ScrollArea>
-              </>
+              <CreateThreadDialog projectId={selectedProject} onCreateThread={handleCreateThread}>
+                <Button size="sm" variant="outline" className="flex-1">
+                  <Plus className="h-4 w-4 mr-2" />
+                  New Message
+                </Button>
+              </CreateThreadDialog>
             ) : (
-              <div className="text-center py-8">
-                <MessageSquare className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-                <h3 className="text-lg font-medium mb-2">Messages</h3>
-                <p className="text-muted-foreground">
-                  No projects available. Create a project first to create a message.
-                </p>
-              </div>
+              <Button size="sm" variant="outline" disabled className="flex-1">
+                <Plus className="h-4 w-4 mr-2" />
+                New Message
+              </Button>
             )}
-          </CardContent>
-        </Card>
-      </div>
+          </div>
+        </div>
 
-      {/* Chat Area */}
-      <Card className="flex-1 flex flex-col">
-        {selectedProject ? <>
-            {/* Chat Header */}
-          <CardHeader className="border-b">
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="text-lg">
-                  {currentThread ? threads.find(t => t.id === currentThread)?.title || 'Thread' : `${getCurrentProjectName()} - ${messageType === 'direct' ? 'Direct Messages' : 'Group Messages'}`}
-                </CardTitle>
-                <div className="flex items-center gap-2 mt-1">
-                  <Users2 className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm text-muted-foreground">
-                    {currentThread ? `${threads.find(t => t.id === currentThread)?.participants.length || 0} participants` : 'Project team'}
-                  </span>
-                </div>
+        {projects.length > 0 ? (
+          <>
+            {/* Message Type Tabs */}
+            <div className="px-3 py-2">
+              <div className="flex bg-background rounded-md p-1 shadow-sm">
+                <Button 
+                  variant={messageType === 'direct' ? 'default' : 'ghost'} 
+                  size="sm" 
+                  className="flex-1 text-xs"
+                  onClick={() => setMessageType('direct')}
+                >
+                  <UserCircle className="h-3 w-3 mr-1" />
+                  Direct
+                </Button>
+                <Button 
+                  variant={messageType === 'group' ? 'default' : 'ghost'} 
+                  size="sm" 
+                  className="flex-1 text-xs"
+                  onClick={() => setMessageType('group')}
+                >
+                  <Users2 className="h-3 w-3 mr-1" />
+                  Channels
+                </Button>
               </div>
-              
             </div>
-          </CardHeader>
 
-          {/* Messages */}
-          <CardContent className="flex-1 flex flex-col p-0">
-            <ScrollArea className="flex-1 p-4">
-              <div className="space-y-1">
-                {messages.map((message, index) => {
-                const previousMessage = messages[index - 1];
-                const isConsecutive = isMessageConsecutive(message, previousMessage);
-                const senderProfile = projectUsers.find(u => u.user_id === message.sender_id);
-                return <MessageBubble key={message.id} message={message} isOwnMessage={message.sender_id === profile?.user_id} senderName={senderProfile?.user_profile?.name || 'User'} isConsecutive={isConsecutive} />;
-              })}
-                <div ref={messagesEndRef} />
+            {/* Search */}
+            <div className="px-3 pb-3">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                <Input 
+                  placeholder={`Search ${messageType === 'direct' ? 'direct messages' : 'channels'}...`} 
+                  value={searchTerm} 
+                  onChange={e => setSearchTerm(e.target.value)} 
+                  className="pl-10 h-9 bg-background border-border"
+                />
               </div>
-              
-              <TypingIndicator typingUsers={Array.from(typingUsers)} currentUserId={profile?.user_id} />
-            </ScrollArea>
+            </div>
 
-            {/* Message Input */}
-            <MessageInput onSendMessage={handleSendMessage} onTyping={setTypingIndicator} placeholder={`Message ${currentThread ? 'thread' : messageType + ' conversation'}...`} supportAttachments={true} supportMentions={true} projectUsers={projectUsers} projectId={selectedProject} onCreateRFI={handleCreateRFI} />
-          </CardContent>
-          </> : <CardContent className="flex-1 flex items-center justify-center">
+            {/* Conversations List */}
+            <div className="flex-1 overflow-hidden">
+              <div className="px-3 pb-2">
+                <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                  {messageType === 'direct' ? 'Direct Messages' : 'Channels'}
+                </h3>
+              </div>
+              <ScrollArea className="flex-1 px-3">
+                <div className="space-y-1">
+                  {filteredThreads.map(thread => {
+                    const isDirect = thread.participants.length === 2;
+                    return (
+                      <ThreadCard 
+                        key={thread.id} 
+                        thread={thread} 
+                        unreadCount={0} 
+                        isSelected={currentThread === thread.id} 
+                        onClick={() => setCurrentThread(thread.id)} 
+                        isDirect={isDirect} 
+                        onEdit={title => updateThreadTitle(thread.id, title)} 
+                        onClose={() => closeThread(thread.id)} 
+                        onDelete={() => deleteThread(thread.id)} 
+                      />
+                    );
+                  })}
+                  
+                  {filteredThreads.length === 0 && selectedProject && (
+                    <div className="text-center py-8">
+                      <MessageSquare className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
+                      <p className="text-sm text-muted-foreground">
+                        No {messageType} messages found
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </ScrollArea>
+            </div>
+          </>
+        ) : (
+          <div className="flex-1 flex items-center justify-center p-6">
             <div className="text-center">
               <MessageSquare className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-              <h3 className="text-lg font-medium mb-2">Select a Project</h3>
-              <p className="text-muted-foreground">
-                Choose a project to start messaging with your team
+              <h3 className="text-lg font-medium mb-2">Messages</h3>
+              <p className="text-muted-foreground text-sm">
+                No projects available. Create a project first to start messaging.
               </p>
             </div>
-          </CardContent>}
-      </Card>
+          </div>
+        )}
+      </div>
 
-      {/* Contact List Panel */}
-      {selectedProject && <Card className="w-80 flex flex-col">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm flex items-center gap-2">
-              <Users2 className="h-4 w-4" />
-              Project Team ({projectUsers.length})
-            </CardTitle>
-          </CardHeader>
-          
-          <CardContent className="flex-1 pt-0">
-            <ScrollArea className="h-full">
-              <div className="space-y-2">
-                 {projectUsers.map(member => {
-              const isOnline = onlineUsers.has(member.user_id) || member.isOnline;
-              const userProfile = member.user_profile;
-              return <div key={member.user_id} className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent cursor-pointer border border-transparent hover:border-border transition-all group" onClick={() => {
-                // Start direct message with this user
-                if (userProfile && profile?.user_id && member.user_id !== profile.user_id) {
-                  createThread(`Direct message with ${userProfile.name}`, [member.user_id]);
-                }
-              }}>
-                       <div className="relative">
-                         <Avatar className="h-10 w-10">
-                           <AvatarFallback className="bg-primary/10 text-primary font-medium">
-                             {(userProfile?.name || 'U').split(' ').map(n => n[0]).join('').toUpperCase()}
-                           </AvatarFallback>
-                         </Avatar>
-                         <Circle className={`h-3 w-3 absolute -bottom-0.5 -right-0.5 border-2 border-background rounded-full ${isOnline ? 'fill-construction-success text-construction-success' : 'fill-muted text-muted'}`} />
-                       </div>
-                       
-                       <div className="flex-1 min-w-0">
-                         <div className="text-sm font-medium truncate">{userProfile?.name || 'Unknown User'}</div>
-                         <div className="text-xs text-muted-foreground capitalize">{member.role}</div>
-                       </div>
-                       <div className="text-xs text-muted-foreground">
-                         {isOnline ? 'Online' : 'Offline'}
-                       </div>
-                     </div>;
-            })}
-                
-                {projectUsers.length === 0 && <div className="text-center py-8">
-                    <Users2 className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
-                    <p className="text-sm text-muted-foreground">No team members found</p>
-                  </div>}
+      {/* Main Chat Area - Modern Layout */}
+      <div className="flex-1 flex flex-col bg-background">
+        {selectedProject ? (
+          <>
+            {/* Chat Header - Cleaner Design */}
+            <div className="h-16 border-b border-border bg-background px-6 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                {messageType === 'direct' ? (
+                  <UserCircle className="h-5 w-5 text-muted-foreground" />
+                ) : (
+                  <div className="w-5 h-5 rounded bg-primary/10 flex items-center justify-center">
+                    <span className="text-xs font-semibold text-primary">#</span>
+                  </div>
+                )}
+                <div>
+                  <h1 className="font-semibold text-foreground">
+                    {currentThread ? threads.find(t => t.id === currentThread)?.title || 'Thread' : `${getCurrentProjectName()}`}
+                  </h1>
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <Users2 className="h-3 w-3" />
+                    <span>
+                      {currentThread 
+                        ? `${threads.find(t => t.id === currentThread)?.participants.length || 0} members` 
+                        : `${projectUsers.length} team members`
+                      }
+                    </span>
+                  </div>
+                </div>
               </div>
-            </ScrollArea>
-          </CardContent>
-        </Card>}
-    </div>;
+              
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <Circle className={cn("h-2 w-2 fill-current", connectionStatus === 'connected' ? 'text-green-500' : 'text-red-500')} />
+                <span>{connectionStatus === 'connected' ? 'Connected' : 'Disconnected'}</span>
+              </div>
+            </div>
+
+            {/* Messages Area - Clean Slack-like */}
+            <div className="flex-1 flex flex-col min-h-0">
+              <div className="flex-1 overflow-hidden">
+                <ScrollArea className="h-full">
+                  <div className="p-4 space-y-2">
+                    {messages.map((message, index) => {
+                      const previousMessage = messages[index - 1];
+                      const isConsecutive = isMessageConsecutive(message, previousMessage);
+                      const senderProfile = projectUsers.find(u => u.user_id === message.sender_id);
+
+                      return (
+                        <MessageBubble
+                          key={message.id}
+                          message={message}
+                          isOwnMessage={message.sender_id === profile?.user_id}
+                          senderName={senderProfile?.profiles?.name || 'Unknown User'}
+                          showAvatar={!isConsecutive}
+                          isConsecutive={isConsecutive}
+                        />
+                      );
+                    })}
+                    
+                    {typingUsers.length > 0 && (
+                      <div className="px-3">
+                        <TypingIndicator
+                          typingUsers={typingUsers}
+                          currentUserId={profile?.user_id}
+                        />
+                      </div>
+                    )}
+                    <div ref={messagesEndRef} />
+                  </div>
+                </ScrollArea>
+              </div>
+
+              {/* Message Input - Sticky bottom */}
+              <MessageInput
+                onSendMessage={handleSendMessage}
+                onTyping={setTypingIndicator}
+                placeholder={currentThread 
+                  ? "Message..." 
+                  : `Message ${getCurrentProjectName()}...`
+                }
+                disabled={!selectedProject}
+                supportAttachments={true}
+                supportMentions={true}
+                projectUsers={projectUsers}
+                projectId={selectedProject}
+                onCreateRFI={handleCreateRFI}
+              />
+            </div>
+          </>
+        ) : (
+          <div className="flex-1 flex items-center justify-center">
+            <div className="text-center max-w-md">
+              <MessageSquare className="mx-auto h-16 w-16 text-muted-foreground mb-6" />
+              <h3 className="text-xl font-semibold mb-2">Welcome to Messages</h3>
+              <p className="text-muted-foreground">
+                Select a project from the sidebar to start collaborating with your team.
+              </p>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Team Members - Right Sidebar */}
+      <div className="w-64 border-l border-border bg-muted/20 flex flex-col">
+        <div className="p-4 border-b border-border">
+          <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+            <Users2 className="h-4 w-4" />
+            Team ({projectUsers.length})
+          </h3>
+        </div>
+        
+        <div className="flex-1 overflow-hidden">
+          <ScrollArea className="h-full p-3">
+            <div className="space-y-1">
+              {projectUsers.map((user) => {
+                const isOnline = onlineUsers.includes(user.user_id);
+                const isCurrentUser = user.user_id === profile?.user_id;
+                
+                return (
+                  <div
+                    key={user.user_id}
+                    className={cn(
+                      "flex items-center gap-3 p-2 rounded-md transition-colors",
+                      !isCurrentUser ? "cursor-pointer hover:bg-accent/50" : "cursor-default"
+                    )}
+                    onClick={() => {
+                      if (!isCurrentUser) {
+                        const existingThread = threads.find(t => 
+                          t.participants.length === 2 && 
+                          t.participants.includes(user.user_id)
+                        );
+                        
+                        if (existingThread) {
+                          setCurrentThread(existingThread.id);
+                        } else {
+                          createThread(`Direct message with ${user.profiles?.name || 'User'}`, [user.user_id]);
+                        }
+                      }
+                    }}
+                  >
+                    <div className="relative">
+                      <Avatar className="h-8 w-8">
+                        <AvatarFallback className="text-xs font-medium bg-primary/10 text-primary">
+                          {user.profiles?.name?.charAt(0)?.toUpperCase() || 'U'}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className={cn(
+                        "absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-background",
+                        isOnline ? "bg-green-500" : "bg-muted-foreground/50"
+                      )} />
+                    </div>
+                    
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <p className="text-sm font-medium truncate text-foreground">
+                          {user.profiles?.name || 'Unknown User'}
+                        </p>
+                        {isCurrentUser && (
+                          <span className="text-xs text-muted-foreground">(you)</span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <p className="text-xs text-muted-foreground capitalize truncate">
+                          {user.role}
+                        </p>
+                        {isOnline && (
+                          <span className="text-xs text-green-600 font-medium">Online</span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </ScrollArea>
+        </div>
+      </div>
+    </div>
+  );
 };
+
 export default Messages;
