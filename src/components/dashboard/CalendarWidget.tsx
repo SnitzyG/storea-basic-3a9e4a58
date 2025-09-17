@@ -458,7 +458,7 @@ export const CalendarWidget = () => {
                             <SelectContent>
                               <SelectItem value="">No document</SelectItem>
                               {documents.map((doc) => (
-                                <SelectItem key={doc.id} value={doc.id}>
+                                <SelectItem key={doc.id} value={doc.id || ""}>
                                   <div className="flex items-center gap-2">
                                     <Paperclip className="h-4 w-4" />
                                     {doc.name}
@@ -477,7 +477,7 @@ export const CalendarWidget = () => {
                             <SelectContent>
                               <SelectItem value="">No RFI</SelectItem>
                               {rfis.map((rfi) => (
-                                <SelectItem key={rfi.id} value={rfi.id}>
+                                <SelectItem key={rfi.id} value={rfi.id || ""}>
                                   {rfi.rfi_number || rfi.subject || 'Untitled RFI'}
                                 </SelectItem>
                               ))}
@@ -493,7 +493,7 @@ export const CalendarWidget = () => {
                             <SelectContent>
                               <SelectItem value="">No message</SelectItem>
                               {messages.map((message) => (
-                                <SelectItem key={message.id} value={message.id}>
+                                <SelectItem key={message.id} value={message.id || ""}>
                                   {message.content.substring(0, 50)}...
                                 </SelectItem>
                               ))}
