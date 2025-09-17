@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { useActivity } from '@/hooks/useActivity';
 import { useTodos } from '@/hooks/useTodos';
 import { useToast } from '@/hooks/use-toast';
+import { useProjectSelection } from '@/context/ProjectSelectionContext';
 import { formatDistanceToNow, addDays } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
 import { 
@@ -53,7 +54,8 @@ const entityTypeColors = {
 };
 
 export const RecentActivity = () => {
-  const { activities, loading } = useActivity();
+  const { selectedProject } = useProjectSelection();
+  const { activities, loading } = useActivity(selectedProject?.id);
   const navigate = useNavigate();
   const { toast } = useToast();
   const { addTodo } = useTodos();

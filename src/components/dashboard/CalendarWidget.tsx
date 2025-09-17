@@ -16,6 +16,7 @@ import { format, isSameDay, startOfMonth, endOfMonth, eachDayOfInterval } from '
 import { useTodos } from '@/hooks/useTodos';
 import { useToast } from '@/hooks/use-toast';
 import { useDocuments } from '@/hooks/useDocuments';
+import { useProjectSelection } from '@/context/ProjectSelectionContext';
 
 export const CalendarWidget = () => {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
@@ -34,8 +35,9 @@ export const CalendarWidget = () => {
   const [eventDate, setEventDate] = useState<Date | undefined>(new Date());
   const [editingEvent, setEditingEvent] = useState<any>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const { todos, addTodo, updateTodo, deleteTodo } = useTodos();
-  const { documents } = useDocuments();
+  const { selectedProject } = useProjectSelection();
+  const { todos, addTodo, updateTodo, deleteTodo } = useTodos(selectedProject?.id);
+  const { documents } = useDocuments(selectedProject?.id);
   const { toast } = useToast();
 
   // Get todos for a specific date

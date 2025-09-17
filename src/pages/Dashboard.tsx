@@ -13,12 +13,13 @@ import { GlobalSearch } from '@/components/search/GlobalSearch';
 import { useTheme } from '@/context/ThemeContext';
 import { useAuth } from '@/hooks/useAuth';
 import { useProjects } from '@/hooks/useProjects';
+import { useProjectSelection } from '@/context/ProjectSelectionContext';
 const Dashboard = () => {
   const [searchOpen, setSearchOpen] = useState(false);
-  const [selectedProject, setSelectedProject] = useState<string>('all');
   const { theme, toggleTheme } = useTheme();
   const { profile } = useAuth();
   const { projects } = useProjects();
+  const { selectedProject } = useProjectSelection();
   const navigate = useNavigate();
 
   // Keyboard shortcuts
@@ -36,8 +37,6 @@ const Dashboard = () => {
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, []);
   const userName = profile?.name || 'username';
-  const filteredProjects = selectedProject === 'all' ? projects : projects.filter(p => p.id === selectedProject);
-  const selectedProjectName = selectedProject === 'all' ? 'All Projects' : projects.find(p => p.id === selectedProject)?.name || 'All Projects';
 
   return (
     <div className="h-full flex flex-col bg-background">

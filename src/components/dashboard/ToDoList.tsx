@@ -14,6 +14,7 @@ import { CheckSquare, Trash2, Plus, Calendar, FileText, MessageSquare, HelpCircl
 import { useTodos, Todo } from '@/hooks/useTodos';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
+import { useProjectSelection } from '@/context/ProjectSelectionContext';
 
 export const ToDoList = () => {
   const [newTodo, setNewTodo] = useState('');
@@ -27,7 +28,8 @@ export const ToDoList = () => {
   const [collaborators, setCollaborators] = useState<string[]>([]);
   const [collaboratorEmail, setCollaboratorEmail] = useState('');
   const [exportFormat, setExportFormat] = useState<'day' | 'week' | 'fortnight' | 'month'>('week');
-  const { todos, addTodo: createTodo, toggleTodo, deleteTodo, loading } = useTodos();
+  const { selectedProject } = useProjectSelection();
+  const { todos, addTodo: createTodo, toggleTodo, deleteTodo, loading } = useTodos(selectedProject?.id);
   const { toast } = useToast();
 
   const addCollaborator = () => {
