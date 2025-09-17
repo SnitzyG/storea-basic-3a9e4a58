@@ -298,7 +298,7 @@ const Messages = () => {
         <div className="p-3 border-b border-border">
           <div className="flex gap-2">
             {projects.length > 0 ? (
-              <CreateThreadDialog projectId={selectedProject} onCreateThread={handleCreateThread}>
+              <CreateThreadDialog projectId={selectedProject?.id || ''} onCreateThread={handleCreateThread}>
                 <Button size="sm" variant="outline" className="flex-1">
                   <Plus className="h-4 w-4 mr-2" />
                   New Message
