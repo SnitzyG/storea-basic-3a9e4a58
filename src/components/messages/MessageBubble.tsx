@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Message } from '@/hooks/useMessages';
@@ -84,9 +85,25 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
                 {message.attachments.map((attachment, index) => (
                   <div key={index} className="flex items-center gap-2 p-2 rounded border bg-background/50">
                     <div className="text-sm">📎</div>
-                    <span className="text-xs font-medium truncate">
-                      {attachment.name || 'Attachment'}
-                    </span>
+                    {attachment.type === 'document' ? (
+                      <Link 
+                        to={`/documents?highlight=${attachment.id}`}
+                        className="text-xs font-medium text-primary hover:underline truncate"
+                      >
+                        {attachment.name || 'Document'}
+                      </Link>
+                    ) : attachment.type === 'rfi' ? (
+                      <Link 
+                        to={`/rfis?highlight=${attachment.id}`}
+                        className="text-xs font-medium text-primary hover:underline truncate"
+                      >
+                        {attachment.name || 'RFI'}
+                      </Link>
+                    ) : (
+                      <span className="text-xs font-medium truncate">
+                        {attachment.name || 'Attachment'}
+                      </span>
+                    )}
                   </div>
                 ))}
               </div>

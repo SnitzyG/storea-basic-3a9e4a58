@@ -137,29 +137,6 @@ export const CreateThreadDialog: React.FC<CreateThreadDialogProps> = ({
               </div>
             )}
 
-            <div className="flex gap-2">
-              <Input
-                id="participants"
-                placeholder="Enter name or email..."
-                value={participantEmail}
-                onChange={(e) => setParticipantEmail(e.target.value)}
-                onKeyPress={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault();
-                    addParticipant();
-                  }
-                }}
-              />
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={addParticipant}
-                disabled={!participantEmail}
-              >
-                <Plus className="h-4 w-4" />
-              </Button>
-            </div>
             
             {participants.length > 0 && (
               <div className="flex flex-wrap gap-2 mt-2">

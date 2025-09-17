@@ -297,27 +297,20 @@ const Messages = () => {
           </div>
         </div>
 
-        {/* Quick Actions */}
-        <div className="p-3 border-b border-border">
-          <div className="flex gap-2">
-            {projects.length > 0 ? (
-              <CreateThreadDialog projectId={selectedProject?.id || ''} onCreateThread={handleCreateThread}>
-                <Button size="sm" variant="outline" className="flex-1">
-                  <Plus className="h-4 w-4 mr-2" />
-                  New Message
-                </Button>
-              </CreateThreadDialog>
-            ) : (
-              <Button size="sm" variant="outline" disabled className="flex-1">
-                <Plus className="h-4 w-4 mr-2" />
-                New Message
-              </Button>
-            )}
-          </div>
-        </div>
-
         {projects.length > 0 ? (
           <>
+            {/* Quick Actions */}
+            <div className="p-3 border-b border-border">
+              <div className="flex gap-2">
+                <CreateThreadDialog projectId={selectedProject?.id || ''} onCreateThread={handleCreateThread}>
+                  <Button size="sm" variant="outline" className="flex-1">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Create Message
+                  </Button>
+                </CreateThreadDialog>
+              </div>
+            </div>
+
             {/* Message Type Tabs */}
             <div className="px-3 py-2">
               <div className="flex bg-background rounded-md p-1 shadow-sm">
@@ -347,7 +340,7 @@ const Messages = () => {
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
                 <Input 
-                  placeholder={`Search ${messageType === 'direct' ? 'direct messages' : 'channels'}...`} 
+                  placeholder="Search messages..." 
                   value={searchTerm} 
                   onChange={e => setSearchTerm(e.target.value)} 
                   className="pl-10 h-9 bg-background border-border"
@@ -357,14 +350,11 @@ const Messages = () => {
 
             {/* Conversations List */}
             <div className="flex-1 overflow-hidden">
-              <div className="px-3 pb-2">
-                <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                  {messageType === 'direct' ? 'Direct Messages' : 'Channels'}
-                </h3>
-              </div>
               <ScrollArea className="flex-1 px-3">
                 <div className="space-y-1">
-                  {filteredThreads.map(thread => {
+                  {threads.filter(thread => 
+                    thread.title.toLowerCase().includes(searchTerm.toLowerCase())
+                  ).map(thread => {
                     const isDirect = thread.participants.length === 2;
                     return (
                       <ThreadCard 
@@ -381,11 +371,11 @@ const Messages = () => {
                     );
                   })}
                   
-                  {filteredThreads.length === 0 && selectedProject && (
+                  {threads.length === 0 && selectedProject && (
                     <div className="text-center py-8">
                       <MessageSquare className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
                       <p className="text-sm text-muted-foreground">
-                        No {messageType} messages found
+                        Create your first message
                       </p>
                     </div>
                   )}
@@ -413,27 +403,39 @@ const Messages = () => {
             {/* Chat Header - Cleaner Design */}
             <div className="h-16 border-b border-border bg-background px-6 flex items-center justify-between">
               <div className="flex items-center gap-3">
-                {messageType === 'direct' ? (
-                  <UserCircle className="h-5 w-5 text-muted-foreground" />
-                ) : (
-                  <div className="w-5 h-5 rounded bg-primary/10 flex items-center justify-center">
-                    <span className="text-xs font-semibold text-primary">#</span>
+                {currentThread && (
+                  <>
+                    {threads.find(t => t.id === currentThread)?.participants.length === 2 ? (
+                      <UserCircle className="h-5 w-5 text-muted-foreground" />
+                    ) : (
+                      <div className="w-5 h-5 rounded bg-primary/10 flex items-center justify-center">
+                        <span className="text-xs font-semibold text-primary">#</span>
+                      </div>
+                    )}
+                    <div>
+                      <h1 className="font-semibold text-foreground">
+                        {threads.find(t => t.id === currentThread)?.title || 'Thread'}
+                      </h1>
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                        <Users2 className="h-3 w-3" />
+                        <span>
+                          {threads.find(t => t.id === currentThread)?.participants.length || 0} members
+                        </span>
+                      </div>
+                    </div>
+                  </>
+                )}
+                {!currentThread && (
+                  <div>
+                    <h1 className="font-semibold text-foreground">
+                      {getCurrentProjectName()}
+                    </h1>
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <Users2 className="h-3 w-3" />
+                      <span>{projectUsers.length} team members</span>
+                    </div>
                   </div>
                 )}
-                <div>
-                  <h1 className="font-semibold text-foreground">
-                    {currentThread ? threads.find(t => t.id === currentThread)?.title || 'Thread' : `${getCurrentProjectName()}`}
-                  </h1>
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                    <Users2 className="h-3 w-3" />
-                    <span>
-                      {currentThread 
-                        ? `${threads.find(t => t.id === currentThread)?.participants.length || 0} members` 
-                        : `${projectUsers.length} team members`
-                      }
-                    </span>
-                  </div>
-                </div>
               </div>
               
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
@@ -507,17 +509,17 @@ const Messages = () => {
         )}
       </div>
 
-      {/* Team Members - Right Sidebar */}
-      <div className="w-64 border-l border-border bg-muted/20 flex flex-col">
-        <div className="p-4 border-b border-border">
-          <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
-            <Users2 className="h-4 w-4" />
+      {/* Smaller Team Column - Integrated */}
+      <div className="w-48 border-l border-border bg-muted/10 flex flex-col">
+        <div className="p-3 border-b border-border">
+          <h3 className="text-xs font-semibold text-foreground flex items-center gap-2">
+            <Users2 className="h-3 w-3" />
             Team ({projectUsers.length})
           </h3>
         </div>
         
         <div className="flex-1 overflow-hidden">
-          <ScrollArea className="h-full p-3">
+          <ScrollArea className="h-full p-2">
             <div className="space-y-1">
               {projectUsers.map((user) => {
                 const isOnline = onlineUsers.has(user.user_id);
@@ -527,7 +529,7 @@ const Messages = () => {
                   <div
                     key={user.user_id}
                     className={cn(
-                      "flex items-center gap-3 p-2 rounded-md transition-colors",
+                      "flex items-center gap-2 p-1.5 rounded-md transition-colors",
                       !isCurrentUser ? "cursor-pointer hover:bg-accent/50" : "cursor-default"
                     )}
                     onClick={() => {
@@ -546,34 +548,29 @@ const Messages = () => {
                     }}
                   >
                     <div className="relative">
-                      <Avatar className="h-8 w-8">
+                      <Avatar className="h-6 w-6">
                         <AvatarFallback className="text-xs font-medium bg-primary/10 text-primary">
                           {user.user_profile?.name?.charAt(0)?.toUpperCase() || 'U'}
                         </AvatarFallback>
                       </Avatar>
                       <div className={cn(
-                        "absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-background",
+                        "absolute -bottom-0.5 -right-0.5 h-2 w-2 rounded-full border border-background",
                         isOnline ? "bg-green-500" : "bg-muted-foreground/50"
                       )} />
                     </div>
                     
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <p className="text-sm font-medium truncate text-foreground">
+                      <div className="flex items-center gap-1">
+                        <p className="text-xs font-medium truncate text-foreground">
                           {user.user_profile?.name || 'Unknown User'}
                         </p>
                         {isCurrentUser && (
                           <span className="text-xs text-muted-foreground">(you)</span>
                         )}
                       </div>
-                      <div className="flex items-center gap-2">
-                        <p className="text-xs text-muted-foreground capitalize truncate">
-                          {user.role}
-                        </p>
-                        {isOnline && (
-                          <span className="text-xs text-green-600 font-medium">Online</span>
-                        )}
-                      </div>
+                      <p className="text-xs text-muted-foreground capitalize truncate">
+                        {user.role}
+                      </p>
                     </div>
                   </div>
                 );

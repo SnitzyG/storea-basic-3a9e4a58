@@ -143,13 +143,13 @@ export const MessageInput: React.FC<MessageInputProps> = ({
     const lastAtIndex = message.lastIndexOf('@');
     const beforeAt = message.slice(0, lastAtIndex);
     const afterMention = message.slice(lastAtIndex + mentionQuery.length + 1);
-    setMessage(`${beforeAt}@${user.profiles?.name || 'User'} ${afterMention}`);
+    setMessage(`${beforeAt}@${user.user_profile?.name || 'User'} ${afterMention}`);
     setShowMentions(false);
     textareaRef.current?.focus();
   };
 
   const filteredUsers = projectUsers.filter(user =>
-    user.profiles?.name?.toLowerCase().includes(mentionQuery.toLowerCase()) ||
+    user.user_profile?.name?.toLowerCase().includes(mentionQuery.toLowerCase()) ||
     user.role.toLowerCase().includes(mentionQuery.toLowerCase())
   );
 
@@ -185,11 +185,6 @@ export const MessageInput: React.FC<MessageInputProps> = ({
               Formal inquiry
             </Label>
           </div>
-          {isInquiry && (
-            <p className="text-xs text-muted-foreground mt-1 ml-6">
-              Creates an RFI entry requiring response
-            </p>
-          )}
         </div>
       )}
 
@@ -278,11 +273,11 @@ export const MessageInput: React.FC<MessageInputProps> = ({
                         >
                           <Avatar className="h-6 w-6">
                             <AvatarFallback className="text-xs bg-primary/10 text-primary">
-                              {user.profiles?.name?.charAt(0)?.toUpperCase() || 'U'}
+                              {user.user_profile?.name?.charAt(0)?.toUpperCase() || 'U'}
                             </AvatarFallback>
                           </Avatar>
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium truncate">{user.profiles?.name || 'Unknown User'}</p>
+                            <p className="text-sm font-medium truncate">{user.user_profile?.name || 'Unknown User'}</p>
                             <p className="text-xs text-muted-foreground capitalize">{user.role}</p>
                           </div>
                         </div>
