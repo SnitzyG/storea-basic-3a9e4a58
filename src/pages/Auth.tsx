@@ -26,12 +26,21 @@ const Auth = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [emailConfirmed, setEmailConfirmed] = useState(false);
   const [showWipeButton, setShowWipeButton] = useState(false);
+
+  // Early return for loading to prevent conditional hook execution
+  if (loading) {
+    return <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-center">Loading...</div>
+      </div>;
+  }
+
   useEffect(() => {
     // Check if user came from email confirmation
     if (searchParams.get('confirmed') === 'true') {
       setEmailConfirmed(true);
     }
   }, [searchParams]);
+
   useEffect(() => {
     if (user) {
       // Check for pending invitation tokens
@@ -52,11 +61,6 @@ const Auth = () => {
       }
     }
   }, [user, navigate]);
-  if (loading) {
-    return <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-center">Loading...</div>
-      </div>;
-  }
   // Remove this since navigation is now handled in useEffect
   // This prevents double navigation
   const handleSignIn = async (e: React.FormEvent) => {
