@@ -170,7 +170,7 @@ export const MessageInput: React.FC<MessageInputProps> = ({
   }, []);
 
   return (
-    <div className="border-t border-border bg-background">
+    <div className="bg-background border-t border-border">
       {/* Inquiry Mode Toggle - Compact */}
       {onCreateRFI && (
         <div className="px-4 py-2 border-b border-border/50">
@@ -206,13 +206,13 @@ export const MessageInput: React.FC<MessageInputProps> = ({
         <div className="px-4 py-2 border-b border-border/50">
           <div className="flex flex-wrap gap-2">
             {attachments.map((attachment, index) => (
-              <div key={index} className="flex items-center gap-2 bg-muted/50 rounded px-2 py-1 text-xs">
+              <div key={index} className="flex items-center gap-2 bg-primary/10 rounded-full px-3 py-1 text-xs">
                 <span>📎 {attachment.name || 'Attachment'}</span>
                 <Button
                   type="button"
                   variant="ghost"
                   size="sm"
-                  className="h-4 w-4 p-0 hover:bg-destructive/20"
+                  className="h-4 w-4 p-0 hover:bg-destructive/20 rounded-full"
                   onClick={() => removeAttachment(index)}
                 >
                   <X className="h-3 w-3" />
@@ -225,22 +225,20 @@ export const MessageInput: React.FC<MessageInputProps> = ({
 
       <div className="p-4">
         <form onSubmit={handleSubmit}>
-          <div className="flex gap-2 items-end bg-background border border-border rounded-lg focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary">
+          <div className="flex gap-3 items-end bg-muted/30 rounded-full p-2 focus-within:bg-background focus-within:ring-2 focus-within:ring-primary/20 transition-all">
             {/* Left Actions */}
-            <div className="flex items-end p-2 gap-1">
-              {supportAttachments && (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
-                  disabled={disabled || sending}
-                  onClick={() => setShowFileSelector(!showFileSelector)}
-                >
-                  <Paperclip className="h-4 w-4" />
-                </Button>
-              )}
-            </div>
+            {supportAttachments && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="h-10 w-10 p-0 text-muted-foreground hover:text-foreground hover:bg-muted rounded-full flex-shrink-0"
+                disabled={disabled || sending}
+                onClick={() => setShowFileSelector(!showFileSelector)}
+              >
+                <Paperclip className="h-5 w-5" />
+              </Button>
+            )}
             
             {/* Message Input with Mentions */}
             <div className="flex-1 relative">
@@ -254,7 +252,7 @@ export const MessageInput: React.FC<MessageInputProps> = ({
                 className={cn(
                   "min-h-[40px] max-h-[120px] resize-none border-0 bg-transparent",
                   "focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-muted-foreground/70",
-                  "text-sm leading-relaxed"
+                  "text-sm leading-relaxed py-2"
                 )}
                 rows={1}
               />
@@ -289,20 +287,20 @@ export const MessageInput: React.FC<MessageInputProps> = ({
             </div>
 
             {/* Right Actions */}
-            <div className="flex items-end p-2 gap-1">
+            <div className="flex items-end gap-1">
               {supportMentions && (
                 <Button
                   type="button"
                   variant="ghost"
                   size="sm"
-                  className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
+                  className="h-10 w-10 p-0 text-muted-foreground hover:text-foreground hover:bg-muted rounded-full"
                   disabled={disabled || sending}
                   onClick={() => {
                     setMessage(prev => prev + '@');
                     textareaRef.current?.focus();
                   }}
                 >
-                  <AtSign className="h-4 w-4" />
+                  <AtSign className="h-5 w-5" />
                 </Button>
               )}
 
@@ -310,22 +308,22 @@ export const MessageInput: React.FC<MessageInputProps> = ({
                 type="button"
                 variant="ghost"
                 size="sm"
-                className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
+                className="h-10 w-10 p-0 text-muted-foreground hover:text-foreground hover:bg-muted rounded-full"
                 disabled={disabled}
               >
-                <Smile className="h-4 w-4" />
+                <Smile className="h-5 w-5" />
               </Button>
               
               <Button
                 type="submit"
                 size="sm"
                 disabled={(!message.trim() && attachments.length === 0) || sending || disabled}
-                className="h-8 w-8 p-0 ml-1"
+                className="h-10 w-10 p-0 rounded-full flex-shrink-0"
               >
                 {sending ? (
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current" />
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-current" />
                 ) : (
-                  <Send className="h-4 w-4" />
+                  <Send className="h-5 w-5" />
                 )}
               </Button>
             </div>

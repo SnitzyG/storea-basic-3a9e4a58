@@ -281,175 +281,217 @@ const Messages = () => {
 
   return (
     <div className="h-[calc(100vh-8rem)] flex bg-background">
-      {/* Sidebar - Slack-inspired */}
-      <div className="w-80 border-r border-border bg-muted/30 flex flex-col">
-        {/* Workspace Header */}
-        <div className="p-4 border-b border-border">
-          <div className="flex items-center gap-2 mb-2">
-            <div className="w-6 h-6 rounded bg-primary text-primary-foreground flex items-center justify-center text-sm font-semibold">
+      {/* WhatsApp-style Sidebar */}
+      <div className="w-80 border-r border-border bg-background flex flex-col">
+        {/* Header with Project Info */}
+        <div className="p-4 border-b border-border bg-muted/30">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-semibold">
               {getCurrentProjectName().charAt(0).toUpperCase()}
             </div>
-            <span className="font-semibold text-foreground">{getCurrentProjectName()}</span>
+            <div className="flex-1">
+              <h2 className="font-semibold text-foreground">{getCurrentProjectName()}</h2>
+              <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                <Circle className={cn("h-2 w-2 fill-current", connectionStatus === 'connected' ? 'text-green-500' : 'text-red-500')} />
+                {onlineUsers.size} online
+              </div>
+            </div>
           </div>
-          <div className="flex items-center gap-1 text-sm text-muted-foreground">
-            <Circle className={cn("h-2 w-2 fill-current", connectionStatus === 'connected' ? 'text-green-500' : 'text-red-500')} />
-            {onlineUsers.size} online
+
+          {/* Create Message Button */}
+          <CreateThreadDialog projectId={selectedProject?.id || ''} onCreateThread={handleCreateThread}>
+            <Button variant="outline" className="w-full">
+              <Plus className="h-4 w-4 mr-2" />
+              Create Message
+            </Button>
+          </CreateThreadDialog>
+        </div>
+
+        {/* Direct/Channels Toggle */}
+        <div className="p-3 border-b border-border">
+          <div className="flex bg-muted rounded-lg p-1">
+            <Button 
+              variant={messageType === 'direct' ? 'default' : 'ghost'} 
+              size="sm" 
+              className="flex-1 text-xs h-8"
+              onClick={() => setMessageType('direct')}
+            >
+              <UserCircle className="h-3 w-3 mr-1" />
+              Direct
+            </Button>
+            <Button 
+              variant={messageType === 'group' ? 'default' : 'ghost'} 
+              size="sm" 
+              className="flex-1 text-xs h-8"
+              onClick={() => setMessageType('group')}
+            >
+              <Users2 className="h-3 w-3 mr-1" />
+              Channels
+            </Button>
           </div>
         </div>
 
-        {projects.length > 0 ? (
-          <>
-            {/* Quick Actions */}
-            <div className="p-3 border-b border-border">
-              <div className="flex gap-2">
-                <CreateThreadDialog projectId={selectedProject?.id || ''} onCreateThread={handleCreateThread}>
-                  <Button size="sm" variant="outline" className="flex-1">
-                    <Plus className="h-4 w-4 mr-2" />
-                    Create Message
-                  </Button>
-                </CreateThreadDialog>
-              </div>
-            </div>
-
-            {/* Message Type Tabs */}
-            <div className="px-3 py-2">
-              <div className="flex bg-background rounded-md p-1 shadow-sm">
-                <Button 
-                  variant={messageType === 'direct' ? 'default' : 'ghost'} 
-                  size="sm" 
-                  className="flex-1 text-xs"
-                  onClick={() => setMessageType('direct')}
-                >
-                  <UserCircle className="h-3 w-3 mr-1" />
-                  Direct
-                </Button>
-                <Button 
-                  variant={messageType === 'group' ? 'default' : 'ghost'} 
-                  size="sm" 
-                  className="flex-1 text-xs"
-                  onClick={() => setMessageType('group')}
-                >
-                  <Users2 className="h-3 w-3 mr-1" />
-                  Channels
-                </Button>
-              </div>
-            </div>
-
-            {/* Search */}
-            <div className="px-3 pb-3">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                <Input 
-                  placeholder="Search messages..." 
-                  value={searchTerm} 
-                  onChange={e => setSearchTerm(e.target.value)} 
-                  className="pl-10 h-9 bg-background border-border"
-                />
-              </div>
-            </div>
-
-            {/* Conversations List */}
-            <div className="flex-1 overflow-hidden">
-              <ScrollArea className="flex-1 px-3">
-                <div className="space-y-1">
-                  {threads.filter(thread => 
-                    thread.title.toLowerCase().includes(searchTerm.toLowerCase())
-                  ).map(thread => {
-                    const isDirect = thread.participants.length === 2;
-                    return (
-                      <ThreadCard 
-                        key={thread.id} 
-                        thread={thread} 
-                        unreadCount={0} 
-                        isSelected={currentThread === thread.id} 
-                        onClick={() => setCurrentThread(thread.id)} 
-                        isDirect={isDirect} 
-                        onEdit={title => updateThreadTitle(thread.id, title)} 
-                        onClose={() => closeThread(thread.id)} 
-                        onDelete={() => deleteThread(thread.id)} 
-                      />
-                    );
-                  })}
-                  
-                  {threads.length === 0 && selectedProject && (
-                    <div className="text-center py-8">
-                      <MessageSquare className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
-                      <p className="text-sm text-muted-foreground">
-                        Create your first message
-                      </p>
-                    </div>
-                  )}
-                </div>
-              </ScrollArea>
-            </div>
-          </>
-        ) : (
-          <div className="flex-1 flex items-center justify-center p-6">
-            <div className="text-center">
-              <MessageSquare className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-              <h3 className="text-lg font-medium mb-2">Messages</h3>
-              <p className="text-muted-foreground text-sm">
-                No projects available. Create a project first to start messaging.
-              </p>
-            </div>
+        {/* Search */}
+        <div className="px-3 pb-3">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+            <Input 
+              placeholder="Search messages..." 
+              value={searchTerm} 
+              onChange={e => setSearchTerm(e.target.value)} 
+              className="pl-10 h-9 bg-muted/50 border-border rounded-full"
+            />
           </div>
-        )}
-      </div>
+        </div>
 
-      {/* Main Chat Area - Modern Layout */}
-      <div className="flex-1 flex flex-col bg-background">
-        {selectedProject ? (
-          <>
-            {/* Chat Header - Cleaner Design */}
-            <div className="h-16 border-b border-border bg-background px-6 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                {currentThread && (
-                  <>
-                    {threads.find(t => t.id === currentThread)?.participants.length === 2 ? (
-                      <UserCircle className="h-5 w-5 text-muted-foreground" />
-                    ) : (
-                      <div className="w-5 h-5 rounded bg-primary/10 flex items-center justify-center">
-                        <span className="text-xs font-semibold text-primary">#</span>
-                      </div>
+        {/* Conversations List */}
+        <div className="flex-1 overflow-hidden">
+          <ScrollArea className="h-full">
+            <div className="space-y-0">
+              {filteredThreads.map(thread => {
+                const isDirect = thread.participants.length === 2;
+                const otherParticipant = isDirect 
+                  ? projectUsers.find(u => u.user_id !== profile?.user_id && thread.participants.includes(u.user_id))
+                  : null;
+                
+                return (
+                  <div
+                    key={thread.id}
+                    className={cn(
+                      "p-3 cursor-pointer border-b border-border/50 hover:bg-muted/50 transition-colors",
+                      currentThread === thread.id && "bg-primary/10 border-l-4 border-l-primary"
                     )}
-                    <div>
-                      <h1 className="font-semibold text-foreground">
-                        {threads.find(t => t.id === currentThread)?.title || 'Thread'}
-                      </h1>
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                        <Users2 className="h-3 w-3" />
-                        <span>
-                          {threads.find(t => t.id === currentThread)?.participants.length || 0} members
-                        </span>
+                    onClick={() => setCurrentThread(thread.id)}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="relative">
+                        {isDirect && otherParticipant ? (
+                          <Avatar className="h-12 w-12">
+                            <AvatarFallback className="text-sm font-medium bg-primary/10 text-primary">
+                              {otherParticipant.user_profile?.name?.charAt(0)?.toUpperCase() || 'U'}
+                            </AvatarFallback>
+                          </Avatar>
+                        ) : (
+                          <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center">
+                            <Users2 className="h-6 w-6 text-muted-foreground" />
+                          </div>
+                        )}
+                        {isDirect && otherParticipant && onlineUsers.has(otherParticipant.user_id) && (
+                          <div className="absolute bottom-0 right-0 h-3 w-3 bg-green-500 rounded-full border-2 border-background" />
+                        )}
                       </div>
-                    </div>
-                  </>
-                )}
-                {!currentThread && (
-                  <div>
-                    <h1 className="font-semibold text-foreground">
-                      {getCurrentProjectName()}
-                    </h1>
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                      <Users2 className="h-3 w-3" />
-                      <span>{projectUsers.length} team members</span>
+                      
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between">
+                          <h3 className="font-medium text-foreground truncate">
+                            {isDirect && otherParticipant 
+                              ? otherParticipant.user_profile?.name || 'Unknown User'
+                              : thread.title
+                            }
+                          </h3>
+                          <span className="text-xs text-muted-foreground">
+                            {thread.updated_at ? new Date(thread.updated_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : ''}
+                          </span>
+                        </div>
+                        <p className="text-sm text-muted-foreground truncate">
+                          {isDirect ? (
+                            typingUsers.has(otherParticipant?.user_id || '') ? 'typing...' : 'No messages yet'
+                          ) : (
+                            `${thread.participants.length} members`
+                          )}
+                        </p>
+                      </div>
                     </div>
                   </div>
-                )}
-              </div>
+                );
+              })}
               
-              <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                <Circle className={cn("h-2 w-2 fill-current", connectionStatus === 'connected' ? 'text-green-500' : 'text-red-500')} />
-                <span>{connectionStatus === 'connected' ? 'Connected' : 'Disconnected'}</span>
+              {filteredThreads.length === 0 && (
+                <div className="text-center py-12 px-4">
+                  <MessageSquare className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+                  <h3 className="font-medium text-foreground mb-2">No conversations</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Create your first message to get started
+                  </p>
+                </div>
+              )}
+            </div>
+          </ScrollArea>
+        </div>
+      </div>
+
+      {/* WhatsApp-style Main Chat */}
+      <div className="flex-1 flex flex-col bg-muted/20">
+        {currentThread ? (
+          <>
+            {/* Chat Header */}
+            <div className="h-16 border-b border-border bg-background px-6 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                {(() => {
+                  const thread = threads.find(t => t.id === currentThread);
+                  const isDirect = thread?.participants.length === 2;
+                  const otherParticipant = isDirect 
+                    ? projectUsers.find(u => u.user_id !== profile?.user_id && thread.participants.includes(u.user_id))
+                    : null;
+                  
+                  return (
+                    <>
+                      <div className="relative">
+                        {isDirect && otherParticipant ? (
+                          <Avatar className="h-10 w-10">
+                            <AvatarFallback className="text-sm font-medium bg-primary/10 text-primary">
+                              {otherParticipant.user_profile?.name?.charAt(0)?.toUpperCase() || 'U'}
+                            </AvatarFallback>
+                          </Avatar>
+                        ) : (
+                          <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                            <Users2 className="h-5 w-5 text-primary" />
+                          </div>
+                        )}
+                        {isDirect && otherParticipant && onlineUsers.has(otherParticipant.user_id) && (
+                          <div className="absolute bottom-0 right-0 h-3 w-3 bg-green-500 rounded-full border-2 border-background" />
+                        )}
+                      </div>
+                      
+                      <div>
+                        <h1 className="font-semibold text-foreground">
+                          {isDirect && otherParticipant 
+                            ? otherParticipant.user_profile?.name || 'Unknown User'
+                            : thread?.title || 'Thread'
+                          }
+                        </h1>
+                        <div className="text-xs text-muted-foreground">
+                          {isDirect && otherParticipant ? (
+                            onlineUsers.has(otherParticipant.user_id) ? 'online' : 'last seen recently'
+                          ) : (
+                            `${thread?.participants.length || 0} members`
+                          )}
+                        </div>
+                      </div>
+                    </>
+                  );
+                })()}
               </div>
             </div>
 
-            {/* Messages Area - Clean Slack-like */}
-            <div className="flex-1 flex flex-col min-h-0">
-              <div className="flex-1 overflow-hidden">
-                <ScrollArea className="h-full">
-                  <div className="p-4 space-y-2">
-                    {messages.map((message, index) => {
+            {/* Messages Area with WhatsApp styling */}
+            <div className="flex-1 overflow-hidden relative">
+              {/* Chat background pattern */}
+              <div className="absolute inset-0 opacity-5" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60' viewBox='0 0 60 60'%3E%3Ccircle cx='30' cy='30' r='2' fill='%23000'/%3E%3C/svg%3E")`, backgroundRepeat: 'repeat' }}></div>
+              
+              <ScrollArea className="h-full">
+                <div className="p-4 space-y-1 relative z-10">
+                  {messages.length === 0 ? (
+                    <div className="text-center py-12">
+                      <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-muted flex items-center justify-center">
+                        <MessageSquare className="h-8 w-8 text-muted-foreground" />
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        Send a message to start the conversation
+                      </p>
+                    </div>
+                  ) : (
+                    messages.map((message, index) => {
                       const previousMessage = messages[index - 1];
                       const isConsecutive = isMessageConsecutive(message, previousMessage);
                       const senderProfile = projectUsers.find(u => u.user_id === message.sender_id);
@@ -464,120 +506,46 @@ const Messages = () => {
                           isConsecutive={isConsecutive}
                         />
                       );
-                    })}
-                    
-                    {typingUsers.size > 0 && (
-                      <div className="px-3">
-                        <TypingIndicator
-                          typingUsers={Array.from(typingUsers)}
-                          currentUserId={profile?.user_id}
-                        />
-                      </div>
-                    )}
-                    <div ref={messagesEndRef} />
-                  </div>
-                </ScrollArea>
-              </div>
-
-              {/* Message Input - Sticky bottom */}
-              <MessageInput
-                onSendMessage={handleSendMessage}
-                onTyping={setTypingIndicator}
-                placeholder={currentThread 
-                  ? "Message..." 
-                  : `Message ${getCurrentProjectName()}...`
-                }
-                disabled={!selectedProject}
-                supportAttachments={true}
-                supportMentions={true}
-                projectUsers={projectUsers}
-            projectId={selectedProject?.id || ''}
-                onCreateRFI={handleCreateRFI}
-              />
+                    })
+                  )}
+                  
+                  {typingUsers.size > 0 && (
+                    <TypingIndicator
+                      typingUsers={Array.from(typingUsers)}
+                      currentUserId={profile?.user_id}
+                    />
+                  )}
+                  <div ref={messagesEndRef} />
+                </div>
+              </ScrollArea>
             </div>
+
+            {/* WhatsApp-style Message Input */}
+            <MessageInput
+              onSendMessage={handleSendMessage}
+              onTyping={setTypingIndicator}
+              placeholder="Type a message..."
+              disabled={!selectedProject}
+              supportAttachments={true}
+              supportMentions={true}
+              projectUsers={projectUsers}
+              projectId={selectedProject?.id || ''}
+              onCreateRFI={handleCreateRFI}
+            />
           </>
         ) : (
-          <div className="flex-1 flex items-center justify-center">
+          <div className="flex-1 flex items-center justify-center bg-muted/20">
             <div className="text-center max-w-md">
-              <MessageSquare className="mx-auto h-16 w-16 text-muted-foreground mb-6" />
-              <h3 className="text-xl font-semibold mb-2">Welcome to Messages</h3>
+              <div className="w-32 h-32 mx-auto mb-6 rounded-full bg-primary/10 flex items-center justify-center">
+                <MessageSquare className="h-16 w-16 text-primary/60" />
+              </div>
+              <h3 className="text-xl font-semibold mb-2 text-foreground">Welcome to Messages</h3>
               <p className="text-muted-foreground">
-                Select a project from the sidebar to start collaborating with your team.
+                Select a conversation to start messaging with your team members.
               </p>
             </div>
           </div>
         )}
-      </div>
-
-      {/* Smaller Team Column - Integrated */}
-      <div className="w-48 border-l border-border bg-muted/10 flex flex-col">
-        <div className="p-3 border-b border-border">
-          <h3 className="text-xs font-semibold text-foreground flex items-center gap-2">
-            <Users2 className="h-3 w-3" />
-            Team ({projectUsers.length})
-          </h3>
-        </div>
-        
-        <div className="flex-1 overflow-hidden">
-          <ScrollArea className="h-full p-2">
-            <div className="space-y-1">
-              {projectUsers.map((user) => {
-                const isOnline = onlineUsers.has(user.user_id);
-                const isCurrentUser = user.user_id === profile?.user_id;
-                
-                return (
-                  <div
-                    key={user.user_id}
-                    className={cn(
-                      "flex items-center gap-2 p-1.5 rounded-md transition-colors",
-                      !isCurrentUser ? "cursor-pointer hover:bg-accent/50" : "cursor-default"
-                    )}
-                    onClick={() => {
-                      if (!isCurrentUser) {
-                        const existingThread = threads.find(t => 
-                          t.participants.length === 2 && 
-                          t.participants.includes(user.user_id)
-                        );
-                        
-                        if (existingThread) {
-                          setCurrentThread(existingThread.id);
-                        } else {
-                          createThread(`Direct message with ${user.user_profile?.name || 'User'}`, [user.user_id]);
-                        }
-                      }
-                    }}
-                  >
-                    <div className="relative">
-                      <Avatar className="h-6 w-6">
-                        <AvatarFallback className="text-xs font-medium bg-primary/10 text-primary">
-                          {user.user_profile?.name?.charAt(0)?.toUpperCase() || 'U'}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className={cn(
-                        "absolute -bottom-0.5 -right-0.5 h-2 w-2 rounded-full border border-background",
-                        isOnline ? "bg-green-500" : "bg-muted-foreground/50"
-                      )} />
-                    </div>
-                    
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-1">
-                        <p className="text-xs font-medium truncate text-foreground">
-                          {user.user_profile?.name || 'Unknown User'}
-                        </p>
-                        {isCurrentUser && (
-                          <span className="text-xs text-muted-foreground">(you)</span>
-                        )}
-                      </div>
-                      <p className="text-xs text-muted-foreground capitalize truncate">
-                        {user.role}
-                      </p>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </ScrollArea>
-        </div>
       </div>
     </div>
   );
