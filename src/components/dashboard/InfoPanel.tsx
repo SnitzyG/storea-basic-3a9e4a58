@@ -29,15 +29,15 @@ export const InfoPanel = () => {
   });
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Clock className="h-5 w-5" />
+    <Card className="h-full flex flex-col">
+      <CardHeader className="pb-4 flex-shrink-0 border-b">
+        <CardTitle className="text-lg flex items-center gap-2 font-medium">
+          <Clock className="h-5 w-5 text-primary" />
           Info Panel
         </CardTitle>
       </CardHeader>
       
-      <CardContent className="space-y-6">
+      <CardContent className="flex-1 space-y-6">
         {/* Date & Time */}
         <div className="space-y-2">
           <h4 className="font-medium text-sm flex items-center gap-2">

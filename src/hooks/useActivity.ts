@@ -21,7 +21,7 @@ export interface ActivityItem {
   };
 }
 
-export const useActivity = (projectId?: string) => {
+export const useActivity = () => {
   const [activities, setActivities] = useState<ActivityItem[]>([]);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
@@ -30,78 +30,69 @@ export const useActivity = (projectId?: string) => {
     if (!user) return;
 
     try {
+      // Get all projects the user has access to
+      const { data: projectUsers, error: projectsError } = await supabase
+        .from('project_users')
+        .select('project_id')
+        .eq('user_id', user.id);
+
+      if (projectsError) throw projectsError;
+
+      const projectIds = projectUsers?.map(pu => pu.project_id) || [];
+
+      // Fetch activities from all user's projects + general activities
       let query = supabase
         .from('activity_log')
         .select('*')
         .order('created_at', { ascending: false })
-        .limit(20);
+        .limit(50);
 
-      if (projectId) {
-        query = query.eq('project_id', projectId);
+      if (projectIds.length > 0) {
+        query = query.or(`project_id.is.null,project_id.in.(${projectIds.join(',')})`);
       } else {
-        // For dashboard, show activities from user's projects only
-        const { data: userProjects } = await supabase
-          .from('project_users')
-          .select('project_id')
-          .eq('user_id', user.id);
-        
-        if (userProjects?.length) {
-          const projectIds = userProjects.map(p => p.project_id);
-          query = query.in('project_id', projectIds);
-        }
+        query = query.is('project_id', null);
       }
-
-      // Filter activities from last 30 days
-      const thirtyDaysAgo = new Date();
-      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-      query = query.gte('created_at', thirtyDaysAgo.toISOString());
 
       const { data: activitiesData, error } = await query;
 
       if (error) throw error;
 
-      // Filter out activities for deleted projects first
-      const validActivities = activitiesData.filter(activity => 
-        !activity.project_id || 
-        activitiesData.some(a => a.entity_type === 'project' && a.entity_id === activity.project_id)
-      );
-
-      // Fetch user profiles and project names
-      const userIds = [...new Set(validActivities.map(a => a.user_id))];
-      const projectIds = [...new Set(validActivities.map(a => a.project_id).filter(Boolean))];
+      // Fetch user profiles and project names separately
+      const userIds = [...new Set(activitiesData?.map(a => a.user_id) || [])];
+      const activityProjectIds = [...new Set(activitiesData?.map(a => a.project_id).filter(Boolean) || [])];
 
       const [{ data: profiles }, { data: projects }] = await Promise.all([
-        supabase
-          .from('profiles')
-          .select('user_id, name, role')
-          .in('user_id', userIds),
-        projectIds.length > 0
+        userIds.length > 0 
+          ? supabase
+              .from('profiles')
+              .select('user_id, name, role')
+              .in('user_id', userIds)
+          : Promise.resolve({ data: [] }),
+        activityProjectIds.length > 0
           ? supabase
               .from('projects')
               .select('id, name')
-              .in('id', projectIds)
+              .in('id', activityProjectIds)
           : Promise.resolve({ data: [] })
       ]);
 
+      // Map profiles and projects
       const profileMap = new Map<string, any>();
       profiles?.forEach(p => profileMap.set(p.user_id, p));
       const projectMap = new Map<string, any>();
       projects?.forEach(p => projectMap.set(p.id, p));
 
-      // Only include activities that have valid projects (or no project requirement)
-      const enrichedActivities = validActivities
-        .filter(activity => 
-          !activity.project_id || projectMap.has(activity.project_id)
-        )
-        .map(activity => ({
-          ...activity,
-          user_profile: profileMap.get(activity.user_id),
-          project: activity.project_id ? projectMap.get(activity.project_id) : undefined,
-        }));
+      // Enrich activities with user and project data
+      const enrichedActivities = (activitiesData || []).map(activity => ({
+        ...activity,
+        user_profile: profileMap.get(activity.user_id),
+        project: activity.project_id ? projectMap.get(activity.project_id) : undefined,
+      })) as ActivityItem[];
 
-      setActivities(enrichedActivities as ActivityItem[]);
+      setActivities(enrichedActivities);
     } catch (error) {
       console.error('Error fetching activities:', error);
+      setActivities([]);
     } finally {
       setLoading(false);
     }
@@ -133,7 +124,7 @@ export const useActivity = (projectId?: string) => {
 
   useEffect(() => {
     fetchActivities();
-  }, [user, projectId]);
+  }, [user]);
 
   // Set up real-time subscription
   useEffect(() => {
@@ -144,7 +135,7 @@ export const useActivity = (projectId?: string) => {
       .on(
         'postgres_changes',
         {
-          event: 'INSERT',
+          event: '*',
           schema: 'public',
           table: 'activity_log',
         },
@@ -157,7 +148,7 @@ export const useActivity = (projectId?: string) => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user, projectId]);
+  }, [user]);
 
   return {
     activities,

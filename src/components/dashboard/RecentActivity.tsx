@@ -54,8 +54,7 @@ const entityTypeColors = {
 };
 
 export const RecentActivity = () => {
-  const { selectedProject } = useProjectSelection();
-  const { activities, loading } = useActivity(selectedProject?.id);
+  const { activities, loading } = useActivity();
   const navigate = useNavigate();
   const { toast } = useToast();
   const { addTodo } = useTodos();
@@ -125,14 +124,14 @@ export const RecentActivity = () => {
 
   if (loading) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Clock className="h-5 w-5" />
+      <Card className="h-full flex flex-col">
+        <CardHeader className="pb-4 flex-shrink-0 border-b">
+          <CardTitle className="text-lg flex items-center gap-2 font-medium">
+            <Clock className="h-5 w-5 text-primary" />
             Recent Activity
           </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="flex-1 flex items-center justify-center">
           <div className="text-center py-6 text-muted-foreground">
             Loading activities...
           </div>
@@ -142,15 +141,15 @@ export const RecentActivity = () => {
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Clock className="h-5 w-5" />
+    <Card className="h-full flex flex-col">
+      <CardHeader className="pb-4 flex-shrink-0 border-b">
+        <CardTitle className="text-lg flex items-center gap-2 font-medium">
+          <Clock className="h-5 w-5 text-primary" />
           Recent Activity
         </CardTitle>
       </CardHeader>
-      <CardContent className="p-0">
-        <ScrollArea className="h-96">
+      <CardContent className="flex-1 p-0">
+        <ScrollArea className="h-full">
           {activities.length > 0 ? (
             <div className="p-6 space-y-4">
               {activities.map((activity) => {
@@ -158,12 +157,11 @@ export const RecentActivity = () => {
                 return (
                   <div 
                     key={activity.id} 
-                    className={`relative flex items-start gap-3 p-4 rounded-xl border transition-all duration-200 hover:shadow-md group ${
-                      entityTypeColors[activity.entity_type as keyof typeof entityTypeColors] || entityTypeColors.user
-                    }`}
+                    className="group flex items-start gap-3 p-4 rounded-lg border hover:bg-muted/50 transition-colors cursor-pointer"
+                    onClick={() => handleActivityClick(activity)}
                   >
                     <div className="flex-shrink-0">
-                      <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
                         activity.entity_type === 'project' ? 'bg-indigo-100 text-indigo-600' :
                         activity.entity_type === 'document' ? 'bg-blue-100 text-blue-600' :
                         activity.entity_type === 'message' ? 'bg-green-100 text-green-600' :
@@ -171,34 +169,29 @@ export const RecentActivity = () => {
                         activity.entity_type === 'tender' ? 'bg-purple-100 text-purple-600' :
                         'bg-gray-100 text-gray-600'
                       }`}>
-                        <Icon className="h-5 w-5" />
+                        <Icon className="h-4 w-4" />
                       </div>
                     </div>
                     
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Avatar className="w-6 h-6">
-                          <AvatarFallback className="text-xs">
-                            {activity.user_profile?.name?.charAt(0) || 'U'}
-                          </AvatarFallback>
-                        </Avatar>
-                        <span className="font-semibold text-sm">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="font-medium text-sm">
                           {activity.user_profile?.name || 'Unknown User'}
                         </span>
                         <Badge 
-                          className={`${actionColors[activity.action as keyof typeof actionColors] || actionColors.updated} font-medium`}
+                          className={`${actionColors[activity.action as keyof typeof actionColors] || actionColors.updated} text-xs`}
                           variant="outline"
                         >
                           {activity.action}
                         </Badge>
                       </div>
                       
-                      <p className="text-sm text-foreground/90 mb-3 leading-relaxed">
+                      <p className="text-sm text-muted-foreground mb-2 line-clamp-2">
                         {activity.description}
                       </p>
                       
                       <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                        <div className="flex items-center gap-1 text-xs text-muted-foreground">
                           {activity.project?.name && (
                             <>
                               <span className="font-medium">{activity.project.name}</span>
@@ -220,7 +213,7 @@ export const RecentActivity = () => {
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="h-7 w-7 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                            className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
                             onClick={(e) => {
                               e.stopPropagation();
                               handleActivityClick(activity);
@@ -234,7 +227,7 @@ export const RecentActivity = () => {
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                className="h-7 w-7 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                                className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
                                 onClick={(e) => e.stopPropagation()}
                               >
                                 <MoreHorizontal className="h-3 w-3" />

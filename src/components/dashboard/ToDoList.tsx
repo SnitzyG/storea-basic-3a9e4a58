@@ -145,11 +145,14 @@ export const ToDoList = () => {
 
   if (loading) {
     return (
-      <Card className="h-full">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-lg">To-Do List</CardTitle>
+      <Card className="h-full flex flex-col">
+        <CardHeader className="pb-4 flex-shrink-0 border-b">
+          <CardTitle className="text-lg flex items-center gap-2 font-medium">
+            <CheckSquare className="h-5 w-5 text-primary" />
+            To-Do List
+          </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="flex-1 flex items-center justify-center">
           <p className="text-muted-foreground">Loading todos...</p>
         </CardContent>
       </Card>
@@ -157,11 +160,11 @@ export const ToDoList = () => {
   }
 
   return (
-    <Card className="h-full">
-      <CardHeader className="pb-3">
+    <Card className="h-full flex flex-col">
+      <CardHeader className="pb-4 flex-shrink-0 border-b">
         <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center gap-2">
-            <CheckSquare className="h-5 w-5" />
+          <CardTitle className="text-lg flex items-center gap-2 font-medium">
+            <CheckSquare className="h-5 w-5 text-primary" />
             To-Do List
             <Badge variant="secondary" className="ml-2">
               {pendingTodos.length} pending
@@ -170,8 +173,8 @@ export const ToDoList = () => {
           <div className="flex items-center gap-1">
             <Dialog open={isExportDialogOpen} onOpenChange={setIsExportDialogOpen}>
               <DialogTrigger asChild>
-                <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
-                  <Download className="h-3 w-3" />
+                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                  <Download className="h-4 w-4" />
                 </Button>
               </DialogTrigger>
               <DialogContent className="max-w-sm">
@@ -208,7 +211,7 @@ export const ToDoList = () => {
           </div>
         </div>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="flex-1 flex flex-col space-y-4">
         {/* Quick add section */}
         <div className="flex gap-2">
           <div className="flex-1">
@@ -237,17 +240,20 @@ export const ToDoList = () => {
         {/* Advanced add dialog */}
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
-            <Button variant="outline" size="sm" className="w-full">
-              <Plus className="h-4 w-4 mr-2" />
+            <Button variant="outline" size="sm" className="w-full gap-2">
+              <Plus className="h-4 w-4" />
               Add Detailed Task
             </Button>
           </DialogTrigger>
           <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>Create Detailed Task</DialogTitle>
+              <DialogTitle className="flex items-center gap-2">
+                <CheckSquare className="h-5 w-5" />
+                Create Detailed Task
+              </DialogTitle>
             </DialogHeader>
             <ScrollArea className="max-h-[70vh] pr-4">
-              <div className="space-y-4">
+              <div className="space-y-4 pt-4">
                 <div>
                   <Label htmlFor="task-content">Task</Label>
                   <Textarea
@@ -351,7 +357,8 @@ export const ToDoList = () => {
                 </div>
 
                 <div className="flex gap-2">
-                  <Button onClick={handleAddTodo} className="flex-1">
+                  <Button onClick={handleAddTodo} className="flex-1 gap-2" disabled={!newTodo.trim()}>
+                    <Plus className="h-4 w-4" />
                     Create Task
                   </Button>
                   <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
@@ -363,10 +370,10 @@ export const ToDoList = () => {
           </DialogContent>
         </Dialog>
 
-        <ScrollArea className="h-64">
+        <ScrollArea className="flex-1">
           <div className="space-y-2">
             {pendingTodos.map((todo) => (
-              <div key={todo.id} className="flex items-center justify-between p-3 border rounded-lg">
+              <div key={todo.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors">
                 <div className="flex items-center gap-3 flex-1">
                   <Checkbox
                     checked={todo.completed}
@@ -391,7 +398,7 @@ export const ToDoList = () => {
                   variant="ghost"
                   size="sm"
                   onClick={() => deleteTodo(todo.id)}
-                  className="text-destructive hover:text-destructive"
+                  className="text-destructive hover:text-destructive h-8 w-8 p-0"
                 >
                   <Trash2 className="h-4 w-4" />
                 </Button>
@@ -417,7 +424,7 @@ export const ToDoList = () => {
                         variant="ghost"
                         size="sm"
                         onClick={() => deleteTodo(todo.id)}
-                        className="text-destructive hover:text-destructive"
+                        className="text-destructive hover:text-destructive h-8 w-8 p-0"
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
@@ -428,9 +435,11 @@ export const ToDoList = () => {
             )}
             
             {todos.length === 0 && (
-              <p className="text-muted-foreground text-center py-4">
-                No todos yet. Add your first task above!
-              </p>
+              <div className="text-center py-8 text-muted-foreground">
+                <CheckSquare className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                <p>No todos yet</p>
+                <p className="text-xs mt-1">Add your first task above!</p>
+              </div>
             )}
           </div>
         </ScrollArea>
