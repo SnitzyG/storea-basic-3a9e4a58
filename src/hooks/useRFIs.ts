@@ -98,7 +98,7 @@ export const useRFIs = (projectId?: string) => {
         ...rfi,
         raised_by_profile: profileMap.get(rfi.raised_by),
         assigned_to_profile: rfi.assigned_to ? profileMap.get(rfi.assigned_to) : undefined,
-      }));
+      })).filter(rfi => rfi.project_id === projectId); // Additional safety check for project isolation
 
       setRFIs(enrichedRFIs as RFI[]);
     } catch (error) {
