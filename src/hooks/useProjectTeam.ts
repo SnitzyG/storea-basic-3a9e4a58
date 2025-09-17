@@ -520,7 +520,7 @@ export const useProjectTeam = (projectId: string): UseProjectTeamReturn => {
       subscription.unsubscribe();
       window.removeEventListener('teamMembersUpdated', handleGlobalTeamUpdate);
     };
-  }, [stableProjectIdRef.current]); // Use stable ref instead of projectId
+  }, [projectId]); // Use projectId directly, not the ref value
 
   // Memoized return value to prevent unnecessary re-renders
   return useMemo(() => ({
