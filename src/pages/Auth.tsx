@@ -7,6 +7,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 const Auth = () => {
   const {
     user,
@@ -23,6 +25,7 @@ const Auth = () => {
   const [role, setRole] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [emailConfirmed, setEmailConfirmed] = useState(false);
+  const [showWipeButton, setShowWipeButton] = useState(false);
   useEffect(() => {
     // Check if user came from email confirmation
     if (searchParams.get('confirmed') === 'true') {
@@ -68,6 +71,60 @@ const Auth = () => {
     await signUp(email, password, name, role, company);
     setIsSubmitting(false);
   };
+
+  const handleDataWipe = async () => {
+    // Only show in development
+    if (process.env.NODE_ENV === 'production') {
+      return;
+    }
+
+    const password = prompt('Enter the test password to wipe all data:');
+    if (!password) return;
+
+    try {
+      const { data, error } = await supabase.functions.invoke('wipe-test-data', {
+        body: { password }
+      });
+
+      if (error) {
+        toast.error('Failed to wipe data: ' + error.message);
+        return;
+      }
+
+      if (data.success) {
+        toast.success('✅ All user data has been cleared successfully!');
+        // Force reload the page to clear any cached state
+        window.location.reload();
+      } else {
+        toast.error(data.error || 'Failed to wipe data');
+      }
+    } catch (error) {
+      console.error('Error wiping data:', error);
+      toast.error('An unexpected error occurred');
+    }
+  };
+
+  // Show wipe button only in development and after a sequence of clicks
+  useEffect(() => {
+    let clickCount = 0;
+    const handleCornerClick = (e: MouseEvent) => {
+      const { innerWidth, innerHeight } = window;
+      const { clientX, clientY } = e;
+      
+      // Check if click is in bottom-right corner (last 50px of both dimensions)
+      if (clientX > innerWidth - 50 && clientY > innerHeight - 50) {
+        clickCount++;
+        if (clickCount >= 5 && process.env.NODE_ENV !== 'production') {
+          setShowWipeButton(true);
+        }
+      } else {
+        clickCount = 0;
+      }
+    };
+
+    window.addEventListener('click', handleCornerClick);
+    return () => window.removeEventListener('click', handleCornerClick);
+  }, []);
   const roleOptions = [{
     value: 'architect',
     label: 'Architect'
@@ -253,6 +310,19 @@ const Auth = () => {
         </Card>
         </div>
       </div>
+      
+      {/* Hidden data wipe button for testing */}
+      {showWipeButton && process.env.NODE_ENV !== 'production' && (
+        <Button
+          onClick={handleDataWipe}
+          variant="ghost"
+          size="sm"
+          className="fixed bottom-4 right-4 opacity-30 hover:opacity-70 transition-opacity text-xs bg-destructive/10 hover:bg-destructive/20 border border-destructive/20"
+          style={{ userSelect: 'none', pointerEvents: 'auto' }}
+        >
+          🧪 Wipe Test Data
+        </Button>
+      )}
     </div>;
 };
 export default Auth;
