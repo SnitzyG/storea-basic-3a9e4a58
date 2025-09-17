@@ -11,6 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { NotificationCenter } from '@/components/notifications/NotificationCenter';
 import { RealtimeIndicator } from '@/components/ui/realtime-indicator';
 import { ProjectSelector } from './ProjectSelector';
+import { ManageProfileDialog } from '@/components/profile/ManageProfileDialog';
 interface HeaderProps {
   user: User;
   profile?: Profile | null;
@@ -59,6 +60,8 @@ export const Header = ({
               <Avatar className="h-8 w-8">
                 <AvatarImage src={profile?.avatar_url || undefined} alt={(profile?.name || user.email || 'User')} />
                 <AvatarFallback>{initials}</AvatarFallback>
+                {/* Online indicator - green dot when connected */}
+                <div className="absolute -bottom-0 -right-0 h-3 w-3 rounded-full bg-green-500 border-2 border-background"></div>
               </Avatar>
             </Button>
           </DropdownMenuTrigger>
@@ -75,10 +78,12 @@ export const Header = ({
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
-              <UserIcon className="mr-2 h-4 w-4" />
-              <span>Manage Profile</span>
-            </DropdownMenuItem>
+            <ManageProfileDialog>
+              <DropdownMenuItem className="text-foreground hover:text-foreground" onSelect={(e) => e.preventDefault()}>
+                <UserIcon className="mr-2 h-4 w-4" />
+                <span>Manage Profile</span>
+              </DropdownMenuItem>
+            </ManageProfileDialog>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={signOut}>
               <LogOut className="mr-2 h-4 w-4" />

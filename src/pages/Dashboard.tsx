@@ -92,6 +92,9 @@ const Dashboard = () => {
               >
                 <Search className="h-3 w-3" />
                 <span className="hidden sm:inline">Search</span>
+                <kbd className="hidden sm:inline pointer-events-none ml-1 h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100">
+                  ⌘K
+                </kbd>
               </Button>
               <NotificationCenter />
             </div>

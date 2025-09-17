@@ -22,7 +22,8 @@ export const NotificationCenter = () => {
     unreadCount,
     loading,
     markAsRead,
-    markAllAsRead
+    markAllAsRead,
+    deleteNotification
   } = useNotifications();
   const handleNotificationClick = (notification: any) => {
     if (!notification.read) {
@@ -72,7 +73,7 @@ export const NotificationCenter = () => {
                     You'll receive updates about your projects here
                   </p>
                 </div> : <div className="divide-y">
-                  {notifications.map(notification => <div key={notification.id} className={`p-4 cursor-pointer hover:bg-muted/50 transition-colors ${!notification.read ? 'bg-primary/5' : ''}`} onClick={() => handleNotificationClick(notification)}>
+                  {notifications.map(notification => <div key={notification.id} className={`group p-4 cursor-pointer hover:bg-muted/50 transition-colors ${!notification.read ? 'bg-primary/5' : ''}`} onClick={() => handleNotificationClick(notification)}>
                       <div className="flex items-start gap-3">
                         <div className={`w-2 h-2 rounded-full mt-2 flex-shrink-0 ${!notification.read ? 'bg-primary' : 'bg-transparent'}`} />
                         
@@ -86,8 +87,12 @@ export const NotificationCenter = () => {
                             </Badge>
                           </div>
                           
-                          <p className="text-xs text-muted-foreground mb-2">
-                            {notification.message}
+                          <p className="text-xs text-muted-foreground mb-2 line-clamp-2">
+                            {/* Show only simple text, filter out complex data */}
+                            {typeof notification.message === 'string' 
+                              ? notification.message 
+                              : 'New notification received'
+                            }
                           </p>
                           
                           <p className="text-xs text-muted-foreground">
@@ -97,12 +102,22 @@ export const NotificationCenter = () => {
                           </p>
                         </div>
                         
-                        {!notification.read && <Button variant="ghost" size="sm" onClick={e => {
-                    e.stopPropagation();
-                    markAsRead(notification.id);
-                  }} className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100">
-                            <X className="h-3 w-3" />
-                          </Button>}
+                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          {!notification.read && (
+                            <Button variant="ghost" size="sm" onClick={e => {
+                              e.stopPropagation();
+                              markAsRead(notification.id);
+                            }} className="h-6 w-6 p-0" title="Mark as read">
+                              <Check className="h-3 w-3" />
+                            </Button>
+                          )}
+                          <Button variant="ghost" size="sm" onClick={e => {
+                            e.stopPropagation();
+                            deleteNotification(notification.id);
+                          }} className="h-6 w-6 p-0 text-destructive hover:text-destructive" title="Delete notification">
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        </div>
                       </div>
                     </div>)}
                 </div>}
