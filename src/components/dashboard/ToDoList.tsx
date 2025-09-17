@@ -13,8 +13,12 @@ import { Separator } from '@/components/ui/separator';
 import { CheckSquare, Trash2, Plus, Calendar, FileText, MessageSquare, HelpCircle, Users, Download } from 'lucide-react';
 import { useTodos, Todo } from '@/hooks/useTodos';
 import { useToast } from '@/hooks/use-toast';
-import { format } from 'date-fns';
+import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, addWeeks } from 'date-fns';
 import { useProjectSelection } from '@/context/ProjectSelectionContext';
+import jsPDF from 'jspdf';
+import { useDocuments } from '@/hooks/useDocuments';
+import { useRFIs } from '@/hooks/useRFIs';
+import { useMessages } from '@/hooks/useMessages';
 
 export const ToDoList = () => {
   const [newTodo, setNewTodo] = useState('');
@@ -25,22 +29,145 @@ export const ToDoList = () => {
   const [dueDate, setDueDate] = useState('');
   const [relatedInfo, setRelatedInfo] = useState('');
   const [relatedType, setRelatedType] = useState<'document' | 'rfi' | 'message' | ''>('');
-  const [collaborators, setCollaborators] = useState<string[]>([]);
-  const [collaboratorEmail, setCollaboratorEmail] = useState('');
   const [exportFormat, setExportFormat] = useState<'day' | 'week' | 'fortnight' | 'month'>('week');
   const { selectedProject } = useProjectSelection();
   const { todos, addTodo: createTodo, toggleTodo, deleteTodo, loading } = useTodos(selectedProject?.id);
+  const { documents } = useDocuments(selectedProject?.id);
+  const { rfis } = useRFIs(selectedProject?.id);
+  const { messages } = useMessages(selectedProject?.id);
   const { toast } = useToast();
 
-  const addCollaborator = () => {
-    if (collaboratorEmail.trim() && !collaborators.includes(collaboratorEmail)) {
-      setCollaborators([...collaborators, collaboratorEmail]);
-      setCollaboratorEmail('');
+  const getDateRangeStart = () => {
+    const today = new Date();
+    
+    switch (exportFormat) {
+      case 'day':
+        return today;
+      case 'week':
+        return startOfWeek(today);
+      case 'fortnight':
+        return startOfWeek(today);
+      case 'month':
+        return startOfMonth(today);
+      default:
+        return today;
     }
   };
 
-  const removeCollaborator = (email: string) => {
-    setCollaborators(collaborators.filter(e => e !== email));
+  const getDateRangeEnd = () => {
+    const today = new Date();
+    
+    switch (exportFormat) {
+      case 'day':
+        return today;
+      case 'week':
+        return endOfWeek(today);
+      case 'fortnight':
+        return endOfWeek(addWeeks(today, 1));
+      case 'month':
+        return endOfMonth(today);
+      default:
+        return today;
+    }
+  };
+
+  const generatePDF = () => {
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.width;
+    
+    // Add title
+    doc.setFontSize(20);
+    doc.text('To-Do List', pageWidth / 2, 20, { align: 'center' });
+    
+    // Add date range
+    doc.setFontSize(12);
+    const startDate = getDateRangeStart();
+    const endDate = getDateRangeEnd();
+    doc.text(`${format(startDate, 'PPP')} - ${format(endDate, 'PPP')}`, pageWidth / 2, 30, { align: 'center' });
+    
+    // Filter todos in date range
+    const todosInRange = todos.filter(todo => {
+      if (!todo.due_date) return exportFormat === 'day'; // Include undated todos only for day export
+      const todoDate = new Date(todo.due_date);
+      return todoDate >= startDate && todoDate <= endDate;
+    });
+    
+    // Add pending todos
+    let yPosition = 50;
+    const pendingTodos = todosInRange.filter(todo => !todo.completed);
+    
+    if (pendingTodos.length > 0) {
+      doc.setFontSize(16);
+      doc.text('Pending Tasks:', 20, yPosition);
+      yPosition += 10;
+      
+      pendingTodos.forEach((todo) => {
+        if (yPosition > 270) {
+          doc.addPage();
+          yPosition = 20;
+        }
+        
+        doc.setFontSize(11);
+        doc.text(`☐ ${todo.content}`, 20, yPosition);
+        yPosition += 6;
+        
+        doc.setFontSize(9);
+        if (todo.due_date) {
+          doc.text(`Due: ${format(new Date(todo.due_date), 'PPP p')}`, 25, yPosition);
+          yPosition += 5;
+        }
+        if (todo.priority !== 'medium') {
+          doc.text(`Priority: ${todo.priority}`, 25, yPosition);
+          yPosition += 5;
+        }
+        yPosition += 3;
+      });
+    }
+    
+    // Add completed todos
+    const completedTodos = todosInRange.filter(todo => todo.completed);
+    if (completedTodos.length > 0) {
+      yPosition += 10;
+      if (yPosition > 250) {
+        doc.addPage();
+        yPosition = 20;
+      }
+      
+      doc.setFontSize(16);
+      doc.text('Completed Tasks:', 20, yPosition);
+      yPosition += 10;
+      
+      completedTodos.forEach((todo) => {
+        if (yPosition > 270) {
+          doc.addPage();
+          yPosition = 20;
+        }
+        
+        doc.setFontSize(11);
+        doc.text(`☑ ${todo.content}`, 20, yPosition);
+        yPosition += 6;
+        
+        doc.setFontSize(9);
+        if (todo.due_date) {
+          doc.text(`Due: ${format(new Date(todo.due_date), 'PPP p')}`, 25, yPosition);
+          yPosition += 5;
+        }
+        yPosition += 3;
+      });
+    }
+    
+    if (todosInRange.length === 0) {
+      doc.setFontSize(12);
+      doc.text('No tasks in this date range', 20, yPosition);
+    }
+    
+    doc.save(`todos-${exportFormat}-${format(new Date(), 'yyyy-MM-dd')}.pdf`);
+    
+    toast({
+      title: "Success",
+      description: `To-Do list exported as PDF for ${exportFormat}`,
+    });
+    setIsExportDialogOpen(false);
   };
 
   const handleAddTodo = async () => {
@@ -50,10 +177,6 @@ export const ToDoList = () => {
         
         if (relatedInfo && relatedType) {
           todoContent += ` [${relatedType.toUpperCase()}: ${relatedInfo}]`;
-        }
-        
-        if (collaborators.length > 0) {
-          todoContent += ` (Collaborators: ${collaborators.join(', ')})`;
         }
 
         const dueDateTime = attachToCalendar && dueDate ? new Date(dueDate).toISOString() : undefined;
@@ -67,7 +190,6 @@ export const ToDoList = () => {
         setDueDate('');
         setRelatedInfo('');
         setRelatedType('');
-        setCollaborators([]);
         setIsDialogOpen(false);
         
         toast({
@@ -107,22 +229,7 @@ export const ToDoList = () => {
   };
 
   const handleExport = () => {
-    const dataStr = JSON.stringify(todos, null, 2);
-    const dataBlob = new Blob([dataStr], { type: 'application/json' });
-    const url = URL.createObjectURL(dataBlob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `todos-${exportFormat}-${format(new Date(), 'yyyy-MM-dd')}.json`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-    
-    toast({
-      title: "Success",
-      description: `To-Do list exported for ${exportFormat}`,
-    });
-    setIsExportDialogOpen(false);
+    generatePDF();
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -198,8 +305,8 @@ export const ToDoList = () => {
                   </div>
                   <div className="flex gap-2">
                     <Button onClick={handleExport} className="flex-1">
-                      <Download className="h-4 w-4 mr-2" />
-                      Export
+                      <FileText className="h-4 w-4 mr-2" />
+                      Export PDF
                     </Button>
                     <Button variant="outline" onClick={() => setIsExportDialogOpen(false)}>
                       Cancel
@@ -304,56 +411,64 @@ export const ToDoList = () => {
 
                 <div>
                   <Label>Related Information</Label>
-                  <div className="flex gap-2 mt-1">
+                  <div className="space-y-2 mt-1">
                     <Select value={relatedType} onValueChange={(value: 'document' | 'rfi' | 'message' | '') => setRelatedType(value)}>
-                      <SelectTrigger className="w-32">
-                        <SelectValue placeholder="Type" />
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select type..." />
                       </SelectTrigger>
                       <SelectContent>
+                        <SelectItem value="">None</SelectItem>
                         <SelectItem value="document">Document</SelectItem>
                         <SelectItem value="rfi">RFI</SelectItem>
                         <SelectItem value="message">Message</SelectItem>
                       </SelectContent>
                     </Select>
-                    <Input
-                      value={relatedInfo}
-                      onChange={(e) => setRelatedInfo(e.target.value)}
-                      placeholder="Reference or ID"
-                      className="flex-1"
-                    />
-                  </div>
-                </div>
+                    
+                    {relatedType === 'document' && (
+                      <Select value={relatedInfo} onValueChange={setRelatedInfo}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select document..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {documents.map((doc) => (
+                            <SelectItem key={doc.id} value={doc.name}>
+                              {doc.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
 
-                <div>
-                  <Label>Collaborators</Label>
-                  <div className="flex gap-2 mt-1">
-                    <Input
-                      value={collaboratorEmail}
-                      onChange={(e) => setCollaboratorEmail(e.target.value)}
-                      placeholder="Enter email address"
-                      onKeyPress={(e) => e.key === 'Enter' && addCollaborator()}
-                    />
-                    <Button type="button" onClick={addCollaborator} variant="outline" size="sm">
-                      Add
-                    </Button>
+                    {relatedType === 'rfi' && (
+                      <Select value={relatedInfo} onValueChange={setRelatedInfo}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select RFI..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {rfis.map((rfi) => (
+                            <SelectItem key={rfi.id} value={rfi.rfi_number || rfi.subject || 'Untitled'}>
+                              {rfi.rfi_number || rfi.subject || 'Untitled RFI'}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+
+                    {relatedType === 'message' && (
+                      <Select value={relatedInfo} onValueChange={setRelatedInfo}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select message..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {messages.map((message) => (
+                            <SelectItem key={message.id} value={message.content.substring(0, 50)}>
+                              {message.content.substring(0, 50)}...
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
                   </div>
-                  {collaborators.length > 0 && (
-                    <div className="mt-2 space-y-1">
-                      {collaborators.map((email) => (
-                        <div key={email} className="flex items-center justify-between bg-muted p-2 rounded">
-                          <span className="text-sm">{email}</span>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => removeCollaborator(email)}
-                          >
-                            Remove
-                          </Button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
                 </div>
 
                 <div className="flex gap-2">

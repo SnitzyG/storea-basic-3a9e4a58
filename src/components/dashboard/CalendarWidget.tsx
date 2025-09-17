@@ -11,33 +11,42 @@ import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
-import { CalendarDays, Plus, Clock, CheckCircle2, ChevronLeft, ChevronRight, Download, Users, Paperclip, Edit, Trash2, X } from 'lucide-react';
-import { format, isSameDay, startOfMonth, endOfMonth, eachDayOfInterval } from 'date-fns';
+import { CalendarDays, Plus, Clock, CheckCircle2, ChevronLeft, ChevronRight, Download, Users, Paperclip, Edit, Trash2, X, FileText } from 'lucide-react';
+import { format, isSameDay, startOfMonth, endOfMonth, eachDayOfInterval, startOfWeek, endOfWeek, addWeeks, subWeeks } from 'date-fns';
 import { useTodos } from '@/hooks/useTodos';
 import { useToast } from '@/hooks/use-toast';
 import { useDocuments } from '@/hooks/useDocuments';
+import { useRFIs } from '@/hooks/useRFIs';
+import { useMessages } from '@/hooks/useMessages';
 import { useProjectSelection } from '@/context/ProjectSelectionContext';
+import jsPDF from 'jspdf';
+import { cn } from '@/lib/utils';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
 export const CalendarWidget = () => {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
+  const [isDayDetailsOpen, setIsDayDetailsOpen] = useState(false);
   const [newEventTitle, setNewEventTitle] = useState('');
   const [newEventDescription, setNewEventDescription] = useState('');
   const [newEventTime, setNewEventTime] = useState('');
   const [newEventPriority, setNewEventPriority] = useState<'low' | 'medium' | 'high'>('medium');
   const [isMeeting, setIsMeeting] = useState(false);
-  const [inviteCollaborators, setInviteCollaborators] = useState<string[]>([]);
-  const [collaboratorEmail, setCollaboratorEmail] = useState('');
   const [exportFormat, setExportFormat] = useState<'day' | 'week' | 'fortnight' | 'month'>('week');
   const [attachedDocument, setAttachedDocument] = useState<string>('');
+  const [attachedRFI, setAttachedRFI] = useState<string>('');
+  const [attachedMessage, setAttachedMessage] = useState<string>('');
+  const [relatedType, setRelatedType] = useState<'document' | 'rfi' | 'message' | ''>('');
   const [eventDate, setEventDate] = useState<Date | undefined>(new Date());
   const [editingEvent, setEditingEvent] = useState<any>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const { selectedProject } = useProjectSelection();
   const { todos, addTodo, updateTodo, deleteTodo } = useTodos(selectedProject?.id);
   const { documents } = useDocuments(selectedProject?.id);
+  const { rfis } = useRFIs(selectedProject?.id);
+  const { messages } = useMessages(selectedProject?.id);
   const { toast } = useToast();
 
   // Get todos for a specific date
@@ -57,15 +66,107 @@ export const CalendarWidget = () => {
     setCurrentMonth(newMonth);
   };
 
-  const addCollaborator = () => {
-    if (collaboratorEmail.trim() && !inviteCollaborators.includes(collaboratorEmail)) {
-      setInviteCollaborators([...inviteCollaborators, collaboratorEmail]);
-      setCollaboratorEmail('');
+  const handleDayDoubleClick = (date: Date) => {
+    setSelectedDate(date);
+    setIsDayDetailsOpen(true);
+  };
+
+  const generatePDF = () => {
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.width;
+    
+    // Add title
+    doc.setFontSize(20);
+    doc.text('Calendar Events', pageWidth / 2, 20, { align: 'center' });
+    
+    // Add date range
+    doc.setFontSize(12);
+    const startDate = getDateRangeStart();
+    const endDate = getDateRangeEnd();
+    doc.text(`${format(startDate, 'PPP')} - ${format(endDate, 'PPP')}`, pageWidth / 2, 30, { align: 'center' });
+    
+    // Get events in date range
+    const eventsInRange = todos.filter(todo => {
+      if (!todo.due_date) return false;
+      const todoDate = new Date(todo.due_date);
+      return todoDate >= startDate && todoDate <= endDate;
+    });
+    
+    // Add events
+    let yPosition = 50;
+    if (eventsInRange.length > 0) {
+      doc.setFontSize(14);
+      doc.text('Events:', 20, yPosition);
+      yPosition += 10;
+      
+      eventsInRange.forEach((todo) => {
+        if (yPosition > 270) {
+          doc.addPage();
+          yPosition = 20;
+        }
+        
+        doc.setFontSize(11);
+        const dateStr = todo.due_date ? format(new Date(todo.due_date), 'PPP p') : 'No date';
+        doc.text(`• ${dateStr}`, 20, yPosition);
+        yPosition += 6;
+        
+        doc.setFontSize(10);
+        const lines = doc.splitTextToSize(todo.content, pageWidth - 40);
+        doc.text(lines, 25, yPosition);
+        yPosition += lines.length * 4 + 5;
+        
+        if (todo.priority !== 'medium') {
+          doc.text(`Priority: ${todo.priority}`, 25, yPosition);
+          yPosition += 6;
+        }
+        yPosition += 5;
+      });
+    } else {
+      doc.setFontSize(12);
+      doc.text('No events in this date range', 20, yPosition);
+    }
+    
+    doc.save(`calendar-${exportFormat}-${format(new Date(), 'yyyy-MM-dd')}.pdf`);
+    
+    toast({
+      title: "Success",
+      description: `Calendar exported as PDF for ${exportFormat}`,
+    });
+    setIsExportDialogOpen(false);
+  };
+
+  const getDateRangeStart = () => {
+    if (!selectedDate) return new Date();
+    
+    switch (exportFormat) {
+      case 'day':
+        return selectedDate;
+      case 'week':
+        return startOfWeek(selectedDate);
+      case 'fortnight':
+        return startOfWeek(selectedDate);
+      case 'month':
+        return startOfMonth(selectedDate);
+      default:
+        return selectedDate;
     }
   };
 
-  const removeCollaborator = (email: string) => {
-    setInviteCollaborators(inviteCollaborators.filter(e => e !== email));
+  const getDateRangeEnd = () => {
+    if (!selectedDate) return new Date();
+    
+    switch (exportFormat) {
+      case 'day':
+        return selectedDate;
+      case 'week':
+        return endOfWeek(selectedDate);
+      case 'fortnight':
+        return endOfWeek(addWeeks(selectedDate, 1));
+      case 'month':
+        return endOfMonth(selectedDate);
+      default:
+        return selectedDate;
+    }
   };
 
   const handleCreateEvent = async () => {
@@ -73,13 +174,24 @@ export const CalendarWidget = () => {
 
     try {
       let eventContent = isMeeting 
-        ? `Meeting: ${newEventTitle}${newEventDescription ? ` - ${newEventDescription}` : ''}${inviteCollaborators.length > 0 ? ` (Attendees: ${inviteCollaborators.join(', ')})` : ''}`
+        ? `Meeting: ${newEventTitle}${newEventDescription ? ` - ${newEventDescription}` : ''}`
         : `${newEventTitle}${newEventDescription ? ` - ${newEventDescription}` : ''}`;
 
-      if (attachedDocument) {
+      // Add related information based on type
+      if (relatedType === 'document' && attachedDocument) {
         const doc = documents.find(d => d.id === attachedDocument);
         if (doc) {
           eventContent += ` [Document: ${doc.name}]`;
+        }
+      } else if (relatedType === 'rfi' && attachedRFI) {
+        const rfi = rfis.find(r => r.id === attachedRFI);
+        if (rfi) {
+          eventContent += ` [RFI: ${rfi.rfi_number || rfi.subject || 'Untitled'}]`;
+        }
+      } else if (relatedType === 'message' && attachedMessage) {
+        const message = messages.find(m => m.id === attachedMessage);
+        if (message) {
+          eventContent += ` [Message: ${message.content.substring(0, 50)}...]`;
         }
       }
 
@@ -100,14 +212,6 @@ export const CalendarWidget = () => {
         title: "Event created",
         description: `${isMeeting ? 'Meeting' : 'Event'} "${newEventTitle}" scheduled for ${format(eventDate, 'MMM d, yyyy')}`,
       });
-
-      // Send confirmation for meetings
-      if (isMeeting && inviteCollaborators.length > 0) {
-        toast({
-          title: "Meeting invitations sent",
-          description: `Confirmation messages sent to ${inviteCollaborators.length} attendee(s)`,
-        });
-      }
     } catch (error) {
       toast({
         title: "Error",
@@ -123,8 +227,10 @@ export const CalendarWidget = () => {
     setNewEventTime('');
     setNewEventPriority('medium');
     setIsMeeting(false);
-    setInviteCollaborators([]);
     setAttachedDocument('');
+    setAttachedRFI('');
+    setAttachedMessage('');
+    setRelatedType('');
     setEventDate(selectedDate);
     setIsDialogOpen(false);
   };
@@ -180,23 +286,7 @@ export const CalendarWidget = () => {
   };
 
   const handleExport = () => {
-    const eventsForPeriod = getTodosForDate(selectedDate || new Date());
-    const dataStr = JSON.stringify(eventsForPeriod, null, 2);
-    const dataBlob = new Blob([dataStr], { type: 'application/json' });
-    const url = URL.createObjectURL(dataBlob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `calendar-${exportFormat}-${format(selectedDate || new Date(), 'yyyy-MM-dd')}.json`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-    
-    toast({
-      title: "Success",
-      description: `Calendar exported for ${exportFormat}`,
-    });
-    setIsExportDialogOpen(false);
+    generatePDF();
   };
 
   const selectedDateTodos = selectedDate ? getTodosForDate(selectedDate) : [];
@@ -237,8 +327,8 @@ export const CalendarWidget = () => {
                   </div>
                   <div className="flex gap-2">
                     <Button onClick={handleExport} className="flex-1">
-                      <Download className="h-4 w-4 mr-2" />
-                      Export
+                      <FileText className="h-4 w-4 mr-2" />
+                      Export PDF
                     </Button>
                     <Button variant="outline" onClick={() => setIsExportDialogOpen(false)}>
                       Cancel
@@ -318,73 +408,99 @@ export const CalendarWidget = () => {
                       <Label htmlFor="is-meeting">This is a meeting</Label>
                     </div>
 
-                    {isMeeting && (
-                      <div className="space-y-3">
-                        <Separator />
-                        <div>
-                          <Label>Invite Collaborators</Label>
-                          <div className="flex gap-2 mt-1">
-                            <Input
-                              value={collaboratorEmail}
-                              onChange={(e) => setCollaboratorEmail(e.target.value)}
-                              placeholder="Enter email address"
-                              onKeyPress={(e) => e.key === 'Enter' && addCollaborator()}
-                            />
-                            <Button type="button" onClick={addCollaborator} variant="outline" size="sm">
-                              Add
-                            </Button>
-                          </div>
-                          {inviteCollaborators.length > 0 && (
-                            <div className="mt-2 space-y-1">
-                              {inviteCollaborators.map((email) => (
-                                <div key={email} className="flex items-center justify-between bg-muted p-2 rounded">
-                                  <span className="text-sm">{email}</span>
-                                  <Button
-                                    type="button"
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => removeCollaborator(email)}
-                                  >
-                                    Remove
-                                  </Button>
-                                </div>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    )}
-
                     <div className="space-y-2">
                       <Label htmlFor="event-date">Event Date</Label>
-                      <Calendar
-                        mode="single"
-                        selected={eventDate}
-                        onSelect={setEventDate}
-                        className="rounded-md border"
-                        initialFocus
-                      />
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            className={cn(
+                              "w-full justify-start text-left font-normal",
+                              !eventDate && "text-muted-foreground"
+                            )}
+                          >
+                            <CalendarDays className="mr-2 h-4 w-4" />
+                            {eventDate ? format(eventDate, "PPP") : <span>Pick a date</span>}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={eventDate}
+                            onSelect={setEventDate}
+                            initialFocus
+                            className={cn("p-3 pointer-events-auto")}
+                          />
+                        </PopoverContent>
+                      </Popover>
                     </div>
 
-                    {/* Document Attachment */}
                     <div className="space-y-2">
-                      <Label htmlFor="attached-document">Attach Document (Optional)</Label>
-                      <Select value={attachedDocument} onValueChange={setAttachedDocument}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select a document..." />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="">No document</SelectItem>
-                          {documents.map((doc) => (
-                            <SelectItem key={doc.id} value={doc.id}>
-                              <div className="flex items-center gap-2">
-                                <Paperclip className="h-4 w-4" />
-                                {doc.name}
-                              </div>
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <Label>Related Information</Label>
+                      <div className="space-y-2">
+                        <Select value={relatedType} onValueChange={(value: 'document' | 'rfi' | 'message' | '') => setRelatedType(value)}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select type..." />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="">None</SelectItem>
+                            <SelectItem value="document">Document</SelectItem>
+                            <SelectItem value="rfi">RFI</SelectItem>
+                            <SelectItem value="message">Message</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        
+                        {relatedType === 'document' && (
+                          <Select value={attachedDocument} onValueChange={setAttachedDocument}>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select a document..." />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="">No document</SelectItem>
+                              {documents.map((doc) => (
+                                <SelectItem key={doc.id} value={doc.id}>
+                                  <div className="flex items-center gap-2">
+                                    <Paperclip className="h-4 w-4" />
+                                    {doc.name}
+                                  </div>
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        )}
+
+                        {relatedType === 'rfi' && (
+                          <Select value={attachedRFI} onValueChange={setAttachedRFI}>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select an RFI..." />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="">No RFI</SelectItem>
+                              {rfis.map((rfi) => (
+                                <SelectItem key={rfi.id} value={rfi.id}>
+                                  {rfi.rfi_number || rfi.subject || 'Untitled RFI'}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        )}
+
+                        {relatedType === 'message' && (
+                          <Select value={attachedMessage} onValueChange={setAttachedMessage}>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select a message..." />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="">No message</SelectItem>
+                              {messages.map((message) => (
+                                <SelectItem key={message.id} value={message.id}>
+                                  {message.content.substring(0, 50)}...
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        )}
+                      </div>
                     </div>
 
                     <div className="flex gap-2 pt-2">
