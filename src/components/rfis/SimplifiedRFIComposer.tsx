@@ -14,6 +14,8 @@ import { useRFIs } from '@/hooks/useRFIs';
 import { useProjectTeam } from '@/hooks/useProjectTeam';
 import { useProjects } from '@/hooks/useProjects';
 import { useAuth } from '@/hooks/useAuth';
+import { RFIAttachmentUpload } from './RFIAttachmentUpload';
+import { DocumentUploadService } from '@/services/DocumentUploadService';
 
 interface SimplifiedRFIComposerProps {
   open: boolean;
@@ -51,6 +53,8 @@ export const SimplifiedRFIComposer: React.FC<SimplifiedRFIComposerProps> = ({
   const [requiredResponseDate, setRequiredResponseDate] = useState<Date>();
   const [loading, setLoading] = useState(false);
   const [selectedRecipient, setSelectedRecipient] = useState<string>('');
+  const [attachmentFiles, setAttachmentFiles] = useState<File[]>([]);
+  const documentUploadService = new DocumentUploadService();
 
   // Auto-fill project data when dialog opens
   useEffect(() => {
@@ -78,6 +82,7 @@ export const SimplifiedRFIComposer: React.FC<SimplifiedRFIComposerProps> = ({
         });
         setRequiredResponseDate(undefined);
         setSelectedRecipient('');
+        setAttachmentFiles([]);
       }
     }
   }, [open, currentProject, profile, user, isReply, replyToRFI]);
@@ -122,10 +127,10 @@ export const SimplifiedRFIComposer: React.FC<SimplifiedRFIComposerProps> = ({
           status: 'responded'
         });
       } else {
-        // Create new RFI
+        // Create new RFI first
         const isResponseRequired = formData.rfi_type === 'Request for Information';
         
-        await createRFI({
+        const rfiResult = await createRFI({
           project_id: projectId,
           question: formData.message,
           priority: 'medium', // Default priority
@@ -140,6 +145,42 @@ export const SimplifiedRFIComposer: React.FC<SimplifiedRFIComposerProps> = ({
           subject: formData.subject,
           required_response_by: isResponseRequired ? requiredResponseDate?.toISOString() : undefined
         });
+
+        // Upload attachments and save to documents if RFI creation was successful
+        if (rfiResult && attachmentFiles.length > 0 && user) {
+          try {
+            const uploadResults = await documentUploadService.uploadFiles(
+              attachmentFiles,
+              projectId,
+              user.id,
+              {
+                category: 'RFI Attachment',
+                visibility: 'project'
+              }
+            );
+
+            // Store attachment references in RFI
+            const attachmentData = uploadResults
+              .filter(result => result.status === 'completed')
+              .map(result => ({
+                document_id: result.document_id,
+                name: result.file.name,
+                url: result.url,
+                type: result.file.type,
+                size: result.file.size
+              }));
+
+            if (attachmentData.length > 0) {
+              // Update RFI with attachment references
+              await updateRFI(rfiResult.id, {
+                attachments: attachmentData
+              });
+            }
+          } catch (attachmentError) {
+            console.error('Error uploading attachments:', attachmentError);
+            // RFI is still created, just without attachments
+          }
+        }
       }
 
       // Reset form
@@ -154,6 +195,7 @@ export const SimplifiedRFIComposer: React.FC<SimplifiedRFIComposerProps> = ({
       });
       setRequiredResponseDate(undefined);
       setSelectedRecipient('');
+      setAttachmentFiles([]);
       onOpenChange(false);
     } catch (error) {
       console.error('Error saving RFI:', error);
@@ -282,6 +324,17 @@ export const SimplifiedRFIComposer: React.FC<SimplifiedRFIComposerProps> = ({
               className="min-h-[80px]" 
             />
           </div>
+
+          {/* Attachments - only for new RFIs */}
+          {!isReply && (
+            <div>
+              <Label>Attachments (Optional)</Label>
+              <RFIAttachmentUpload
+                onFilesChange={setAttachmentFiles}
+                disabled={loading}
+              />
+            </div>
+          )}
         </div>
 
         <div className="flex justify-end space-x-2 pt-4">

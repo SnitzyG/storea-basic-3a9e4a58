@@ -14,7 +14,8 @@ import {
   X,
   Clock,
   User,
-  MessageSquare
+  MessageSquare,
+  Paperclip
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { RFI } from '@/hooks/useRFIs';
@@ -231,6 +232,12 @@ export const EmailStyleRFIInbox: React.FC<EmailStyleRFIInboxProps> = ({
                   <div className="flex items-center gap-4">
                     <span>From: {rfi.raised_by_profile?.name || 'Unknown'}</span>
                     <span>To: {rfi.recipient_name || 'Unassigned'}</span>
+                    {rfi.attachments && rfi.attachments.length > 0 && (
+                      <div className="flex items-center gap-1 text-muted-foreground">
+                        <Paperclip className="h-3 w-3" />
+                        <span>{rfi.attachments.length}</span>
+                      </div>
+                    )}
                   </div>
                   <div className="flex items-center gap-1">
                     <Clock className="h-3 w-3" />

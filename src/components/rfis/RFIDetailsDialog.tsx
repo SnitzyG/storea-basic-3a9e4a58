@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
-import { Calendar, Clock, User, MessageSquare, Activity } from 'lucide-react';
+import { Calendar, Clock, User, MessageSquare, Activity, Paperclip, Download, ExternalLink } from 'lucide-react';
 import { RFI, RFIActivity, useRFIs } from '@/hooks/useRFIs';
 import { useAuth } from '@/hooks/useAuth';
 import { formatDistanceToNow } from 'date-fns';
@@ -208,6 +208,61 @@ export const RFIDetailsDialog = ({ open, onOpenChange, rfi }: RFIDetailsDialogPr
               </div>
             )}
           </div>
+
+          {/* Attachments section */}
+          {rfi.attachments && rfi.attachments.length > 0 && (
+            <div>
+              <h3 className="font-semibold mb-3 flex items-center">
+                <Paperclip className="w-4 h-4 mr-2" />
+                Attachments ({rfi.attachments.length})
+              </h3>
+              <div className="space-y-2">
+                {rfi.attachments.map((attachment: any, index: number) => (
+                  <div 
+                    key={attachment.document_id || index}
+                    className="flex items-center justify-between p-3 bg-muted/30 rounded-md border"
+                  >
+                    <div className="flex items-center gap-3 flex-1 min-w-0">
+                      <div className="flex-shrink-0">
+                        {attachment.type?.startsWith('image/') ? (
+                          <div className="w-8 h-8 bg-blue-100 rounded flex items-center justify-center">
+                            <ExternalLink className="w-4 h-4 text-blue-600" />
+                          </div>
+                        ) : (
+                          <div className="w-8 h-8 bg-gray-100 rounded flex items-center justify-center">
+                            <Paperclip className="w-4 h-4 text-gray-600" />
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium truncate">
+                          {attachment.name}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {attachment.size ? `${(attachment.size / 1024).toFixed(1)} KB` : 'Unknown size'}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="outline" className="text-xs">
+                        {attachment.type?.split('/')[1]?.toUpperCase() || 'FILE'}
+                      </Badge>
+                      {attachment.url && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => window.open(attachment.url, '_blank')}
+                          className="h-8 w-8 p-0"
+                        >
+                          <Download className="h-3 w-3" />
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           <Separator />
 
