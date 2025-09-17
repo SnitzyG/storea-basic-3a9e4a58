@@ -73,11 +73,6 @@ const Auth = () => {
   };
 
   const handleDataWipe = async () => {
-    // Only show in development
-    if (process.env.NODE_ENV === 'production') {
-      return;
-    }
-
     const password = prompt('Enter the test password to wipe all data:');
     if (!password) return;
 
@@ -104,26 +99,43 @@ const Auth = () => {
     }
   };
 
-  // Show wipe button only in development and after a sequence of clicks
+  // Show wipe button after clicking bottom-right corner multiple times
   useEffect(() => {
     let clickCount = 0;
+    let clickTimeout: NodeJS.Timeout;
+    
     const handleCornerClick = (e: MouseEvent) => {
       const { innerWidth, innerHeight } = window;
       const { clientX, clientY } = e;
       
-      // Check if click is in bottom-right corner (last 50px of both dimensions)
-      if (clientX > innerWidth - 50 && clientY > innerHeight - 50) {
+      // Check if click is in bottom-right corner (last 80px of both dimensions for easier targeting)
+      if (clientX > innerWidth - 80 && clientY > innerHeight - 80) {
         clickCount++;
-        if (clickCount >= 5 && process.env.NODE_ENV !== 'production') {
+        console.log(`Corner click ${clickCount}/3`); // Debug log
+        
+        // Reset counter after 3 seconds of no clicks
+        clearTimeout(clickTimeout);
+        clickTimeout = setTimeout(() => {
+          clickCount = 0;
+        }, 3000);
+        
+        if (clickCount >= 3) {
           setShowWipeButton(true);
+          toast.info('🧪 Test data wipe button activated');
+          clickCount = 0; // Reset counter
         }
       } else {
+        // Reset if clicking elsewhere
         clickCount = 0;
+        clearTimeout(clickTimeout);
       }
     };
 
     window.addEventListener('click', handleCornerClick);
-    return () => window.removeEventListener('click', handleCornerClick);
+    return () => {
+      window.removeEventListener('click', handleCornerClick);
+      clearTimeout(clickTimeout);
+    };
   }, []);
   const roleOptions = [{
     value: 'architect',
@@ -312,13 +324,13 @@ const Auth = () => {
       </div>
       
       {/* Hidden data wipe button for testing */}
-      {showWipeButton && process.env.NODE_ENV !== 'production' && (
+      {showWipeButton && (
         <Button
           onClick={handleDataWipe}
           variant="ghost"
           size="sm"
-          className="fixed bottom-4 right-4 opacity-30 hover:opacity-70 transition-opacity text-xs bg-destructive/10 hover:bg-destructive/20 border border-destructive/20"
-          style={{ userSelect: 'none', pointerEvents: 'auto' }}
+          className="fixed bottom-4 right-4 opacity-50 hover:opacity-100 transition-opacity text-xs bg-destructive/10 hover:bg-destructive/20 border border-destructive/30 z-50"
+          style={{ userSelect: 'none' }}
         >
           🧪 Wipe Test Data
         </Button>
