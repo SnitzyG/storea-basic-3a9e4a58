@@ -66,8 +66,11 @@ export const Sidebar = ({
         <div className="flex items-center gap-2 mx-0 px-[50px]">
           <div>
             <h1 className="text-xl font-bold tracking-wider">
-              <span className="bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-                STOREALite
+              <span className="bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent font-black">
+                STOREA
+              </span>
+              <span className="bg-gradient-to-r from-accent to-accent/70 bg-clip-text text-transparent font-light ml-1">
+                Lite
               </span>
             </h1>
           </div>
