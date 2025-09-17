@@ -1244,6 +1244,7 @@ export type Database = {
       rfis: {
         Row: {
           assigned_to: string | null
+          attachments: Json | null
           category: string | null
           contract_clause: string | null
           created_at: string
@@ -1275,6 +1276,7 @@ export type Database = {
         }
         Insert: {
           assigned_to?: string | null
+          attachments?: Json | null
           category?: string | null
           contract_clause?: string | null
           created_at?: string
@@ -1306,6 +1308,7 @@ export type Database = {
         }
         Update: {
           assigned_to?: string | null
+          attachments?: Json | null
           category?: string | null
           contract_clause?: string | null
           created_at?: string
