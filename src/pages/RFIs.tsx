@@ -448,14 +448,25 @@ const RFIs = () => {
         </div>
       )}
       
-      <CategorizedRFIInbox 
-        rfis={projectRFIs} 
-        onView={handleViewRFI} 
-        onCreateNew={() => setSimplifiedComposerOpen(true)} 
-        onReply={handleReplyToRFI}
-        projectUsers={projectUsers} 
-        currentProject={currentProject} 
-      />
+      <div className="space-y-6">
+        <EmailStyleRFIInbox 
+          rfis={projectRFIs} 
+          onView={handleViewRFI} 
+          onCreateNew={() => setSimplifiedComposerOpen(true)} 
+          onReply={handleReplyToRFI}
+          projectUsers={projectUsers} 
+          currentProject={currentProject} 
+        />
+        
+        <CategorizedRFIInbox 
+          rfis={projectRFIs} 
+          onView={handleViewRFI} 
+          onCreateNew={() => setSimplifiedComposerOpen(true)} 
+          onReply={handleReplyToRFI}
+          projectUsers={projectUsers} 
+          currentProject={currentProject} 
+        />
+      </div>
 
       <SimplifiedRFIComposer 
         open={simplifiedComposerOpen} 
