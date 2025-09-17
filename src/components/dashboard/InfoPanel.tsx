@@ -57,10 +57,27 @@ export const InfoPanel = () => {
     };
 
     const projectLocation = selectedProject?.address || 'Melbourne CBD';
-    // Extract suburb from address (simple parsing for demo)
-    const suburb = projectLocation.includes(',') 
-      ? projectLocation.split(',')[1]?.trim() || 'Melbourne CBD'
-      : 'Melbourne CBD';
+    // Extract suburb from address - improved parsing
+    let suburb = 'Melbourne CBD';
+    
+    if (projectLocation && projectLocation !== 'Melbourne CBD') {
+      // Try to extract suburb from common address formats
+      // e.g., "123 Main St, Suburb, State" or "123 Main St, Suburb VIC"
+      const parts = projectLocation.split(',').map(part => part.trim());
+      if (parts.length >= 2) {
+        // Take the second part as suburb (after street address)
+        suburb = parts[1];
+        // Remove state abbreviations if present
+        suburb = suburb.replace(/\s+(VIC|NSW|QLD|SA|WA|TAS|NT|ACT)(\s+\d{4})?$/i, '').trim();
+      } else if (parts.length === 1) {
+        // If no comma, try to extract from the end
+        const words = projectLocation.split(' ');
+        if (words.length > 2) {
+          // Take last 1-2 words as potential suburb
+          suburb = words.slice(-2).join(' ');
+        }
+      }
+    }
     
     const weatherData = getWeatherForLocation(suburb);
     
@@ -84,67 +101,74 @@ export const InfoPanel = () => {
         </CardTitle>
       </CardHeader>
       
-      <CardContent className="flex-1 space-y-4 p-4">
+      <CardContent className="flex-1 space-y-6 p-4">
         {/* Date & Time */}
-        <div className="space-y-2">
+        <div className="space-y-3">
           <h4 className="font-medium text-xs flex items-center gap-1 text-muted-foreground uppercase tracking-wide">
             <Clock className="h-3 w-3" />
             Current Time
           </h4>
-          <div className="text-lg font-semibold">
-            {format(currentTime, 'h:mm:ss a')}
-          </div>
-          <div className="text-xs text-muted-foreground">
-            {format(currentTime, 'EEEE, MMMM d, yyyy')}
+          <div className="space-y-2">
+            <div className="text-xl font-semibold">
+              {format(currentTime, 'h:mm:ss a')}
+            </div>
+            <div className="text-sm text-muted-foreground">
+              {format(currentTime, 'EEEE, MMMM d, yyyy')}
+            </div>
           </div>
         </div>
 
         {/* Weather for Current Project */}
 
-        <div className="space-y-3">
+        <div className="space-y-4">
           <h4 className="font-medium text-xs flex items-center gap-1 text-muted-foreground uppercase tracking-wide">
             <Cloud className="h-3 w-3" />
             Weather - {weather.location}
           </h4>
           
           {/* Current Weather */}
-          <div className="space-y-3">
+          <div className="space-y-4">
             <div className="flex items-center justify-between">
               <span className="text-2xl font-semibold">{weather.temperature}°C</span>
-              <Badge variant="outline">{weather.condition}</Badge>
+              <Badge variant="outline" className="text-xs">{weather.condition}</Badge>
             </div>
             
-            <div className="grid grid-cols-3 gap-2 text-xs text-muted-foreground">
-              <div className="flex items-center gap-1">
-                <Droplets className="h-3 w-3" />
-                {weather.humidity}%
+            <div className="grid grid-cols-3 gap-3 text-xs">
+              <div className="flex flex-col items-center gap-1 p-2 rounded-lg bg-muted/30">
+                <Droplets className="h-3 w-3 text-muted-foreground" />
+                <span className="font-medium">{weather.humidity}%</span>
+                <span className="text-muted-foreground text-[10px]">Humidity</span>
               </div>
-              <div className="flex items-center gap-1">
-                <Wind className="h-3 w-3" />
-                {weather.windSpeed} km/h
+              <div className="flex flex-col items-center gap-1 p-2 rounded-lg bg-muted/30">
+                <Wind className="h-3 w-3 text-muted-foreground" />
+                <span className="font-medium">{weather.windSpeed} km/h</span>
+                <span className="text-muted-foreground text-[10px]">Wind</span>
               </div>
-              <div className="flex items-center gap-1">
-                <CloudRain className="h-3 w-3" />
-                {weather.rainfall}mm
+              <div className="flex flex-col items-center gap-1 p-2 rounded-lg bg-muted/30">
+                <CloudRain className="h-3 w-3 text-muted-foreground" />
+                <span className="font-medium">{weather.rainfall}mm</span>
+                <span className="text-muted-foreground text-[10px]">Rain</span>
               </div>
             </div>
           </div>
 
           {/* 7-Day Forecast */}
-          <div className="space-y-2">
+          <div className="space-y-3">
             <h5 className="text-xs font-medium text-muted-foreground uppercase tracking-wide">7-Day Forecast</h5>
-            <div className="space-y-1">
+            <div className="grid gap-2">
               {weather.forecast.map((day, index) => (
-                <div key={index} className="flex items-center justify-between text-xs">
-                  <span className="font-medium w-12">{day.day}</span>
-                  <span className="text-muted-foreground flex-1 text-center">{day.condition}</span>
-                  <div className="flex items-center gap-2">
-                    <span>{day.temperature}°C</span>
+                <div key={index} className="flex items-center justify-between p-2 rounded-lg bg-muted/20 hover:bg-muted/40 transition-colors">
+                  <div className="flex items-center gap-3">
+                    <span className="font-medium text-sm w-12 text-left">{day.day}</span>
+                    <span className="text-xs text-muted-foreground">{day.condition}</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="font-semibold text-sm">{day.temperature}°C</span>
                     {day.rainfall > 0 && (
-                      <span className="text-blue-500 flex items-center gap-1">
+                      <div className="flex items-center gap-1 text-blue-600 dark:text-blue-400">
                         <CloudRain className="h-3 w-3" />
-                        {day.rainfall}mm
-                      </span>
+                        <span className="text-xs font-medium">{day.rainfall}mm</span>
+                      </div>
                     )}
                   </div>
                 </div>
