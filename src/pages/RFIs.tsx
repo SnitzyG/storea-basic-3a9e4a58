@@ -8,6 +8,7 @@ import { useProjects } from '@/hooks/useProjects';
 import { useAuth } from '@/hooks/useAuth';
 // Import email-style components
 import { EmailStyleRFIInbox } from '@/components/rfis/EmailStyleRFIInbox';
+import { CategorizedRFIInbox } from '@/components/rfis/CategorizedRFIInbox';
 import { SimplifiedRFIComposer } from '@/components/rfis/SimplifiedRFIComposer';
 import { RFIMessageComposer } from '@/components/messages/RFIMessageComposer';
 // Legacy components for fallback
@@ -437,7 +438,7 @@ const RFIs = () => {
         </div>
       )}
       
-      <EmailStyleRFIInbox 
+      <CategorizedRFIInbox 
         rfis={projectRFIs} 
         onView={handleViewRFI} 
         onCreateNew={() => setSimplifiedComposerOpen(true)} 

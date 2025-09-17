@@ -122,15 +122,26 @@ export const RFIDetailsDialog = ({ open, onOpenChange, rfi }: RFIDetailsDialogPr
   const handleStatusChange = async (newStatus: string) => {
     if (!rfi) return;
 
+    // Prevent non-creators from closing RFIs
+    if (newStatus === 'closed' && user?.id !== rfi.raised_by) {
+      console.error('Only the RFI creator can close this RFI');
+      return;
+    }
+
     setLoading(true);
     await updateRFI(rfi.id, { status: newStatus as any });
     setStatus(newStatus as any);
     setLoading(false);
   };
 
-  // Only contractors can respond to RFIs assigned to them
+  // Enhanced permission checks
   const canRespond = user && rfi?.assigned_to === user.id && rfi.status !== 'closed' && rfi.status !== 'responded';
-  const canChangeStatus = user && (user.id === rfi?.raised_by || user.id === rfi?.assigned_to || profile?.role === 'architect');
+  
+  // Only the original creator can close RFIs
+  const canClose = user && user.id === rfi?.raised_by;
+  
+  // Can change status to non-closed states (creator, assignee, or architect)
+  const canChangeNonCloseStatus = user && (user.id === rfi?.raised_by || user.id === rfi?.assigned_to || profile?.role === 'architect');
 
   if (!rfi) return null;
 
@@ -301,8 +312,8 @@ export const RFIDetailsDialog = ({ open, onOpenChange, rfi }: RFIDetailsDialogPr
             </div>
           )}
 
-          {/* Status update */}
-          {canChangeStatus && (
+          {/* Status update - enhanced permissions */}
+          {canChangeNonCloseStatus && (
             <div>
               <Label htmlFor="status" className="text-base font-semibold">
                 Update Status
@@ -315,9 +326,17 @@ export const RFIDetailsDialog = ({ open, onOpenChange, rfi }: RFIDetailsDialogPr
                   <SelectItem value="outstanding">Outstanding</SelectItem>
                   <SelectItem value="overdue">Overdue</SelectItem>
                   <SelectItem value="responded">Responded</SelectItem>
-                  <SelectItem value="closed">Closed</SelectItem>
+                  {/* Only show close option to creator */}
+                  {canClose && (
+                    <SelectItem value="closed">Closed</SelectItem>
+                  )}
                 </SelectContent>
               </Select>
+              {!canClose && (
+                <p className="text-xs text-muted-foreground mt-1">
+                  Note: Only the RFI creator can close this RFI
+                </p>
+              )}
             </div>
           )}
 
