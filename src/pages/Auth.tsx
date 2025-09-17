@@ -30,12 +30,8 @@ const Auth = () => {
   const [resetEmail, setResetEmail] = useState('');
   const [showForgotPassword, setShowForgotPassword] = useState(false);
 
-  // Early return for loading to prevent conditional hook execution
-  if (loading) {
-    return <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-center">Loading...</div>
-      </div>;
-  }
+  // Removed early return to keep hooks order consistent and avoid hook mismatch errors during loading state
+
 
   useEffect(() => {
     // Check if user came from email confirmation
@@ -185,7 +181,12 @@ const Auth = () => {
     value: 'contractor',
     label: 'Contractor'
   }];
-  return <div className="min-h-screen flex items-center justify-center bg-background px-4">
+  return <div className="min-h-screen flex items-center justify-center bg-background px-4 relative">
+      {loading && (
+        <div className="fixed inset-0 grid place-items-center bg-background/80 z-50">
+          <div className="text-center">Loading...</div>
+        </div>
+      )}
       <div className="w-full max-w-6xl flex flex-col lg:flex-row items-center lg:items-stretch lg:justify-between gap-8">
         {/* Animated House Illustration */}
         <div className="w-full lg:w-1/2 flex justify-center lg:order-2">
