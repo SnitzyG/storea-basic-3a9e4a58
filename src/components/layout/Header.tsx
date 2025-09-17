@@ -42,11 +42,6 @@ export const Header = ({
       </div>
 
       <div className="flex items-center gap-4">
-        <div className="hidden md:block">
-          <Button variant="ghost" size="sm">
-            <Search className="h-4 w-4" />
-          </Button>
-        </div>
         
         <RealtimeIndicator />
         <NotificationCenter />
@@ -60,8 +55,6 @@ export const Header = ({
               <Avatar className="h-8 w-8">
                 <AvatarImage src={profile?.avatar_url || undefined} alt={(profile?.name || user.email || 'User')} />
                 <AvatarFallback>{initials}</AvatarFallback>
-                {/* Online indicator - green dot when connected */}
-                <div className="absolute -bottom-0 -right-0 h-3 w-3 rounded-full bg-green-500 border-2 border-background"></div>
               </Avatar>
             </Button>
           </DropdownMenuTrigger>

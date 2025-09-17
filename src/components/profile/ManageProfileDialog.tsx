@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { User, Lock, Mail } from 'lucide-react';
+import { User, Lock, Mail, Building2 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -20,6 +20,9 @@ export const ManageProfileDialog = ({ children }: ManageProfileDialogProps) => {
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [resetPasswordEmail, setResetPasswordEmail] = useState('');
+  const [companyName, setCompanyName] = useState('');
+  const [companyPosition, setCompanyPosition] = useState('');
+  const [companyAddress, setCompanyAddress] = useState('');
   const { user, profile } = useAuth();
   const { toast } = useToast();
 
@@ -27,6 +30,9 @@ export const ManageProfileDialog = ({ children }: ManageProfileDialogProps) => {
     if (profile) {
       setName(profile.name || '');
       setPhone(profile.phone || '');
+      setCompanyName(profile.company_name || '');
+      setCompanyPosition(profile.company_position || '');
+      setCompanyAddress(profile.company_address || '');
     }
     if (user) {
       setResetPasswordEmail(user.email || '');
@@ -43,6 +49,9 @@ export const ManageProfileDialog = ({ children }: ManageProfileDialogProps) => {
         .update({
           name: name.trim(),
           phone: phone.trim(),
+          company_name: companyName.trim(),
+          company_position: companyPosition.trim(),
+          company_address: companyAddress.trim(),
         })
         .eq('user_id', user.id);
 
@@ -103,7 +112,7 @@ export const ManageProfileDialog = ({ children }: ManageProfileDialogProps) => {
       <DialogTrigger asChild>
         {children}
       </DialogTrigger>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <User className="h-5 w-5" />
@@ -162,6 +171,47 @@ export const ManageProfileDialog = ({ children }: ManageProfileDialogProps) => {
               >
                 {loading ? 'Updating...' : 'Update Profile'}
               </Button>
+            </CardContent>
+          </Card>
+
+          <Separator />
+
+          {/* Company Information */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-sm font-medium flex items-center gap-2">
+                <Building2 className="h-4 w-4" />
+                Company Information
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <Label htmlFor="company-name">Company Name</Label>
+                <Input
+                  id="company-name"
+                  value={companyName}
+                  onChange={(e) => setCompanyName(e.target.value)}
+                  placeholder="Enter company name"
+                />
+              </div>
+              <div>
+                <Label htmlFor="company-position">Position/Title</Label>
+                <Input
+                  id="company-position"
+                  value={companyPosition}
+                  onChange={(e) => setCompanyPosition(e.target.value)}
+                  placeholder="Enter your position or title"
+                />
+              </div>
+              <div>
+                <Label htmlFor="company-address">Company Address</Label>
+                <Input
+                  id="company-address"
+                  value={companyAddress}
+                  onChange={(e) => setCompanyAddress(e.target.value)}
+                  placeholder="Enter company address"
+                />
+              </div>
             </CardContent>
           </Card>
 

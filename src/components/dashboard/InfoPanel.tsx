@@ -77,24 +77,24 @@ export const InfoPanel = () => {
 
   return (
     <Card className="h-full flex flex-col">
-      <CardHeader className="pb-4 flex-shrink-0 border-b">
-        <CardTitle className="text-lg flex items-center gap-2 font-medium">
-          <Clock className="h-5 w-5 text-primary" />
+      <CardHeader className="pb-3 flex-shrink-0 border-b">
+        <CardTitle className="text-base flex items-center gap-2 font-medium">
+          <Clock className="h-4 w-4 text-primary" />
           Info Panel
         </CardTitle>
       </CardHeader>
       
-      <CardContent className="flex-1 space-y-6">
+      <CardContent className="flex-1 space-y-4 p-4">
         {/* Date & Time */}
         <div className="space-y-2">
-          <h4 className="font-medium text-sm flex items-center gap-2">
-            <Clock className="h-4 w-4" />
+          <h4 className="font-medium text-xs flex items-center gap-1 text-muted-foreground uppercase tracking-wide">
+            <Clock className="h-3 w-3" />
             Current Time
           </h4>
           <div className="text-lg font-semibold">
             {format(currentTime, 'h:mm:ss a')}
           </div>
-          <div className="text-sm text-muted-foreground">
+          <div className="text-xs text-muted-foreground">
             {format(currentTime, 'EEEE, MMMM d, yyyy')}
           </div>
         </div>
@@ -102,8 +102,8 @@ export const InfoPanel = () => {
         {/* Weather for Current Project */}
 
         <div className="space-y-3">
-          <h4 className="font-medium text-sm flex items-center gap-2">
-            <Cloud className="h-4 w-4" />
+          <h4 className="font-medium text-xs flex items-center gap-1 text-muted-foreground uppercase tracking-wide">
+            <Cloud className="h-3 w-3" />
             Weather - {weather.location}
           </h4>
           
@@ -132,7 +132,7 @@ export const InfoPanel = () => {
 
           {/* 7-Day Forecast */}
           <div className="space-y-2">
-            <h5 className="text-xs font-medium text-muted-foreground">7-Day Forecast</h5>
+            <h5 className="text-xs font-medium text-muted-foreground uppercase tracking-wide">7-Day Forecast</h5>
             <div className="space-y-1">
               {weather.forecast.map((day, index) => (
                 <div key={index} className="flex items-center justify-between text-xs">

@@ -94,7 +94,7 @@ export const Sidebar = ({
             key={tab.id} 
             to={tab.path} 
             onClick={handleTabClick}
-            className={cn("flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors relative", isActive ? "bg-sidebar-accent text-sidebar-accent-foreground" : "text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground")}
+            className={cn("flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors relative", isActive ? "bg-sidebar-accent text-sidebar-accent-foreground" : "text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground dark:text-white")}
           >
                 <Icon className="h-5 w-5" />
                 {tab.label}
