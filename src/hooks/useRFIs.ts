@@ -226,6 +226,24 @@ export const useRFIs = (projectId?: string) => {
     if (!user) return null;
 
     try {
+      // Check for closing permission before attempting update
+      if (updates.status === 'closed') {
+        const { data: rfiData } = await supabase
+          .from('rfis')
+          .select('raised_by')
+          .eq('id', id)
+          .single();
+        
+        if (rfiData?.raised_by !== user.id) {
+          toast({
+            title: "Permission Denied",
+            description: "Only the RFI creator can close this RFI",
+            variant: "destructive",
+          });
+          return null;
+        }
+      }
+
       const { data, error } = await supabase
         .from('rfis')
         .update(updates)
