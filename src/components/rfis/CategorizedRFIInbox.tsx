@@ -59,6 +59,14 @@ const statusConfig = {
     icon: CheckCircle2,
     bgColor: 'bg-gray-50 border-gray-200'
   },
+  // Support for "awaiting_response" status if needed
+  awaiting_response: { 
+    label: 'Awaiting Response', 
+    variant: 'default' as const, 
+    color: 'text-orange-600',
+    icon: Clock,
+    bgColor: 'bg-orange-50 border-orange-200'
+  },
 };
 
 export const CategorizedRFIInbox: React.FC<CategorizedRFIInboxProps> = ({
@@ -154,9 +162,21 @@ export const CategorizedRFIInbox: React.FC<CategorizedRFIInboxProps> = ({
                       {rfi.question}
                     </p>
                   </div>
-                  <Badge variant={config?.variant} className="ml-2 flex-shrink-0">
-                    {config?.label}
-                  </Badge>
+                  <div className="flex items-center gap-2 ml-2 flex-shrink-0">
+                    <Badge 
+                      variant="outline" 
+                      className={`text-xs ${
+                        rfi.priority === 'high' ? 'border-red-300 text-red-700 bg-red-50' :
+                        rfi.priority === 'medium' ? 'border-yellow-300 text-yellow-700 bg-yellow-50' :
+                        'border-green-300 text-green-700 bg-green-50'
+                      }`}
+                    >
+                      {rfi.priority.charAt(0).toUpperCase() + rfi.priority.slice(1)}
+                    </Badge>
+                    <Badge variant={config?.variant}>
+                      {config?.label}
+                    </Badge>
+                  </div>
                 </div>
 
                 <div className="flex items-center justify-between text-xs text-muted-foreground">

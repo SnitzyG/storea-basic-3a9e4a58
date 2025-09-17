@@ -42,6 +42,7 @@ export const SimplifiedRFIComposer: React.FC<SimplifiedRFIComposerProps> = ({
 
   const [formData, setFormData] = useState({
     rfi_type: 'General' as RFIType,
+    priority: 'medium' as 'low' | 'medium' | 'high',
     recipient_name: '',
     recipient_email: '',
     subject: '',
@@ -73,6 +74,7 @@ export const SimplifiedRFIComposer: React.FC<SimplifiedRFIComposerProps> = ({
         // Reset for new RFI
         setFormData({
           rfi_type: 'General',
+          priority: 'medium',
           recipient_name: '',
           recipient_email: '',
           subject: '',
@@ -133,7 +135,7 @@ export const SimplifiedRFIComposer: React.FC<SimplifiedRFIComposerProps> = ({
         const rfiResult = await createRFI({
           project_id: projectId,
           question: formData.message,
-          priority: 'medium', // Default priority
+          priority: formData.priority,
           category: formData.rfi_type, // Map type to category
           assigned_to: formData.assigned_to,
           due_date: isResponseRequired ? requiredResponseDate?.toISOString() : undefined,
@@ -186,6 +188,7 @@ export const SimplifiedRFIComposer: React.FC<SimplifiedRFIComposerProps> = ({
       // Reset form
       setFormData({
         rfi_type: 'General',
+        priority: 'medium',
         recipient_name: '',
         recipient_email: '',
         subject: '',
@@ -236,6 +239,24 @@ export const SimplifiedRFIComposer: React.FC<SimplifiedRFIComposerProps> = ({
                 </Select>
               </div>
 
+              {/* Priority */}
+              <div>
+                <Label htmlFor="priority">Priority *</Label>
+                <Select 
+                  value={formData.priority} 
+                  onValueChange={(value: 'low' | 'medium' | 'high') => setFormData(prev => ({ ...prev, priority: value }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select priority" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="low">Low</SelectItem>
+                    <SelectItem value="medium">Medium</SelectItem>
+                    <SelectItem value="high">High</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
               {/* Recipient */}
               <div>
                 <Label htmlFor="recipient-select">To (Recipient)</Label>
@@ -256,7 +277,61 @@ export const SimplifiedRFIComposer: React.FC<SimplifiedRFIComposerProps> = ({
               {/* Response Date (only for Request for Information) */}
               {isResponseRequired && (
                 <div>
-                  <Label>Required Response By</Label>
+                  <Label>Required Response By *</Label>
+                  
+                  {/* Quick Date Selectors */}
+                  <div className="flex gap-2 mb-3">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        const date = new Date();
+                        date.setDate(date.getDate() + 1);
+                        setRequiredResponseDate(date);
+                      }}
+                    >
+                      1 Day
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        const date = new Date();
+                        date.setDate(date.getDate() + 2);
+                        setRequiredResponseDate(date);
+                      }}
+                    >
+                      2 Days
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        const date = new Date();
+                        date.setDate(date.getDate() + 3);
+                        setRequiredResponseDate(date);
+                      }}
+                    >
+                      3 Days
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        const date = new Date();
+                        date.setDate(date.getDate() + 7);
+                        setRequiredResponseDate(date);
+                      }}
+                    >
+                      1 Week
+                    </Button>
+                  </div>
+
+                  {/* Calendar Picker */}
                   <Popover>
                     <PopoverTrigger asChild>
                       <Button 
@@ -276,6 +351,8 @@ export const SimplifiedRFIComposer: React.FC<SimplifiedRFIComposerProps> = ({
                         selected={requiredResponseDate} 
                         onSelect={setRequiredResponseDate} 
                         initialFocus 
+                        className="p-3 pointer-events-auto"
+                        disabled={(date) => date < new Date()}
                       />
                     </PopoverContent>
                   </Popover>

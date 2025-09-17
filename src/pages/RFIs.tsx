@@ -15,6 +15,7 @@ import { RFIMessageComposer } from '@/components/messages/RFIMessageComposer';
 import { RFIDetailsDialog } from '@/components/rfis/RFIDetailsDialog';
 import { ProjectScopeValidator } from '@/components/rfis/ProjectScopeValidator';
 import { RFIPermissionsValidator } from '@/components/rfis/RFIPermissionsValidator';
+import { RFIEnhancementsValidator } from '@/components/rfis/RFIEnhancementsValidator';
 import { useProjectTeam } from '@/hooks/useProjectTeam';
 const RFIs = () => {
   const [selectedProject, setSelectedProject] = useState<string>('');
@@ -439,6 +440,9 @@ const RFIs = () => {
           <RFIPermissionsValidator
             projectId={currentProject.id}
             projectUsers={projectUsers}
+          />
+          <RFIEnhancementsValidator
+            rfis={projectRFIs}
           />
         </div>
       )}
