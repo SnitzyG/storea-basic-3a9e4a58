@@ -10,6 +10,7 @@ import { useTheme } from '@/context/ThemeContext';
 import { Badge } from '@/components/ui/badge';
 import { NotificationCenter } from '@/components/notifications/NotificationCenter';
 import { RealtimeIndicator } from '@/components/ui/realtime-indicator';
+import { ProjectSelector } from './ProjectSelector';
 interface HeaderProps {
   user: User;
   profile?: Profile | null;
@@ -36,7 +37,7 @@ export const Header = ({
     .slice(0, 2);
   return <header className="h-16 border-b border-border bg-card px-6 flex items-center justify-between">
       <div className="flex items-center gap-4">
-        
+        <ProjectSelector />
       </div>
 
       <div className="flex items-center gap-4">

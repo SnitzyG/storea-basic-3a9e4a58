@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useRFIs, RFI } from '@/hooks/useRFIs';
 import { useProjects } from '@/hooks/useProjects';
 import { useAuth } from '@/hooks/useAuth';
+import { useProjectSelection } from '@/context/ProjectSelectionContext';
 // Import email-style components
 import { EmailStyleRFIInbox } from '@/components/rfis/EmailStyleRFIInbox';
 import { CategorizedRFIInbox } from '@/components/rfis/CategorizedRFIInbox';
@@ -18,28 +19,27 @@ import { RFIPermissionsValidator } from '@/components/rfis/RFIPermissionsValidat
 import { RFIEnhancementsValidator } from '@/components/rfis/RFIEnhancementsValidator';
 import { useProjectTeam } from '@/hooks/useProjectTeam';
 const RFIs = () => {
-  const [selectedProject, setSelectedProject] = useState<string>('');
   const [simplifiedComposerOpen, setSimplifiedComposerOpen] = useState(false);
   const [messageComposerOpen, setMessageComposerOpen] = useState(false);
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
   const [selectedRFI, setSelectedRFI] = useState<RFI | null>(null);
   const [replyToRFI, setReplyToRFI] = useState<RFI | null>(null);
   const [projectUsers, setProjectUsers] = useState<any[]>([]);
+  const { selectedProject } = useProjectSelection();
   const {
     projects
   } = useProjects();
   const {
     profile
   } = useAuth();
-  const currentProject = projects.find(p => p.id === selectedProject) || projects[0];
   const {
     rfis,
     loading,
     updateRFI
-  } = useRFIs(currentProject?.id);
+  } = useRFIs(selectedProject?.id);
   const {
     teamMembers
-  } = useProjectTeam(currentProject?.id || '');
+  } = useProjectTeam(selectedProject?.id || '');
   const location = useLocation();
   const showDebug = process.env.NODE_ENV === 'development' && new URLSearchParams(location.search).get('debug') === 'rfi';
 
@@ -58,7 +58,7 @@ const RFIs = () => {
   }, [location.state]);
 
   // All RFIs for the current project - ensure proper project scoping
-  const projectRFIs = rfis.filter(rfi => rfi.project_id === currentProject?.id);
+  const projectRFIs = rfis.filter(rfi => rfi.project_id === selectedProject?.id);
   const handleViewRFI = (rfi: RFI) => {
     setSelectedRFI(rfi);
     setDetailsDialogOpen(true);
@@ -412,7 +412,7 @@ const RFIs = () => {
         <div className="text-center">Loading RFIs...</div>
       </div>;
   }
-  if (!currentProject) {
+  if (!selectedProject) {
     return <div className="min-h-screen flex items-center justify-center">
         <Card className="w-96">
           <CardHeader>
@@ -431,15 +431,15 @@ const RFIs = () => {
   }
   return <div className="h-screen flex flex-col">
       {/* Development validators */}
-      {showDebug && currentProject && (
+      {showDebug && selectedProject && (
         <div className="px-4 py-2 space-y-2">
           <ProjectScopeValidator
-            projectId={currentProject.id}
+            projectId={selectedProject.id}
             rfis={rfis}
             onViolationFound={(violation) => console.error('Project scope violation:', violation)}
           />
           <RFIPermissionsValidator
-            projectId={currentProject.id}
+            projectId={selectedProject.id}
             projectUsers={projectUsers}
           />
           <RFIEnhancementsValidator
@@ -455,7 +455,7 @@ const RFIs = () => {
           onCreateNew={() => setSimplifiedComposerOpen(true)} 
           onReply={handleReplyToRFI}
           projectUsers={projectUsers} 
-          currentProject={currentProject} 
+          currentProject={selectedProject}
         />
         
         <CategorizedRFIInbox 
@@ -464,7 +464,7 @@ const RFIs = () => {
           onCreateNew={() => setSimplifiedComposerOpen(true)} 
           onReply={handleReplyToRFI}
           projectUsers={projectUsers} 
-          currentProject={currentProject} 
+          currentProject={selectedProject} 
         />
       </div>
 
@@ -474,14 +474,14 @@ const RFIs = () => {
           setSimplifiedComposerOpen(open);
           if (!open) setReplyToRFI(null);
         }} 
-        projectId={currentProject.id}
+        projectId={selectedProject?.id || ''}
         replyToRFI={replyToRFI}
       />
 
       <RFIMessageComposer
         open={messageComposerOpen}
         onOpenChange={setMessageComposerOpen}
-        projectId={currentProject.id}
+        projectId={selectedProject?.id || ''}
         linkedRFI={selectedRFI}
       />
 

@@ -6,6 +6,7 @@ import { Plus, AlertTriangle } from 'lucide-react';
 import { useTenders, Tender } from '@/hooks/useTenders';
 import { useProjects } from '@/hooks/useProjects';
 import { useAuth } from '@/hooks/useAuth';
+import { useProjectSelection } from '@/context/ProjectSelectionContext';
 import { TenderCard } from '@/components/tenders/TenderCard';
 import { CreateTenderDialog } from '@/components/tenders/CreateTenderDialog';
 import { TenderDetailsDialog } from '@/components/tenders/TenderDetailsDialog';
@@ -13,27 +14,26 @@ import { BidSubmissionDialog } from '@/components/tenders/BidSubmissionDialog';
 import { TenderInviteDialog } from '@/components/tenders/TenderInviteDialog';
 import { BidsReceivedSection } from '@/components/tenders/BidsReceivedSection';
 const Tenders = () => {
-  const [selectedProject, setSelectedProject] = useState<string>('');
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
   const [bidDialogOpen, setBidDialogOpen] = useState(false);
   const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
   const [selectedTender, setSelectedTender] = useState<Tender | null>(null);
   const [activeTab, setActiveTab] = useState<'tenders' | 'bids'>('tenders');
+  const { selectedProject } = useProjectSelection();
   const {
     projects
   } = useProjects();
   const {
     profile
   } = useAuth();
-  const currentProject = projects.find(p => p.id === selectedProject) || projects[0];
   const {
     tenders,
     loading,
     publishTender,
     closeTender,
     awardTender
-  } = useTenders(currentProject?.id);
+  } = useTenders(selectedProject?.id);
   const userRole = profile?.role || '';
 
   // Filter tenders based on user role
@@ -200,7 +200,7 @@ const Tenders = () => {
         <div className="text-center">Loading tenders...</div>
       </div>;
   }
-  if (!currentProject) {
+  if (!selectedProject) {
     return <div className="min-h-screen flex items-center justify-center">
         <Card className="w-96">
           <CardHeader>
@@ -223,7 +223,7 @@ const Tenders = () => {
         <div>
           <h1 className="text-3xl font-bold">Tenders</h1>
           <p className="text-muted-foreground">
-            Manage bidding and tender workflow for {currentProject.name}
+            Manage bidding and tender workflow for {selectedProject?.name}
           </p>
         </div>
         {userRole === 'architect' && <Button onClick={() => setCreateDialogOpen(true)}>
@@ -238,14 +238,7 @@ const Tenders = () => {
         {userRole === 'architect'}
       </div>
 
-      {/* Project Selector */}
-      {projects.length > 1 && <div className="mb-6">
-          <select value={selectedProject || currentProject.id} onChange={e => setSelectedProject(e.target.value)} className="px-3 py-2 border rounded-md bg-background">
-            {projects.map(project => <option key={project.id} value={project.id}>
-                {project.name}
-              </option>)}
-          </select>
-        </div>}
+      {/* Project selector is now in the header - no longer needed here */}
 
       {/* Expired Tenders Alert */}
       {expiredOpenTenders.length > 0 && userRole === 'architect' && <Card className="mb-6 border-orange-200 bg-orange-50">
@@ -278,7 +271,7 @@ const Tenders = () => {
         </> : <BidsReceivedSection tenders={filteredTenders} />}
 
       {/* Dialogs */}
-      <CreateTenderDialog open={createDialogOpen} onOpenChange={setCreateDialogOpen} projectId={currentProject.id} />
+      <CreateTenderDialog open={createDialogOpen} onOpenChange={setCreateDialogOpen} projectId={selectedProject?.id || ''} />
 
       <TenderDetailsDialog open={detailsDialogOpen} onOpenChange={setDetailsDialogOpen} tender={selectedTender} userRole={userRole} />
 

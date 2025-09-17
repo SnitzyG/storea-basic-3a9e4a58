@@ -13,6 +13,7 @@ import { useProjects } from '@/hooks/useProjects';
 import { useAuth } from '@/hooks/useAuth';
 import { useProjectTeam } from '@/hooks/useProjectTeam';
 import { useRFIs } from '@/hooks/useRFIs';
+import { useProjectSelection } from '@/context/ProjectSelectionContext';
 import { ThreadCard } from '@/components/messages/ThreadCard';
 import { CreateThreadDialog } from '@/components/messages/CreateThreadDialog';
 import { MessageBubble } from '@/components/messages/MessageBubble';
@@ -21,10 +22,10 @@ import { TypingIndicator } from '@/components/messages/TypingIndicator';
 import { cn } from '@/lib/utils';
 
 const Messages = () => {
-  const [selectedProject, setSelectedProject] = useState<string>('');
   const [searchTerm, setSearchTerm] = useState('');
   const [messageType, setMessageType] = useState<'direct' | 'group'>('direct');
   const [connectionStatus, setConnectionStatus] = useState<'connected' | 'disconnected'>('connected');
+  const { selectedProject } = useProjectSelection();
   const {
     profile
   } = useAuth();
@@ -34,16 +35,16 @@ const Messages = () => {
   const {
     teamMembers: projectUsers,
     refreshTeam
-  } = useProjectTeam(selectedProject || '');
+  } = useProjectTeam(selectedProject?.id || '');
   const {
     createRFI
-  } = useRFIs(selectedProject || '');
+  } = useRFIs(selectedProject?.id || '');
 
   // Listen for team updates to refresh team list immediately
   useEffect(() => {
     const handleTeamUpdate = (event: any) => {
       if (!selectedProject) return;
-      if (event.detail?.projectId === selectedProject || !event.detail?.projectId) {
+      if (event.detail?.projectId === selectedProject.id || !event.detail?.projectId) {
         refreshTeam();
       }
     };
@@ -70,14 +71,9 @@ const Messages = () => {
     setTypingIndicator,
     updateThread,
     removeThread
-  } = useMessages(selectedProject);
+  } = useMessages(selectedProject?.id);
 
-  // Set default project
-  useEffect(() => {
-    if (!selectedProject && projects.length > 0) {
-      setSelectedProject(projects[0].id);
-    }
-  }, [projects, selectedProject]);
+  // No need for manual project selection as it's handled by context
 
   // No longer needed as we use useTeamSync hook
 
@@ -86,7 +82,7 @@ const Messages = () => {
     const targetUserId = sessionStorage.getItem('targetUserId');
     const targetUserName = sessionStorage.getItem('targetUserName');
     const projectId = sessionStorage.getItem('currentProjectId');
-    if (targetUserId && targetUserName && projectId === selectedProject) {
+    if (targetUserId && targetUserName && projectId === selectedProject?.id) {
       // Clear session storage
       sessionStorage.removeItem('targetUserId');
       sessionStorage.removeItem('targetUserName');
@@ -129,8 +125,7 @@ const Messages = () => {
     }
   }, [threads, searchTerm, messageType]);
   const getCurrentProjectName = () => {
-    const project = projects.find(p => p.id === selectedProject);
-    return project?.name || 'Select Project';
+    return selectedProject?.name || 'Select Project';
   };
   const handleCreateThread = async (title: string, participants: string[]) => {
     await createThread(title, participants);
@@ -142,7 +137,7 @@ const Messages = () => {
     if (!selectedProject || !profile?.user_id) return;
     try {
       await createRFI({
-        project_id: selectedProject,
+        project_id: selectedProject.id,
         question: content,
         priority: 'medium',
         subject: `Inquiry from Message: ${content.substring(0, 50)}${content.length > 50 ? '...' : ''}`,
@@ -491,7 +486,7 @@ const Messages = () => {
                 supportAttachments={true}
                 supportMentions={true}
                 projectUsers={projectUsers}
-                projectId={selectedProject}
+            projectId={selectedProject?.id || ''}
                 onCreateRFI={handleCreateRFI}
               />
             </div>

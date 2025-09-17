@@ -10,6 +10,7 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useDocumentGroups, DocumentGroup } from '@/hooks/useDocumentGroups';
 import { useProjects } from '@/hooks/useProjects';
 import { useAuth } from '@/hooks/useAuth';
+import { useProjectSelection } from '@/context/ProjectSelectionContext';
 import { DocumentUpload } from '@/components/documents/DocumentUpload';
 import { DocumentPreview } from '@/components/documents/DocumentPreview';
 import { DocumentDetailsDialog } from '@/components/documents/DocumentDetailsDialog';
@@ -20,13 +21,13 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 const Documents = () => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedProject, setSelectedProject] = useState<string>('all');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
   const [previewDocument, setPreviewDocument] = useState<DocumentGroup | null>(null);
   const [detailsDocument, setDetailsDocument] = useState<DocumentGroup | null>(null);
   const [activityDocument, setActivityDocument] = useState<DocumentGroup | null>(null);
+  const { selectedProject } = useProjectSelection();
   const {
     profile
   } = useAuth();
@@ -44,7 +45,7 @@ const Documents = () => {
     deleteDocumentGroup,
     toggleDocumentLock,
     updateDocumentMetadata
-  } = useDocumentGroups(selectedProject === 'all' ? undefined : selectedProject);
+  } = useDocumentGroups(selectedProject?.id);
   const filteredDocuments = useMemo(() => {
     return documents.filter(doc => {
       // Enhanced search - search in title, category, document number
@@ -255,7 +256,7 @@ const Documents = () => {
               </DialogHeader>
               {projects.length > 0 ? (
                 <DocumentUpload 
-                  projectId={selectedProject === 'all' ? projects[0]?.id : selectedProject} 
+                  projectId={selectedProject?.id || projects[0]?.id || ''}
                   onUploadComplete={() => {
                     setUploadDialogOpen(false);
                     fetchDocumentGroups(); // Refresh list after upload
@@ -313,7 +314,7 @@ const Documents = () => {
           onEdit={updateDocumentMetadata}
           canEdit={filteredDocuments.some(doc => canEditDocument(doc))} 
           canApprove={canApproveDocument()} 
-          selectedProject={selectedProject}
+          selectedProject={selectedProject?.id || ''}
         />}
 
       {/* Document Preview Dialog */}

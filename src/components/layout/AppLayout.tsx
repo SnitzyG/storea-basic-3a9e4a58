@@ -3,6 +3,7 @@ import { useProjectLinking } from '@/hooks/useProjectLinking';
 import { Navigate } from 'react-router-dom';
 import { Sidebar } from './Sidebar';
 import { Header } from './Header';
+import { ProjectSelectionProvider } from '@/context/ProjectSelectionContext';
 interface AppLayoutProps {
   children: React.ReactNode;
 }
@@ -50,13 +51,17 @@ export const AppLayout = ({
   }
   const userRole = profile?.role ?? 'contractor';
 
-  return <div className="min-h-screen bg-background flex">
-      <Sidebar userRole={userRole} />
-      <div className="flex-1 flex flex-col min-h-screen">
-        <Header user={user} profile={profile} />
-        <main className="flex-1 overflow-hidden mx-0 py-[10px]">
-          {children}
-        </main>
+  return (
+    <ProjectSelectionProvider>
+      <div className="min-h-screen bg-background flex">
+        <Sidebar userRole={userRole} />
+        <div className="flex-1 flex flex-col min-h-screen">
+          <Header user={user} profile={profile} />
+          <main className="flex-1 overflow-hidden mx-0 py-[10px]">
+            {children}
+          </main>
+        </div>
       </div>
-    </div>;
+    </ProjectSelectionProvider>
+  );
 };
