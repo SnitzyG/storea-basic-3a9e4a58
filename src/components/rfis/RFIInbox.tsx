@@ -98,31 +98,31 @@ export const RFIInbox = ({
   const categories = [
     {
       id: 'all' as const,
-      label: 'All Project RFIs',
+      label: 'All Project Mail',
       icon: Archive,
       description: 'Full list of RFIs for the active project'
     },
     {
       id: 'received' as const,
-      label: 'RFIs Sent to Me',
+      label: 'Received',
       icon: Inbox,
       description: 'RFIs where you are the recipient'
     },
     {
       id: 'sent' as const,
-      label: 'RFIs I\'ve Sent',
+      label: 'Sent',
       icon: Send,
       description: 'RFIs created and submitted by you'
     },
     {
       id: 'unresponded' as const,
-      label: 'Unresponded RFIs',
+      label: 'Unresponded',
       icon: MessageSquare,
       description: 'RFIs sent to others but not yet answered'
     },
     {
       id: 'responded' as const,
-      label: 'Responded RFIs',
+      label: 'Responded',
       icon: MessageSquare,
       description: 'RFIs that have received responses'
     },
@@ -158,12 +158,6 @@ export const RFIInbox = ({
       label: 'Closed',
       icon: Archive,
       description: 'RFIs that have been closed'
-    },
-    {
-      id: 'void',
-      label: 'Void',
-      icon: Trash,
-      description: 'RFIs that have been voided'
     }
   ];
 
@@ -249,13 +243,13 @@ export const RFIInbox = ({
           ))}
         </nav>
       </div>
-      {/* RFI Status Section */}
+      {/* Status Section */}
       {onStatusChange && (
-        <div className="mb-3">
+        <div className="flex-1 min-h-0">
           <h4 className="text-xs font-medium text-muted-foreground/70 mb-2 uppercase tracking-wide">
-            RFI Status
+            Status
           </h4>
-          <div className="space-y-0.5">
+          <div className="space-y-0.5 overflow-y-auto">
             {statusCategories.map(({ id, label, icon: Icon, description }) => (
               <button
                 key={id}
@@ -284,75 +278,6 @@ export const RFIInbox = ({
         </div>
       )}
 
-      {/* RFI Type Section */}
-      {onTypeChange && (
-        <div className="mb-3">
-          <h4 className="text-xs font-medium text-muted-foreground/70 mb-2 uppercase tracking-wide">
-            RFI Type
-          </h4>
-          <div className="space-y-0.5">
-            {rfiTypes.map(({ id, label, icon: Icon, description }) => (
-              <button
-                key={id}
-                onClick={() => handleTypeChange(id)}
-                className={`w-full flex items-center gap-2 px-2 py-1.5 text-xs rounded-md transition-colors ${
-                  selectedType === id
-                    ? 'bg-accent text-accent-foreground font-medium'
-                    : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
-                }`}
-                title={description}
-              >
-                <Icon className="h-3 w-3 flex-shrink-0" />
-                <span className="flex-1 text-left truncate">{label}</span>
-                {typeCounts && typeCounts[id as keyof typeof typeCounts] > 0 && (
-                  <span className={`text-xs px-1 py-0.5 rounded-full font-medium ${
-                    selectedType === id
-                      ? 'bg-accent-foreground/20 text-accent-foreground'
-                      : 'bg-muted text-muted-foreground'
-                  }`}>
-                    {typeCounts[id as keyof typeof typeCounts]}
-                  </span>
-                )}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* RFI Priority Section */}
-      {onPriorityChange && (
-        <div className="flex-1 min-h-0">
-          <h4 className="text-xs font-medium text-muted-foreground/70 mb-2 uppercase tracking-wide">
-            RFI Priority
-          </h4>
-          <div className="space-y-0.5 overflow-y-auto">
-            {priorities.map(({ id, label, icon: Icon, description }) => (
-              <button
-                key={id}
-                onClick={() => handlePriorityChange(id)}
-                className={`w-full flex items-center gap-2 px-2 py-1.5 text-xs rounded-md transition-colors ${
-                  selectedPriority === id
-                    ? 'bg-accent text-accent-foreground font-medium'
-                    : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
-                }`}
-                title={description}
-              >
-                <Icon className="h-3 w-3 flex-shrink-0" />
-                <span className="flex-1 text-left truncate">{label}</span>
-                {priorityCounts && priorityCounts[id as keyof typeof priorityCounts] > 0 && (
-                  <span className={`text-xs px-1 py-0.5 rounded-full font-medium ${
-                    selectedPriority === id
-                      ? 'bg-accent-foreground/20 text-accent-foreground'
-                      : 'bg-muted text-muted-foreground'
-                  }`}>
-                    {priorityCounts[id as keyof typeof priorityCounts]}
-                  </span>
-                )}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
     </div>
   );
 };
