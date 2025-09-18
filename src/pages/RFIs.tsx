@@ -4,7 +4,7 @@ import { useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { supabase } from '@/integrations/supabase/client';
-import { Inbox, Send, FileEdit, Archive } from 'lucide-react';
+import { Inbox, Send, FileEdit, Archive, AlertCircle } from 'lucide-react';
 import { useRFIs, RFI } from '@/hooks/useRFIs';
 import { useProjects } from '@/hooks/useProjects';
 import { useAuth } from '@/hooks/useAuth';
@@ -30,6 +30,7 @@ import { ProjectScopeValidator } from '@/components/rfis/ProjectScopeValidator';
 import { RFIPermissionsValidator } from '@/components/rfis/RFIPermissionsValidator';
 import { RFIEnhancementsValidator } from '@/components/rfis/RFIEnhancementsValidator';
 import { useProjectTeam } from '@/hooks/useProjectTeam';
+import { QuickRFIRespondDialog } from '@/components/rfis/QuickRFIRespondDialog';
 
 const RFIs = () => {
   const [simplifiedComposerOpen, setSimplifiedComposerOpen] = useState(false);
@@ -61,6 +62,7 @@ const RFIs = () => {
   const [selectedRFIIds, setSelectedRFIIds] = useState<string[]>([]);
   const [responsesViewerOpen, setResponsesViewerOpen] = useState(false);
   const [responsesViewerRFI, setResponsesViewerRFI] = useState<RFI | null>(null);
+  const [quickRespondDialogOpen, setQuickRespondDialogOpen] = useState(false);
   const { selectedProject } = useProjectSelection();
   const { projects } = useProjects();
   const { profile } = useAuth();
@@ -847,6 +849,15 @@ const RFIs = () => {
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold">RFI List</h2>
               <div className="flex items-center space-x-2">
+                <Button 
+                  onClick={() => setQuickRespondDialogOpen(true)} 
+                  size="sm" 
+                  variant="outline"
+                  className="gap-2"
+                >
+                  <AlertCircle className="w-4 h-4" />
+                  RFI Respond
+                </Button>
                 <Button onClick={() => setSimplifiedComposerOpen(true)} size="sm" className="bg-green-600 hover:bg-green-700 text-white">
                   Create RFI
                 </Button>
@@ -966,6 +977,13 @@ const RFIs = () => {
           setResponsesViewerRFI(null);
           handleCreateResponse(rfi);
         }}
+      />
+
+      <QuickRFIRespondDialog
+        open={quickRespondDialogOpen}
+        onOpenChange={setQuickRespondDialogOpen}
+        rfis={projectRFIs}
+        onRespond={handleCreateResponse}
       />
     </div>;
 };
