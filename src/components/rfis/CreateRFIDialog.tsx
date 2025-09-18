@@ -27,7 +27,7 @@ export const CreateRFIDialog: React.FC<CreateRFIDialogProps> = ({
 }) => {
   const {
     createRFI
-  } = useRFIs(projectId);
+  } = useRFIs();
   const {
     teamMembers
   } = useProjectTeam(projectId);

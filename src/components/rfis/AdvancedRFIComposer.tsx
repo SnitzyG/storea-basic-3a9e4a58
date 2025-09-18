@@ -34,7 +34,7 @@ export const AdvancedRFIComposer: React.FC<AdvancedRFIComposerProps> = ({
 }) => {
   const {
     createRFI
-  } = useRFIs(projectId);
+  } = useRFIs();
   const {
     teamMembers
   } = useProjectTeam(projectId);

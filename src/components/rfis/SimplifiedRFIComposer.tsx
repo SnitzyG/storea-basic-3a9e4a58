@@ -32,7 +32,7 @@ export const SimplifiedRFIComposer: React.FC<SimplifiedRFIComposerProps> = ({
   projectId,
   replyToRFI
 }) => {
-  const { createRFI, updateRFI } = useRFIs(projectId);
+  const { createRFI, updateRFI } = useRFIs();
   const { teamMembers } = useProjectTeam(projectId);
   const { projects } = useProjects();
   const { profile, user } = useAuth();

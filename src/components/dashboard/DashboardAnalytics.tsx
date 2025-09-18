@@ -26,7 +26,7 @@ export const DashboardAnalytics = () => {
   // For demo purposes, we'll use the first project's data
   // In a real app, you'd aggregate across all projects
   const firstProject = projects[0];
-  const { rfis } = useRFIs(firstProject?.id);
+  const { rfis } = useRFIs();
   const { tenders } = useTenders(firstProject?.id);
 
   // Calculate RFI metrics

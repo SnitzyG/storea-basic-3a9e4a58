@@ -38,7 +38,7 @@ const Messages = () => {
   } = useProjectTeam(selectedProject?.id || '');
   const {
     createRFI
-  } = useRFIs(selectedProject?.id || '');
+  } = useRFIs();
 
   // Listen for team updates to refresh team list immediately
   useEffect(() => {

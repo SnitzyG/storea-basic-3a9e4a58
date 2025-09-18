@@ -439,22 +439,22 @@ export const useMessages = (projectId?: string) => {
       supabase.removeChannel(threadsChannel);
       supabase.removeChannel(presenceChannel);
     };
-  }, [projectId, fetchThreads]);
+  }, [activeProjectId, fetchThreads]);
 
   // Initial data load
   useEffect(() => {
-    if (projectId) {
-      fetchThreads(projectId);
+    if (activeProjectId) {
+      fetchThreads();
       if (currentThread) {
         fetchMessages(currentThread);
       } else {
         fetchMessages(); // Fetch direct messages
       }
     }
-  }, [projectId, currentThread, fetchThreads, fetchMessages]);
+  }, [activeProjectId, currentThread, fetchThreads, fetchMessages]);
 
   const setTypingIndicator = useCallback(async (isTyping: boolean) => {
-    if (!projectId) return;
+    if (!activeProjectId) return;
 
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;

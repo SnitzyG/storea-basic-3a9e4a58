@@ -22,7 +22,7 @@ export const RFIMessageComposer: React.FC<RFIMessageComposerProps> = ({
   projectId,
   linkedRFI
 }) => {
-  const { createRFI } = useRFIs(projectId);
+  const { createRFI } = useRFIs();
   const { profile, user } = useAuth();
   const { projects } = useProjects();
   

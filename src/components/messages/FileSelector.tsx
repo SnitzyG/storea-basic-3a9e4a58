@@ -23,7 +23,7 @@ export const FileSelector: React.FC<FileSelectorProps> = ({
   onUploadNew
 }) => {
   const { documents } = useDocuments(projectId);
-  const { rfis } = useRFIs(projectId);
+  const { rfis } = useRFIs();
   const [newFiles, setNewFiles] = useState<File[]>([]);
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {

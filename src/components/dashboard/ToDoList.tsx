@@ -33,8 +33,8 @@ export const ToDoList = () => {
   const { selectedProject } = useProjectSelection();
   const { todos, addTodo: createTodo, toggleTodo, deleteTodo, loading } = useTodos(selectedProject?.id);
   const { documents } = useDocuments(selectedProject?.id);
-  const { rfis } = useRFIs(selectedProject?.id);
-  const { messages } = useMessages(selectedProject?.id);
+  const { rfis } = useRFIs();
+  const { messages } = useMessages();
   const { toast } = useToast();
 
   const getDateRangeStart = () => {

@@ -45,8 +45,8 @@ export const CalendarWidget = () => {
   const { selectedProject } = useProjectSelection();
   const { todos, addTodo, updateTodo, deleteTodo } = useTodos(selectedProject?.id);
   const { documents } = useDocuments(selectedProject?.id);
-  const { rfis } = useRFIs(selectedProject?.id);
-  const { messages } = useMessages(selectedProject?.id);
+  const { rfis } = useRFIs();
+  const { messages } = useMessages();
   const { toast } = useToast();
 
   // Get todos for a specific date
