@@ -283,8 +283,8 @@ export const DocumentSharingDialog: React.FC<DocumentSharingDialogProps> = ({
             </CardContent>
           </Card>
 
-          {/* Only show sharing options for private documents or document owners */}
-          {(document.visibility_scope === 'private' || document.uploaded_by === profile?.user_id) && (
+          {/* Show sharing options for all documents in the project */}
+          {true && (
             <>
               {/* Team Members List with Checkboxes */}
               <div className="space-y-4">
@@ -389,18 +389,7 @@ export const DocumentSharingDialog: React.FC<DocumentSharingDialogProps> = ({
             </>
           )}
 
-          {/* Info for non-private documents */}
-          {document.visibility_scope !== 'private' && document.uploaded_by !== profile?.user_id && (
-            <Card>
-              <CardContent className="p-4">
-                <div className="text-center text-muted-foreground">
-                  <Users className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                  <p>This document is visible to all project members.</p>
-                  <p className="text-sm">Only the document owner can manage sharing.</p>
-                </div>
-              </CardContent>
-            </Card>
-          )}
+          {/* Info section removed as all users can now manage sharing */}
         </div>
       </DialogContent>
     </Dialog>
