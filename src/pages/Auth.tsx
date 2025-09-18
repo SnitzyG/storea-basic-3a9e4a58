@@ -295,7 +295,7 @@ const Auth = () => {
                 <TabsTrigger value="signup">Sign Up</TabsTrigger>
               </TabsList>
 
-              <TabsContent value="signin">
+              <TabsContent value="signin" className="min-h-[400px]">
                 {!showForgotPassword ? (
                   <form onSubmit={handleSignIn} className="space-y-4">
                     <div className="space-y-2">
@@ -346,7 +346,7 @@ const Auth = () => {
                 )}
               </TabsContent>
 
-              <TabsContent value="signup">
+              <TabsContent value="signup" className="min-h-[400px]">
                 <form onSubmit={handleSignUp} className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="signup-name">Full Name</Label>
