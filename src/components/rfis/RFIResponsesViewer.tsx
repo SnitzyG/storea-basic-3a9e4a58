@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { X, FileText, Download } from 'lucide-react';
+import { X, FileText, Download, Minimize2, Maximize2, Package } from 'lucide-react';
 import { RFI } from '@/hooks/useRFIs';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -14,6 +14,7 @@ interface RFIResponse {
   responder_position: string;
   response_date: string;
   created_at: string;
+  type: 'original' | 'response';
 }
 
 interface RFIResponsesViewerProps {
@@ -29,6 +30,8 @@ export const RFIResponsesViewer: React.FC<RFIResponsesViewerProps> = ({
 }) => {
   const [responses, setResponses] = useState<RFIResponse[]>([]);
   const [loading, setLoading] = useState(false);
+  const [minimizedItems, setMinimizedItems] = useState<Set<string>>(new Set());
+  const [isMinimized, setIsMinimized] = useState(false);
 
   useEffect(() => {
     if (rfi && isOpen) {
@@ -41,23 +44,35 @@ export const RFIResponsesViewer: React.FC<RFIResponsesViewerProps> = ({
     
     setLoading(true);
     try {
-      // For now, we'll create mock responses based on the main RFI response
-      // In a real implementation, you'd have a separate responses table
-      const mockResponses: RFIResponse[] = [];
+      const allResponses: RFIResponse[] = [];
       
+      // Add the original RFI as the first "response"
+      allResponses.push({
+        id: `${rfi.id}-original`,
+        rfi_id: rfi.id,
+        response: rfi.question,
+        responder_name: rfi.raised_by_profile?.name || 'Unknown User',
+        responder_position: 'RFI Initiator',
+        response_date: rfi.created_at,
+        created_at: rfi.created_at,
+        type: 'original'
+      });
+      
+      // Add actual responses if they exist
       if (rfi.response) {
-        mockResponses.push({
+        allResponses.push({
           id: `${rfi.id}-response-1`,
           rfi_id: rfi.id,
           response: rfi.response,
           responder_name: rfi.responder_name || 'Unknown Responder',
           responder_position: rfi.responder_position || 'Team Member',
           response_date: rfi.response_date || rfi.updated_at,
-          created_at: rfi.response_date || rfi.updated_at
+          created_at: rfi.response_date || rfi.updated_at,
+          type: 'response'
         });
       }
       
-      setResponses(mockResponses);
+      setResponses(allResponses);
     } catch (error) {
       console.error('Error fetching responses:', error);
     } finally {
@@ -66,11 +81,15 @@ export const RFIResponsesViewer: React.FC<RFIResponsesViewerProps> = ({
   };
 
   const generateResponsePDF = (response: RFIResponse, index: number) => {
+    const isOriginal = response.type === 'original';
+    const title = isOriginal ? 'Original RFI' : `Response ${index}`;
+    const headerColor = isOriginal ? '#1e40af' : '#059669';
+    
     const printContent = `
       <!DOCTYPE html>
       <html>
         <head>
-          <title>RFI Response ${index + 1} - ${rfi?.rfi_number || rfi?.id}</title>
+          <title>${title} - ${rfi?.rfi_number || rfi?.id}</title>
           <style>
             * { margin: 0; padding: 0; box-sizing: border-box; }
             body { 
@@ -83,7 +102,7 @@ export const RFIResponsesViewer: React.FC<RFIResponsesViewerProps> = ({
               background: white;
             }
             .header { 
-              background: linear-gradient(135deg, #059669, #10b981);
+              background: linear-gradient(135deg, ${headerColor}, ${headerColor === '#1e40af' ? '#3b82f6' : '#10b981'});
               color: white;
               padding: 30px;
               border-radius: 8px;
@@ -104,8 +123,8 @@ export const RFIResponsesViewer: React.FC<RFIResponsesViewerProps> = ({
             .field { 
               margin: 20px 0;
               padding: 15px;
-              border-left: 4px solid #059669;
-              background: #f0fdf4;
+              border-left: 4px solid ${headerColor};
+              background: ${isOriginal ? '#f8fafc' : '#f0fdf4'};
               border-radius: 0 8px 8px 0;
             }
             .label { 
@@ -122,66 +141,60 @@ export const RFIResponsesViewer: React.FC<RFIResponsesViewerProps> = ({
               color: #334155;
               white-space: pre-wrap;
             }
-            .original-question {
-              background: #f8fafc;
-              border: 2px solid #e2e8f0;
-              border-radius: 8px;
-              padding: 20px;
-              margin: 20px 0;
-            }
-            .response-section {
-              background: #f0fdf4;
-              border: 2px solid #bbf7d0;
+            .question-section, .response-section {
+              background: ${isOriginal ? '#f8fafc' : '#f0fdf4'};
+              border: 2px solid ${isOriginal ? '#e2e8f0' : '#bbf7d0'};
               border-radius: 8px;
               padding: 20px;
               margin: 20px 0;
             }
             .divider {
               height: 2px;
-              background: linear-gradient(90deg, #059669, #e2e8f0);
+              background: linear-gradient(90deg, ${headerColor}, #e2e8f0);
               margin: 30px 0;
               border-radius: 1px;
             }
             @media print {
               body { padding: 20px; }
-              .header { background: #059669 !important; }
+              .header { background: ${headerColor} !important; }
             }
           </style>
         </head>
         <body>
           <div class="header">
-            <h1>RFI Response ${index + 1}</h1>
+            <h1>${title}</h1>
             <div class="header-info">
               <div><strong>RFI Number:</strong> ${rfi?.rfi_number || `RFI-${rfi?.id.slice(0, 8)}`}</div>
-              <div><strong>Response Date:</strong> ${new Date(response.response_date).toLocaleDateString('en-US', {
+              <div><strong>Date:</strong> ${new Date(response.response_date).toLocaleDateString('en-US', {
                 year: 'numeric',
                 month: 'long',
                 day: 'numeric'
               })}</div>
-              <div><strong>Responder:</strong> ${response.responder_name}</div>
+              <div><strong>${isOriginal ? 'Raised By' : 'Responder'}:</strong> ${response.responder_name}</div>
               <div><strong>Position:</strong> ${response.responder_position}</div>
             </div>
           </div>
 
-          <div class="original-question">
-            <div class="label">Original Question</div>
-            <div class="content">${rfi?.question || 'N/A'}</div>
-          </div>
-
-          <div class="divider"></div>
-
-          <div class="response-section">
-            <div class="label">Response</div>
+          <div class="${isOriginal ? 'question' : 'response'}-section">
+            <div class="label">${isOriginal ? 'Question' : 'Response'}</div>
             <div class="content">${response.response}</div>
           </div>
 
+          ${!isOriginal && rfi?.question ? `
+          <div class="divider"></div>
           <div class="field">
-            <div class="label">Submitted By</div>
+            <div class="label">Original Question</div>
+            <div class="content">${rfi.question}</div>
+          </div>
+          ` : ''}
+
+          <div class="field">
+            <div class="label">${isOriginal ? 'Submitted By' : 'Responded By'}</div>
             <div class="content">${response.responder_name} (${response.responder_position})</div>
           </div>
 
           <div class="field">
-            <div class="label">Submission Date</div>
+            <div class="label">${isOriginal ? 'Submission Date' : 'Response Date'}</div>
             <div class="content">${new Date(response.response_date).toLocaleDateString('en-US', {
               year: 'numeric',
               month: 'long',
@@ -190,6 +203,13 @@ export const RFIResponsesViewer: React.FC<RFIResponsesViewerProps> = ({
               minute: '2-digit'
             })}</div>
           </div>
+
+          ${rfi?.priority ? `
+          <div class="field">
+            <div class="label">Priority</div>
+            <div class="content">${rfi.priority.charAt(0).toUpperCase() + rfi.priority.slice(1)}</div>
+          </div>
+          ` : ''}
         </body>
       </html>
     `;
@@ -209,71 +229,147 @@ export const RFIResponsesViewer: React.FC<RFIResponsesViewerProps> = ({
     }
   };
 
+  const downloadAllPDFs = () => {
+    responses.forEach((response, index) => {
+      setTimeout(() => {
+        downloadResponsePDF(response, index);
+      }, index * 1000); // Stagger downloads by 1 second
+    });
+  };
+
+  const toggleMinimize = (responseId: string) => {
+    setMinimizedItems(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(responseId)) {
+        newSet.delete(responseId);
+      } else {
+        newSet.add(responseId);
+      }
+      return newSet;
+    });
+  };
+
   if (!rfi) return null;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl h-[80vh] flex flex-col">
+      <DialogContent className={`${isMinimized ? 'max-w-md h-auto' : 'max-w-3xl h-[70vh]'} flex flex-col transition-all duration-200`}>
         <DialogHeader className="flex-shrink-0">
           <div className="flex items-center justify-between">
             <DialogTitle>
-              RFI Responses - {rfi.rfi_number || `RFI-${rfi.id.slice(0, 8)}`}
+              {isMinimized ? 'RFI Responses' : `RFI Responses - ${rfi.rfi_number || `RFI-${rfi.id.slice(0, 8)}`}`}
             </DialogTitle>
-            <Button variant="ghost" size="sm" onClick={onClose}>
-              <X className="h-4 w-4" />
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setIsMinimized(!isMinimized)}
+                title={isMinimized ? "Expand" : "Minimize"}
+              >
+                {isMinimized ? <Maximize2 className="h-4 w-4" /> : <Minimize2 className="h-4 w-4" />}
+              </Button>
+              {!isMinimized && responses.length > 1 && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={downloadAllPDFs}
+                  title="Download All PDFs"
+                >
+                  <Package className="h-4 w-4 mr-2" />
+                  Download All
+                </Button>
+              )}
+              <Button variant="ghost" size="sm" onClick={onClose}>
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
         </DialogHeader>
 
-        <div className="flex-1 overflow-hidden">
-          {loading ? (
-            <div className="flex items-center justify-center h-full">
-              <div className="text-center">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-                <p>Loading responses...</p>
-              </div>
-            </div>
-          ) : responses.length === 0 ? (
-            <div className="flex items-center justify-center h-full">
-              <div className="text-center text-muted-foreground">
-                <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <h3 className="text-lg font-semibold mb-2">No Responses Yet</h3>
-                <p>This RFI hasn't received any responses.</p>
-              </div>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 gap-4 h-full">
-              {responses.map((response, index) => (
-                <div key={response.id} className="border rounded-lg overflow-hidden">
-                  <div className="bg-muted p-4 border-b flex items-center justify-between">
-                    <h3 className="font-semibold">Response {index + 1}</h3>
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm text-muted-foreground">
-                        {new Date(response.response_date).toLocaleDateString()}
-                      </span>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => downloadResponsePDF(response, index)}
-                      >
-                        <Download className="h-4 w-4 mr-2" />
-                        Download PDF
-                      </Button>
-                    </div>
-                  </div>
-                  
-                  <div className="flex-1 h-[400px]">
-                    <iframe
-                      srcDoc={generateResponsePDF(response, index)}
-                      className="w-full h-full border-0"
-                      title={`Response ${index + 1} Preview`}
-                    />
-                  </div>
+        {isMinimized ? (
+          <div className="p-4">
+            <p className="text-sm text-muted-foreground">
+              {responses.length} item{responses.length !== 1 ? 's' : ''} (Click expand to view)
+            </p>
+          </div>
+        ) : (
+          <div className="flex-1 overflow-hidden">
+            {loading ? (
+              <div className="flex items-center justify-center h-full">
+                <div className="text-center">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+                  <p>Loading responses...</p>
                 </div>
-              ))}
-            </div>
-          )}
-        </div>
+              </div>
+            ) : responses.length === 0 ? (
+              <div className="flex items-center justify-center h-full">
+                <div className="text-center text-muted-foreground">
+                  <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                  <h3 className="text-lg font-semibold mb-2">No Responses Yet</h3>
+                  <p>This RFI hasn't received any responses.</p>
+                </div>
+              </div>
+            ) : (
+              <ScrollArea className="h-full">
+                <div className="space-y-4 p-4">
+                  {responses.map((response, index) => {
+                    const isMinimizedItem = minimizedItems.has(response.id);
+                    const isOriginal = response.type === 'original';
+                    const displayIndex = isOriginal ? 0 : index;
+                    
+                    return (
+                      <div key={response.id} className="border rounded-lg overflow-hidden">
+                        <div className={`${isOriginal ? 'bg-blue-50' : 'bg-green-50'} p-3 border-b flex items-center justify-between`}>
+                          <div className="flex items-center gap-2">
+                            <h3 className="font-semibold">
+                              {isOriginal ? 'Original RFI' : `Response ${displayIndex}`}
+                            </h3>
+                            <span className="text-xs text-muted-foreground">
+                              {new Date(response.response_date).toLocaleDateString()}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => toggleMinimize(response.id)}
+                            >
+                              {isMinimizedItem ? <Maximize2 className="h-4 w-4" /> : <Minimize2 className="h-4 w-4" />}
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => downloadResponsePDF(response, displayIndex)}
+                            >
+                              <Download className="h-4 w-4 mr-2" />
+                              Download
+                            </Button>
+                          </div>
+                        </div>
+                        
+                        {!isMinimizedItem && (
+                          <div className="h-[300px]">
+                            <iframe
+                              srcDoc={generateResponsePDF(response, displayIndex)}
+                              className="w-full h-full border-0"
+                              title={`${isOriginal ? 'Original RFI' : `Response ${displayIndex}`} Preview`}
+                            />
+                          </div>
+                        )}
+                        
+                        {isMinimizedItem && (
+                          <div className="p-3 text-sm text-muted-foreground">
+                            <p>By {response.responder_name} • Click expand to view</p>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </ScrollArea>
+            )}
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   );
