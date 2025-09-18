@@ -36,7 +36,7 @@ const RFIs = () => {
     rfis,
     loading,
     updateRFI
-  } = useRFIs(selectedProject?.id);
+  } = useRFIs();
   const {
     teamMembers
   } = useProjectTeam(selectedProject?.id || '');

@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useProjectSelection } from '@/context/ProjectSelectionContext';
 
 export interface MessageThread {
   id: string;
@@ -41,8 +42,12 @@ export const useMessages = (projectId?: string) => {
   const [onlineUsers, setOnlineUsers] = useState<Set<string>>(new Set());
   const [typingUsers, setTypingUsers] = useState<Set<string>>(new Set());
   const { toast } = useToast();
+  const { selectedProject } = useProjectSelection();
 
-  const fetchThreads = useCallback(async (filterProjectId?: string) => {
+  // Use selectedProject.id if no projectId is provided
+  const activeProjectId = projectId || selectedProject?.id;
+
+  const fetchThreads = useCallback(async () => {
     try {
       setLoading(true);
       let query = supabase
@@ -50,8 +55,8 @@ export const useMessages = (projectId?: string) => {
         .select('*')
         .order('updated_at', { ascending: false });
 
-      if (filterProjectId) {
-        query = query.eq('project_id', filterProjectId);
+      if (activeProjectId) {
+        query = query.eq('project_id', activeProjectId);
       }
 
       const { data, error } = await query;
@@ -68,7 +73,12 @@ export const useMessages = (projectId?: string) => {
     } finally {
       setLoading(false);
     }
-  }, [toast]);
+  }, [activeProjectId, toast]);
+
+  // Refresh data when selected project changes
+  useEffect(() => {
+    fetchThreads();
+  }, [activeProjectId, fetchThreads]);
 
   const fetchMessages = useCallback(async (threadId?: string) => {
     try {
@@ -79,8 +89,8 @@ export const useMessages = (projectId?: string) => {
 
       if (threadId) {
         query = query.eq('thread_id', threadId);
-      } else if (projectId) {
-        query = query.eq('project_id', projectId).is('thread_id', null);
+      } else if (activeProjectId) {
+        query = query.eq('project_id', activeProjectId).is('thread_id', null);
       }
 
       const { data, error } = await query;
@@ -99,12 +109,12 @@ export const useMessages = (projectId?: string) => {
         variant: "destructive",
       });
     }
-  }, [projectId, toast]);
+  }, [activeProjectId, toast]);
 
   const createThread = async (title: string, participants: string[]) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user || !projectId) throw new Error('User not authenticated or no project selected');
+      if (!user || !activeProjectId) throw new Error('User not authenticated or no project selected');
 
       // Ensure all participants are valid UUIDs and include current user
       const validParticipants = [user.id, ...participants.filter(p => {
@@ -122,7 +132,7 @@ export const useMessages = (projectId?: string) => {
       const { data, error } = await supabase
         .from('message_threads')
         .insert({
-          project_id: projectId,
+          project_id: activeProjectId,
           title,
           participants: validParticipants,
           created_by: user.id
@@ -137,7 +147,7 @@ export const useMessages = (projectId?: string) => {
 
       console.log('Thread created successfully:', data);
 
-      await fetchThreads(projectId);
+      await fetchThreads();
       setCurrentThread(data.id);
       return data;
     } catch (error) {
@@ -162,7 +172,7 @@ export const useMessages = (projectId?: string) => {
 
       if (error) throw error;
       
-      await fetchThreads(projectId);
+      await fetchThreads();
       
       toast({
         title: "Success",
@@ -187,7 +197,7 @@ export const useMessages = (projectId?: string) => {
 
       if (error) throw error;
       
-      await fetchThreads(projectId);
+      await fetchThreads();
       
       if (currentThread === threadId) {
         setCurrentThread(null);
@@ -210,10 +220,10 @@ export const useMessages = (projectId?: string) => {
   const sendMessage = async (content: string, threadId?: string, attachments?: any[], isInquiry?: boolean) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user || !projectId) throw new Error('User not authenticated or no project selected');
+      if (!user || !activeProjectId) throw new Error('User not authenticated or no project selected');
 
       const messageData = {
-        project_id: projectId,
+        project_id: activeProjectId,
         thread_id: threadId || null,
         sender_id: user.id,
         content,
@@ -234,7 +244,7 @@ export const useMessages = (projectId?: string) => {
         .from('activity_log')
         .insert([{
           user_id: user.id,
-          project_id: projectId,
+          project_id: activeProjectId,
           entity_type: 'message',
           entity_id: data.id,
           action: 'created',
@@ -293,7 +303,7 @@ export const useMessages = (projectId?: string) => {
       let query = supabase
         .from('messages')
         .select('id', { count: 'exact' })
-        .eq('project_id', projectId)
+        .eq('project_id', activeProjectId)
         .neq('sender_id', user.id);
 
       if (threadId) {
@@ -328,9 +338,9 @@ export const useMessages = (projectId?: string) => {
 
   // Real-time subscriptions
   useEffect(() => {
-    if (!projectId) return;
+    if (!activeProjectId) return;
 
-    console.log('Setting up realtime subscriptions for project:', projectId);
+    console.log('Setting up realtime subscriptions for project:', activeProjectId);
 
     // Subscribe to message changes
     const messagesChannel = supabase
@@ -341,7 +351,7 @@ export const useMessages = (projectId?: string) => {
           event: 'INSERT',
           schema: 'public',
           table: 'messages',
-          filter: `project_id=eq.${projectId}`
+          filter: `project_id=eq.${activeProjectId}`
         },
         (payload) => {
           console.log('New message received:', payload);
@@ -358,7 +368,7 @@ export const useMessages = (projectId?: string) => {
           event: 'UPDATE',
           schema: 'public',
           table: 'messages',
-          filter: `project_id=eq.${projectId}`
+          filter: `project_id=eq.${activeProjectId}`
         },
         (payload) => {
           console.log('Message updated:', payload);
@@ -382,18 +392,18 @@ export const useMessages = (projectId?: string) => {
           event: '*',
           schema: 'public',
           table: 'message_threads',
-          filter: `project_id=eq.${projectId}`
+          filter: `project_id=eq.${activeProjectId}`
         },
         (payload) => {
           console.log('Thread changed:', payload);
-          fetchThreads(projectId);
+          fetchThreads();
         }
       )
       .subscribe();
 
     // Presence for online users and typing indicators
     const presenceChannel = supabase
-      .channel(`project-${projectId}-presence`)
+      .channel(`project-${activeProjectId}-presence`)
       .on('presence', { event: 'sync' }, () => {
         const newState = presenceChannel.presenceState();
         const users = new Set<string>();
@@ -458,7 +468,7 @@ export const useMessages = (projectId?: string) => {
         return newSet;
       });
     }
-  }, [projectId]);
+  }, [activeProjectId]);
 
   return {
     threads,

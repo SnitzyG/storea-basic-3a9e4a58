@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { useToast } from '@/hooks/use-toast';
+import { useProjectSelection } from '@/context/ProjectSelectionContext';
 import { Todo } from './useTodos';
 
 export interface RFI {
@@ -59,14 +60,15 @@ export interface RFIActivity {
   };
 }
 
-export const useRFIs = (projectId?: string) => {
+export const useRFIs = () => {
   const [rfis, setRFIs] = useState<RFI[]>([]);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
   const { toast } = useToast();
+  const { selectedProject } = useProjectSelection();
 
   const fetchRFIs = async () => {
-    if (!projectId) {
+    if (!selectedProject?.id) {
       setRFIs([]);
       setLoading(false);
       return;
@@ -76,7 +78,7 @@ export const useRFIs = (projectId?: string) => {
       const { data: rfisData, error } = await supabase
         .from('rfis')
         .select('*')
-        .eq('project_id', projectId)
+        .eq('project_id', selectedProject.id)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -98,7 +100,7 @@ export const useRFIs = (projectId?: string) => {
         ...rfi,
         raised_by_profile: profileMap.get(rfi.raised_by),
         assigned_to_profile: rfi.assigned_to ? profileMap.get(rfi.assigned_to) : undefined,
-      })).filter(rfi => rfi.project_id === projectId); // Additional safety check for project isolation
+      })).filter(rfi => rfi.project_id === selectedProject.id); // Additional safety check for project isolation
 
       setRFIs(enrichedRFIs as RFI[]);
     } catch (error) {
@@ -112,6 +114,11 @@ export const useRFIs = (projectId?: string) => {
       setLoading(false);
     }
   };
+
+  // Refresh RFIs when selected project changes
+  useEffect(() => {
+    fetchRFIs();
+  }, [selectedProject?.id]);
 
   const createRFI = async (rfiData: {
     project_id: string;
@@ -345,11 +352,11 @@ export const useRFIs = (projectId?: string) => {
 
   useEffect(() => {
     fetchRFIs();
-  }, [projectId]);
+  }, [selectedProject?.id]);
 
   // Set up comprehensive real-time subscriptions for instant updates
   useEffect(() => {
-    if (!projectId) return;
+    if (!selectedProject?.id) return;
 
     const channels = [];
 
@@ -362,7 +369,7 @@ export const useRFIs = (projectId?: string) => {
           event: '*',
           schema: 'public',
           table: 'rfis',
-          filter: `project_id=eq.${projectId}`,
+          filter: `project_id=eq.${selectedProject.id}`,
         },
         (payload) => {
           console.log('RFI change detected:', payload);
@@ -443,7 +450,7 @@ export const useRFIs = (projectId?: string) => {
     return () => {
       channels.forEach(channel => supabase.removeChannel(channel));
     };
-  }, [projectId, rfis.length]); // Include rfis.length to ensure we re-subscribe when RFIs change
+  }, [selectedProject?.id, rfis.length]); // Include rfis.length to ensure we re-subscribe when RFIs change
 
   return {
     rfis,
