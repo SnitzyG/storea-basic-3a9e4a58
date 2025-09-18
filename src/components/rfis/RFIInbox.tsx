@@ -1,7 +1,7 @@
 import React from 'react';
 import { Inbox, Send, FileEdit, Archive, MessageSquare } from 'lucide-react';
 
-export type RFIInboxCategory = 'all' | 'sent' | 'received' | 'unresponded' | 'drafts';
+export type RFIInboxCategory = 'all' | 'sent' | 'received' | 'unresponded' | 'responded' | 'drafts';
 
 interface RFIInboxProps {
   selectedCategory: RFIInboxCategory;
@@ -11,6 +11,7 @@ interface RFIInboxProps {
     sent: number;
     received: number;
     unresponded: number;
+    responded: number;
     drafts: number;
   };
 }
@@ -40,6 +41,12 @@ export const RFIInbox = ({ selectedCategory, onCategoryChange, counts }: RFIInbo
       label: 'Unresponded RFIs',
       icon: MessageSquare,
       description: 'RFIs sent to others but not yet answered'
+    },
+    {
+      id: 'responded' as const,
+      label: 'Responded RFIs',
+      icon: MessageSquare,
+      description: 'RFIs that have received responses'
     },
     {
       id: 'drafts' as const,

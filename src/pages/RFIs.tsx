@@ -18,6 +18,7 @@ import { EnhancedRFIForm } from '@/components/rfis/EnhancedRFIForm';
 import { RFIAnalyticsDashboard } from '@/components/rfis/RFIAnalyticsDashboard';
 import { RFIMessageComposer } from '@/components/messages/RFIMessageComposer';
 import { RFIInbox, RFIInboxCategory } from '@/components/rfis/RFIInbox';
+import { RFIStatus, RFIStatusFilter } from '@/components/rfis/RFIStatus';
 import { RFISmartFilters, SmartFilters, SavedView, SortOption, SortDirection } from '@/components/rfis/RFISmartFilters';
 import { RFIBulkActions } from '@/components/rfis/RFIBulkActions';
 // Legacy components for fallback
@@ -36,6 +37,7 @@ const RFIs = () => {
   const [selectedRFIForDetail, setSelectedRFIForDetail] = useState<RFI | null>(null);
   const [projectUsers, setProjectUsers] = useState<any[]>([]);
   const [selectedInboxCategory, setSelectedInboxCategory] = useState<RFIInboxCategory>('all');
+  const [selectedStatusFilter, setSelectedStatusFilter] = useState<RFIStatusFilter>('all');
   const [smartFilters, setSmartFilters] = useState<SmartFilters>({
     searchQuery: '',
     sortBy: 'created_at',
@@ -115,6 +117,11 @@ const RFIs = () => {
           rfi.raised_by === currentUserId && 
           ['outstanding', 'overdue', 'sent', 'received'].includes(rfi.status)
         );
+      case 'responded':
+        return projectRFIs.filter(rfi => 
+          rfi.assigned_to === currentUserId && 
+          ['answered', 'closed'].includes(rfi.status)
+        );
       case 'drafts':
         // Now we can properly filter for draft status
         return projectRFIs.filter(rfi => rfi.status === 'draft');
@@ -124,9 +131,31 @@ const RFIs = () => {
     }
   }, [projectRFIs, selectedInboxCategory, profile?.user_id]);
 
-  // Apply smart filters and sorting to the filtered RFIs
+  // Apply additional status filtering
+  const statusFilteredRFIs = useMemo(() => {
+    if (selectedStatusFilter === 'all') {
+      return filteredRFIs;
+    }
+    
+    // Map new status names to existing RFI statuses
+    const statusMapping: Record<RFIStatusFilter, string[]> = {
+      'all': [],
+      'draft': ['draft'],
+      'submitted': ['sent', 'received'],
+      'open': ['outstanding', 'overdue', 'sent', 'received'],
+      'answered': ['answered', 'in_review'],
+      'rejected': ['rejected'],
+      'closed': ['closed'],
+      'void': [] // No current mapping for void status
+    };
+    
+    const mappedStatuses = statusMapping[selectedStatusFilter] || [];
+    return filteredRFIs.filter(rfi => mappedStatuses.includes(rfi.status));
+  }, [filteredRFIs, selectedStatusFilter]);
+
+  // Apply smart filters and sorting to the status filtered RFIs
   const processedRFIs = useMemo(() => {
-    let result = [...filteredRFIs];
+    let result = [...statusFilteredRFIs];
 
     // Apply search filter
     if (smartFilters.searchQuery) {
@@ -212,7 +241,7 @@ const RFIs = () => {
     });
 
     return result;
-  }, [filteredRFIs, smartFilters]);
+  }, [statusFilteredRFIs, smartFilters]);
 
   // Saved views management
   const handleSaveView = (name: string, filters: SmartFilters) => {
@@ -253,7 +282,7 @@ const RFIs = () => {
   // Calculate counts for each category
   const inboxCounts = useMemo(() => {
     const currentUserId = profile?.user_id;
-    if (!currentUserId) return { all: 0, sent: 0, received: 0, unresponded: 0, drafts: 0 };
+    if (!currentUserId) return { all: 0, sent: 0, received: 0, unresponded: 0, responded: 0, drafts: 0 };
 
     return {
       all: projectRFIs.length,
@@ -263,9 +292,38 @@ const RFIs = () => {
         rfi.raised_by === currentUserId && 
         ['outstanding', 'overdue', 'sent', 'received'].includes(rfi.status)
       ).length,
+      responded: projectRFIs.filter(rfi => 
+        rfi.assigned_to === currentUserId && 
+        ['answered', 'closed'].includes(rfi.status)
+      ).length,
       drafts: projectRFIs.filter(rfi => rfi.status === 'draft').length
     };
   }, [projectRFIs, profile?.user_id]);
+
+  // Calculate counts for each status
+  const statusCounts = useMemo(() => {
+    const statusMapping: Record<RFIStatusFilter, string[]> = {
+      'all': [],
+      'draft': ['draft'],
+      'submitted': ['sent', 'received'],
+      'open': ['outstanding', 'overdue', 'sent', 'received'],
+      'answered': ['answered', 'in_review'],
+      'rejected': ['rejected'],
+      'closed': ['closed'],
+      'void': []
+    };
+
+    return {
+      all: projectRFIs.length,
+      draft: projectRFIs.filter(rfi => statusMapping.draft.includes(rfi.status)).length,
+      submitted: projectRFIs.filter(rfi => statusMapping.submitted.includes(rfi.status)).length,
+      open: projectRFIs.filter(rfi => statusMapping.open.includes(rfi.status)).length,
+      answered: projectRFIs.filter(rfi => statusMapping.answered.includes(rfi.status)).length,
+      rejected: projectRFIs.filter(rfi => statusMapping.rejected.includes(rfi.status)).length,
+      closed: projectRFIs.filter(rfi => statusMapping.closed.includes(rfi.status)).length,
+      void: 0 // No current mapping for void status
+    };
+  }, [projectRFIs]);
 
   const handleViewRFI = (rfi: RFI) => {
     setSelectedRFI(rfi);
@@ -689,12 +747,17 @@ const RFIs = () => {
 
       {/* Three-Column Layout */}
       <div className="grid grid-cols-12 gap-4 h-[calc(100vh-200px)]">
-        {/* Left Column - RFI Inbox (~20% width) */}
-        <div className="col-span-2">
+        {/* Left Column - RFI Inbox & Status (~20% width) */}
+        <div className="col-span-2 space-y-4">
           <RFIInbox
             selectedCategory={selectedInboxCategory}
             onCategoryChange={setSelectedInboxCategory}
             counts={inboxCounts}
+          />
+          <RFIStatus
+            selectedStatus={selectedStatusFilter}
+            onStatusChange={setSelectedStatusFilter}
+            counts={statusCounts}
           />
         </div>
 
