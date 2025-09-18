@@ -154,18 +154,7 @@ export const RFIDetailsDialog = ({ open, onOpenChange, rfi }: RFIDetailsDialogPr
         </DialogHeader>
 
         <div className="space-y-6">
-          {/* Header with badges */}
-          <div className="flex flex-wrap gap-2">
-            <Badge className={statusColors[rfi.status]}>
-              {rfi.status.replace('_', ' ').toUpperCase()}
-            </Badge>
-            <Badge className={priorityColors[rfi.priority]}>
-              {rfi.priority.toUpperCase()} PRIORITY
-            </Badge>
-            {rfi.category && (
-              <Badge variant="outline">{rfi.category}</Badge>
-            )}
-          </div>
+          {/* Details view shows only content not in list */}
 
           {/* Question */}
           <div>
@@ -178,48 +167,6 @@ export const RFIDetailsDialog = ({ open, onOpenChange, rfi }: RFIDetailsDialogPr
             </p>
           </div>
 
-          {/* Meta information */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="flex items-center text-sm">
-              <User className="w-4 h-4 mr-2 text-muted-foreground" />
-              <span className="text-muted-foreground mr-2">Raised by:</span>
-              <div className="flex items-center">
-                <Avatar className="w-5 h-5 mr-2">
-                  <AvatarFallback className="text-xs">
-                    {rfi.raised_by_profile?.name?.charAt(0) || 'U'}
-                  </AvatarFallback>
-                </Avatar>
-                <span>{rfi.raised_by_profile?.name || 'Unknown'}</span>
-              </div>
-            </div>
-
-            {rfi.assigned_to && (
-              <div className="flex items-center text-sm">
-                <User className="w-4 h-4 mr-2 text-muted-foreground" />
-                <span className="text-muted-foreground mr-2">Assigned to:</span>
-                <div className="flex items-center">
-                  <Avatar className="w-5 h-5 mr-2">
-                    <AvatarFallback className="text-xs">
-                      {rfi.assigned_to_profile?.name?.charAt(0) || 'U'}
-                    </AvatarFallback>
-                  </Avatar>
-                  <span>{rfi.assigned_to_profile?.name || 'Unknown'}</span>
-                </div>
-              </div>
-            )}
-
-            <div className="flex items-center text-sm text-muted-foreground">
-              <Clock className="w-4 h-4 mr-2" />
-              Created {formatDistanceToNow(new Date(rfi.created_at), { addSuffix: true })}
-            </div>
-
-            {rfi.due_date && (
-              <div className="flex items-center text-sm text-muted-foreground">
-                <Calendar className="w-4 h-4 mr-2" />
-                Due: {new Date(rfi.due_date).toLocaleDateString()}
-              </div>
-            )}
-          </div>
 
           {/* Attachments section */}
           {rfi.attachments && rfi.attachments.length > 0 && (
@@ -313,33 +260,6 @@ export const RFIDetailsDialog = ({ open, onOpenChange, rfi }: RFIDetailsDialogPr
             </div>
           )}
 
-          {/* Status update - enhanced permissions */}
-          {canChangeNonCloseStatus && (
-            <div>
-              <Label htmlFor="status" className="text-base font-semibold">
-                Update Status
-              </Label>
-              <Select value={status} onValueChange={handleStatusChange}>
-                <SelectTrigger className="mt-2">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="outstanding">Outstanding</SelectItem>
-                  <SelectItem value="overdue">Overdue</SelectItem>
-                  <SelectItem value="responded">Responded</SelectItem>
-                  {/* Only show close option to creator */}
-                  {canClose && (
-                    <SelectItem value="closed">Closed</SelectItem>
-                  )}
-                </SelectContent>
-              </Select>
-              {!canClose && (
-                <p className="text-xs text-muted-foreground mt-1">
-                  Note: Only the RFI creator can close this RFI
-                </p>
-              )}
-            </div>
-          )}
 
           <Separator />
 
