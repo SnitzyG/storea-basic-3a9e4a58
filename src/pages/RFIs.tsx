@@ -14,6 +14,7 @@ import { CategorizedRFIInbox } from '@/components/rfis/CategorizedRFIInbox';
 import { RFIListView } from '@/components/rfis/RFIListView';
 import { RFIDetailPanel } from '@/components/rfis/RFIDetailPanel';
 import { SimplifiedRFIComposer } from '@/components/rfis/SimplifiedRFIComposer';
+import { EnhancedRFIForm } from '@/components/rfis/EnhancedRFIForm';
 import { RFIMessageComposer } from '@/components/messages/RFIMessageComposer';
 import { RFIInbox, RFIInboxCategory } from '@/components/rfis/RFIInbox';
 import { RFISmartFilters, SmartFilters, SavedView, SortOption, SortDirection } from '@/components/rfis/RFISmartFilters';
@@ -64,6 +65,7 @@ const RFIs = () => {
   const [isDetailOverlayOpen, setIsDetailOverlayOpen] = useState(false);
   const [overlaySelectedRFI, setOverlaySelectedRFI] = useState<RFI | null>(null);
   const [selectedRFIIds, setSelectedRFIIds] = useState<string[]>([]);
+  const [enhancedFormOpen, setEnhancedFormOpen] = useState(false);
   const { selectedProject } = useProjectSelection();
   const {
     projects
@@ -694,9 +696,14 @@ const RFIs = () => {
           }`}>
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold">RFI List</h2>
-              <Button onClick={() => setSimplifiedComposerOpen(true)} size="sm">
-                Create RFI
-              </Button>
+              <div className="flex items-center space-x-2">
+                <Button onClick={() => setEnhancedFormOpen(true)} size="sm">
+                  Enhanced Form
+                </Button>
+                <Button onClick={() => setSimplifiedComposerOpen(true)} size="sm" variant="outline">
+                  Quick RFI
+                </Button>
+              </div>
             </div>
 
             {/* Smart Filters */}
@@ -754,6 +761,12 @@ const RFIs = () => {
       </div>
 
       {/* Dialogs */}
+      <EnhancedRFIForm
+        open={enhancedFormOpen}
+        onOpenChange={setEnhancedFormOpen}
+        projectId={selectedProject?.id || ''}
+      />
+
       <SimplifiedRFIComposer
         open={simplifiedComposerOpen}
         onOpenChange={(open) => {
