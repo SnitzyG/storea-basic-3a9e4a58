@@ -103,20 +103,20 @@ export const SimplifiedRFIComposer: React.FC<SimplifiedRFIComposerProps> = ({
     }
   };
 
-  const handleSubmit = async () => {
-    if (!formData.subject) return;
+  const handleSubmit = async (isDraft: boolean = false) => {
+    if (!formData.subject && !isDraft) return;
 
     // Check response requirement based on RFI type
     const isResponseRequired = formData.rfi_type === 'Request for Information';
     
-    // For new RFIs: message is always required, response date required only for "Request for Information"
-    if (!isReply) {
+    // For new RFIs: message is always required unless saving as draft, response date required only for "Request for Information"
+    if (!isReply && !isDraft) {
       if (!formData.message) return;
       if (isResponseRequired && !requiredResponseDate) return;
     }
 
-    // For replies, require message/notes
-    if (isReply && !formData.message) return;
+    // For replies, require message/notes unless saving as draft
+    if (isReply && !formData.message && !isDraft) return;
 
     setLoading(true);
     try {
@@ -125,8 +125,8 @@ export const SimplifiedRFIComposer: React.FC<SimplifiedRFIComposerProps> = ({
         await updateRFI(replyToRFI.id, {
           response: formData.message,
           responder_name: profile?.name || '',
-          response_date: new Date().toISOString(),
-          status: 'answered'
+          response_date: isDraft ? undefined : new Date().toISOString(),
+          status: isDraft ? 'draft' : 'answered'
         });
       } else {
         // Create new RFI first
@@ -147,6 +147,13 @@ export const SimplifiedRFIComposer: React.FC<SimplifiedRFIComposerProps> = ({
           subject: formData.subject,
           required_response_by: isResponseRequired ? requiredResponseDate?.toISOString() : undefined
         });
+
+        // Update status if it's a draft
+        if (rfiResult && isDraft) {
+          await updateRFI(rfiResult.id, {
+            status: 'draft'
+          });
+        }
 
         // Upload attachments and save to documents if RFI creation was successful
         if (rfiResult && attachmentFiles.length > 0 && user) {
@@ -419,7 +426,14 @@ export const SimplifiedRFIComposer: React.FC<SimplifiedRFIComposerProps> = ({
             Cancel
           </Button>
           <Button 
-            onClick={handleSubmit} 
+            variant="outline"
+            onClick={() => handleSubmit(true)} 
+            disabled={loading}
+          >
+            {loading ? 'Saving...' : 'Save as Draft'}
+          </Button>
+          <Button 
+            onClick={() => handleSubmit(false)} 
             disabled={
               loading || 
               !formData.subject ||

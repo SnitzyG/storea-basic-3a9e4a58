@@ -14,8 +14,8 @@ import { CategorizedRFIInbox } from '@/components/rfis/CategorizedRFIInbox';
 import { RFIListView } from '@/components/rfis/RFIListView';
 import { RFIDetailPanel } from '@/components/rfis/RFIDetailPanel';
 import { SimplifiedRFIComposer } from '@/components/rfis/SimplifiedRFIComposer';
-import { EnhancedRFIForm } from '@/components/rfis/EnhancedRFIForm';
-import { RFIAnalyticsDashboard } from '@/components/rfis/RFIAnalyticsDashboard';
+
+
 import { RFIMessageComposer } from '@/components/messages/RFIMessageComposer';
 import { RFIInbox, RFIInboxCategory } from '@/components/rfis/RFIInbox';
 import { RFIStatus, RFIStatusFilter } from '@/components/rfis/RFIStatus';
@@ -51,28 +51,10 @@ const RFIs = () => {
     statusFilter: '',
     tagFilter: ''
   });
-  const [savedViews, setSavedViews] = useState<SavedView[]>([
-    {
-      id: 'default',
-      name: 'All RFIs',
-      filters: {
-        searchQuery: '',
-        sortBy: 'created_at',
-        sortDirection: 'desc',
-        disciplineFilter: '',
-        subcontractorFilter: '',
-        priorityFilter: '',
-        statusFilter: '',
-        tagFilter: ''
-      },
-      isDefault: true
-    }
-  ]);
+  const [savedViews, setSavedViews] = useState<SavedView[]>([]);
   const [isDetailOverlayOpen, setIsDetailOverlayOpen] = useState(false);
   const [overlaySelectedRFI, setOverlaySelectedRFI] = useState<RFI | null>(null);
   const [selectedRFIIds, setSelectedRFIIds] = useState<string[]>([]);
-  const [enhancedFormOpen, setEnhancedFormOpen] = useState(false);
-  const [showAnalytics, setShowAnalytics] = useState(false);
   const { selectedProject } = useProjectSelection();
   const { projects } = useProjects();
   const { profile } = useAuth();
@@ -715,23 +697,6 @@ const RFIs = () => {
       </div>;
   }
 
-  // Show analytics view
-  if (showAnalytics) {
-    return (
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-bold">RFI Analytics</h1>
-          <Button onClick={() => setShowAnalytics(false)} variant="outline">
-            Back to RFIs
-          </Button>
-        </div>
-        <RFIAnalyticsDashboard
-          rfis={projectRFIs}
-          projectUsers={projectUsers}
-        />
-      </div>
-    );
-  }
 
   return <div className="space-y-6">
       {/* Debug validators - only show in development */}
@@ -785,14 +750,8 @@ const RFIs = () => {
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold">RFI List</h2>
               <div className="flex items-center space-x-2">
-                <Button onClick={() => setShowAnalytics(true)} size="sm" variant="outline">
-                  Analytics
-                </Button>
-                <Button onClick={() => setEnhancedFormOpen(true)} size="sm">
-                  Enhanced Form
-                </Button>
-                <Button onClick={() => setSimplifiedComposerOpen(true)} size="sm" variant="outline">
-                  Quick RFI
+                <Button onClick={() => setSimplifiedComposerOpen(true)} size="sm" className="bg-green-600 hover:bg-green-700 text-white">
+                  Create RFI
                 </Button>
               </div>
             </div>
@@ -850,12 +809,6 @@ const RFIs = () => {
       </div>
 
       {/* Dialogs */}
-      <EnhancedRFIForm
-        open={enhancedFormOpen}
-        onOpenChange={setEnhancedFormOpen}
-        projectId={selectedProject?.id || ''}
-      />
-
       <SimplifiedRFIComposer
         open={simplifiedComposerOpen}
         onOpenChange={(open) => {
@@ -878,6 +831,28 @@ const RFIs = () => {
         onOpenChange={setDetailsDialogOpen}
         rfi={selectedRFI}
       />
+
+      {responseRFI && (
+        <RFIResponseComposer
+          rfi={responseRFI}
+          isOpen={responseComposerOpen}
+          onClose={() => {
+            setResponseComposerOpen(false);
+            setResponseRFI(null);
+          }}
+          onSubmit={async (responseData) => {
+            await updateRFI(responseRFI.id, {
+              response: responseData.response,
+              responder_name: responseData.responderName,
+              responder_position: responseData.responderPosition,
+              response_date: new Date().toISOString(),
+              status: 'answered'
+            });
+            setResponseComposerOpen(false);
+            setResponseRFI(null);
+          }}
+        />
+      )}
     </div>;
 };
 
