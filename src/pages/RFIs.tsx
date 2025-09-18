@@ -725,7 +725,7 @@ const RFIs = () => {
       {/* Three-Column Layout */}
       <div className="grid grid-cols-12 gap-4 h-[calc(100vh-200px)]">
         {/* Left Column - RFI Inbox & Status (~20% width) */}
-        <div className="col-span-2 space-y-4">
+        <div className="col-span-2 space-y-0">
           <RFIInbox
             selectedCategory={selectedInboxCategory}
             onCategoryChange={setSelectedInboxCategory}

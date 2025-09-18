@@ -71,7 +71,7 @@ export const RFIStatus = ({ selectedStatus, onStatusChange, counts }: RFIStatusP
   ];
 
   return (
-    <div className="h-full border border-muted rounded-lg bg-muted/10 p-3 overflow-hidden">
+    <div className="h-full border-x border-b border-muted rounded-b-lg bg-muted/10 p-3 overflow-hidden">
       <h3 className="text-xs font-medium text-muted-foreground/70 mb-4 uppercase tracking-wide">
         RFI Status
       </h3>
