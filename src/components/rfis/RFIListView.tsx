@@ -16,6 +16,7 @@ import { RFIQuickActions } from './RFIQuickActions';
 interface RFIListViewProps {
   rfis: RFI[];
   onView: (rfi: RFI) => void;
+  onCreateResponse?: (rfi: RFI) => void;
   onExportPDF: (rfi: RFI) => void;
   onSelectRFI?: (rfi: RFI) => void;
   selectedRFI?: RFI | null;

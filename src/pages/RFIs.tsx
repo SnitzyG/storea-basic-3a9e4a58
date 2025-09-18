@@ -20,6 +20,7 @@ import { RFIMessageComposer } from '@/components/messages/RFIMessageComposer';
 import { RFIInbox, RFIInboxCategory } from '@/components/rfis/RFIInbox';
 import { RFIStatus, RFIStatusFilter } from '@/components/rfis/RFIStatus';
 import { RFISmartFilters, SmartFilters, SavedView, SortOption, SortDirection } from '@/components/rfis/RFISmartFilters';
+import { RFIResponseComposer } from '@/components/rfis/RFIResponseComposer';
 import { RFIBulkActions } from '@/components/rfis/RFIBulkActions';
 // Legacy components for fallback
 import { RFIDetailsDialog } from '@/components/rfis/RFIDetailsDialog';
@@ -31,9 +32,11 @@ import { useProjectTeam } from '@/hooks/useProjectTeam';
 const RFIs = () => {
   const [simplifiedComposerOpen, setSimplifiedComposerOpen] = useState(false);
   const [messageComposerOpen, setMessageComposerOpen] = useState(false);
+  const [responseComposerOpen, setResponseComposerOpen] = useState(false);
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
   const [selectedRFI, setSelectedRFI] = useState<RFI | null>(null);
   const [replyToRFI, setReplyToRFI] = useState<RFI | null>(null);
+  const [responseRFI, setResponseRFI] = useState<RFI | null>(null);
   const [selectedRFIForDetail, setSelectedRFIForDetail] = useState<RFI | null>(null);
   const [projectUsers, setProjectUsers] = useState<any[]>([]);
   const [selectedInboxCategory, setSelectedInboxCategory] = useState<RFIInboxCategory>('all');
@@ -329,14 +332,20 @@ const RFIs = () => {
     setDetailsDialogOpen(true);
   };
 
+  // Phase 3: New handler for creating responses
+  const handleCreateResponse = (rfi: RFI) => {
+    setResponseRFI(rfi);
+    setResponseComposerOpen(true);
+  };
+
   const handleReplyToRFI = (rfi: RFI) => {
     setReplyToRFI(rfi);
     setSimplifiedComposerOpen(true);
   };
 
+  // Phase 3: Updated double-click handler - now opens response creation
   const handleDoubleClickRFI = (rfi: RFI) => {
-    setOverlaySelectedRFI(rfi);
-    setIsDetailOverlayOpen(true);
+    handleCreateResponse(rfi);
   };
 
   const handleCloseDetailOverlay = () => {
@@ -817,15 +826,13 @@ const RFIs = () => {
               <RFIListView 
                 rfis={processedRFIs}
                 onView={handleViewRFI}
+                onCreateResponse={handleCreateResponse}
                 onExportPDF={handleExportPDF}
                 onSelectRFI={setSelectedRFIForDetail}
                 selectedRFI={selectedRFIForDetail}
                 onDoubleClick={handleDoubleClickRFI}
                 onUpdateRFI={handleUpdateRFI}
                 projectUsers={projectUsers}
-                showQuickActions={true}
-                selectedRFIIds={selectedRFIIds}
-                onSelectionChange={setSelectedRFIIds}
               />
             </div>
           </div>
