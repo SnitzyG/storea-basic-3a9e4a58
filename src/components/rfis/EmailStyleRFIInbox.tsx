@@ -27,6 +27,8 @@ interface EmailStyleRFIInboxProps {
   onReply: (rfi: RFI) => void;
   projectUsers: any[];
   currentProject: any;
+  onDoubleClick?: (rfi: RFI) => void;
+  selectedRFI?: RFI | null;
 }
 
 type RFIType = 'General' | 'Request for Information' | 'Advice';
@@ -50,12 +52,13 @@ export const EmailStyleRFIInbox: React.FC<EmailStyleRFIInboxProps> = ({
   onCreateNew,
   onReply,
   projectUsers,
-  currentProject
+  currentProject,
+  onDoubleClick,
+  selectedRFI
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
-  const [selectedRFI, setSelectedRFI] = useState<RFI | null>(null);
 
   // Memoized filter function for better performance with real-time updates
   const filteredRFIs = useMemo(() => {
@@ -86,9 +89,14 @@ export const EmailStyleRFIInbox: React.FC<EmailStyleRFIInboxProps> = ({
 
   // Memoized callbacks to prevent unnecessary re-renders
   const handleRFIClick = useCallback((rfi: RFI) => {
-    setSelectedRFI(rfi);
     onView(rfi);
   }, [onView]);
+
+  const handleRFIDoubleClick = useCallback((rfi: RFI) => {
+    if (onDoubleClick) {
+      onDoubleClick(rfi);
+    }
+  }, [onDoubleClick]);
 
   const handleClearFilters = useCallback(() => {
     setSearchQuery('');
@@ -196,6 +204,7 @@ export const EmailStyleRFIInbox: React.FC<EmailStyleRFIInboxProps> = ({
                   isSelected ? 'bg-muted border-l-4 border-l-primary' : ''
                 }`}
                 onClick={() => handleRFIClick(rfi)}
+                onDoubleClick={() => handleRFIDoubleClick(rfi)}
               >
                 <div className="flex items-start justify-between mb-2">
                   <div className="flex items-center gap-2">

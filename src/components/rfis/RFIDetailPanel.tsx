@@ -1,202 +1,386 @@
-import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { RFI } from '@/hooks/useRFIs';
-import { format } from 'date-fns';
-import { MessageSquare, X } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Separator } from '@/components/ui/separator';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { 
+  X, 
+  Calendar, 
+  Clock, 
+  User, 
+  MessageSquare, 
+  Send,
+  Paperclip,
+  Download,
+  ExternalLink,
+  Reply,
+  FileText,
+  Image,
+  Archive
+} from 'lucide-react';
+import { RFI, RFIActivity, useRFIs } from '@/hooks/useRFIs';
+import { useAuth } from '@/hooks/useAuth';
+import { formatDistanceToNow } from 'date-fns';
+import { RFIStatusBadge } from './RFIStatusBadge';
 
 interface RFIDetailPanelProps {
   rfi: RFI | null;
   onClose?: () => void;
+  className?: string;
 }
 
-export const RFIDetailPanel: React.FC<RFIDetailPanelProps> = ({ rfi, onClose }) => {
+interface RFIResponse {
+  id: string;
+  content: string;
+  author: {
+    name: string;
+    role: string;
+    avatar?: string;
+  };
+  created_at: string;
+  attachments?: {
+    id: string;
+    name: string;
+    url: string;
+    type: string;
+    size: number;
+  }[];
+}
+
+const getFileIcon = (type: string) => {
+  if (type.startsWith('image/')) return Image;
+  if (type.includes('pdf')) return FileText;
+  return Archive;
+};
+
+const getFilePreview = (attachment: any) => {
+  const isImage = attachment.type?.startsWith('image/');
+  const isPdf = attachment.type?.includes('pdf');
+  
+  if (isImage && attachment.url) {
+    return {
+      canPreview: true,
+      previewType: 'image',
+      url: attachment.url
+    };
+  }
+  
+  if (isPdf && attachment.url) {
+    return {
+      canPreview: true,
+      previewType: 'pdf',
+      url: attachment.url
+    };
+  }
+  
+  return {
+    canPreview: false,
+    previewType: 'download',
+    url: attachment.url
+  };
+};
+
+export const RFIDetailPanel: React.FC<RFIDetailPanelProps> = ({ 
+  rfi, 
+  onClose, 
+  className = "" 
+}) => {
+  const [responseContent, setResponseContent] = useState('');
+  const [responses, setResponses] = useState<RFIResponse[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [activities, setActivities] = useState<RFIActivity[]>([]);
+  
+  const { updateRFI, getRFIActivities } = useRFIs();
+  const { user, profile } = useAuth();
+
+  // Load response history when RFI changes
+  useEffect(() => {
+    if (!rfi) {
+      setResponses([]);
+      setActivities([]);
+      return;
+    }
+
+    // Create response history from RFI data
+    const responseHistory: RFIResponse[] = [];
+    
+    // Add original RFI as first "message"
+    responseHistory.push({
+      id: `original-${rfi.id}`,
+      content: rfi.question,
+      author: {
+        name: rfi.raised_by_profile?.name || rfi.sender_name || 'Unknown',
+        role: rfi.raised_by_profile?.role || 'User',
+      },
+      created_at: rfi.created_at,
+      attachments: rfi.attachments || []
+    });
+
+    // Add response if it exists
+    if (rfi.response) {
+      responseHistory.push({
+        id: `response-${rfi.id}`,
+        content: rfi.response,
+        author: {
+          name: rfi.responder_name || rfi.assigned_to_profile?.name || 'Unknown',
+          role: rfi.responder_position || rfi.assigned_to_profile?.role || 'Responder',
+        },
+        created_at: rfi.response_date || rfi.updated_at,
+      });
+    }
+
+    setResponses(responseHistory);
+
+    // Load activities
+    getRFIActivities(rfi.id).then((data) => {
+      setActivities(data || []);
+    }).catch(() => {
+      setActivities([]);
+    });
+  }, [rfi?.id, getRFIActivities]);
+
+  const handleSubmitResponse = async () => {
+    if (!rfi || !responseContent.trim()) return;
+
+    setLoading(true);
+    
+    try {
+      const updates: Partial<RFI> = {
+        response: responseContent.trim(),
+        status: 'answered',
+        responder_name: profile?.name,
+        responder_position: profile?.role,
+        response_date: new Date().toISOString(),
+      };
+
+      await updateRFI(rfi.id, updates);
+      
+      // Add new response to the thread immediately
+      const newResponse: RFIResponse = {
+        id: `response-${Date.now()}`,
+        content: responseContent.trim(),
+        author: {
+          name: profile?.name || 'You',
+          role: profile?.role || 'User',
+        },
+        created_at: new Date().toISOString(),
+      };
+      
+      setResponses(prev => [...prev, newResponse]);
+      setResponseContent('');
+    } catch (error) {
+      console.error('Error submitting response:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAttachmentClick = (attachment: any) => {
+    const preview = getFilePreview(attachment);
+    
+    if (preview.canPreview && preview.previewType === 'image') {
+      // Open image in new tab for preview
+      window.open(preview.url, '_blank');
+    } else if (preview.canPreview && preview.previewType === 'pdf') {
+      // Open PDF in new tab for preview
+      window.open(preview.url, '_blank');
+    } else if (preview.url) {
+      // Download file
+      window.open(preview.url, '_blank');
+    }
+  };
+
+  const canRespond = user && rfi?.assigned_to === user.id && rfi.status !== 'closed' && rfi.status !== 'answered';
+
   if (!rfi) {
     return (
-      <Card className="h-full">
-        <CardContent className="flex items-center justify-center h-full text-center p-8">
-          <div className="text-muted-foreground">
-            <MessageSquare className="h-12 w-12 mx-auto mb-4 opacity-50" />
-            <p className="text-lg font-medium mb-2">Select an RFI</p>
-            <p className="text-sm">Choose an RFI from the list to view its details</p>
-          </div>
-        </CardContent>
-      </Card>
+      <div className={`flex items-center justify-center h-full bg-muted/10 border rounded-lg ${className}`}>
+        <div className="text-center text-muted-foreground">
+          <MessageSquare className="w-12 h-12 mx-auto mb-4 opacity-50" />
+          <h3 className="text-lg font-medium mb-2">No RFI Selected</h3>
+          <p className="text-sm">Double-click an RFI to view details</p>
+        </div>
+      </div>
     );
   }
 
-  const statusColors = {
-    outstanding: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-    responded: 'bg-green-100 text-green-800 border-green-200', 
-    overdue: 'bg-red-100 text-red-800 border-red-200',
-    closed: 'bg-gray-100 text-gray-800 border-gray-200'
-  };
-
-  const priorityColors = {
-    low: 'bg-blue-100 text-blue-800 border-blue-200',
-    medium: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-    high: 'bg-orange-100 text-orange-800 border-orange-200',
-    critical: 'bg-red-100 text-red-800 border-red-200'
-  };
-
   return (
-    <Card className="h-full">
-      <CardHeader>
-        <div className="flex items-start justify-between">
-          <div className="flex-1">
-            <CardTitle className="text-lg">
-              {rfi.subject || 'Request for Information'}
-            </CardTitle>
-            <p className="text-sm text-muted-foreground mt-1">
-              RFI #{rfi.rfi_number || rfi.id.slice(0, 8)}
-            </p>
+    <div className={`flex flex-col h-full bg-background border rounded-lg ${className}`}>
+      {/* Header */}
+      <div className="flex items-center justify-between p-4 border-b bg-muted/30">
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 mb-1">
+            <h2 className="text-lg font-semibold truncate">
+              {rfi.subject || 'RFI Details'}
+            </h2>
+            <RFIStatusBadge status={rfi.status} />
+          </div>
+          <p className="text-sm text-muted-foreground">
+            RFI #{rfi.rfi_number || rfi.id.slice(0, 8)} • {rfi.project_name || 'Project'}
+          </p>
+        </div>
+        {onClose && (
+          <Button variant="ghost" size="sm" onClick={onClose} className="flex-shrink-0">
+            <X className="w-4 h-4" />
+          </Button>
+        )}
+      </div>
+
+      {/* RFI Metadata */}
+      <div className="p-4 border-b bg-muted/10 space-y-3">
+        <div className="grid grid-cols-2 gap-4 text-sm">
+          <div className="flex items-center gap-2">
+            <User className="w-4 h-4 text-muted-foreground" />
+            <span className="text-muted-foreground">From:</span>
+            <span className="font-medium">
+              {rfi.raised_by_profile?.name || rfi.sender_name || 'Unknown'}
+            </span>
           </div>
           <div className="flex items-center gap-2">
-            <Badge className={`text-xs ${statusColors[rfi.status as keyof typeof statusColors] || statusColors.outstanding}`}>
-              {rfi.status.replace('_', ' ').toUpperCase()}
-            </Badge>
-            <Badge 
-              variant="outline" 
-              className={`text-xs ${priorityColors[rfi.priority as keyof typeof priorityColors] || priorityColors.medium}`}
-            >
-              {rfi.priority.toUpperCase()}
-            </Badge>
-            {onClose && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={onClose}
-                className="h-8 w-8 p-0"
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            )}
+            <User className="w-4 h-4 text-muted-foreground" />
+            <span className="text-muted-foreground">To:</span>
+            <span className="font-medium">
+              {rfi.assigned_to_profile?.name || rfi.recipient_name || 'Unassigned'}
+            </span>
           </div>
-        </div>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        {/* Email-style header */}
-        <div className="bg-muted/30 p-4 rounded-lg space-y-3 border">
-          <div className="space-y-2 text-sm">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="font-semibold text-muted-foreground min-w-[60px]">From:</span>
-              <span className="font-medium">{rfi.raised_by_profile?.name || rfi.sender_name || 'Unknown'}</span>
-              {rfi.sender_email && (
-                <span className="text-muted-foreground text-xs">({rfi.sender_email})</span>
-              )}
-            </div>
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="font-semibold text-muted-foreground min-w-[60px]">To:</span>
-              <span className="font-medium">{rfi.assigned_to_profile?.name || rfi.recipient_name || 'Unassigned'}</span>
-              {rfi.recipient_email && (
-                <span className="text-muted-foreground text-xs">({rfi.recipient_email})</span>
-              )}
-            </div>
-            {/* CC field placeholder for future enhancement */}
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="font-semibold text-muted-foreground min-w-[60px]">Project:</span>
-              <span className="font-medium">{rfi.project_name || 'N/A'}</span>
-            </div>
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="font-semibold text-muted-foreground min-w-[60px]">Date:</span>
-              <span className="font-medium">{format(new Date(rfi.created_at), 'EEEE, MMMM d, yyyy \'at\' h:mm a')}</span>
-            </div>
-            {(rfi.due_date || rfi.required_response_by) && (
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="font-semibold text-muted-foreground min-w-[60px]">Due:</span>
-                <span className="font-medium text-orange-600">{format(new Date(rfi.due_date || rfi.required_response_by), 'EEEE, MMMM d, yyyy')}</span>
-              </div>
-            )}
+          <div className="flex items-center gap-2">
+            <Clock className="w-4 h-4 text-muted-foreground" />
+            <span className="text-muted-foreground">Created:</span>
+            <span>{formatDistanceToNow(new Date(rfi.created_at), { addSuffix: true })}</span>
           </div>
+          {rfi.due_date && (
+            <div className="flex items-center gap-2">
+              <Calendar className="w-4 h-4 text-muted-foreground" />
+              <span className="text-muted-foreground">Due:</span>
+              <span>{new Date(rfi.due_date).toLocaleDateString()}</span>
+            </div>
+          )}
         </div>
+        
+        <div className="flex flex-wrap gap-2">
+          <Badge variant="outline" className="text-xs">
+            {rfi.priority.toUpperCase()} Priority
+          </Badge>
+          {rfi.category && (
+            <Badge variant="outline" className="text-xs">
+              {rfi.category}
+            </Badge>
+          )}
+        </div>
+      </div>
 
-        {/* RFI Content */}
+      {/* Response Thread */}
+      <ScrollArea className="flex-1 p-4">
         <div className="space-y-4">
-          <div>
-            <h4 className="font-medium text-sm text-muted-foreground mb-2">Question/Request:</h4>
-            <div className="text-sm leading-relaxed bg-muted/30 p-3 rounded-md">
-              {rfi.question}
+          {responses.map((response, index) => (
+            <div key={response.id} className="space-y-3">
+              <div className="flex items-start gap-3">
+                <Avatar className="w-8 h-8 mt-1">
+                  <AvatarFallback className="text-sm">
+                    {response.author.name.charAt(0)}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="font-medium text-sm">{response.author.name}</span>
+                    <Badge variant="outline" className="text-xs">
+                      {response.author.role}
+                    </Badge>
+                    <span className="text-xs text-muted-foreground">
+                      {formatDistanceToNow(new Date(response.created_at), { addSuffix: true })}
+                    </span>
+                  </div>
+                  <div className="bg-muted/50 rounded-lg p-3">
+                    <p className="text-sm whitespace-pre-wrap">{response.content}</p>
+                    
+                    {/* Attachments for this response */}
+                    {response.attachments && response.attachments.length > 0 && (
+                      <div className="mt-3 space-y-2">
+                        <p className="text-xs font-medium text-muted-foreground flex items-center gap-1">
+                          <Paperclip className="w-3 h-3" />
+                          Attachments ({response.attachments.length})
+                        </p>
+                        <div className="space-y-1">
+                          {response.attachments.map((attachment, attachmentIndex) => {
+                            const FileIcon = getFileIcon(attachment.type || '');
+                            const preview = getFilePreview(attachment);
+                            
+                            return (
+                              <div
+                                key={attachment.id || attachmentIndex}
+                                className="flex items-center gap-2 p-2 bg-background rounded border cursor-pointer hover:bg-muted/50 transition-colors"
+                                onClick={() => handleAttachmentClick(attachment)}
+                              >
+                                <FileIcon className="w-4 h-4 text-muted-foreground" />
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-xs font-medium truncate">
+                                    {attachment.name}
+                                  </p>
+                                  <p className="text-xs text-muted-foreground">
+                                    {attachment.size ? `${(attachment.size / 1024).toFixed(1)} KB` : 'Unknown size'}
+                                  </p>
+                                </div>
+                                <div className="flex items-center gap-1">
+                                  {preview.canPreview && (
+                                    <ExternalLink className="w-3 h-3 text-muted-foreground" />
+                                  )}
+                                  <Download className="w-3 h-3 text-muted-foreground" />
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+              
+              {index < responses.length - 1 && <Separator className="my-4" />}
+            </div>
+          ))}
+        </div>
+      </ScrollArea>
+
+      {/* Response Input Area */}
+      {canRespond && (
+        <div className="p-4 border-t bg-muted/10">
+          <div className="space-y-3">
+            <Label htmlFor="response-input" className="text-sm font-medium flex items-center gap-2">
+              <Reply className="w-4 h-4" />
+              Add Response
+            </Label>
+            <Textarea
+              id="response-input"
+              placeholder="Type your response here..."
+              value={responseContent}
+              onChange={(e) => setResponseContent(e.target.value)}
+              className="min-h-[80px] resize-none"
+            />
+            <div className="flex justify-end">
+              <Button
+                onClick={handleSubmitResponse}
+                disabled={loading || !responseContent.trim()}
+                size="sm"
+                className="gap-2"
+              >
+                <Send className="w-4 h-4" />
+                {loading ? 'Sending...' : 'Send Response'}
+              </Button>
             </div>
           </div>
-
-          {/* Reference Information */}
-          {(rfi.drawing_no || rfi.specification_section || rfi.contract_clause || rfi.other_reference) && (
-            <div>
-              <h4 className="font-medium text-sm text-muted-foreground mb-2">Reference Information:</h4>
-              <div className="grid grid-cols-1 gap-2 text-sm">
-                {rfi.drawing_no && (
-                  <div>
-                    <span className="font-medium">Drawing No:</span> {rfi.drawing_no}
-                  </div>
-                )}
-                {rfi.specification_section && (
-                  <div>
-                    <span className="font-medium">Specification:</span> {rfi.specification_section}
-                  </div>
-                )}
-                {rfi.contract_clause && (
-                  <div>
-                    <span className="font-medium">Contract Clause:</span> {rfi.contract_clause}
-                  </div>
-                )}
-                {rfi.other_reference && (
-                  <div>
-                    <span className="font-medium">Other Reference:</span> {rfi.other_reference}
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* Proposed Solution */}
-          {rfi.proposed_solution && (
-            <div>
-              <h4 className="font-medium text-sm text-muted-foreground mb-2">Proposed Solution:</h4>
-              <div className="text-sm leading-relaxed bg-muted/30 p-3 rounded-md">
-                {rfi.proposed_solution}
-              </div>
-            </div>
-          )}
-
-          {/* Response */}
-          {rfi.response ? (
-            <div>
-              <h4 className="font-medium text-sm text-muted-foreground mb-2">Response:</h4>
-              <div className="text-sm leading-relaxed bg-green-50 p-3 rounded-md border border-green-200">
-                {rfi.response}
-              </div>
-              {rfi.response_date && (
-                <p className="text-xs text-muted-foreground mt-2">
-                  Responded on {format(new Date(rfi.response_date), 'MMMM d, yyyy \'at\' h:mm a')}
-                  {rfi.responder_name && ` by ${rfi.responder_name}`}
-                </p>
-              )}
-            </div>
-          ) : (
-            <div>
-              <h4 className="font-medium text-sm text-muted-foreground mb-2">Response:</h4>
-              <div className="text-sm text-muted-foreground italic bg-muted/30 p-3 rounded-md">
-                Awaiting response
-              </div>
-            </div>
-          )}
-
-          {/* Attachments */}
-          {rfi.attachments && Array.isArray(rfi.attachments) && rfi.attachments.length > 0 && (
-            <div>
-              <h4 className="font-medium text-sm text-muted-foreground mb-2">Attachments:</h4>
-              <div className="space-y-1">
-                {rfi.attachments.map((attachment: any, index: number) => (
-                  <div key={index} className="text-sm text-blue-600 hover:underline cursor-pointer">
-                    {attachment.name || `Attachment ${index + 1}`}
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
         </div>
-      </CardContent>
-    </Card>
+      )}
+
+      {!canRespond && rfi.status !== 'answered' && rfi.status !== 'closed' && (
+        <div className="p-4 border-t bg-muted/10 text-center text-muted-foreground">
+          <MessageSquare className="w-6 h-6 mx-auto mb-2 opacity-50" />
+          <p className="text-sm">You are not assigned to respond to this RFI</p>
+        </div>
+      )}
+    </div>
   );
 };
