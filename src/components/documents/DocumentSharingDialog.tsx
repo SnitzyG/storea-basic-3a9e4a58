@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Users, Share, X, Check, Mail } from 'lucide-react';
+import { Users, Share, X, Check, Mail, UserPlus, UsersIcon } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
 import { useProjectTeam } from '@/hooks/useProjectTeam';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -37,8 +38,7 @@ export const DocumentSharingDialog: React.FC<DocumentSharingDialogProps> = ({
   onClose,
   projectId
 }) => {
-  const [selectedUser, setSelectedUser] = useState<string>('');
-  const [permissionLevel, setPermissionLevel] = useState<string>('view');
+  const [selectedMembers, setSelectedMembers] = useState<Set<string>>(new Set());
   const [existingShares, setExistingShares] = useState<DocumentShare[]>([]);
   const [loading, setLoading] = useState(false);
   const { teamMembers } = useProjectTeam(projectId);
@@ -101,29 +101,33 @@ export const DocumentSharingDialog: React.FC<DocumentSharingDialogProps> = ({
   };
 
   const handleShare = async () => {
-    if (!document || !selectedUser || !profile) return;
+    if (!document || selectedMembers.size === 0 || !profile) return;
 
     setLoading(true);
     try {
+      // Create shares for all selected members
+      const shareInserts = Array.from(selectedMembers).map(memberId => ({
+        document_id: document.id,
+        shared_by: profile.user_id,
+        shared_with: memberId,
+        permission_level: 'view' // Standard access for team members
+      }));
+
       const { error } = await supabase
         .from('document_shares')
-        .insert({
-          document_id: document.id,
-          shared_by: profile.user_id,
-          shared_with: selectedUser,
-          permission_level: 'view' // Standard access for team members
-        });
+        .insert(shareInserts);
 
       if (error) throw error;
 
+      const count = selectedMembers.size;
       toast({
         title: "Success",
-        description: "Document shared successfully",
+        description: `Document shared with ${count} team member${count > 1 ? 's' : ''}`,
       });
 
       // Reload shares and reset form
       await loadExistingShares();
-      setSelectedUser('');
+      setSelectedMembers(new Set());
     } catch (error: any) {
       console.error('Error sharing document:', error);
       toast({
@@ -134,6 +138,72 @@ export const DocumentSharingDialog: React.FC<DocumentSharingDialogProps> = ({
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleShareWithAll = async () => {
+    if (!document || !profile) return;
+
+    const availableMembers = teamMembers.filter(member => 
+      member.user_id !== profile.user_id && 
+      !existingShares.some(share => share.shared_with === member.user_id)
+    );
+
+    if (availableMembers.length === 0) {
+      toast({
+        title: "Info",
+        description: "Document is already shared with all team members",
+      });
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const shareInserts = availableMembers.map(member => ({
+        document_id: document.id,
+        shared_by: profile.user_id,
+        shared_with: member.user_id,
+        permission_level: 'view'
+      }));
+
+      const { error } = await supabase
+        .from('document_shares')
+        .insert(shareInserts);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: `Document shared with all team members (${availableMembers.length} members)`,
+      });
+
+      await loadExistingShares();
+    } catch (error: any) {
+      console.error('Error sharing with all:', error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to share with all members",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleUnshareMember = async (memberId: string) => {
+    const shareToRemove = existingShares.find(share => share.shared_with === memberId);
+    if (shareToRemove) {
+      await handleRemoveShare(shareToRemove.id);
+    }
+  };
+
+  const handleToggleMember = (memberId: string) => {
+    const newSelected = new Set(selectedMembers);
+    if (newSelected.has(memberId)) {
+      newSelected.delete(memberId);
+    } else {
+      newSelected.add(memberId);
+    }
+    setSelectedMembers(newSelected);
   };
 
   const handleRemoveShare = async (shareId: string) => {
@@ -161,6 +231,12 @@ export const DocumentSharingDialog: React.FC<DocumentSharingDialogProps> = ({
     }
   };
 
+  // All team members except the current user
+  const allTeamMembers = teamMembers.filter(member => 
+    member.user_id !== profile?.user_id
+  );
+
+  // Available members (not yet shared with)
   const availableUsers = teamMembers.filter(member => 
     member.user_id !== profile?.user_id && 
     !existingShares.some(share => share.shared_with === member.user_id)
@@ -210,91 +286,104 @@ export const DocumentSharingDialog: React.FC<DocumentSharingDialogProps> = ({
           {/* Only show sharing options for private documents or document owners */}
           {(document.visibility_scope === 'private' || document.uploaded_by === profile?.user_id) && (
             <>
-              {/* Share with new user */}
+              {/* Team Members List with Checkboxes */}
               <div className="space-y-4">
-                <h4 className="font-medium">Share with team member</h4>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>Team Member</Label>
-                    <Select value={selectedUser} onValueChange={setSelectedUser}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select team member" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {availableUsers.map((member) => (
-                          <SelectItem key={member.user_id} value={member.user_id}>
-                            <div className="flex items-center gap-2">
-                              <span>{member.user_profile?.name || member.name || 'Unknown'}</span>
-                              <Badge variant="outline" className="text-xs">
-                                {member.role}
-                              </Badge>
-                            </div>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <p className="text-xs text-muted-foreground">
-                      Team members will get standard view access to this document.
-                    </p>
-                  </div>
-
-                  <div className="flex items-end">
+                <div className="flex items-center justify-between">
+                  <h4 className="font-medium">Share with team members</h4>
+                  <div className="flex gap-2">
                     <Button
-                      onClick={handleShare}
-                      disabled={!selectedUser || loading}
-                      className="w-full"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setSelectedMembers(new Set())}
+                      disabled={selectedMembers.size === 0}
                     >
-                      <Users className="h-4 w-4 mr-2" />
-                      {loading ? 'Sharing...' : 'Share with Team Member'}
+                      Unselect All
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleShareWithAll}
+                      disabled={loading || availableUsers.length === 0}
+                    >
+                      <UsersIcon className="h-4 w-4 mr-2" />
+                      Share with All
                     </Button>
                   </div>
                 </div>
-              </div>
 
-              {/* Existing shares */}
-              {existingShares.length > 0 && (
-                <div className="space-y-4">
-                  <h4 className="font-medium">Currently shared with</h4>
-                  
-                  <div className="space-y-2">
-                    {existingShares.map((share) => (
-                      <Card key={share.id}>
-                        <CardContent className="p-3">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                              <div className="flex items-center gap-2">
-                                <Mail className="h-4 w-4 text-muted-foreground" />
-                                <span className="font-medium">
-                                  {share.shared_with_profile?.name || 'Unknown User'}
-                                </span>
-                              </div>
-                              <Badge variant="outline" className="text-xs">
-                                {share.shared_with_profile?.role || 'Unknown'}
-                              </Badge>
-                              <Badge variant={getPermissionBadgeVariant(share.permission_level)}>
-                                {share.permission_level}
-                              </Badge>
-                            </div>
-                            
+                {/* Team Members Grid */}
+                <div className="grid grid-cols-1 gap-2 max-h-60 overflow-y-auto">
+                  {allTeamMembers.map((member) => {
+                    const isShared = existingShares.some(share => share.shared_with === member.user_id);
+                    const isSelected = selectedMembers.has(member.user_id);
+                    
+                    return (
+                      <Card key={member.user_id} className={`p-3 ${isShared ? 'bg-muted/50' : ''}`}>
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <Checkbox
+                              checked={isSelected}
+                              onCheckedChange={() => handleToggleMember(member.user_id)}
+                              disabled={isShared}
+                            />
                             <div className="flex items-center gap-2">
-                              <span className="text-xs text-muted-foreground">
-                                Shared {new Date(share.created_at).toLocaleDateString()}
+                              <span className="font-medium">
+                                {member.user_profile?.name || member.name || 'Unknown'}
                               </span>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleRemoveShare(share.id)}
-                                className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive"
-                              >
-                                <X className="h-4 w-4" />
-                              </Button>
+                              <Badge variant="outline" className="text-xs">
+                                {member.role}
+                              </Badge>
+                              {isShared && (
+                                <Badge variant="secondary" className="text-xs">
+                                  Shared
+                                </Badge>
+                              )}
                             </div>
                           </div>
-                        </CardContent>
+                          
+                          {isShared && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleUnshareMember(member.user_id)}
+                              className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive"
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          )}
+                        </div>
                       </Card>
-                    ))}
+                    );
+                  })}
+                </div>
+
+                {/* Share Selected Button */}
+                {selectedMembers.size > 0 && (
+                  <div className="flex justify-end">
+                    <Button
+                      onClick={handleShare}
+                      disabled={loading}
+                      className="min-w-[160px]"
+                    >
+                      <UserPlus className="h-4 w-4 mr-2" />
+                      {loading ? 'Sharing...' : `Share with ${selectedMembers.size} member${selectedMembers.size > 1 ? 's' : ''}`}
+                    </Button>
                   </div>
+                )}
+              </div>
+
+              {/* Summary */}
+              {existingShares.length > 0 && (
+                <div className="space-y-2">
+                  <h4 className="font-medium">Document Access Summary</h4>
+                  <Card>
+                    <CardContent className="p-3">
+                      <div className="text-sm text-muted-foreground">
+                        Currently shared with <strong>{existingShares.length}</strong> team member{existingShares.length !== 1 ? 's' : ''} 
+                        out of <strong>{allTeamMembers.length}</strong> total team members.
+                      </div>
+                    </CardContent>
+                  </Card>
                 </div>
               )}
             </>
