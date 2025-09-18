@@ -460,12 +460,12 @@ export const AdvancedProjectWizard = ({
                         type="button"
                         variant="outline" 
                         size="sm"
-                        onClick={() => setProjectDuration(1)}
+                        onClick={() => setProjectDuration(2)}
                         disabled={!formData.estimated_start_date}
                         className="flex items-center gap-1"
                       >
                         <Clock className="h-3 w-3" />
-                        1 Month
+                        2 Months
                       </Button>
                       <Button
                         type="button"
