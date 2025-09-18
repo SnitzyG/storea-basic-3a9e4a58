@@ -132,8 +132,27 @@ export const useActivity = () => {
     }
   };
 
-  const dismissActivity = (activityId: string) => {
-    setDismissedActivityIds(prev => new Set([...prev, activityId]));
+  const dismissActivity = async (activityId: string) => {
+    if (!user) return;
+
+    try {
+      // Delete the activity from the database
+      const { error } = await supabase
+        .from('activity_log')
+        .delete()
+        .eq('id', activityId)
+        .eq('user_id', user.id); // Ensure user can only delete their own activities
+
+      if (error) throw error;
+
+      // Update local state to remove the activity immediately
+      setAllActivities(prev => prev.filter(activity => activity.id !== activityId));
+      setActivities(prev => prev.filter(activity => activity.id !== activityId));
+    } catch (error) {
+      console.error('Error dismissing activity:', error);
+      // Fallback to local dismissal if database operation fails
+      setDismissedActivityIds(prev => new Set([...prev, activityId]));
+    }
   };
 
   // Update visible activities when dismissed items change
