@@ -167,7 +167,7 @@ export const InfoPanel = () => {
                     {day.rainfall > 0 && (
                       <div className="flex items-center gap-1 text-blue-600 dark:text-blue-400">
                         <CloudRain className="h-3 w-3" />
-                        <span className="text-xs font-medium">{day.rainfall}mm</span>
+                        <span className="text-xs font-medium">{day.rainfall}</span>
                       </div>
                     )}
                   </div>
