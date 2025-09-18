@@ -71,7 +71,7 @@ export const DocumentFilters: React.FC<DocumentFiltersProps> = ({
         </div>
       </div>
 
-      {/* Filters Row 1 */}
+      {/* All Filters in One Row */}
       <div className="flex flex-wrap items-center gap-4">
         <Select value={selectedCategory} onValueChange={onCategoryChange}>
           <SelectTrigger className="w-48">
@@ -109,10 +109,7 @@ export const DocumentFilters: React.FC<DocumentFiltersProps> = ({
             ))}
           </SelectContent>
         </Select>
-      </div>
 
-      {/* Filters Row 2 */}
-      <div className="flex flex-wrap items-center gap-4">
         <Select value={selectedUploadedBy} onValueChange={onUploadedByChange}>
           <SelectTrigger className="w-48">
             <SelectValue placeholder="All Uploaders" />
