@@ -16,6 +16,7 @@ import { RFIDetailPanel } from '@/components/rfis/RFIDetailPanel';
 import { SimplifiedRFIComposer } from '@/components/rfis/SimplifiedRFIComposer';
 import { RFIMessageComposer } from '@/components/messages/RFIMessageComposer';
 import { RFIInbox, RFIInboxCategory } from '@/components/rfis/RFIInbox';
+import { RFISmartFilters, SmartFilters, SavedView, SortOption, SortDirection } from '@/components/rfis/RFISmartFilters';
 // Legacy components for fallback
 import { RFIDetailsDialog } from '@/components/rfis/RFIDetailsDialog';
 import { ProjectScopeValidator } from '@/components/rfis/ProjectScopeValidator';
@@ -32,6 +33,33 @@ const RFIs = () => {
   const [selectedRFIForDetail, setSelectedRFIForDetail] = useState<RFI | null>(null);
   const [projectUsers, setProjectUsers] = useState<any[]>([]);
   const [selectedInboxCategory, setSelectedInboxCategory] = useState<RFIInboxCategory>('all');
+  const [smartFilters, setSmartFilters] = useState<SmartFilters>({
+    searchQuery: '',
+    sortBy: 'created_at',
+    sortDirection: 'desc',
+    disciplineFilter: '',
+    subcontractorFilter: '',
+    priorityFilter: '',
+    statusFilter: '',
+    tagFilter: ''
+  });
+  const [savedViews, setSavedViews] = useState<SavedView[]>([
+    {
+      id: 'default',
+      name: 'All RFIs',
+      filters: {
+        searchQuery: '',
+        sortBy: 'created_at',
+        sortDirection: 'desc',
+        disciplineFilter: '',
+        subcontractorFilter: '',
+        priorityFilter: '',
+        statusFilter: '',
+        tagFilter: ''
+      },
+      isDefault: true
+    }
+  ]);
   const [isDetailOverlayOpen, setIsDetailOverlayOpen] = useState(false);
   const [overlaySelectedRFI, setOverlaySelectedRFI] = useState<RFI | null>(null);
   const { selectedProject } = useProjectSelection();
@@ -92,6 +120,115 @@ const RFIs = () => {
         return projectRFIs;
     }
   }, [projectRFIs, selectedInboxCategory, profile?.user_id]);
+
+  // Apply smart filters and sorting to the filtered RFIs
+  const processedRFIs = useMemo(() => {
+    let result = [...filteredRFIs];
+
+    // Apply search filter
+    if (smartFilters.searchQuery) {
+      const query = smartFilters.searchQuery.toLowerCase();
+      result = result.filter(rfi => 
+        rfi.question.toLowerCase().includes(query) ||
+        (rfi.response && rfi.response.toLowerCase().includes(query)) ||
+        (rfi.subject && rfi.subject.toLowerCase().includes(query)) ||
+        (rfi.rfi_number && rfi.rfi_number.toLowerCase().includes(query)) ||
+        (rfi.raised_by_profile?.name && rfi.raised_by_profile.name.toLowerCase().includes(query))
+      );
+    }
+
+    // Apply discipline filter
+    if (smartFilters.disciplineFilter) {
+      result = result.filter(rfi => rfi.category === smartFilters.disciplineFilter);
+    }
+
+    // Apply subcontractor filter
+    if (smartFilters.subcontractorFilter) {
+      result = result.filter(rfi => 
+        rfi.raised_by_profile?.name === smartFilters.subcontractorFilter ||
+        rfi.assigned_to_profile?.name === smartFilters.subcontractorFilter
+      );
+    }
+
+    // Apply priority filter
+    if (smartFilters.priorityFilter) {
+      result = result.filter(rfi => rfi.priority === smartFilters.priorityFilter);
+    }
+
+    // Apply status filter
+    if (smartFilters.statusFilter) {
+      result = result.filter(rfi => rfi.status === smartFilters.statusFilter);
+    }
+
+    // Apply tag filter
+    if (smartFilters.tagFilter) {
+      result = result.filter(rfi => 
+        (rfi.question + ' ' + (rfi.response || '')).includes(smartFilters.tagFilter)
+      );
+    }
+
+    // Apply sorting
+    result.sort((a, b) => {
+      let aValue: any, bValue: any;
+      
+      switch (smartFilters.sortBy) {
+        case 'due_date':
+          aValue = a.due_date || a.required_response_by || '9999-12-31';
+          bValue = b.due_date || b.required_response_by || '9999-12-31';
+          break;
+        case 'priority':
+          const priorityOrder = { critical: 4, high: 3, medium: 2, low: 1 };
+          aValue = priorityOrder[a.priority];
+          bValue = priorityOrder[b.priority];
+          break;
+        case 'status':
+          const statusOrder = { overdue: 4, outstanding: 3, responded: 2, closed: 1 };
+          aValue = statusOrder[a.status];
+          bValue = statusOrder[b.status];
+          break;
+        case 'sender':
+          aValue = a.raised_by_profile?.name || '';
+          bValue = b.raised_by_profile?.name || '';
+          break;
+        case 'updated_at':
+          aValue = a.updated_at;
+          bValue = b.updated_at;
+          break;
+        case 'created_at':
+        default:
+          aValue = a.created_at;
+          bValue = b.created_at;
+          break;
+      }
+
+      if (smartFilters.sortDirection === 'asc') {
+        return aValue > bValue ? 1 : -1;
+      } else {
+        return aValue < bValue ? 1 : -1;
+      }
+    });
+
+    return result;
+  }, [filteredRFIs, smartFilters]);
+
+  // Saved views management
+  const handleSaveView = (name: string, filters: SmartFilters) => {
+    const newView: SavedView = {
+      id: Date.now().toString(),
+      name,
+      filters,
+      isDefault: false
+    };
+    setSavedViews(prev => [...prev, newView]);
+  };
+
+  const handleLoadView = (view: SavedView) => {
+    setSmartFilters(view.filters);
+  };
+
+  const handleDeleteView = (viewId: string) => {
+    setSavedViews(prev => prev.filter(view => view.id !== viewId));
+  };
 
   // Calculate counts for each category
   const inboxCounts = useMemo(() => {
@@ -542,9 +679,24 @@ const RFIs = () => {
                 Create RFI
               </Button>
             </div>
+
+            {/* Smart Filters */}
+            <div className="mb-4">
+              <RFISmartFilters
+                filters={smartFilters}
+                onFiltersChange={setSmartFilters}
+                projectUsers={projectUsers}
+                rfis={projectRFIs}
+                savedViews={savedViews}
+                onSaveView={handleSaveView}
+                onLoadView={handleLoadView}
+                onDeleteView={handleDeleteView}
+              />
+            </div>
+
             <div className="overflow-y-auto h-full">
               <RFIListView 
-                rfis={filteredRFIs}
+                rfis={processedRFIs}
                 onView={handleViewRFI}
                 onExportPDF={handleExportPDF}
                 onSelectRFI={setSelectedRFIForDetail}
