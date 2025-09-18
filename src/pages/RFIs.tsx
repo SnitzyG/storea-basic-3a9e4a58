@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { supabase } from '@/integrations/supabase/client';
 import { Inbox, Send, FileEdit, Archive } from 'lucide-react';
 import { useRFIs, RFI } from '@/hooks/useRFIs';
 import { useProjects } from '@/hooks/useProjects';
@@ -387,6 +388,23 @@ const RFIs = () => {
       });
     } catch (error) {
       console.error('Error sending draft RFI:', error);
+    }
+  };
+
+  // Handler for deleting RFIs
+  const handleDeleteRFI = async (rfi: RFI) => {
+    if (window.confirm(`Are you sure you want to delete RFI "${rfi.subject || rfi.question.substring(0, 50)}"? This action cannot be undone.`)) {
+      try {
+        // Delete from Supabase
+        await supabase
+          .from('rfis')
+          .delete()
+          .eq('id', rfi.id);
+        
+        // The UI will update automatically due to the real-time subscription
+      } catch (error) {
+        console.error('Error deleting RFI:', error);
+      }
     }
   };
 
@@ -862,6 +880,7 @@ const RFIs = () => {
                 onDoubleClick={handleDoubleClickRFI}
                 onUpdateRFI={handleUpdateRFI}
                 onSendDraft={handleSendDraft}
+                onDeleteRFI={handleDeleteRFI}
                 projectUsers={projectUsers}
               />
             </div>
@@ -917,7 +936,8 @@ const RFIs = () => {
               responder_name: responseData.responderName,
               responder_position: responseData.responderPosition,
               response_date: new Date().toISOString(),
-              status: 'answered'
+              status: (responseData.status as any) || 'answered',
+              priority: responseData.priority
             });
             setResponseComposerOpen(false);
             setResponseRFI(null);

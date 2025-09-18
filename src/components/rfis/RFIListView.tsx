@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { ArrowUpDown, Eye, Download, MoreHorizontal, MessageSquare, CheckSquare, Square, Send } from 'lucide-react';
+import { ArrowUpDown, Eye, Download, MoreHorizontal, MessageSquare, CheckSquare, Square, Send, Trash2 } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -23,6 +23,7 @@ interface RFIListViewProps {
   onDoubleClick?: (rfi: RFI) => void;
   onUpdateRFI?: (rfiId: string, updates: Partial<RFI>) => Promise<void>;
   onSendDraft?: (rfi: RFI) => void;
+  onDeleteRFI?: (rfi: RFI) => void;
   projectUsers?: any[];
   showQuickActions?: boolean;
   selectedRFIIds?: string[];
@@ -60,6 +61,7 @@ export const RFIListView: React.FC<RFIListViewProps> = ({
   onDoubleClick,
   onUpdateRFI,
   onSendDraft,
+  onDeleteRFI,
   projectUsers = [],
   showQuickActions = false,
   selectedRFIIds = [],
@@ -281,6 +283,16 @@ export const RFIListView: React.FC<RFIListViewProps> = ({
                       <Download className="h-3 w-3 mr-2" />
                       Export PDF
                     </DropdownMenuItem>
+                    
+                    {onDeleteRFI && (
+                      <DropdownMenuItem 
+                        onClick={(e) => { e.stopPropagation(); onDeleteRFI(rfi); }}
+                        className="text-destructive focus:text-destructive"
+                      >
+                        <Trash2 className="h-3 w-3 mr-2" />
+                        Delete RFI
+                      </DropdownMenuItem>
+                    )}
                   </DropdownMenuContent>
                 </DropdownMenu>
               </TableCell>

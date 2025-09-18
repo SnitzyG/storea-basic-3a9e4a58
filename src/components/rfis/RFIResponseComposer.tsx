@@ -5,8 +5,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { RFI } from '@/hooks/useRFIs';
-import { RFIStatusBadge } from './RFIStatusBadge';
+import { RFIStatusBadge, EnhancedRFIStatus } from './RFIStatusBadge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { CalendarDays, User, FileText } from 'lucide-react';
 
@@ -18,6 +19,8 @@ interface RFIResponseComposerProps {
     response: string;
     responderName?: string;
     responderPosition?: string;
+    status?: EnhancedRFIStatus;
+    priority?: 'low' | 'medium' | 'high' | 'critical';
   }) => Promise<void>;
 }
 
@@ -25,6 +28,8 @@ export const RFIResponseComposer = ({ rfi, isOpen, onClose, onSubmit }: RFIRespo
   const [response, setResponse] = useState('');
   const [responderName, setResponderName] = useState('');
   const [responderPosition, setResponderPosition] = useState('');
+  const [newStatus, setNewStatus] = useState<EnhancedRFIStatus>(rfi.status as EnhancedRFIStatus);
+  const [newPriority, setNewPriority] = useState<'low' | 'medium' | 'high' | 'critical'>(rfi.priority);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [saveAsDraft, setSaveAsDraft] = useState(false);
 
@@ -39,6 +44,8 @@ export const RFIResponseComposer = ({ rfi, isOpen, onClose, onSubmit }: RFIRespo
         response: response.trim(),
         responderName: responderName.trim() || undefined,
         responderPosition: responderPosition.trim() || undefined,
+        status: newStatus,
+        priority: newPriority,
       });
       
       // Reset form
@@ -161,6 +168,39 @@ export const RFIResponseComposer = ({ rfi, isOpen, onClose, onSubmit }: RFIRespo
                   onChange={(e) => setResponderPosition(e.target.value)}
                   placeholder="Your position or title"
                 />
+              </div>
+            </div>
+
+            {/* Status and Priority Updates */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="status">Update Status</Label>
+                <Select value={newStatus} onValueChange={(value: EnhancedRFIStatus) => setNewStatus(value)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="outstanding">Outstanding</SelectItem>
+                    <SelectItem value="in_review">In Review</SelectItem>
+                    <SelectItem value="answered">Answered</SelectItem>
+                    <SelectItem value="rejected">Rejected</SelectItem>
+                    <SelectItem value="closed">Closed</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="priority">Update Priority</Label>
+                <Select value={newPriority} onValueChange={(value: 'low' | 'medium' | 'high' | 'critical') => setNewPriority(value)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select priority" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="low">Low</SelectItem>
+                    <SelectItem value="medium">Medium</SelectItem>
+                    <SelectItem value="high">High</SelectItem>
+                    <SelectItem value="critical">Critical</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 
