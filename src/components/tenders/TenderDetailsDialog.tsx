@@ -4,9 +4,10 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Calendar, DollarSign, FileText, Users, Award } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Calendar, DollarSign, FileText, Users, Award, BarChart3 } from 'lucide-react';
 import { Tender, TenderBid, useTenders } from '@/hooks/useTenders';
+import { EnhancedBidComparison } from './EnhancedBidComparison';
 import { formatDistanceToNow } from 'date-fns';
 
 interface TenderDetailsDialogProps {
@@ -163,53 +164,50 @@ export const TenderDetailsDialog = ({ open, onOpenChange, tender, userRole }: Te
 
           {/* Bids Section */}
           {canViewBids ? (
-            <div>
-              <h3 className="font-semibold mb-3 flex items-center">
-                <Users className="w-4 h-4 mr-2" />
-                Bids ({bids.length})
-              </h3>
+            <Tabs defaultValue="overview" className="w-full">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="overview">Overview</TabsTrigger>
+                <TabsTrigger value="comparison" disabled={bids.length === 0}>
+                  Advanced Comparison ({bids.length})
+                </TabsTrigger>
+              </TabsList>
               
-              {loading ? (
-                <p className="text-center text-muted-foreground py-4">Loading bids...</p>
-              ) : bids.length > 0 ? (
-                <div className="space-y-4">
-                  {/* Bid Statistics */}
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4 p-4 bg-muted/30 rounded-md">
-                    <div>
-                      <p className="text-sm text-muted-foreground">Lowest Bid</p>
-                      <p className="font-semibold text-green-600">
-                        ${lowestBid?.toLocaleString()}
-                      </p>
+              <TabsContent value="overview" className="space-y-4">
+                <div className="flex items-center gap-2">
+                  <Users className="w-4 h-4" />
+                  <h3 className="font-semibold">Bids Overview ({bids.length})</h3>
+                </div>
+                
+                {loading ? (
+                  <p className="text-center text-muted-foreground py-4">Loading bids...</p>
+                ) : bids.length > 0 ? (
+                  <div className="space-y-4">
+                    {/* Quick Stats */}
+                    <div className="grid grid-cols-3 gap-4 p-4 bg-muted/30 rounded-md">
+                      <div>
+                        <p className="text-sm text-muted-foreground">Lowest Bid</p>
+                        <p className="font-semibold text-green-600">
+                          ${lowestBid?.toLocaleString()}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">Average Bid</p>
+                        <p className="font-semibold">
+                          ${averageBid?.toLocaleString()}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">Total Bids</p>
+                        <p className="font-semibold">{bids.length}</p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Average Bid</p>
-                      <p className="font-semibold">
-                        ${averageBid?.toLocaleString()}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Total Bids</p>
-                      <p className="font-semibold">{bids.length}</p>
-                    </div>
-                  </div>
 
-                  {/* Bids Table */}
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        {canAward && <TableHead className="w-12"></TableHead>}
-                        <TableHead>Bidder</TableHead>
-                        <TableHead>Amount</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Submitted</TableHead>
-                        <TableHead>Proposal</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
+                    {/* Simple Bid List */}
+                    <div className="space-y-2">
                       {bids.map((bid) => (
-                        <TableRow key={bid.id}>
-                          {canAward && (
-                            <TableCell>
+                        <div key={bid.id} className="flex items-center justify-between p-3 border rounded-md">
+                          <div className="flex items-center gap-3">
+                            {canAward && (
                               <input
                                 type="radio"
                                 name="selectedBidder"
@@ -218,66 +216,72 @@ export const TenderDetailsDialog = ({ open, onOpenChange, tender, userRole }: Te
                                 onChange={(e) => setSelectedBidder(e.target.value)}
                                 className="w-4 h-4"
                               />
-                            </TableCell>
-                          )}
-                          <TableCell>
-                            <div className="flex items-center gap-2">
-                              <Avatar className="w-6 h-6">
-                                <AvatarFallback className="text-xs">
-                                  {bid.bidder_profile?.name?.charAt(0) || 'B'}
-                                </AvatarFallback>
-                              </Avatar>
-                              <div>
-                                <p className="font-medium">{bid.bidder_profile?.name || 'Unknown'}</p>
-                                <p className="text-xs text-muted-foreground">
-                                  {bid.bidder_profile?.role}
-                                </p>
-                              </div>
+                            )}
+                            <Avatar className="w-8 h-8">
+                              <AvatarFallback className="text-xs">
+                                {bid.bidder_profile?.name?.charAt(0) || 'B'}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div>
+                              <p className="font-medium">{bid.bidder_profile?.name || 'Unknown'}</p>
+                              <p className="text-sm text-muted-foreground">
+                                {formatDistanceToNow(new Date(bid.submitted_at), { addSuffix: true })}
+                              </p>
                             </div>
-                          </TableCell>
-                          <TableCell>
-                            <span className={`font-medium ${bid.bid_amount === lowestBid ? 'text-green-600' : ''}`}>
+                          </div>
+                          <div className="text-right">
+                            <p className={`font-bold ${bid.bid_amount === lowestBid ? 'text-green-600' : ''}`}>
                               ${bid.bid_amount.toLocaleString()}
-                            </span>
-                          </TableCell>
-                          <TableCell>
+                            </p>
                             <Badge className={bidStatusColors[bid.status]}>
                               {bid.status.replace('_', ' ')}
                             </Badge>
-                          </TableCell>
-                          <TableCell className="text-sm">
-                            {formatDistanceToNow(new Date(bid.submitted_at), { addSuffix: true })}
-                          </TableCell>
-                          <TableCell className="max-w-xs">
-                            {bid.proposal_text ? (
-                              <p className="text-sm line-clamp-2" title={bid.proposal_text}>
-                                {bid.proposal_text}
-                              </p>
-                            ) : (
-                              <span className="text-muted-foreground text-sm">No proposal</span>
-                            )}
-                          </TableCell>
-                        </TableRow>
+                          </div>
+                        </div>
                       ))}
-                    </TableBody>
-                  </Table>
-
-                  {/* Award Button */}
-                  {canAward && (
-                    <div className="flex justify-end">
-                      <Button 
-                        onClick={handleAward}
-                        disabled={!selectedBidder}
-                      >
-                        Award to Selected Bidder
-                      </Button>
                     </div>
-                  )}
-                </div>
-              ) : (
-                <p className="text-center text-muted-foreground py-4">No bids submitted yet</p>
-              )}
-            </div>
+
+                    {/* Award Button */}
+                    {canAward && (
+                      <div className="flex justify-end">
+                        <Button 
+                          onClick={handleAward}
+                          disabled={!selectedBidder}
+                        >
+                          Award to Selected Bidder
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <p className="text-center text-muted-foreground py-4">No bids submitted yet</p>
+                )}
+              </TabsContent>
+              
+              <TabsContent value="comparison">
+                {bids.length > 0 ? (
+                  <EnhancedBidComparison
+                    bids={bids}
+                    onAwardTender={(bidId) => {
+                      const bid = bids.find(b => b.id === bidId);
+                      if (bid) {
+                        awardTender(tender.id, bid.bidder_id);
+                        onOpenChange(false);
+                      }
+                    }}
+                    onSaveEvaluation={(bidId, evaluation) => {
+                      console.log('Save evaluation for bid:', bidId, evaluation);
+                      // In a real app, this would call an API to save the evaluation
+                    }}
+                  />
+                ) : (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <BarChart3 className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                    <p>No bids available for comparison</p>
+                  </div>
+                )}
+              </TabsContent>
+            </Tabs>
           ) : (
             <div className="text-center py-6 text-muted-foreground">
               <Users className="w-8 h-8 mx-auto mb-2 opacity-50" />

@@ -168,8 +168,8 @@ export const TenderInviteDialog = ({ open, onOpenChange, tender }: TenderInviteD
           {/* Info Box */}
           <div className="bg-blue-50 p-3 rounded-md border border-blue-200">
             <p className="text-sm text-blue-800">
-              <strong>How it works:</strong> Recipients will receive an email with tender details and a secure link. 
-              If they don't have an account, they'll be guided through creating one to access the platform and submit bids.
+              <strong>How it works:</strong> Recipients will receive an email with tender details and a secure project invitation link. 
+              They'll be able to join the project and access all related documents to submit competitive bids.
             </p>
           </div>
 

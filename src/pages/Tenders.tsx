@@ -32,7 +32,8 @@ const Tenders = () => {
     loading,
     publishTender,
     closeTender,
-    awardTender
+    awardTender,
+    deleteTender
   } = useTenders(selectedProject?.id);
   const userRole = profile?.role || '';
 
@@ -66,6 +67,10 @@ const Tenders = () => {
   const handleInviteBidders = (tender: Tender) => {
     setSelectedTender(tender);
     setInviteDialogOpen(true);
+  };
+
+  const handleDeleteTender = async (tender: Tender) => {
+    await deleteTender(tender.id);
   };
 
   // Check for expired tenders that need to be closed
@@ -259,7 +264,7 @@ const Tenders = () => {
       {activeTab === 'tenders' ? <>
           {/* Tender Grid */}
           {filteredTenders.length > 0 ? <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredTenders.map(tender => <TenderCard key={tender.id} tender={tender} userRole={userRole} onView={handleViewTender} onBid={handleBidTender} onEdit={userRole === 'architect' ? handleEditTender : undefined} onPublish={userRole === 'architect' ? handlePublishTender : undefined} onAward={userRole === 'architect' ? handleAwardTender : undefined} onInvite={userRole === 'architect' ? handleInviteBidders : undefined} />)}
+              {filteredTenders.map(tender => <TenderCard key={tender.id} tender={tender} userRole={userRole} onView={handleViewTender} onBid={handleBidTender} onEdit={userRole === 'architect' ? handleEditTender : undefined} onPublish={userRole === 'architect' ? handlePublishTender : undefined} onAward={userRole === 'architect' ? handleAwardTender : undefined} onInvite={userRole === 'architect' ? handleInviteBidders : undefined} onDelete={userRole === 'architect' ? handleDeleteTender : undefined} />)}
             </div> : <Card>
               <CardContent className="text-center py-12">
                 <h3 className="text-lg font-semibold mb-2">No Tenders Found</h3>

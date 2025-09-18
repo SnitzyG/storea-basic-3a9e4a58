@@ -224,7 +224,7 @@ export const CreateTenderDialog = ({ open, onOpenChange, projectId }: CreateTend
                       <SelectTrigger>
                         <SelectValue placeholder="Select existing document" />
                       </SelectTrigger>
-                      <SelectContent>
+                       <SelectContent>
                         {documents
                           .filter(doc => !attachedDocuments.find(attached => attached.id === doc.id))
                           .map(doc => (
@@ -232,7 +232,12 @@ export const CreateTenderDialog = ({ open, onOpenChange, projectId }: CreateTend
                               {doc.name}
                             </SelectItem>
                           ))}
-                      </SelectContent>
+                        {documents.length === 0 && (
+                          <SelectItem value="" disabled>
+                            No documents available
+                          </SelectItem>
+                        )}
+                       </SelectContent>
                     </Select>
                   </div>
                 </div>

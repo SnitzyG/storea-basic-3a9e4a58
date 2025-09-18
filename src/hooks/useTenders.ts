@@ -41,9 +41,21 @@ export interface TenderBid {
   submitted_at: string;
   created_at: string;
   updated_at: string;
+  timeline_days?: number;
   bidder_profile?: {
     name: string;
     role: string;
+  };
+  evaluation?: {
+    price_score: number;
+    experience_score: number;
+    timeline_score: number;
+    technical_score: number;
+    communication_score: number;
+    overall_score: number;
+    evaluator_notes: string;
+    evaluated_at: string;
+    evaluator_id: string;
   };
 }
 
@@ -204,6 +216,33 @@ export const useTenders = (projectId?: string) => {
         variant: "destructive",
       });
       return null;
+    }
+  };
+
+  const deleteTender = async (tenderId: string): Promise<boolean> => {
+    try {
+      const { error } = await supabase
+        .from('tenders')
+        .delete()
+        .eq('id', tenderId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Tender deleted successfully",
+      });
+      
+      fetchTenders();
+      return true;
+    } catch (error: any) {
+      console.error('Error deleting tender:', error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete tender",
+        variant: "destructive",
+      });
+      return false;
     }
   };
 
@@ -400,6 +439,7 @@ export const useTenders = (projectId?: string) => {
     loading,
     createTender,
     updateTender,
+    deleteTender,
     publishTender,
     closeTender,
     awardTender,

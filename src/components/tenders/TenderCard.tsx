@@ -2,7 +2,8 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Calendar, DollarSign, Users, Award, Clock, Mail } from 'lucide-react';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { Calendar, DollarSign, Users, Award, Clock, Mail, Trash2 } from 'lucide-react';
 import { Tender } from '@/hooks/useTenders';
 import { formatDistanceToNow } from 'date-fns';
 
@@ -15,6 +16,7 @@ interface TenderCardProps {
   onPublish?: (tender: Tender) => void;
   onAward?: (tender: Tender) => void;
   onInvite?: (tender: Tender) => void;
+  onDelete?: (tender: Tender) => void;
 }
 
 const statusColors = {
@@ -41,7 +43,8 @@ export const TenderCard = ({
   onEdit, 
   onPublish, 
   onAward,
-  onInvite
+  onInvite,
+  onDelete
 }: TenderCardProps) => {
   const deadline = new Date(tender.deadline);
   const isExpired = deadline < new Date();
@@ -176,6 +179,31 @@ export const TenderCard = ({
                 <Mail className="w-4 h-4 mr-1" />
                 Invite Bidders
               </Button>
+            )}
+            
+            {userRole === 'architect' && tender.status === 'draft' && onDelete && (
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="outline" size="sm" className="text-destructive hover:text-destructive">
+                    <Trash2 className="w-4 h-4 mr-1" />
+                    Delete
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Delete Tender</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Are you sure you want to delete "{tender.title}"? This action cannot be undone.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={() => onDelete(tender)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                      Delete
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             )}
           </div>
         </div>
