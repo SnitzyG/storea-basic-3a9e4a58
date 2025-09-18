@@ -112,11 +112,11 @@ const RFIs = () => {
       case 'unresponded':
         return projectRFIs.filter(rfi => 
           rfi.raised_by === currentUserId && 
-          ['outstanding', 'overdue'].includes(rfi.status)
+          ['outstanding', 'overdue', 'sent', 'received'].includes(rfi.status)
         );
       case 'drafts':
-        // Note: Draft functionality would need to be implemented with a separate drafts system
-        return [];
+        // Now we can properly filter for draft status
+        return projectRFIs.filter(rfi => rfi.status === 'draft');
       case 'all':
       default:
         return projectRFIs;
@@ -260,9 +260,9 @@ const RFIs = () => {
       received: projectRFIs.filter(rfi => rfi.assigned_to === currentUserId).length,
       unresponded: projectRFIs.filter(rfi => 
         rfi.raised_by === currentUserId && 
-        ['outstanding', 'overdue'].includes(rfi.status)
+        ['outstanding', 'overdue', 'sent', 'received'].includes(rfi.status)
       ).length,
-      drafts: 0 // Draft functionality to be implemented
+      drafts: projectRFIs.filter(rfi => rfi.status === 'draft').length
     };
   }, [projectRFIs, profile?.user_id]);
 

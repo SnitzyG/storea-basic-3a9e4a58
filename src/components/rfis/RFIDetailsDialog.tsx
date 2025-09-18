@@ -35,7 +35,7 @@ const priorityColors = {
 
 export const RFIDetailsDialog = ({ open, onOpenChange, rfi }: RFIDetailsDialogProps) => {
   const [response, setResponse] = useState('');
-  const [status, setStatus] = useState<'outstanding' | 'overdue' | 'responded' | 'closed'>('outstanding');
+  const [status, setStatus] = useState<'outstanding' | 'overdue' | 'answered' | 'closed' | 'draft' | 'sent' | 'received' | 'in_review' | 'rejected'>('outstanding');
   const [activities, setActivities] = useState<RFIActivity[]>([]);
   const [loading, setLoading] = useState(false);
   const [loadingActivities, setLoadingActivities] = useState(false);
@@ -109,7 +109,7 @@ export const RFIDetailsDialog = ({ open, onOpenChange, rfi }: RFIDetailsDialogPr
     setLoading(true);
     const updates: Partial<RFI> = {
       response: response.trim(),
-      status: 'responded',
+      status: 'answered',
       responder_name: profile?.name,
       responder_position: profile?.role,
       response_date: new Date().toISOString(),
@@ -135,7 +135,7 @@ export const RFIDetailsDialog = ({ open, onOpenChange, rfi }: RFIDetailsDialogPr
   };
 
   // Enhanced permission checks
-  const canRespond = user && rfi?.assigned_to === user.id && rfi.status !== 'closed' && rfi.status !== 'responded';
+  const canRespond = user && rfi?.assigned_to === user.id && rfi.status !== 'closed' && rfi.status !== 'answered';
   
   // Only the original creator can close RFIs
   const canClose = user && user.id === rfi?.raised_by;

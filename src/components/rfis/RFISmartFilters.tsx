@@ -240,9 +240,14 @@ export const RFISmartFilters = ({
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="">All Statuses</SelectItem>
+                    <SelectItem value="draft">Draft</SelectItem>
+                    <SelectItem value="sent">Sent</SelectItem>
+                    <SelectItem value="received">Received</SelectItem>
                     <SelectItem value="outstanding">Outstanding</SelectItem>
                     <SelectItem value="overdue">Overdue</SelectItem>
-                    <SelectItem value="responded">Responded</SelectItem>
+                    <SelectItem value="in_review">In Review</SelectItem>
+                    <SelectItem value="answered">Answered</SelectItem>
+                    <SelectItem value="rejected">Rejected</SelectItem>
                     <SelectItem value="closed">Closed</SelectItem>
                   </SelectContent>
                 </Select>

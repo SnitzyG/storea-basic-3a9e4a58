@@ -126,7 +126,7 @@ export const SimplifiedRFIComposer: React.FC<SimplifiedRFIComposerProps> = ({
           response: formData.message,
           responder_name: profile?.name || '',
           response_date: new Date().toISOString(),
-          status: 'responded'
+          status: 'answered'
         });
       } else {
         // Create new RFI first

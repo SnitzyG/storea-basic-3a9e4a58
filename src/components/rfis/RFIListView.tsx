@@ -31,9 +31,14 @@ type SortField = 'subject' | 'submitted_by' | 'assigned_to' | 'created_at' | 'st
 type SortDirection = 'asc' | 'desc';
 
 const statusColors = {
+  draft: 'bg-slate-100 text-slate-700 border-slate-300',
+  sent: 'bg-blue-50 text-blue-700 border-blue-300',
+  received: 'bg-indigo-50 text-indigo-700 border-indigo-300',
   outstanding: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-  responded: 'bg-green-100 text-green-800 border-green-200', 
   overdue: 'bg-red-100 text-red-800 border-red-200',
+  in_review: 'bg-purple-50 text-purple-700 border-purple-300',
+  answered: 'bg-green-100 text-green-800 border-green-200', 
+  rejected: 'bg-red-50 text-red-600 border-red-200',
   closed: 'bg-gray-100 text-gray-800 border-gray-200'
 };
 

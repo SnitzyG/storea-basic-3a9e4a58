@@ -38,7 +38,7 @@ export const DashboardAnalytics = () => {
     rfi.status !== 'closed'
   ).length;
   const rfiResponseRate = totalRFIs > 0 ? 
-    ((rfis.filter(rfi => rfi.status === 'responded' || rfi.status === 'closed').length / totalRFIs) * 100) : 0;
+    ((rfis.filter(rfi => rfi.status === 'answered' || rfi.status === 'closed').length / totalRFIs) * 100) : 0;
 
   // Calculate tender metrics
   const totalTenders = tenders.length;
@@ -150,16 +150,16 @@ export const DashboardAnalytics = () => {
             </div>
             
             <div className="flex justify-between items-center">
-              <span className="text-sm">Responded</span>
+              <span className="text-sm">Answered</span>
               <div className="flex items-center gap-2">
                 <div className="w-32 bg-muted rounded-full h-2">
                   <div 
                     className="bg-green-500 h-2 rounded-full" 
-                    style={{ width: `${totalRFIs > 0 ? (rfis.filter(r => r.status === 'responded').length / totalRFIs) * 100 : 0}%` }}
+                    style={{ width: `${totalRFIs > 0 ? (rfis.filter(r => r.status === 'answered').length / totalRFIs) * 100 : 0}%` }}
                   />
                 </div>
                 <span className="text-sm font-medium w-8">
-                  {rfis.filter(r => r.status === 'responded').length}
+                  {rfis.filter(r => r.status === 'answered').length}
                 </span>
               </div>
             </div>

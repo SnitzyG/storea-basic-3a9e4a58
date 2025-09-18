@@ -34,7 +34,7 @@ const priorityColors = {
 
 export const UnifiedRFIDetailsDialog = ({ open, onOpenChange, rfi }: UnifiedRFIDetailsDialogProps) => {
   const [response, setResponse] = useState('');
-  const [status, setStatus] = useState<'outstanding' | 'overdue' | 'responded' | 'closed'>('outstanding');
+  const [status, setStatus] = useState<'outstanding' | 'overdue' | 'answered' | 'closed' | 'draft' | 'sent' | 'received' | 'in_review' | 'rejected'>('outstanding');
   const [activities, setActivities] = useState<RFIActivity[]>([]);
   const [loading, setLoading] = useState(false);
   const [loadingActivities, setLoadingActivities] = useState(false);
@@ -43,7 +43,7 @@ export const UnifiedRFIDetailsDialog = ({ open, onOpenChange, rfi }: UnifiedRFID
   const { user, profile } = useAuth();
 
   // Only contractors can respond to RFIs assigned to them
-  const canRespond = user && rfi?.assigned_to === user.id && rfi.status !== 'closed' && rfi.status !== 'responded';
+  const canRespond = user && rfi?.assigned_to === user.id && rfi.status !== 'closed' && rfi.status !== 'answered';
   const canChangeStatus = user && (user.id === rfi?.raised_by || user.id === rfi?.assigned_to || profile?.role === 'architect');
 
   const {
@@ -120,7 +120,7 @@ export const UnifiedRFIDetailsDialog = ({ open, onOpenChange, rfi }: UnifiedRFID
     setLoading(true);
     const updates: Partial<RFI> = {
       response: response.trim(),
-      status: 'responded',
+      status: 'answered',
       responder_name: profile?.name,
       responder_position: profile?.role,
       response_date: new Date().toISOString(),

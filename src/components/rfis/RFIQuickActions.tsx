@@ -61,7 +61,7 @@ export const RFIQuickActions = ({
 
   const handleMarkAnswered = () => {
     handleQuickAction("Mark as Answered", { 
-      status: 'responded',
+      status: 'answered',
       response_date: new Date().toISOString()
     });
   };
@@ -107,12 +107,12 @@ export const RFIQuickActions = ({
         <Button
           variant="ghost"
           size="sm"
-          onClick={rfi.status === 'responded' ? handleMarkUnanswered : handleMarkAnswered}
+          onClick={rfi.status === 'answered' ? handleMarkUnanswered : handleMarkAnswered}
           disabled={isLoading}
           className="h-7 w-7 p-0"
-          title={rfi.status === 'responded' ? 'Mark as Unanswered' : 'Mark as Answered'}
+          title={rfi.status === 'answered' ? 'Mark as Unanswered' : 'Mark as Answered'}
         >
-          {rfi.status === 'responded' ? (
+          {rfi.status === 'answered' ? (
             <XCircle className="h-3 w-3 text-muted-foreground" />
           ) : (
             <CheckCircle className="h-3 w-3 text-green-600" />
@@ -190,11 +190,11 @@ export const RFIQuickActions = ({
         <Button
           variant="outline"
           size="sm"
-          onClick={rfi.status === 'responded' ? handleMarkUnanswered : handleMarkAnswered}
+          onClick={rfi.status === 'answered' ? handleMarkUnanswered : handleMarkAnswered}
           disabled={isLoading}
           className="h-7 text-xs"
         >
-          {rfi.status === 'responded' ? (
+          {rfi.status === 'answered' ? (
             <>
               <XCircle className="h-3 w-3 mr-1" />
               Mark Unanswered

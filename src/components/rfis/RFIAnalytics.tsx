@@ -32,7 +32,7 @@ export const RFIAnalytics = ({ rfis }: RFIAnalyticsProps) => {
   const statusCounts = {
     outstanding: rfis.filter(rfi => rfi.status === 'outstanding').length,
     overdue: rfis.filter(rfi => rfi.status === 'overdue').length,
-    responded: rfis.filter(rfi => rfi.status === 'responded').length,
+    answered: rfis.filter(rfi => rfi.status === 'answered').length,
     closed: rfis.filter(rfi => rfi.status === 'closed').length,
   };
 
@@ -149,15 +149,15 @@ export const RFIAnalytics = ({ rfis }: RFIAnalyticsProps) => {
               </div>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-sm">Responded</span>
+              <span className="text-sm">Answered</span>
               <div className="flex items-center gap-2">
                 <div className="w-32 bg-muted rounded-full h-2">
                   <div 
                     className="bg-green-500 h-2 rounded-full" 
-                    style={{ width: `${totalRFIs > 0 ? (statusCounts.responded / totalRFIs) * 100 : 0}%` }}
+                    style={{ width: `${totalRFIs > 0 ? (statusCounts.answered / totalRFIs) * 100 : 0}%` }}
                   />
                 </div>
-                <span className="text-sm font-medium w-8">{statusCounts.responded}</span>
+                <span className="text-sm font-medium w-8">{statusCounts.answered}</span>
               </div>
             </div>
             <div className="flex justify-between items-center">

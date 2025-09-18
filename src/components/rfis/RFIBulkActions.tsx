@@ -84,7 +84,7 @@ export const RFIBulkActions = ({
 
   const handleBulkMarkAnswered = () => {
     handleBulkAction("Mark as Answered", { 
-      status: 'responded',
+      status: 'answered',
       response_date: new Date().toISOString()
     });
   };
