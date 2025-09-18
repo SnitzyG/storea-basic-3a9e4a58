@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import { useProjectJoinRequests } from '@/hooks/useProjectJoinRequests';
 import { formatDistanceToNow } from 'date-fns';
+import { supabase } from '@/integrations/supabase/client';
 
 interface ProjectJoinSectionProps {
   className?: string;
@@ -51,10 +52,29 @@ export const ProjectJoinSection: React.FC<ProjectJoinSectionProps> = ({ classNam
   useEffect(() => {
     if (profile) {
       setName(profile.name || '');
-      setCompany(profile.company_name || '');
+      // For company, we need to fetch the company name using company_id
+      if (profile.company_id) {
+        fetchCompanyName(profile.company_id);
+      }
       setRole(profile.role || '');
     }
   }, [profile]);
+
+  const fetchCompanyName = async (companyId: string) => {
+    try {
+      const { data: companyData, error } = await supabase
+        .from('companies')
+        .select('name')
+        .eq('id', companyId)
+        .single();
+      
+      if (companyData && !error) {
+        setCompany(companyData.name);
+      }
+    } catch (error) {
+      console.error('Error fetching company name:', error);
+    }
+  };
 
   const handleSubmitRequest = async () => {
     if (!projectCode.trim() || !name.trim() || !role) return;
@@ -155,10 +175,10 @@ export const ProjectJoinSection: React.FC<ProjectJoinSectionProps> = ({ classNam
                 placeholder="Your company name"
                 value={company}
                 onChange={(e) => setCompany(e.target.value)}
-                readOnly={!!profile?.company_name}
-                className={profile?.company_name ? "bg-muted" : ""}
+                readOnly={!!profile?.company_id}
+                className={profile?.company_id ? "bg-muted" : ""}
               />
-              {profile?.company_name && (
+              {profile?.company_id && (
                 <p className="text-xs text-muted-foreground">Auto-filled from your profile</p>
               )}
             </div>
