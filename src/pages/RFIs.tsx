@@ -21,6 +21,7 @@ import { RFIInbox, RFIInboxCategory } from '@/components/rfis/RFIInbox';
 import { RFIStatus, RFIStatusFilter } from '@/components/rfis/RFIStatus';
 import { RFISmartFilters, SmartFilters, SavedView, SortOption, SortDirection } from '@/components/rfis/RFISmartFilters';
 import { RFIResponseComposer } from '@/components/rfis/RFIResponseComposer';
+import { RFIResponsesViewer } from '@/components/rfis/RFIResponsesViewer';
 import { RFIBulkActions } from '@/components/rfis/RFIBulkActions';
 // Legacy components for fallback
 import { RFIDetailsDialog } from '@/components/rfis/RFIDetailsDialog';
@@ -55,6 +56,8 @@ const RFIs = () => {
   const [isDetailOverlayOpen, setIsDetailOverlayOpen] = useState(false);
   const [overlaySelectedRFI, setOverlaySelectedRFI] = useState<RFI | null>(null);
   const [selectedRFIIds, setSelectedRFIIds] = useState<string[]>([]);
+  const [responsesViewerOpen, setResponsesViewerOpen] = useState(false);
+  const [responsesViewerRFI, setResponsesViewerRFI] = useState<RFI | null>(null);
   const { selectedProject } = useProjectSelection();
   const { projects } = useProjects();
   const { profile } = useAuth();
@@ -325,9 +328,10 @@ const RFIs = () => {
     setSimplifiedComposerOpen(true);
   };
 
-  // Phase 3: Updated double-click handler - now opens response creation
+  // Phase 3: Updated double-click handler - now opens responses viewer
   const handleDoubleClickRFI = (rfi: RFI) => {
-    handleCreateResponse(rfi);
+    setResponsesViewerRFI(rfi);
+    setResponsesViewerOpen(true);
   };
 
   const handleCloseDetailOverlay = () => {
@@ -853,6 +857,15 @@ const RFIs = () => {
           }}
         />
       )}
+
+      <RFIResponsesViewer
+        rfi={responsesViewerRFI}
+        isOpen={responsesViewerOpen}
+        onClose={() => {
+          setResponsesViewerOpen(false);
+          setResponsesViewerRFI(null);
+        }}
+      />
     </div>;
 };
 
