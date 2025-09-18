@@ -34,54 +34,8 @@ interface HomeownerData {
   email: string;
   phone?: string;
 }
-const PROJECT_CATEGORIES = [{
-  value: 'new_construction',
-  label: 'New Construction',
-  icon: Home
-}, {
-  value: 'renovations_extensions',
-  label: 'Renovations/Extensions',
-  icon: Building2
-}, {
-  value: 'multi_unit_developments',
-  label: 'Multi-Unit Developments',
-  icon: Factory
-}];
 
-const PROJECT_TYPES = [{
-  value: 'detached_home',
-  label: 'Detached Home',
-  icon: Home
-}, {
-  value: 'duplex',
-  label: 'Duplex',
-  icon: Home
-}, {
-  value: 'townhouses',
-  label: 'Townhouses',
-  icon: Building2
-}, {
-  value: 'apartment',
-  label: 'Apartment',
-  icon: Building2
-}, {
-  value: 'villa',
-  label: 'Villa',
-  icon: Home
-}];
 
-const PROJECT_DESCRIPTIONS = [
-  "Single-family residential construction with modern design elements and sustainable materials.",
-  "Multi-story commercial building featuring contemporary architecture and energy-efficient systems.",
-  "Luxury residential development with premium finishes and smart home technology integration.",
-  "Renovation project to modernize existing structure while preserving historical character.",
-  "Mixed-use development combining residential units with retail and office spaces.",
-  "High-end custom home with unique architectural features and landscaped outdoor areas.",
-  "Affordable housing project focused on community development and sustainable living.",
-  "Industrial facility renovation to meet current safety and operational standards.",
-  "Residential extension project to expand living space and improve functionality.",
-  "Green building project incorporating renewable energy and eco-friendly materials."
-];
 const PRIORITY_LEVELS = [{
   value: 'low',
   label: 'Low Priority',
@@ -302,58 +256,36 @@ export const AdvancedProjectWizard = ({
                   <Input id="name" value={formData.name} onChange={e => handleInputChange('name', e.target.value)} placeholder="Enter project name" className="mt-1" />
                 </div>
 
-                <div>
-                  <Label>Project Category</Label>
-                  <div className="grid grid-cols-1 gap-3 mt-2">
-                    {PROJECT_CATEGORIES.map(category => {
-                    const Icon = category.icon;
-                    return <Card key={category.value} className={cn("cursor-pointer transition-all hover:shadow-md", formData.project_category === category.value ? "border-primary bg-primary/5" : "")} onClick={() => handleInputChange('project_category', category.value)}>
-                          <CardContent className="p-4 flex items-center space-x-3">
-                            <Icon className="h-5 w-5 text-primary" />
-                            <span className="text-sm font-medium">{category.label}</span>
-                          </CardContent>
-                        </Card>;
-                  })}
-                  </div>
-                </div>
 
                 <div>
-                  <Label htmlFor="description">Project Description</Label>
-                  <Select value={formData.description} onValueChange={(value) => handleInputChange('description', value)}>
-                    <SelectTrigger className="mt-1">
-                      <SelectValue placeholder="Select a project description or type custom..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {PROJECT_DESCRIPTIONS.map((desc, index) => (
-                        <SelectItem key={index} value={desc}>
-                          {desc.substring(0, 60)}...
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <Label htmlFor="description">Description</Label>
                   <Textarea 
                     id="description" 
                     value={formData.description} 
                     onChange={e => handleInputChange('description', e.target.value)} 
-                    placeholder="Or type your custom project description..." 
+                    placeholder="Enter project description..." 
                     rows={3} 
-                    className="mt-2" 
+                    className="mt-1" 
                   />
                 </div>
 
                 <div>
-                  <Label>Project Type</Label>
-                  <div className="grid grid-cols-2 gap-3 mt-2">
-                    {PROJECT_TYPES.map(type => {
-                    const Icon = type.icon;
-                    return <Card key={type.value} className={cn("cursor-pointer transition-all hover:shadow-md", formData.project_type === type.value ? "border-primary bg-primary/5" : "")} onClick={() => handleInputChange('project_type', type.value)}>
-                          <CardContent className="p-4 flex items-center space-x-3">
-                            <Icon className="h-5 w-5 text-primary" />
-                            <span className="text-sm font-medium">{type.label}</span>
-                          </CardContent>
-                        </Card>;
-                  })}
-                  </div>
+                  <Label htmlFor="project_type">Project Type</Label>
+                  <Select value={formData.project_type} onValueChange={(value) => handleInputChange('project_type', value)}>
+                    <SelectTrigger className="mt-1">
+                      <SelectValue placeholder="Select project type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="detached_home">Detached Home</SelectItem>
+                      <SelectItem value="duplex">Duplex</SelectItem>
+                      <SelectItem value="townhouse">Townhouse</SelectItem>
+                      <SelectItem value="apartment">Apartment</SelectItem>
+                      <SelectItem value="villa">Villa</SelectItem>
+                      <SelectItem value="renovation">Renovation</SelectItem>
+                      <SelectItem value="extension">Extension</SelectItem>
+                      <SelectItem value="commercial">Commercial</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 
