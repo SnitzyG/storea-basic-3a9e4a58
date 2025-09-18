@@ -23,19 +23,37 @@ export const ProjectSelectionProvider = ({ children }: ProjectSelectionProviderP
   // Load only projects where the user is an actual member (project_users)
   useEffect(() => {
     let mounted = true;
-    (async () => {
-      const { data: userData } = await supabase.auth.getUser();
-      const userId = userData.user?.id;
-      if (!userId) {
+    const loadUserProjects = async () => {
+      try {
+        const { data: userData } = await supabase.auth.getUser();
+        const userId = userData.user?.id;
+        if (!userId) {
+          if (mounted) setMemberProjectIds([]);
+          return;
+        }
+        
+        // Get projects where user is a member OR creator
+        const { data, error } = await supabase
+          .from('project_users')
+          .select('project_id')
+          .eq('user_id', userId);
+          
+        if (error) {
+          console.error('Error loading user projects:', error);
+          if (mounted) setMemberProjectIds([]);
+          return;
+        }
+        
+        if (mounted) {
+          setMemberProjectIds((data || []).map((d) => d.project_id));
+        }
+      } catch (error) {
+        console.error('Error in loadUserProjects:', error);
         if (mounted) setMemberProjectIds([]);
-        return;
       }
-      const { data } = await supabase
-        .from('project_users')
-        .select('project_id')
-        .eq('user_id', userId);
-      if (mounted) setMemberProjectIds((data || []).map((d) => d.project_id));
-    })();
+    };
+    
+    loadUserProjects();
     return () => {
       mounted = false;
     };
@@ -44,7 +62,10 @@ export const ProjectSelectionProvider = ({ children }: ProjectSelectionProviderP
   // Filter available projects to member-only to avoid RLS dead views
   const availableProjects = useMemo(() => {
     if (memberProjectIds.length === 0) return [];
-    return projects.filter((p) => memberProjectIds.includes(p.id));
+    // Only show projects the user is explicitly a member of
+    const userProjects = projects.filter((p) => memberProjectIds.includes(p.id));
+    // Sort by name for consistent UI experience
+    return userProjects.sort((a, b) => a.name.localeCompare(b.name));
   }, [projects, memberProjectIds]);
 
   // Auto-select first available project if none selected

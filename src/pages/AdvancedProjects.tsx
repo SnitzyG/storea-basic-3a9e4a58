@@ -27,7 +27,9 @@ const AdvancedProjects = () => {
   const [selectedProject, setSelectedProject] = useState<AdvancedProject | null>(null);
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
   const [projectToView, setProjectToView] = useState<AdvancedProject | null>(null);
+  // CRITICAL: Only architects can create projects
   const isArchitect = profile?.role === 'architect';
+  const canCreateProjects = isArchitect;
   const statusColors = {
     active: 'bg-green-100 text-green-800',
     on_hold: 'bg-yellow-100 text-yellow-800',
@@ -80,10 +82,12 @@ const AdvancedProjects = () => {
             Advanced construction project management and collaboration
           </p>
         </div>
-        {isArchitect && <Button onClick={() => setWizardOpen(true)}>
+        {canCreateProjects && (
+          <Button onClick={() => setWizardOpen(true)} className="bg-primary hover:bg-primary/90">
             <Plus className="h-4 w-4 mr-2" />
             New Project
-          </Button>}
+          </Button>
+        )}
       </div>
 
       {/* Main Content Tabs */}
@@ -107,10 +111,10 @@ const AdvancedProjects = () => {
                 <BarChart3 className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                 <h3 className="text-lg font-medium mb-2">No projects found</h3>
                 <p className="text-muted-foreground mb-4">
-                  {isArchitect ? "Create your first project to get started." : "You haven't been assigned to any projects yet."}
+                  {canCreateProjects ? "Create your first project to get started." : "You haven't been assigned to any projects yet. Contact your architect to be added to a project."}
                 </p>
-                {isArchitect && (
-                  <Button onClick={() => setWizardOpen(true)}>
+                {canCreateProjects && (
+                  <Button onClick={() => setWizardOpen(true)} className="bg-primary hover:bg-primary/90">
                     <Plus className="h-4 w-4 mr-2" />
                     Create Your First Project
                   </Button>
@@ -201,11 +205,12 @@ const AdvancedProjects = () => {
                             >
                               <Eye className="h-3 w-3" />
                             </Button>
-                            {isArchitect && (
+                            {canCreateProjects && (
                               <Button 
                                 variant="outline" 
                                 size="sm" 
                                 onClick={() => handleProjectAction('archive', project)}
+                                title="Archive Project"
                               >
                                 <Archive className="h-3 w-3" />
                               </Button>
@@ -226,11 +231,17 @@ const AdvancedProjects = () => {
         </TabsContent>
       </Tabs>
 
-      {/* Project Wizard */}
-      <AdvancedProjectWizard open={wizardOpen} onOpenChange={open => {
-      setWizardOpen(open);
-      if (!open) setSelectedProject(null);
-    }} projectToEdit={selectedProject} />
+      {/* Project Wizard - Only accessible to architects */}
+      {canCreateProjects && (
+        <AdvancedProjectWizard 
+          open={wizardOpen} 
+          onOpenChange={(open) => {
+            setWizardOpen(open);
+            if (!open) setSelectedProject(null);
+          }} 
+          projectToEdit={selectedProject} 
+        />
+      )}
 
       {/* Project Details Dialog */}
       <ProjectDetailsDialog project={projectToView} open={detailsDialogOpen} onOpenChange={open => {

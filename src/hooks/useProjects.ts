@@ -127,6 +127,22 @@ export const useProjects = () => {
     }>;
   }) => {
     try {
+      // CRITICAL: Only architects can create projects
+      const currentUser = (await supabase.auth.getUser()).data.user;
+      if (!currentUser) {
+        throw new Error('User not authenticated');
+      }
+      
+      const { data: userProfile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('user_id', currentUser.id)
+        .single();
+        
+      if (userProfile?.role !== 'architect') {
+        throw new Error('Only architects can create projects');
+      }
+      
       const { collaborators, budget, ...projectCreateData } = projectData;
       
       // Convert budget range to number for database storage
@@ -148,12 +164,12 @@ export const useProjects = () => {
         }
       }
       
-      const { data, error } = await supabase
+       const { data, error } = await supabase
         .from('projects')
         .insert([{
           ...projectCreateData,
           budget: budgetNumber,
-          created_by: (await supabase.auth.getUser()).data.user?.id,
+          created_by: currentUser.id,
           company_id: null // Allow projects without company association
         }])
         .select()
@@ -161,34 +177,25 @@ export const useProjects = () => {
 
       if (error) throw error;
 
-      const currentUser = (await supabase.auth.getUser()).data.user;
-
-      // Get the current user's profile to use their actual role
-      const { data: userProfile } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('user_id', currentUser?.id)
-        .single();
-
       // Add the creator as a project user with their actual role
       await supabase
         .from('project_users')
         .insert([{
           project_id: data.id,
-          user_id: currentUser?.id,
+          user_id: currentUser.id,
           role: userProfile?.role || 'contractor', // Default to contractor if no role found
-          invited_by: currentUser?.id
+          invited_by: currentUser.id
         }]);
 
       // Handle homeowner auto-creation and linking
       if (projectData.homeowner_email) {
-        await createOrLinkHomeowner(data.id, projectData.homeowner_email, projectData.homeowner_name, projectData.homeowner_phone, currentUser?.id);
+        await createOrLinkHomeowner(data.id, projectData.homeowner_email, projectData.homeowner_name, projectData.homeowner_phone, currentUser.id);
       }
 
       // Handle collaborators - create profiles and link to project
       if (collaborators && collaborators.length > 0) {
         for (const collaborator of collaborators) {
-          await createOrLinkCollaborator(data.id, collaborator, currentUser?.id);
+          await createOrLinkCollaborator(data.id, collaborator, currentUser.id);
         }
       }
 
