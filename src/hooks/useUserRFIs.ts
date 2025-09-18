@@ -9,16 +9,34 @@ export const useUserRFIs = () => {
   const { user } = useAuth();
 
   const fetchAssignedRFIs = async () => {
-    if (!user) return;
+    if (!user) {
+      setAssignedRFIs([]);
+      setLoading(false);
+      return;
+    }
     
     try {
       setLoading(true);
       
-      // Get RFIs assigned to the current user
+      // Get RFIs where user is assigned to or created by them, ensuring they're in projects the user is a member of
+      const { data: userProjects } = await supabase
+        .from('project_users')
+        .select('project_id')
+        .eq('user_id', user.id);
+
+      if (!userProjects || userProjects.length === 0) {
+        setAssignedRFIs([]);
+        return;
+      }
+
+      const projectIds = userProjects.map(p => p.project_id);
+      
+      // Get RFIs assigned to the current user or created by them within their projects
       const { data: rfisData, error } = await supabase
         .from('rfis')
         .select('*')
-        .eq('assigned_to', user.id)
+        .in('project_id', projectIds)
+        .or(`assigned_to.eq.${user.id},raised_by.eq.${user.id}`)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -105,7 +123,7 @@ export const useUserRFIs = () => {
           event: '*',
           schema: 'public',
           table: 'rfis',
-          filter: `assigned_to=eq.${user.id}`,
+          filter: `or(assigned_to.eq.${user.id},raised_by.eq.${user.id})`,
         },
         () => {
           fetchAssignedRFIs();

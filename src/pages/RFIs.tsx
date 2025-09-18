@@ -69,20 +69,11 @@ const RFIs = () => {
   const [enhancedFormOpen, setEnhancedFormOpen] = useState(false);
   const [showAnalytics, setShowAnalytics] = useState(false);
   const { selectedProject } = useProjectSelection();
-  const {
-    projects
-  } = useProjects();
-  const {
-    profile
-  } = useAuth();
-  const {
-    rfis,
-    loading,
-    updateRFI
-  } = useRFIs();
-  const {
-    teamMembers
-  } = useProjectTeam(selectedProject?.id || '');
+  const { projects } = useProjects();
+  const { profile } = useAuth();
+  const { rfis, loading, updateRFI } = useRFIs();
+  const { teamMembers } = useProjectTeam(selectedProject?.id || '');
+
   const location = useLocation();
   const showDebug = process.env.NODE_ENV === 'development' && new URLSearchParams(location.search).get('debug') === 'rfi';
 
@@ -100,13 +91,19 @@ const RFIs = () => {
     }
   }, [location.state]);
 
-  // All RFIs for the current project - ensure proper project scoping
-  const projectRFIs = rfis.filter(rfi => rfi.project_id === selectedProject?.id);
+  // All RFIs for the current project - ensure proper project scoping and user permissions
+  const projectRFIs = useMemo(() => {
+    if (!profile?.user_id || !selectedProject?.id) return [];
+    return rfis.filter(rfi => 
+      rfi.project_id === selectedProject.id && 
+      (rfi.raised_by === profile.user_id || rfi.assigned_to === profile.user_id)
+    );
+  }, [rfis, selectedProject?.id, profile?.user_id]);
 
   // Filter RFIs based on selected inbox category
   const filteredRFIs = useMemo(() => {
     const currentUserId = profile?.user_id;
-    if (!currentUserId) return projectRFIs;
+    if (!currentUserId) return [];
 
     switch (selectedInboxCategory) {
       case 'sent':

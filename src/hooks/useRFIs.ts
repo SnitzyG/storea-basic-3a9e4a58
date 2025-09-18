@@ -68,17 +68,34 @@ export const useRFIs = () => {
   const { selectedProject } = useProjectSelection();
 
   const fetchRFIs = async () => {
-    if (!selectedProject?.id) {
+    if (!selectedProject?.id || !user) {
       setRFIs([]);
       setLoading(false);
       return;
     }
     
     try {
+      // Verify user is member of the project
+      const { data: membership } = await supabase
+        .from('project_users')
+        .select('user_id')
+        .eq('project_id', selectedProject.id)
+        .eq('user_id', user.id)
+        .single();
+
+      if (!membership) {
+        // User is not a member of this project
+        setRFIs([]);
+        setLoading(false);
+        return;
+      }
+
+      // Fetch RFIs where user is either creator or assigned to
       const { data: rfisData, error } = await supabase
         .from('rfis')
         .select('*')
         .eq('project_id', selectedProject.id)
+        .or(`raised_by.eq.${user.id},assigned_to.eq.${user.id}`)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -100,7 +117,7 @@ export const useRFIs = () => {
         ...rfi,
         raised_by_profile: profileMap.get(rfi.raised_by),
         assigned_to_profile: rfi.assigned_to ? profileMap.get(rfi.assigned_to) : undefined,
-      })).filter(rfi => rfi.project_id === selectedProject.id); // Additional safety check for project isolation
+      }));
 
       setRFIs(enrichedRFIs as RFI[]);
     } catch (error) {
@@ -356,11 +373,11 @@ export const useRFIs = () => {
 
   // Set up comprehensive real-time subscriptions for instant updates
   useEffect(() => {
-    if (!selectedProject?.id) return;
+    if (!selectedProject?.id || !user) return;
 
     const channels = [];
 
-    // Subscribe to RFI table changes
+    // Subscribe to RFI table changes for RFIs the user is involved in
     const rfiChannel = supabase
       .channel('rfis-changes')
       .on(
@@ -373,7 +390,13 @@ export const useRFIs = () => {
         },
         (payload) => {
           console.log('RFI change detected:', payload);
-          fetchRFIs();
+          // Only refetch if the RFI involves the current user
+          const rfi = payload.new || payload.old;
+          if (rfi && typeof rfi === 'object' && 'raised_by' in rfi && 'assigned_to' in rfi) {
+            if ((rfi as any).raised_by === user.id || (rfi as any).assigned_to === user.id) {
+              fetchRFIs();
+            }
+          }
         }
       )
       .subscribe();
@@ -450,7 +473,7 @@ export const useRFIs = () => {
     return () => {
       channels.forEach(channel => supabase.removeChannel(channel));
     };
-  }, [selectedProject?.id, rfis.length]); // Include rfis.length to ensure we re-subscribe when RFIs change
+  }, [selectedProject?.id, user?.id]); // Include user.id to ensure we re-subscribe when user changes
 
   return {
     rfis,
