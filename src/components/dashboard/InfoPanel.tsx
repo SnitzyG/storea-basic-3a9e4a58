@@ -44,13 +44,13 @@ export const InfoPanel = () => {
       };
 
       const mockForecast = [
-        { day: 'Today', temperature: 22, condition: 'Partly Cloudy', rainfall: 0 },
-        { day: 'Tomorrow', temperature: 24, condition: 'Sunny', rainfall: 0 },
-        { day: 'Wed', temperature: 20, condition: 'Rainy', rainfall: 8 },
-        { day: 'Thu', temperature: 23, condition: 'Cloudy', rainfall: 2 },
-        { day: 'Fri', temperature: 26, condition: 'Sunny', rainfall: 0 },
-        { day: 'Sat', temperature: 25, condition: 'Partly Cloudy', rainfall: 1 },
-        { day: 'Sun', temperature: 21, condition: 'Overcast', rainfall: 3 }
+        { day: format(new Date(), 'MMM d'), temperature: 22, condition: 'Partly Cloudy', rainfall: 0 },
+        { day: format(new Date(Date.now() + 86400000), 'MMM d'), temperature: 24, condition: 'Sunny', rainfall: 0 },
+        { day: format(new Date(Date.now() + 2 * 86400000), 'MMM d'), temperature: 20, condition: 'Rainy', rainfall: 8 },
+        { day: format(new Date(Date.now() + 3 * 86400000), 'MMM d'), temperature: 23, condition: 'Cloudy', rainfall: 2 },
+        { day: format(new Date(Date.now() + 4 * 86400000), 'MMM d'), temperature: 26, condition: 'Sunny', rainfall: 0 },
+        { day: format(new Date(Date.now() + 5 * 86400000), 'MMM d'), temperature: 25, condition: 'Partly Cloudy', rainfall: 1 },
+        { day: format(new Date(Date.now() + 6 * 86400000), 'MMM d'), temperature: 21, condition: 'Overcast', rainfall: 3 }
       ];
 
       return { ...locations[location as keyof typeof locations] || locations['Melbourne CBD'], forecast: mockForecast };
@@ -158,12 +158,12 @@ export const InfoPanel = () => {
             <div className="space-y-1">
               {weather.forecast.slice(0, 5).map((day, index) => (
                 <div key={index} className="flex items-center justify-between p-2 rounded-md bg-muted/20 hover:bg-muted/30 transition-colors">
-                  <div className="flex items-center gap-2">
-                    <span className="font-medium text-sm w-10 text-left">{day.day}</span>
-                    <span className="text-xs text-muted-foreground">{day.condition}</span>
+                  <div className="flex items-center gap-3 flex-1">
+                    <span className="font-medium text-sm w-12 text-left">{day.day}</span>
+                    <span className="text-xs text-muted-foreground text-center flex-1">{day.condition}</span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className="font-semibold text-sm">{day.temperature}°C</span>
+                  <div className="flex items-center justify-end gap-2 min-w-[80px]">
+                    <span className="font-semibold text-sm w-10 text-right">{day.temperature}°C</span>
                     {day.rainfall > 0 && (
                       <div className="flex items-center gap-1 text-blue-600 dark:text-blue-400">
                         <CloudRain className="h-3 w-3" />
