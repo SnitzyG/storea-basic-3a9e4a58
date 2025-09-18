@@ -31,7 +31,7 @@ export const RFIResponsesViewer: React.FC<RFIResponsesViewerProps> = ({
   const [responses, setResponses] = useState<RFIResponse[]>([]);
   const [loading, setLoading] = useState(false);
   const [minimizedItems, setMinimizedItems] = useState<Set<string>>(new Set());
-  const [isMinimized, setIsMinimized] = useState(false);
+  const [isMinimized, setIsMinimized] = useState(true);
 
   useEffect(() => {
     if (rfi && isOpen) {
