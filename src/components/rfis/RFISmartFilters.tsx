@@ -75,11 +75,11 @@ export const RFISmartFilters = ({
   };
 
   const hasActiveFilters = filters.searchQuery || 
-    filters.disciplineFilter || 
-    filters.subcontractorFilter || 
-    filters.priorityFilter || 
-    filters.statusFilter || 
-    filters.tagFilter;
+    (filters.disciplineFilter && filters.disciplineFilter !== 'all') || 
+    (filters.subcontractorFilter && filters.subcontractorFilter !== 'all') || 
+    (filters.priorityFilter && filters.priorityFilter !== 'all') || 
+    (filters.statusFilter && filters.statusFilter !== 'all') || 
+    (filters.tagFilter && filters.tagFilter !== 'all');
 
   const handleSaveCurrentView = () => {
     if (newViewName.trim()) {
@@ -198,7 +198,7 @@ export const RFISmartFilters = ({
                     <SelectValue placeholder="All Disciplines" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All Disciplines</SelectItem>
+                    <SelectItem value="all">All Disciplines</SelectItem>
                     <SelectItem value="Architectural">Architectural</SelectItem>
                     <SelectItem value="Structural">Structural</SelectItem>
                     <SelectItem value="Electrical">Electrical</SelectItem>
@@ -222,7 +222,7 @@ export const RFISmartFilters = ({
                     <SelectValue placeholder="All Subcontractors" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All Subcontractors</SelectItem>
+                    <SelectItem value="all">All Subcontractors</SelectItem>
                     {uniqueSubcontractors.map(contractor => (
                       <SelectItem key={contractor} value={contractor!}>
                         {contractor}
@@ -240,7 +240,7 @@ export const RFISmartFilters = ({
                     <SelectValue placeholder="All Priorities" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All Priorities</SelectItem>
+                    <SelectItem value="all">All Priorities</SelectItem>
                     <SelectItem value="critical">Critical</SelectItem>
                     <SelectItem value="high">High</SelectItem>
                     <SelectItem value="medium">Medium</SelectItem>
@@ -257,7 +257,7 @@ export const RFISmartFilters = ({
                     <SelectValue placeholder="All Statuses" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All Statuses</SelectItem>
+                    <SelectItem value="all">All Statuses</SelectItem>
                     <SelectItem value="draft">Draft</SelectItem>
                     <SelectItem value="sent">Sent</SelectItem>
                     <SelectItem value="received">Received</SelectItem>
@@ -279,7 +279,7 @@ export const RFISmartFilters = ({
                     <SelectValue placeholder="All Tags" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All Tags</SelectItem>
+                    <SelectItem value="all">All Tags</SelectItem>
                     <SelectItem value="#urgent">#urgent</SelectItem>
                     <SelectItem value="#design_issue">#design_issue</SelectItem>
                     <SelectItem value="#coordination">#coordination</SelectItem>

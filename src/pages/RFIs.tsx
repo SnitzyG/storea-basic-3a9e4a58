@@ -159,12 +159,12 @@ const RFIs = () => {
     }
 
     // Apply discipline filter
-    if (smartFilters.disciplineFilter) {
+    if (smartFilters.disciplineFilter && smartFilters.disciplineFilter !== 'all') {
       result = result.filter(rfi => rfi.category === smartFilters.disciplineFilter);
     }
 
     // Apply subcontractor filter
-    if (smartFilters.subcontractorFilter) {
+    if (smartFilters.subcontractorFilter && smartFilters.subcontractorFilter !== 'all') {
       result = result.filter(rfi => 
         rfi.raised_by_profile?.name === smartFilters.subcontractorFilter ||
         rfi.assigned_to_profile?.name === smartFilters.subcontractorFilter
@@ -172,17 +172,17 @@ const RFIs = () => {
     }
 
     // Apply priority filter
-    if (smartFilters.priorityFilter) {
+    if (smartFilters.priorityFilter && smartFilters.priorityFilter !== 'all') {
       result = result.filter(rfi => rfi.priority === smartFilters.priorityFilter);
     }
 
     // Apply status filter
-    if (smartFilters.statusFilter) {
+    if (smartFilters.statusFilter && smartFilters.statusFilter !== 'all') {
       result = result.filter(rfi => rfi.status === smartFilters.statusFilter);
     }
 
     // Apply tag filter
-    if (smartFilters.tagFilter) {
+    if (smartFilters.tagFilter && smartFilters.tagFilter !== 'all') {
       result = result.filter(rfi => 
         (rfi.question + ' ' + (rfi.response || '')).includes(smartFilters.tagFilter)
       );
