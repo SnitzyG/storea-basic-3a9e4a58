@@ -111,16 +111,6 @@ const RFIs = () => {
           rfi.assigned_to === currentUserId && 
           rfi.status !== 'draft' // Exclude drafts from received
         );
-      case 'unresponded':
-        return projectRFIs.filter(rfi => 
-          rfi.raised_by === currentUserId && 
-          ['open', 'submitted'].includes(rfi.status)
-        );
-      case 'responded':
-        return projectRFIs.filter(rfi => 
-          rfi.assigned_to === currentUserId && 
-          ['answered', 'closed'].includes(rfi.status)
-        );
       case 'drafts':
         return projectRFIs.filter(rfi => rfi.status === 'draft');
       case 'all':
@@ -300,20 +290,12 @@ const RFIs = () => {
   // Calculate counts for each category
   const inboxCounts = useMemo(() => {
     const currentUserId = profile?.user_id;
-    if (!currentUserId) return { all: 0, sent: 0, received: 0, unresponded: 0, responded: 0, drafts: 0 };
+    if (!currentUserId) return { all: 0, sent: 0, received: 0, drafts: 0 };
 
     return {
       all: projectRFIs.filter(rfi => rfi.status !== 'draft').length, // Exclude drafts from all count
       sent: projectRFIs.filter(rfi => rfi.raised_by === currentUserId && rfi.status !== 'draft').length,
       received: projectRFIs.filter(rfi => rfi.assigned_to === currentUserId && rfi.status !== 'draft').length,
-      unresponded: projectRFIs.filter(rfi => 
-        rfi.raised_by === currentUserId && 
-        ['open', 'submitted'].includes(rfi.status)
-      ).length,
-      responded: projectRFIs.filter(rfi => 
-        rfi.assigned_to === currentUserId && 
-        ['answered', 'closed'].includes(rfi.status)
-      ).length,
       drafts: projectRFIs.filter(rfi => rfi.status === 'draft').length
     };
   }, [projectRFIs, profile?.user_id]);

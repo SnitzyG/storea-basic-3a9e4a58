@@ -1,7 +1,7 @@
 import React from 'react';
 import { Inbox, Send, FileEdit, Archive, MessageSquare, Clock, CheckCircle, XCircle, Trash, HelpCircle, Info, AlertTriangle, AlertCircle, Zap } from 'lucide-react';
 
-export type RFIInboxCategory = 'all' | 'sent' | 'received' | 'unresponded' | 'responded' | 'drafts';
+export type RFIInboxCategory = 'all' | 'sent' | 'received' | 'drafts';
 export type RFIStatusFilter = 'all' | 'outstanding' | 'answered' | 'rejected' | 'closed' | 'void' | 'draft' | 'submitted' | 'open';
 export type RFITypeFilter = 'all' | 'General' | 'Request for Information' | 'Advice';
 export type RFIPriorityFilter = 'all' | 'low' | 'medium' | 'high' | 'critical';
@@ -19,8 +19,6 @@ interface RFIInboxProps {
     all: number;
     sent: number;
     received: number;
-    unresponded: number;
-    responded: number;
     drafts: number;
   };
   statusCounts?: {
@@ -115,20 +113,8 @@ export const RFIInbox = ({
       description: 'RFIs created and submitted by you'
     },
     {
-      id: 'unresponded' as const,
-      label: 'Unresponded',
-      icon: MessageSquare,
-      description: 'RFIs sent to others but not yet answered'
-    },
-    {
-      id: 'responded' as const,
-      label: 'Responded',
-      icon: MessageSquare,
-      description: 'RFIs that have received responses'
-    },
-    {
       id: 'drafts' as const,
-      label: 'Draft RFIs',
+      label: 'Draft',
       icon: FileEdit,
       description: 'RFIs created but not yet sent'
     }
@@ -148,18 +134,13 @@ export const RFIInbox = ({
       description: 'RFIs that have been answered'
     },
     {
-      id: 'rejected',
-      label: 'Rejected',
-      icon: XCircle,
-      description: 'RFIs that have been rejected'
-    },
-    {
       id: 'closed',
       label: 'Closed',
       icon: Archive,
       description: 'RFIs that have been closed'
     }
   ];
+
 
   const rfiTypes = [
     {
