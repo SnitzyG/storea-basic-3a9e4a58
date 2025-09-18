@@ -24,7 +24,7 @@ interface SimplifiedRFIComposerProps {
   replyToRFI?: any; // For reply functionality
 }
 
-type RFIType = 'General' | 'Request for Information' | 'Advice';
+type RFIType = 'General Correspondence' | 'Request for Information' | 'General Advice';
 
 export const SimplifiedRFIComposer: React.FC<SimplifiedRFIComposerProps> = ({
   open,
@@ -41,7 +41,7 @@ export const SimplifiedRFIComposer: React.FC<SimplifiedRFIComposerProps> = ({
   const isReply = !!replyToRFI;
 
   const [formData, setFormData] = useState({
-    rfi_type: 'General' as RFIType,
+    rfi_type: 'General Correspondence' as RFIType,
     priority: 'medium' as 'low' | 'medium' | 'high',
     recipient_name: '',
     recipient_email: '',
@@ -64,7 +64,7 @@ export const SimplifiedRFIComposer: React.FC<SimplifiedRFIComposerProps> = ({
         // Pre-fill for reply
         setFormData(prev => ({
           ...prev,
-          rfi_type: 'General', // Reply defaults to General
+          rfi_type: 'General Correspondence', // Reply defaults to General Correspondence
           recipient_name: replyToRFI.raised_by_profile?.name || '',
           subject: `Re: ${replyToRFI.subject || 'RFI Response'}`,
           message: '',
@@ -73,7 +73,7 @@ export const SimplifiedRFIComposer: React.FC<SimplifiedRFIComposerProps> = ({
       } else {
         // Reset for new RFI
         setFormData({
-          rfi_type: 'General',
+          rfi_type: 'General Correspondence',
           priority: 'medium',
           recipient_name: '',
           recipient_email: '',
@@ -194,7 +194,7 @@ export const SimplifiedRFIComposer: React.FC<SimplifiedRFIComposerProps> = ({
 
       // Reset form
       setFormData({
-        rfi_type: 'General',
+        rfi_type: 'General Correspondence',
         priority: 'medium',
         recipient_name: '',
         recipient_email: '',
@@ -239,9 +239,9 @@ export const SimplifiedRFIComposer: React.FC<SimplifiedRFIComposerProps> = ({
                     <SelectValue placeholder="Select RFI type" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="General">General</SelectItem>
+                    <SelectItem value="General Correspondence">General Correspondence</SelectItem>
                     <SelectItem value="Request for Information">Request for Information</SelectItem>
-                    <SelectItem value="Advice">Advice</SelectItem>
+                    <SelectItem value="General Advice">General Advice</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

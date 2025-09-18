@@ -3,7 +3,7 @@ import { Inbox, Send, FileEdit, Archive, MessageSquare, Clock, CheckCircle, XCir
 
 export type RFIInboxCategory = 'all' | 'sent' | 'received' | 'drafts';
 export type RFIStatusFilter = 'all' | 'outstanding' | 'answered' | 'rejected' | 'closed' | 'void' | 'draft' | 'submitted' | 'open';
-export type RFITypeFilter = 'all' | 'General' | 'Request for Information' | 'Advice';
+export type RFITypeFilter = 'all' | 'General Correspondence' | 'Request for Information' | 'General Advice';
 export type RFIPriorityFilter = 'all' | 'low' | 'medium' | 'high' | 'critical';
 
 interface RFIInboxProps {
@@ -34,9 +34,9 @@ interface RFIInboxProps {
   };
   typeCounts?: {
     all: number;
-    General: number;
+    'General Correspondence': number;
     'Request for Information': number;
-    Advice: number;
+    'General Advice': number;
   };
   priorityCounts?: {
     all: number;
@@ -144,8 +144,8 @@ export const RFIInbox = ({
 
   const rfiTypes = [
     {
-      id: 'General' as const,
-      label: 'General',
+      id: 'General Correspondence' as const,
+      label: 'General Correspondence',
       icon: MessageSquare,
       description: 'General inquiries and requests'
     },
@@ -156,8 +156,8 @@ export const RFIInbox = ({
       description: 'Specific information requests'
     },
     {
-      id: 'Advice' as const,
-      label: 'Advice',
+      id: 'General Advice' as const,
+      label: 'General Advice',
       icon: Info,
       description: 'Requests for advice or guidance'
     }

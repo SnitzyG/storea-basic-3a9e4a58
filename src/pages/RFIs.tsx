@@ -331,9 +331,9 @@ const RFIs = () => {
   const typeCounts = useMemo(() => {
     return {
       all: projectRFIs.length,
-      General: projectRFIs.filter(rfi => rfi.category === 'General').length,
+      'General Correspondence': projectRFIs.filter(rfi => rfi.category === 'General Correspondence').length,
       'Request for Information': projectRFIs.filter(rfi => rfi.category === 'Request for Information').length,
-      Advice: projectRFIs.filter(rfi => rfi.category === 'Advice').length
+      'General Advice': projectRFIs.filter(rfi => rfi.category === 'General Advice').length
     };
   }, [projectRFIs]);
 

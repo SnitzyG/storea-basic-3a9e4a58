@@ -31,7 +31,7 @@ interface EmailStyleRFIInboxProps {
   selectedRFI?: RFI | null;
 }
 
-type RFIType = 'General' | 'Request for Information' | 'Advice';
+type RFIType = 'General Correspondence' | 'Request for Information' | 'General Advice';
 
 const rfiTypeConfig = {
   'General': { icon: MessageSquare, color: 'text-blue-600' },
@@ -106,14 +106,14 @@ export const EmailStyleRFIInbox: React.FC<EmailStyleRFIInboxProps> = ({
 
   // Map existing categories to new RFI types
   const mapCategoryToType = (category?: string): RFIType => {
-    if (!category) return 'General';
+    if (!category) return 'General Correspondence';
     if (category.toLowerCase().includes('information') || category.toLowerCase().includes('request')) {
       return 'Request for Information';
     }
     if (category.toLowerCase().includes('advice')) {
-      return 'Advice';
+      return 'General Advice';
     }
-    return 'General';
+    return 'General Correspondence';
   };
 
   const getResponseRequired = (rfi: RFI): boolean => {
@@ -161,9 +161,9 @@ export const EmailStyleRFIInbox: React.FC<EmailStyleRFIInboxProps> = ({
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Types</SelectItem>
-                  <SelectItem value="General">General</SelectItem>
+                  <SelectItem value="General Correspondence">General Correspondence</SelectItem>
                   <SelectItem value="Request for Information">Request for Information</SelectItem>
-                  <SelectItem value="Advice">Advice</SelectItem>
+                  <SelectItem value="General Advice">General Advice</SelectItem>
                 </SelectContent>
               </Select>
 
