@@ -15,6 +15,7 @@ import { RFIListView } from '@/components/rfis/RFIListView';
 import { RFIDetailPanel } from '@/components/rfis/RFIDetailPanel';
 import { SimplifiedRFIComposer } from '@/components/rfis/SimplifiedRFIComposer';
 import { EnhancedRFIForm } from '@/components/rfis/EnhancedRFIForm';
+import { RFIAnalyticsDashboard } from '@/components/rfis/RFIAnalyticsDashboard';
 import { RFIMessageComposer } from '@/components/messages/RFIMessageComposer';
 import { RFIInbox, RFIInboxCategory } from '@/components/rfis/RFIInbox';
 import { RFISmartFilters, SmartFilters, SavedView, SortOption, SortDirection } from '@/components/rfis/RFISmartFilters';
@@ -66,6 +67,7 @@ const RFIs = () => {
   const [overlaySelectedRFI, setOverlaySelectedRFI] = useState<RFI | null>(null);
   const [selectedRFIIds, setSelectedRFIIds] = useState<string[]>([]);
   const [enhancedFormOpen, setEnhancedFormOpen] = useState(false);
+  const [showAnalytics, setShowAnalytics] = useState(false);
   const { selectedProject } = useProjectSelection();
   const {
     projects
@@ -650,6 +652,24 @@ const RFIs = () => {
       </div>;
   }
 
+  // Show analytics view
+  if (showAnalytics) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <h1 className="text-3xl font-bold">RFI Analytics</h1>
+          <Button onClick={() => setShowAnalytics(false)} variant="outline">
+            Back to RFIs
+          </Button>
+        </div>
+        <RFIAnalyticsDashboard
+          rfis={projectRFIs}
+          projectUsers={projectUsers}
+        />
+      </div>
+    );
+  }
+
   return <div className="space-y-6">
       {/* Debug validators - only show in development */}
       {showDebug && (
@@ -697,6 +717,9 @@ const RFIs = () => {
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold">RFI List</h2>
               <div className="flex items-center space-x-2">
+                <Button onClick={() => setShowAnalytics(true)} size="sm" variant="outline">
+                  Analytics
+                </Button>
                 <Button onClick={() => setEnhancedFormOpen(true)} size="sm">
                   Enhanced Form
                 </Button>
