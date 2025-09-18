@@ -65,6 +65,12 @@ export const RFIInbox = ({
 }: RFIInboxProps) => {
   const categories = [
     {
+      id: 'all' as const,
+      label: 'All Project RFIs',
+      icon: Archive,
+      description: 'Full list of RFIs for the active project'
+    },
+    {
       id: 'received' as const,
       label: 'RFIs Sent to Me',
       icon: Inbox,
@@ -179,33 +185,8 @@ export const RFIInbox = ({
 
   return (
     <div className="h-full border border-muted rounded-lg bg-muted/10 p-3 flex flex-col overflow-y-auto">
-      {/* All Project RFIs - Default View */}
-      <div className="mb-4">
-        <button
-          onClick={() => onCategoryChange('all')}
-          className={`w-full flex items-center gap-2 px-2 py-1.5 text-xs rounded-md transition-colors ${
-            selectedCategory === 'all'
-              ? 'bg-accent text-accent-foreground font-medium'
-              : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
-          }`}
-          title="Full list of RFIs for the active project"
-        >
-          <Archive className="h-3 w-3 flex-shrink-0" />
-          <span className="flex-1 text-left">All Project RFIs</span>
-          {counts && counts.all > 0 && (
-            <span className={`text-xs px-1 py-0.5 rounded-full font-medium ${
-              selectedCategory === 'all'
-                ? 'bg-accent-foreground/20 text-accent-foreground'
-                : 'bg-muted text-muted-foreground'
-            }`}>
-              {counts.all}
-            </span>
-          )}
-        </button>
-      </div>
-
       {/* RFI Mail Section */}
-      <div className="mb-4">
+      <div className="mb-3">
         <h3 className="text-xs font-medium text-muted-foreground/70 mb-2 uppercase tracking-wide">
           RFI Mail
         </h3>
@@ -238,7 +219,7 @@ export const RFIInbox = ({
       </div>
       {/* RFI Status Section */}
       {onStatusChange && (
-        <div className="mb-4">
+        <div className="mb-3">
           <h4 className="text-xs font-medium text-muted-foreground/70 mb-2 uppercase tracking-wide">
             RFI Status
           </h4>
@@ -273,7 +254,7 @@ export const RFIInbox = ({
 
       {/* RFI Type Section */}
       {onTypeChange && (
-        <div className="mb-4">
+        <div className="mb-3">
           <h4 className="text-xs font-medium text-muted-foreground/70 mb-2 uppercase tracking-wide">
             RFI Type
           </h4>
