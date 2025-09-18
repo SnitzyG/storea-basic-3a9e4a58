@@ -142,6 +142,8 @@ const RFIs = () => {
 
   // Apply smart filters and sorting to the status filtered RFIs
   const processedRFIs = useMemo(() => {
+    console.log('Processing RFIs with filters:', smartFilters);
+    console.log('Starting with', statusFilteredRFIs.length, 'RFIs after status filtering');
     let result = [...statusFilteredRFIs];
 
     // Apply search filter
@@ -227,6 +229,7 @@ const RFIs = () => {
       }
     });
 
+    console.log('Final processed RFIs count:', result.length);
     return result;
   }, [statusFilteredRFIs, smartFilters]);
 

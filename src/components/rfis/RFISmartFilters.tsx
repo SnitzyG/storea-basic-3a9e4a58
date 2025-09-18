@@ -55,20 +55,23 @@ export const RFISmartFilters = ({
   const [newViewName, setNewViewName] = useState('');
 
   const updateFilter = (key: keyof SmartFilters, value: string) => {
+    console.log(`Updating filter ${key} to:`, value);
     onFiltersChange({ ...filters, [key]: value });
   };
 
   const clearAllFilters = () => {
-    onFiltersChange({
+    console.log('Clearing all filters');
+    const clearedFilters = {
       searchQuery: '',
-      sortBy: 'created_at',
-      sortDirection: 'desc',
+      sortBy: 'created_at' as SortOption,
+      sortDirection: 'desc' as SortDirection,
       disciplineFilter: '',
       subcontractorFilter: '',
       priorityFilter: '',
       statusFilter: '',
       tagFilter: ''
-    });
+    };
+    onFiltersChange(clearedFilters);
   };
 
   const hasActiveFilters = filters.searchQuery || 
@@ -80,17 +83,32 @@ export const RFISmartFilters = ({
 
   const handleSaveCurrentView = () => {
     if (newViewName.trim()) {
+      console.log('Saving view:', newViewName.trim(), filters);
       onSaveView(newViewName.trim(), filters);
       setNewViewName('');
     }
   };
 
   // Extract unique values from RFIs for filter options
-  const uniqueDisciplines = [...new Set(rfis.map(rfi => rfi.category).filter(Boolean))];
-  const uniqueSubcontractors = [...new Set(projectUsers.map(user => user.profiles?.name).filter(Boolean))];
-  const uniqueTags = [...new Set(rfis.flatMap(rfi => 
-    (rfi.question + ' ' + (rfi.response || '')).match(/#\w+/g) || []
-  ))];
+  const uniqueDisciplines = React.useMemo(() => {
+    const disciplines = [...new Set(rfis.map(rfi => rfi.category).filter(Boolean))];
+    console.log('Unique disciplines:', disciplines);
+    return disciplines;
+  }, [rfis]);
+  
+  const uniqueSubcontractors = React.useMemo(() => {
+    const contractors = [...new Set(projectUsers.map(user => user.profiles?.name).filter(Boolean))];
+    console.log('Unique subcontractors:', contractors);
+    return contractors;
+  }, [projectUsers]);
+  
+  const uniqueTags = React.useMemo(() => {
+    const tags = [...new Set(rfis.flatMap(rfi => 
+      (rfi.question + ' ' + (rfi.response || '')).match(/#\w+/g) || []
+    ))];
+    console.log('Unique tags:', tags);
+    return tags;
+  }, [rfis]);
 
   const sortOptions = [
     { value: 'created_at', label: 'Date Created' },
