@@ -1,5 +1,5 @@
 import React from 'react';
-import { Inbox, Send, FileEdit, Archive, MessageSquare } from 'lucide-react';
+import { Inbox, Send, FileEdit, Archive, MessageSquare, Clock, CheckCircle, XCircle, Trash } from 'lucide-react';
 
 export type RFIInboxCategory = 'all' | 'sent' | 'received' | 'unresponded' | 'responded' | 'drafts';
 
@@ -56,6 +56,39 @@ export const RFIInbox = ({ selectedCategory, onCategoryChange, counts }: RFIInbo
     }
   ];
 
+  const statusCategories = [
+    {
+      id: 'outstanding',
+      label: 'Outstanding',
+      icon: Clock,
+      description: 'RFIs pending response'
+    },
+    {
+      id: 'answered',
+      label: 'Answered',
+      icon: CheckCircle,
+      description: 'RFIs that have been answered'
+    },
+    {
+      id: 'rejected',
+      label: 'Rejected',
+      icon: XCircle,
+      description: 'RFIs that have been rejected'
+    },
+    {
+      id: 'closed',
+      label: 'Closed',
+      icon: Archive,
+      description: 'RFIs that have been closed'
+    },
+    {
+      id: 'void',
+      label: 'Void',
+      icon: Trash,
+      description: 'RFIs that have been voided'
+    }
+  ];
+
   return (
     <div className="h-full border border-muted rounded-lg bg-muted/10 p-3 overflow-hidden">
       <h3 className="text-xs font-medium text-muted-foreground/70 mb-4 uppercase tracking-wide">
@@ -86,6 +119,25 @@ export const RFIInbox = ({ selectedCategory, onCategoryChange, counts }: RFIInbo
             )}
           </button>
         ))}
+        
+        {/* RFI Status Section */}
+        <div className="mt-6">
+          <h4 className="text-xs font-medium text-muted-foreground/70 mb-3 uppercase tracking-wide">
+            RFI Status
+          </h4>
+          <div className="space-y-1">
+            {statusCategories.map(({ id, label, icon: Icon, description }) => (
+              <div
+                key={id}
+                className="w-full flex items-center gap-2 px-3 py-2 text-sm text-muted-foreground"
+                title={description}
+              >
+                <Icon className="h-4 w-4 flex-shrink-0" />
+                <span className="flex-1 text-left truncate">{label}</span>
+              </div>
+            ))}
+          </div>
+        </div>
       </nav>
     </div>
   );
