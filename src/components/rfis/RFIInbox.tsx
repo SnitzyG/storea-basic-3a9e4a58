@@ -137,12 +137,6 @@ export const RFIInbox = ({
 
   const rfiTypes = [
     {
-      id: 'all' as const,
-      label: 'All Types',
-      icon: Archive,
-      description: 'All RFI types'
-    },
-    {
       id: 'General' as const,
       label: 'General',
       icon: MessageSquare,
@@ -163,12 +157,6 @@ export const RFIInbox = ({
   ];
 
   const priorities = [
-    {
-      id: 'all' as const,
-      label: 'All Priorities',
-      icon: Archive,
-      description: 'All priority levels'
-    },
     {
       id: 'low' as const,
       label: 'Low',
