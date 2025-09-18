@@ -17,6 +17,7 @@ import { SimplifiedRFIComposer } from '@/components/rfis/SimplifiedRFIComposer';
 import { RFIMessageComposer } from '@/components/messages/RFIMessageComposer';
 import { RFIInbox, RFIInboxCategory } from '@/components/rfis/RFIInbox';
 import { RFISmartFilters, SmartFilters, SavedView, SortOption, SortDirection } from '@/components/rfis/RFISmartFilters';
+import { RFIBulkActions } from '@/components/rfis/RFIBulkActions';
 // Legacy components for fallback
 import { RFIDetailsDialog } from '@/components/rfis/RFIDetailsDialog';
 import { ProjectScopeValidator } from '@/components/rfis/ProjectScopeValidator';
@@ -62,6 +63,7 @@ const RFIs = () => {
   ]);
   const [isDetailOverlayOpen, setIsDetailOverlayOpen] = useState(false);
   const [overlaySelectedRFI, setOverlaySelectedRFI] = useState<RFI | null>(null);
+  const [selectedRFIIds, setSelectedRFIIds] = useState<string[]>([]);
   const { selectedProject } = useProjectSelection();
   const {
     projects
@@ -228,6 +230,23 @@ const RFIs = () => {
 
   const handleDeleteView = (viewId: string) => {
     setSavedViews(prev => prev.filter(view => view.id !== viewId));
+  };
+
+  // Wrapper for updateRFI to match expected interface
+  const handleUpdateRFI = async (rfiId: string, updates: Partial<RFI>): Promise<void> => {
+    await updateRFI(rfiId, updates);
+  };
+
+  // Bulk actions handler
+  const handleBulkUpdate = async (rfiIds: string[], updates: Partial<RFI>) => {
+    try {
+      // Update each RFI individually - in a real implementation you might want a bulk update API
+      for (const rfiId of rfiIds) {
+        await updateRFI(rfiId, updates);
+      }
+    } catch (error) {
+      throw error; // Re-throw to let the bulk actions component handle the error display
+    }
   };
 
   // Calculate counts for each category
@@ -694,6 +713,17 @@ const RFIs = () => {
               />
             </div>
 
+            {/* Bulk Actions Bar */}
+            <div className="mb-4">
+              <RFIBulkActions
+                rfis={processedRFIs}
+                selectedRFIIds={selectedRFIIds}
+                onSelectionChange={setSelectedRFIIds}
+                onBulkUpdate={handleBulkUpdate}
+                projectUsers={projectUsers}
+              />
+            </div>
+
             <div className="overflow-y-auto h-full">
               <RFIListView 
                 rfis={processedRFIs}
@@ -702,6 +732,11 @@ const RFIs = () => {
                 onSelectRFI={setSelectedRFIForDetail}
                 selectedRFI={selectedRFIForDetail}
                 onDoubleClick={handleDoubleClickRFI}
+                onUpdateRFI={handleUpdateRFI}
+                projectUsers={projectUsers}
+                showQuickActions={true}
+                selectedRFIIds={selectedRFIIds}
+                onSelectionChange={setSelectedRFIIds}
               />
             </div>
           </div>

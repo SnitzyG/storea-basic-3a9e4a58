@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { ArrowUpDown, Eye, Download, MoreHorizontal, MessageSquare } from 'lucide-react';
+import { ArrowUpDown, Eye, Download, MoreHorizontal, MessageSquare, CheckSquare, Square } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { RFI } from '@/hooks/useRFIs';
 import { format } from 'date-fns';
+import { RFIQuickActions } from './RFIQuickActions';
 
 interface RFIListViewProps {
   rfis: RFI[];
@@ -19,6 +20,11 @@ interface RFIListViewProps {
   onSelectRFI?: (rfi: RFI) => void;
   selectedRFI?: RFI | null;
   onDoubleClick?: (rfi: RFI) => void;
+  onUpdateRFI?: (rfiId: string, updates: Partial<RFI>) => Promise<void>;
+  projectUsers?: any[];
+  showQuickActions?: boolean;
+  selectedRFIIds?: string[];
+  onSelectionChange?: (selectedIds: string[]) => void;
 }
 
 type SortField = 'subject' | 'submitted_by' | 'assigned_to' | 'created_at' | 'status' | 'due_date';
@@ -44,7 +50,12 @@ export const RFIListView: React.FC<RFIListViewProps> = ({
   onExportPDF,
   onSelectRFI,
   selectedRFI,
-  onDoubleClick
+  onDoubleClick,
+  onUpdateRFI,
+  projectUsers = [],
+  showQuickActions = false,
+  selectedRFIIds = [],
+  onSelectionChange
 }) => {
   const [sortField, setSortField] = useState<SortField>('created_at');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
@@ -116,11 +127,28 @@ export const RFIListView: React.FC<RFIListViewProps> = ({
     }
   };
 
+  const handleCheckboxChange = (rfiId: string, checked: boolean) => {
+    if (!onSelectionChange) return;
+    
+    if (checked) {
+      onSelectionChange([...selectedRFIIds, rfiId]);
+    } else {
+      onSelectionChange(selectedRFIIds.filter(id => id !== rfiId));
+    }
+  };
+
+  const isRFISelected = (rfiId: string) => selectedRFIIds.includes(rfiId);
+
   return (
     <div className="space-y-4">
       <Table>
         <TableHeader>
           <TableRow>
+            {onSelectionChange && (
+              <TableHead className="w-[40px]">
+                <CheckSquare className="h-4 w-4 text-muted-foreground" />
+              </TableHead>
+            )}
             <TableHead className="w-[60px]">RFI #</TableHead>
             <TableHead>
               <SortButton field="subject">Subject / Title</SortButton>
@@ -141,6 +169,7 @@ export const RFIListView: React.FC<RFIListViewProps> = ({
               <SortButton field="due_date">Due Date</SortButton>
             </TableHead>
             <TableHead>Priority</TableHead>
+            {showQuickActions && <TableHead>Quick Actions</TableHead>}
             <TableHead className="w-[50px]">Actions</TableHead>
           </TableRow>
         </TableHeader>
@@ -150,10 +179,26 @@ export const RFIListView: React.FC<RFIListViewProps> = ({
               key={rfi.id} 
               className={`hover:bg-muted/50 cursor-pointer ${
                 selectedRFI?.id === rfi.id ? 'bg-muted/50' : ''
-              }`}
+              } ${isRFISelected(rfi.id) ? 'bg-accent/20' : ''}`}
               onClick={() => handleRowClick(rfi)}
               onDoubleClick={() => onDoubleClick?.(rfi)}
             >
+              {onSelectionChange && (
+                <TableCell onClick={(e) => e.stopPropagation()}>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-6 w-6 p-0"
+                    onClick={() => handleCheckboxChange(rfi.id, !isRFISelected(rfi.id))}
+                  >
+                    {isRFISelected(rfi.id) ? (
+                      <CheckSquare className="h-4 w-4 text-primary" />
+                    ) : (
+                      <Square className="h-4 w-4 text-muted-foreground" />
+                    )}
+                  </Button>
+                </TableCell>
+              )}
               <TableCell className="font-mono text-xs">
                 {rfi.rfi_number || `RFI-${rfi.id.slice(0, 8)}`}
               </TableCell>
@@ -195,6 +240,16 @@ export const RFIListView: React.FC<RFIListViewProps> = ({
                   {rfi.priority.toUpperCase()}
                 </Badge>
               </TableCell>
+              {showQuickActions && onUpdateRFI && (
+                <TableCell onClick={(e) => e.stopPropagation()}>
+                  <RFIQuickActions
+                    rfi={rfi}
+                    onUpdateRFI={onUpdateRFI}
+                    projectUsers={projectUsers}
+                    compact={true}
+                  />
+                </TableCell>
+              )}
               <TableCell>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
