@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Inbox, Send, FileEdit, Archive } from 'lucide-react';
 import { useRFIs, RFI } from '@/hooks/useRFIs';
 import { useProjects } from '@/hooks/useProjects';
 import { useAuth } from '@/hooks/useAuth';
@@ -29,6 +30,7 @@ const RFIs = () => {
   const [replyToRFI, setReplyToRFI] = useState<RFI | null>(null);
   const [selectedRFIForDetail, setSelectedRFIForDetail] = useState<RFI | null>(null);
   const [projectUsers, setProjectUsers] = useState<any[]>([]);
+  const [sidebarFilter, setSidebarFilter] = useState<'all' | 'inbox' | 'sent' | 'draft'>('all');
   const { selectedProject } = useProjectSelection();
   const {
     projects
@@ -458,24 +460,58 @@ const RFIs = () => {
 
       {/* Three-Column Layout */}
       <div className="grid grid-cols-12 gap-4 h-[calc(100vh-200px)]">
-        {/* Left Column - Inbox (De-emphasized, ~20% width) */}
+        {/* Left Column - Navigation Sidebar (~20% width) */}
         <div className="col-span-2">
-          <div className="h-full border border-muted rounded-lg bg-muted/10 p-2 overflow-hidden">
-            <h3 className="text-xs font-medium text-muted-foreground/70 mb-3 uppercase tracking-wide px-1">
-              Activity
+          <div className="h-full border border-muted rounded-lg bg-muted/10 p-3 overflow-hidden">
+            <h3 className="text-xs font-medium text-muted-foreground/70 mb-4 uppercase tracking-wide">
+              RFI Filters
             </h3>
-            <div className="space-y-1 overflow-y-auto h-full">
-              <div className="text-xs space-y-1">
-                <EmailStyleRFIInbox 
-                  rfis={projectRFIs}
-                  onView={handleViewRFI}
-                  onCreateNew={() => setSimplifiedComposerOpen(true)}
-                  onReply={handleReplyToRFI}
-                  projectUsers={projectUsers}
-                  currentProject={selectedProject}
-                />
-              </div>
-            </div>
+            <nav className="space-y-1">
+              <button
+                onClick={() => setSidebarFilter('all')}
+                className={`w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md transition-colors ${
+                  sidebarFilter === 'all'
+                    ? 'bg-accent text-accent-foreground font-medium'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                }`}
+              >
+                <Archive className="h-4 w-4" />
+                All
+              </button>
+              <button
+                onClick={() => setSidebarFilter('inbox')}
+                className={`w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md transition-colors ${
+                  sidebarFilter === 'inbox'
+                    ? 'bg-accent text-accent-foreground font-medium'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                }`}
+              >
+                <Inbox className="h-4 w-4" />
+                Inbox
+              </button>
+              <button
+                onClick={() => setSidebarFilter('sent')}
+                className={`w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md transition-colors ${
+                  sidebarFilter === 'sent'
+                    ? 'bg-accent text-accent-foreground font-medium'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                }`}
+              >
+                <Send className="h-4 w-4" />
+                Sent
+              </button>
+              <button
+                onClick={() => setSidebarFilter('draft')}
+                className={`w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md transition-colors ${
+                  sidebarFilter === 'draft'
+                    ? 'bg-accent text-accent-foreground font-medium'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                }`}
+              >
+                <FileEdit className="h-4 w-4" />
+                Draft
+              </button>
+            </nav>
           </div>
         </div>
 
