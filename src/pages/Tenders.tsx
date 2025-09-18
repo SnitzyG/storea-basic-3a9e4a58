@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { STOREAliteLogo } from '@/components/branding/STOREAliteLogo';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Plus, AlertTriangle } from 'lucide-react';
 import { useTenders, Tender } from '@/hooks/useTenders';
@@ -171,17 +172,9 @@ const Tenders = () => {
                 </g>
               </svg>
               
-              {/* Enhanced STOREA Lite Logo */}
-              <div className="mt-6 text-center animate-[fadeIn_0.8s_ease-out_3.4s_both]">
-                <h1 className="text-4xl font-bold tracking-wider">
-                  <span className="bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent font-black">
-                    STOREA
-                  </span>
-                  <span className="bg-gradient-to-r from-accent to-accent/70 bg-clip-text text-transparent font-light ml-1">
-                    Lite
-                  </span>
-                </h1>
-              </div>
+               <div className="mt-6 text-center">
+                 <STOREAliteLogo animated={true} size="xl" />
+               </div>
             </div>
             
             <div className="text-center py-8">

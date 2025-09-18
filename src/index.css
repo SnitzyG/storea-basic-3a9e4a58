@@ -17,7 +17,7 @@ All colors MUST be HSL.
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
 
-    /* STOREALite modern theme - emerald green and navy */
+    /* STOREAlite modern theme - emerald green and navy */
     --primary: 160 84% 39%;
     --primary-foreground: 0 0% 98%;
 
@@ -50,7 +50,7 @@ All colors MUST be HSL.
     --sidebar-border: 217 20% 20%;
     --sidebar-ring: 160 84% 39%;
 
-    /* STOREALite brand colors */
+    /* STOREAlite brand colors */
     --construction-warning: 45 93% 47%;
     --construction-success: 160 84% 39%;
     --construction-info: 217 91% 60%;
