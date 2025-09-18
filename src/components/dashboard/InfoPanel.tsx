@@ -164,12 +164,6 @@ export const InfoPanel = () => {
                   </div>
                   <div className="flex items-center justify-end gap-2 min-w-[80px]">
                     <span className="font-semibold text-sm w-10 text-right">{day.temperature}°C</span>
-                    {day.rainfall > 0 && (
-                      <div className="flex items-center gap-1 text-blue-600 dark:text-blue-400">
-                        <CloudRain className="h-3 w-3" />
-                        <span className="text-xs font-medium">{day.rainfall}</span>
-                      </div>
-                    )}
                   </div>
                 </div>
               ))}
