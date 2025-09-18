@@ -35,6 +35,24 @@ interface HomeownerData {
   phone?: string;
 }
 
+// Helper function to convert budget range strings to numbers for database storage
+const convertBudgetStringToNumber = (budgetString: string): number => {
+  const budgetMap: Record<string, number> = {
+    "< $100,000": 50000,
+    "$100,000 – $200,000": 150000,
+    "$200,000 – $300,000": 250000,
+    "$300,000 – $400,000": 350000,
+    "$400,000 – $500,000": 450000,
+    "$500,000 – $750,000": 625000,
+    "$750,000 – $1,000,000": 875000,
+    "$1,000,000 – $1,500,000": 1250000,
+    "$1,500,000 – $2,000,000": 1750000,
+    "$2,000,000 – $2,500,000": 2250000,
+    "$2,500,000+": 3000000
+  };
+  return budgetMap[budgetString] || 0;
+};
+
 
 const PRIORITY_LEVELS = [{
   value: 'low',
@@ -205,7 +223,7 @@ export const AdvancedProjectWizard = ({
         project_type: formData.project_type as any,
         priority: formData.priority,
         address: formData.address || undefined,
-        budget: formData.budget ? parseFloat(formData.budget) : undefined,
+        budget: formData.budget ? convertBudgetStringToNumber(formData.budget) : undefined,
         square_footage: formData.square_footage ? parseInt(formData.square_footage) : undefined,
         number_of_floors: formData.number_of_floors ? parseInt(formData.number_of_floors) : undefined,
         estimated_start_date: formData.estimated_start_date?.toISOString().split('T')[0],
@@ -321,10 +339,24 @@ export const AdvancedProjectWizard = ({
               <div className="space-y-4">
                 <div>
                   <Label htmlFor="budget">Project Budget</Label>
-                  <div className="relative mt-1">
-                    <DollarSign className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                    <Input id="budget" type="number" step="0.01" value={formData.budget} onChange={e => handleInputChange('budget', e.target.value)} placeholder="Enter budget amount" className="pl-10" />
-                  </div>
+                  <Select value={formData.budget} onValueChange={(value) => handleInputChange('budget', value)}>
+                    <SelectTrigger className="mt-1">
+                      <SelectValue placeholder="Select budget range" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="< $100,000">&lt; $100,000</SelectItem>
+                      <SelectItem value="$100,000 – $200,000">$100,000 – $200,000</SelectItem>
+                      <SelectItem value="$200,000 – $300,000">$200,000 – $300,000</SelectItem>
+                      <SelectItem value="$300,000 – $400,000">$300,000 – $400,000</SelectItem>
+                      <SelectItem value="$400,000 – $500,000">$400,000 – $500,000</SelectItem>
+                      <SelectItem value="$500,000 – $750,000">$500,000 – $750,000</SelectItem>
+                      <SelectItem value="$750,000 – $1,000,000">$750,000 – $1,000,000</SelectItem>
+                      <SelectItem value="$1,000,000 – $1,500,000">$1,000,000 – $1,500,000</SelectItem>
+                      <SelectItem value="$1,500,000 – $2,000,000">$1,500,000 – $2,000,000</SelectItem>
+                      <SelectItem value="$2,000,000 – $2,500,000">$2,000,000 – $2,500,000</SelectItem>
+                      <SelectItem value="$2,500,000+">$2,500,000+</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">

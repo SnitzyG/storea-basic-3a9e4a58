@@ -133,7 +133,7 @@ export const useProjects = () => {
       // Extract the middle value from budget ranges for database storage
       let budgetNumber: number | undefined = undefined;
       if (budget) {
-        if (budget === "Under $100,000") {
+        if (budget === "< $100,000") {
           budgetNumber = 50000;
         } else if (budget === "$2,500,000+") {
           budgetNumber = 2500000;
