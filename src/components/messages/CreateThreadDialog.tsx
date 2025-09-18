@@ -73,15 +73,15 @@ export const CreateThreadDialog: React.FC<CreateThreadDialogProps> = ({
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Create New Thread</DialogTitle>
+          <DialogTitle>Create New Message</DialogTitle>
         </DialogHeader>
         
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="title">Thread Title</Label>
+            <Label htmlFor="title">Message Title</Label>
             <Input
               id="title"
-              placeholder="Enter thread title..."
+              placeholder="Enter message title..."
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               required
@@ -176,7 +176,7 @@ export const CreateThreadDialog: React.FC<CreateThreadDialogProps> = ({
               Cancel
             </Button>
             <Button type="submit" disabled={!title.trim() || loading}>
-              {loading ? 'Creating...' : 'Create Thread'}
+              {loading ? 'Creating...' : 'Create Message'}
             </Button>
           </div>
         </form>

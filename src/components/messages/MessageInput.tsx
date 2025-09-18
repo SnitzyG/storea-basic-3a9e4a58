@@ -304,15 +304,6 @@ export const MessageInput: React.FC<MessageInputProps> = ({
                 </Button>
               )}
 
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                className="h-10 w-10 p-0 text-muted-foreground hover:text-foreground hover:bg-muted rounded-full"
-                disabled={disabled}
-              >
-                <Smile className="h-5 w-5" />
-              </Button>
               
               <Button
                 type="submit"

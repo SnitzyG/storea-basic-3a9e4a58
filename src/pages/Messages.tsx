@@ -306,7 +306,7 @@ const Messages = () => {
           <CreateThreadDialog projectId={selectedProject?.id || ''} onCreateThread={handleCreateThread}>
             <Button variant="outline" className="w-full">
               <Plus className="h-4 w-4 mr-2" />
-              Create Message
+              Create New Message
             </Button>
           </CreateThreadDialog>
         </div>
@@ -328,128 +328,67 @@ const Messages = () => {
         <div className="flex-1 overflow-hidden">
           <ScrollArea className="h-full">
             <div className="space-y-0">
-              {/* Show filtered team members - only project members current user can message */}
-              {filteredTeamMembers.map(user => {
-                // Find existing thread with this user
-                const existingThread = threads.find(thread => 
-                  thread.participants.length === 2 && 
-                  thread.participants.includes(user.user_id) &&
-                  thread.participants.includes(profile?.user_id || '')
-                );
-                
-                // Determine display title - use custom title or default to user name
-                const getDisplayTitle = () => {
-                  if (existingThread) {
-                    // If custom title doesn't start with "Direct message with", use the custom title
-                    const isDefaultTitle = existingThread.title.startsWith('Direct message with');
-                    return isDefaultTitle ? (user.user_profile?.name || 'Unknown User') : existingThread.title;
-                  }
-                  return user.user_profile?.name || 'Unknown User';
-                };
-                
-                // If there's an existing thread, show ThreadCard with rename functionality
-                if (existingThread) {
-                  return (
-                    <ThreadCard
-                      key={user.user_id}
-                      thread={{
-                        id: existingThread.id,
-                        title: getDisplayTitle(),
-                        participants: existingThread.participants,
-                        updated_at: existingThread.updated_at,
-                        status: existingThread.status
-                      }}
-                      unreadCount={0}
-                      isSelected={currentThread === existingThread.id}
-                      isDirect={true}
-                      onClick={() => setCurrentThread(existingThread.id)}
-                      onEdit={(newTitle: string) => updateThreadTitle(existingThread.id, newTitle)}
-                      onClose={() => closeThread(existingThread.id)}
-                      onDelete={() => deleteThread(existingThread.id)}
-                    />
-                  );
-                }
-                
-                // If no existing thread, show regular user card
-                return (
-                  <div
-                    key={user.user_id}
-                    className="p-3 cursor-pointer border-b border-border/50 hover:bg-muted/50 transition-colors"
-                    onClick={() => {
-                      // Create new thread with this user
-                      handleCreateThread(`Direct message with ${user.user_profile?.name}`, [user.user_id]);
-                    }}
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="relative">
-                        <Avatar className="h-12 w-12">
-                          <AvatarFallback className="text-sm font-medium bg-primary/10 text-primary">
-                            {user.user_profile?.name?.charAt(0)?.toUpperCase() || 'U'}
-                          </AvatarFallback>
-                        </Avatar>
-                        {onlineUsers.has(user.user_id) && (
-                          <div className="absolute bottom-0 right-0 h-3 w-3 bg-green-500 rounded-full border-2 border-background" />
-                        )}
-                      </div>
-                      
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between">
-                          <h3 className="font-medium text-foreground truncate">
-                            {user.user_profile?.name || 'Unknown User'}
-                          </h3>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <p className="text-sm text-muted-foreground truncate">
-                            {typingUsers.has(user.user_id) ? 'typing...' : 'Start conversation'}
-                          </p>
-                          <span className="text-xs text-muted-foreground capitalize">
-                            {user.user_profile?.role || user.role}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
+              {/* Show all existing message threads */}
+              {filteredThreads.map(thread => (
+                <ThreadCard
+                  key={thread.id}
+                  thread={thread}
+                  unreadCount={0}
+                  isSelected={currentThread === thread.id}
+                  isDirect={thread.participants.length === 2}
+                  onClick={() => setCurrentThread(thread.id)}
+                  onEdit={(newTitle: string) => updateThreadTitle(thread.id, newTitle)}
+                  onClose={() => closeThread(thread.id)}
+                  onDelete={() => deleteThread(thread.id)}
+                />
+              ))}
 
-              {/* Show group threads */}
-              {filteredThreads
-                .filter(thread => thread.participants.length > 2)
-                .map(thread => (
-                  <div
-                    key={thread.id}
-                    className={cn(
-                      "p-3 cursor-pointer border-b border-border/50 hover:bg-muted/50 transition-colors",
-                      currentThread === thread.id && "bg-primary/10 border-l-4 border-l-primary"
-                    )}
-                    onClick={() => setCurrentThread(thread.id)}
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center">
-                        <Users2 className="h-6 w-6 text-muted-foreground" />
+              {/* Show team members for starting new conversations */}
+              {filteredTeamMembers.map(user => (
+                <div
+                  key={user.user_id}
+                  className="p-3 cursor-pointer border-b border-border/50 hover:bg-muted/50 transition-colors"
+                  onClick={() => {
+                    // Always create new thread with this user
+                    const timestamp = new Date().toLocaleTimeString();
+                    handleCreateThread(`Message with ${user.user_profile?.name} (${timestamp})`, [user.user_id]);
+                  }}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="relative">
+                      <Avatar className="h-12 w-12">
+                        <AvatarFallback className="text-sm font-medium bg-primary/10 text-primary">
+                          {user.user_profile?.name?.charAt(0)?.toUpperCase() || 'U'}
+                        </AvatarFallback>
+                      </Avatar>
+                      {onlineUsers.has(user.user_id) && (
+                        <div className="absolute bottom-0 right-0 h-3 w-3 bg-green-500 rounded-full border-2 border-background" />
+                      )}
+                    </div>
+                    
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between">
+                        <h3 className="font-medium text-foreground truncate">
+                          {user.user_profile?.name || 'Unknown User'}
+                        </h3>
                       </div>
-                      
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between">
-                          <h3 className="font-medium text-foreground truncate">
-                            {thread.title}
-                          </h3>
-                          <span className="text-xs text-muted-foreground">
-                            {thread.updated_at ? new Date(thread.updated_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : ''}
-                          </span>
-                        </div>
+                      <div className="flex items-center justify-between">
                         <p className="text-sm text-muted-foreground truncate">
-                          {`${thread.participants.length} members`}
+                          {typingUsers.has(user.user_id) ? 'typing...' : 'Start new conversation'}
                         </p>
+                        <span className="text-xs text-muted-foreground capitalize">
+                          {user.user_profile?.role || user.role}
+                        </span>
                       </div>
                     </div>
                   </div>
-                ))}
+                </div>
+              ))}
               
-              {filteredTeamMembers.length === 0 && filteredThreads.filter(thread => thread.participants.length > 2).length === 0 && (
+              {filteredTeamMembers.length === 0 && filteredThreads.length === 0 && (
                 <div className="text-center py-12 px-4">
                   <MessageSquare className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-                  <h3 className="font-medium text-foreground mb-2">No team members</h3>
+                  <h3 className="font-medium text-foreground mb-2">No conversations</h3>
                   <p className="text-sm text-muted-foreground">
                     Add team members to your project to start messaging
                   </p>
