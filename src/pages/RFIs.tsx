@@ -7,9 +7,11 @@ import { useRFIs, RFI } from '@/hooks/useRFIs';
 import { useProjects } from '@/hooks/useProjects';
 import { useAuth } from '@/hooks/useAuth';
 import { useProjectSelection } from '@/context/ProjectSelectionContext';
-// Import email-style components
+// Import components
 import { EmailStyleRFIInbox } from '@/components/rfis/EmailStyleRFIInbox';
 import { CategorizedRFIInbox } from '@/components/rfis/CategorizedRFIInbox';
+import { RFIListView } from '@/components/rfis/RFIListView';
+import { RFIDetailPanel } from '@/components/rfis/RFIDetailPanel';
 import { SimplifiedRFIComposer } from '@/components/rfis/SimplifiedRFIComposer';
 import { RFIMessageComposer } from '@/components/messages/RFIMessageComposer';
 // Legacy components for fallback
@@ -18,12 +20,14 @@ import { ProjectScopeValidator } from '@/components/rfis/ProjectScopeValidator';
 import { RFIPermissionsValidator } from '@/components/rfis/RFIPermissionsValidator';
 import { RFIEnhancementsValidator } from '@/components/rfis/RFIEnhancementsValidator';
 import { useProjectTeam } from '@/hooks/useProjectTeam';
+
 const RFIs = () => {
   const [simplifiedComposerOpen, setSimplifiedComposerOpen] = useState(false);
   const [messageComposerOpen, setMessageComposerOpen] = useState(false);
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
   const [selectedRFI, setSelectedRFI] = useState<RFI | null>(null);
   const [replyToRFI, setReplyToRFI] = useState<RFI | null>(null);
+  const [selectedRFIForDetail, setSelectedRFIForDetail] = useState<RFI | null>(null);
   const [projectUsers, setProjectUsers] = useState<any[]>([]);
   const { selectedProject } = useProjectSelection();
   const {
@@ -59,6 +63,7 @@ const RFIs = () => {
 
   // All RFIs for the current project - ensure proper project scoping
   const projectRFIs = rfis.filter(rfi => rfi.project_id === selectedProject?.id);
+
   const handleViewRFI = (rfi: RFI) => {
     setSelectedRFI(rfi);
     setDetailsDialogOpen(true);
@@ -73,6 +78,7 @@ const RFIs = () => {
     setSelectedRFI(rfi);
     setMessageComposerOpen(true);
   };
+
   const handleExportPDF = (rfi: RFI) => {
     const printContent = `
       <!DOCTYPE html>
@@ -312,6 +318,7 @@ const RFIs = () => {
       }, 250);
     }
   };
+
   if (projects.length === 0) {
     return <div className="min-h-screen flex items-center justify-center bg-background px-4">
         <Card className="w-full max-w-md">
@@ -415,68 +422,97 @@ const RFIs = () => {
         <div className="text-center">Loading RFIs...</div>
       </div>;
   }
+
   if (!selectedProject) {
     return <div className="min-h-screen flex items-center justify-center">
-        <Card className="w-96">
-          <CardHeader>
-            <CardTitle>RFIs</CardTitle>
-          </CardHeader>
+        <Card className="w-full max-w-md">
           <CardContent className="text-center py-8">
+            <h3 className="text-lg font-semibold mb-2">No Project Selected</h3>
             <p className="text-muted-foreground mb-4">
-              No projects available. Create a project first to create an RFI.
+              Please select a project to view RFIs.
             </p>
-            <Button asChild>
-              <Link to="/projects">Go to Projects</Link>
-            </Button>
           </CardContent>
         </Card>
       </div>;
   }
-  return <div className="h-screen flex flex-col">
-      {/* Development validators */}
-      {showDebug && selectedProject && (
-        <div className="px-4 py-2 space-y-2">
-          <ProjectScopeValidator
-            projectId={selectedProject.id}
-            rfis={rfis}
-            onViolationFound={(violation) => console.error('Project scope violation:', violation)}
-          />
-          <RFIPermissionsValidator
-            projectId={selectedProject.id}
-            projectUsers={projectUsers}
-          />
-          <RFIEnhancementsValidator
-            rfis={projectRFIs}
-          />
+
+  return <div className="space-y-6">
+      {/* Debug validators - only show in development */}
+      {showDebug && (
+        <div className="space-y-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+          <h3 className="font-semibold text-yellow-800">Debug Mode - RFI System Validators</h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <ProjectScopeValidator 
+              projectId={selectedProject?.id || ''}
+              rfis={rfis}
+              onViolationFound={(violation) => console.error('Project scope violation:', violation)}
+            />
+            <RFIPermissionsValidator 
+              projectId={selectedProject?.id || ''}
+              projectUsers={projectUsers}
+            />
+            <RFIEnhancementsValidator rfis={projectRFIs} />
+          </div>
         </div>
       )}
-      
-      <div className="space-y-6">
-        <EmailStyleRFIInbox 
-          rfis={projectRFIs} 
-          onView={handleViewRFI} 
-          onCreateNew={() => setSimplifiedComposerOpen(true)} 
-          onReply={handleReplyToRFI}
-          projectUsers={projectUsers} 
-          currentProject={selectedProject}
-        />
-        
-        <CategorizedRFIInbox 
-          rfis={projectRFIs} 
-          onView={handleViewRFI} 
-          onCreateNew={() => setSimplifiedComposerOpen(true)} 
-          onReply={handleReplyToRFI}
-          projectUsers={projectUsers} 
-          currentProject={selectedProject} 
-        />
+
+      {/* Three-Column Layout */}
+      <div className="grid grid-cols-12 gap-6 h-[calc(100vh-200px)]">
+        {/* Left Column - Inbox (Narrow) */}
+        <div className="col-span-3">
+          <div className="h-full border rounded-lg bg-muted/20 p-4 overflow-hidden">
+            <h3 className="text-sm font-medium text-muted-foreground mb-4 uppercase tracking-wide">
+              Activity Feed
+            </h3>
+            <div className="space-y-2 overflow-y-auto h-full">
+              <EmailStyleRFIInbox 
+                rfis={projectRFIs}
+                onView={handleViewRFI}
+                onCreateNew={() => setSimplifiedComposerOpen(true)}
+                onReply={handleReplyToRFI}
+                projectUsers={projectUsers}
+                currentProject={selectedProject}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Middle Column - RFI List (Primary) */}
+        <div className="col-span-5">
+          <div className="h-full border rounded-lg bg-card p-4 overflow-hidden">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold">RFI List</h2>
+              <Button onClick={() => setSimplifiedComposerOpen(true)} size="sm">
+                Create RFI
+              </Button>
+            </div>
+            <div className="overflow-y-auto h-full">
+              <RFIListView 
+                rfis={projectRFIs}
+                onView={handleViewRFI}
+                onExportPDF={handleExportPDF}
+                onSelectRFI={setSelectedRFIForDetail}
+                selectedRFI={selectedRFIForDetail}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Right Column - RFI Detail View */}
+        <div className="col-span-4">
+          <div className="h-full overflow-hidden">
+            <RFIDetailPanel rfi={selectedRFIForDetail} />
+          </div>
+        </div>
       </div>
 
-      <SimplifiedRFIComposer 
-        open={simplifiedComposerOpen} 
+      {/* Dialogs */}
+      <SimplifiedRFIComposer
+        open={simplifiedComposerOpen}
         onOpenChange={(open) => {
           setSimplifiedComposerOpen(open);
           if (!open) setReplyToRFI(null);
-        }} 
+        }}
         projectId={selectedProject?.id || ''}
         replyToRFI={replyToRFI}
       />
@@ -488,11 +524,12 @@ const RFIs = () => {
         linkedRFI={selectedRFI}
       />
 
-      <RFIDetailsDialog 
-        open={detailsDialogOpen} 
-        onOpenChange={setDetailsDialogOpen} 
-        rfi={selectedRFI} 
+      <RFIDetailsDialog
+        open={detailsDialogOpen}
+        onOpenChange={setDetailsDialogOpen}
+        rfi={selectedRFI}
       />
     </div>;
 };
+
 export default RFIs;
