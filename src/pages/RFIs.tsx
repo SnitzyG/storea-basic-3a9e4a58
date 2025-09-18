@@ -395,15 +395,24 @@ const RFIs = () => {
   const handleDeleteRFI = async (rfi: RFI) => {
     if (window.confirm(`Are you sure you want to delete RFI "${rfi.subject || rfi.question.substring(0, 50)}"? This action cannot be undone.`)) {
       try {
-        // Delete from Supabase
-        await supabase
+        console.log('Attempting to delete RFI:', rfi.id);
+        
+        const { data, error } = await supabase
           .from('rfis')
           .delete()
           .eq('id', rfi.id);
         
+        if (error) {
+          console.error('Delete error:', error);
+          alert(`Failed to delete RFI: ${error.message}`);
+          return;
+        }
+        
+        console.log('Successfully deleted RFI:', rfi.id);
         // The UI will update automatically due to the real-time subscription
       } catch (error) {
         console.error('Error deleting RFI:', error);
+        alert('An unexpected error occurred while deleting the RFI.');
       }
     }
   };
