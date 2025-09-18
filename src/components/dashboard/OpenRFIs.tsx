@@ -12,7 +12,7 @@ export const OpenRFIs = () => {
   const { unreadCounts } = useNotificationContext();
 
   const openRFIs = rfis.filter(rfi => 
-    rfi.status === 'open' || rfi.status === 'submitted'
+    rfi.status === 'outstanding' || rfi.status === 'overdue'
   );
 
   const getPriorityColor = (priority: string) => {

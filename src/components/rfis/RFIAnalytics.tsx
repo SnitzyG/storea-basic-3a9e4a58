@@ -30,8 +30,8 @@ export const RFIAnalytics = ({ rfis }: RFIAnalyticsProps) => {
 
   // Status breakdown
   const statusCounts = {
-    outstanding: rfis.filter(rfi => rfi.status === 'open').length,
-    overdue: rfis.filter(rfi => rfi.status === 'submitted').length,
+    outstanding: rfis.filter(rfi => rfi.status === 'outstanding').length,
+    overdue: rfis.filter(rfi => rfi.status === 'overdue').length,
     answered: rfis.filter(rfi => rfi.status === 'answered').length,
     closed: rfis.filter(rfi => rfi.status === 'closed').length,
   };

@@ -222,7 +222,7 @@ export const EmailStyleRFIInbox: React.FC<EmailStyleRFIInboxProps> = ({
                     <Badge variant={statusConfig[rfi.status].variant}>
                       {statusConfig[rfi.status].label}
                     </Badge>
-                    {!rfi.response && rfi.status === 'open' && (
+                    {!rfi.response && rfi.status === 'outstanding' && (
                       <div className="w-2 h-2 bg-blue-500 rounded-full" />
                     )}
                   </div>

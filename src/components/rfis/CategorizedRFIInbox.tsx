@@ -98,7 +98,7 @@ export const CategorizedRFIInbox: React.FC<CategorizedRFIInboxProps> = ({
     const waitingOn = rfis.filter(rfi => rfi.raised_by === user.id);
     const needToRespond = rfis.filter(rfi => 
       rfi.assigned_to === user.id && 
-      (rfi.status === 'open' || rfi.status === 'submitted')
+      (rfi.status === 'outstanding' || rfi.status === 'overdue')
     );
 
     return { waitingOn, needToRespond };

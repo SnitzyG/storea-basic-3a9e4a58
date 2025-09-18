@@ -125,11 +125,11 @@ export const DashboardAnalytics = () => {
                 <div className="w-32 bg-muted rounded-full h-2">
                   <div 
                     className="bg-blue-500 h-2 rounded-full" 
-                    style={{ width: `${totalRFIs > 0 ? (rfis.filter(r => r.status === 'open').length / totalRFIs) * 100 : 0}%` }}
+                    style={{ width: `${totalRFIs > 0 ? (rfis.filter(r => r.status === 'outstanding').length / totalRFIs) * 100 : 0}%` }}
                   />
                 </div>
                 <span className="text-sm font-medium w-8">
-                  {rfis.filter(r => r.status === 'open').length}
+                  {rfis.filter(r => r.status === 'outstanding').length}
                 </span>
               </div>
             </div>
@@ -140,11 +140,11 @@ export const DashboardAnalytics = () => {
                 <div className="w-32 bg-muted rounded-full h-2">
                   <div 
                     className="bg-yellow-500 h-2 rounded-full" 
-                    style={{ width: `${totalRFIs > 0 ? (rfis.filter(r => r.status === 'submitted').length / totalRFIs) * 100 : 0}%` }}
+                    style={{ width: `${totalRFIs > 0 ? (rfis.filter(r => r.status === 'overdue').length / totalRFIs) * 100 : 0}%` }}
                   />
                 </div>
                 <span className="text-sm font-medium w-8">
-                  {rfis.filter(r => r.status === 'submitted').length}
+                  {rfis.filter(r => r.status === 'overdue').length}
                 </span>
               </div>
             </div>
