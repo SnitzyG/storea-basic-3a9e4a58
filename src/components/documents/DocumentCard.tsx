@@ -11,7 +11,9 @@ import {
   File,
   GitBranch,
   MessageSquare,
-  Users
+  Users,
+  Lock,
+  Globe
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -168,6 +170,21 @@ export const DocumentCard: React.FC<DocumentCardProps> = ({
                 <span className="flex items-center gap-1">
                   {getStatusIcon(documentGroup.status)}
                   {documentGroup.status.replace('_', ' ')}
+                </span>
+              </Badge>
+              
+              {/* Privacy Badge */}
+              <Badge 
+                variant={documentGroup.visibility_scope === 'private' ? 'default' : 'outline'} 
+                className="text-xs"
+              >
+                <span className="flex items-center gap-1">
+                  {documentGroup.visibility_scope === 'private' ? (
+                    <Lock className="h-3 w-3" />
+                  ) : (
+                    <Globe className="h-3 w-3" />
+                  )}
+                  {documentGroup.visibility_scope === 'private' ? 'Private' : 'Public'}
                 </span>
               </Badge>
               

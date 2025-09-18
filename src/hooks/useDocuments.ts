@@ -411,7 +411,7 @@ export const useDocuments = (projectId?: string) => {
         document_number: metadata?.documentNumber || null,
         file_type_category: metadata?.fileType || 'Architectural',
         version: newVersion,
-        visibility_scope: metadata?.isPrivate ? 'private' : 'project'
+        visibility_scope: metadata?.isPrivate ? 'private' : 'project' // Updated default to respect the private choice
       };
 
       console.log('Creating document record with MIME type:', {
