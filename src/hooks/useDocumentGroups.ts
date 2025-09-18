@@ -32,6 +32,7 @@ export interface DocumentRevision {
   file_extension?: string;
   uploaded_by: string;
   uploaded_by_name?: string;
+  uploaded_by_role?: string;
   changes_summary?: string;
   is_current: boolean;
   is_archived: boolean;
@@ -81,15 +82,15 @@ export const useDocumentGroups = (projectId?: string) => {
 
       // Get user names for uploaded_by
       const userIds = [...new Set(data?.map(group => group.current_revision?.uploaded_by).filter(Boolean) || [])];
-      let userNames: Record<string, string> = {};
+      let userNames: Record<string, { name: string; role: string }> = {};
       
       if (userIds.length > 0) {
         const { data: profiles } = await supabase
           .from('profiles')
-          .select('user_id, name')
+          .select('user_id, name, role')
           .in('user_id', userIds);
         
-        userNames = Object.fromEntries(profiles?.map(p => [p.user_id, p.name]) || []);
+        userNames = Object.fromEntries(profiles?.map(p => [p.user_id, { name: p.name, role: p.role }]) || []);
       }
 
       // Enhance data with user names
@@ -97,7 +98,8 @@ export const useDocumentGroups = (projectId?: string) => {
         ...group,
         current_revision: group.current_revision ? {
           ...group.current_revision,
-          uploaded_by_name: userNames[group.current_revision.uploaded_by] || 'Unknown User'
+          uploaded_by_name: userNames[group.current_revision.uploaded_by]?.name || 'Unknown User',
+          uploaded_by_role: userNames[group.current_revision.uploaded_by]?.role || 'unknown'
         } : null
       })) || [];
       

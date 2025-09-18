@@ -23,6 +23,9 @@ const Documents = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [selectedFileType, setSelectedFileType] = useState<string>('all');
+  const [selectedUploadedBy, setSelectedUploadedBy] = useState<string>('all');
+  const [selectedRevision, setSelectedRevision] = useState<string>('all');
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
   const [previewDocument, setPreviewDocument] = useState<DocumentGroup | null>(null);
   const [detailsDocument, setDetailsDocument] = useState<DocumentGroup | null>(null);
@@ -59,9 +62,20 @@ const Documents = () => {
       const matchesSearch = searchTerm === '' || searchFields.includes(searchTerm.toLowerCase());
       const matchesCategory = selectedCategory === 'all' || doc.category === selectedCategory;
       const matchesStatus = statusFilter === 'all' || doc.status === statusFilter;
-      return matchesSearch && matchesCategory && matchesStatus;
+      
+      // New filter logic
+      const matchesFileType = selectedFileType === 'all' || 
+        (doc.current_revision?.file_extension && doc.current_revision.file_extension.toLowerCase() === selectedFileType.toLowerCase());
+      
+      const matchesUploadedBy = selectedUploadedBy === 'all' || 
+        doc.current_revision?.uploaded_by === selectedUploadedBy;
+      
+      const matchesRevision = selectedRevision === 'all' || 
+        (doc.current_revision?.revision_number && doc.current_revision.revision_number.toString() === selectedRevision);
+      
+      return matchesSearch && matchesCategory && matchesStatus && matchesFileType && matchesUploadedBy && matchesRevision;
     });
-  }, [documents, searchTerm, selectedCategory, statusFilter]);
+  }, [documents, searchTerm, selectedCategory, statusFilter, selectedFileType, selectedUploadedBy, selectedRevision]);
   const canEditDocument = (document: any) => {
     return document.created_by === profile?.user_id;
   };
@@ -113,6 +127,41 @@ const Documents = () => {
     return counts;
   };
   const statusCounts = getStatusCounts();
+
+  // Compute available filter options from documents
+  const availableFileTypes = useMemo(() => {
+    const fileTypes = new Set<string>();
+    documents.forEach(doc => {
+      if (doc.current_revision?.file_extension) {
+        fileTypes.add(doc.current_revision.file_extension.toLowerCase());
+      }
+    });
+    return Array.from(fileTypes).sort();
+  }, [documents]);
+
+  const availableUploaders = useMemo(() => {
+    const uploaders = new Map<string, { id: string; name: string; role: string }>();
+    documents.forEach(doc => {
+      if (doc.current_revision?.uploaded_by && doc.current_revision?.uploaded_by_name) {
+        uploaders.set(doc.current_revision.uploaded_by, {
+          id: doc.current_revision.uploaded_by,
+          name: doc.current_revision.uploaded_by_name,
+          role: doc.current_revision.uploaded_by_role || 'User'
+        });
+      }
+    });
+    return Array.from(uploaders.values()).sort((a, b) => a.name.localeCompare(b.name));
+  }, [documents]);
+
+  const availableRevisions = useMemo(() => {
+    const revisions = new Set<number>();
+    documents.forEach(doc => {
+      if (doc.current_revision?.revision_number) {
+        revisions.add(doc.current_revision.revision_number);
+      }
+    });
+    return Array.from(revisions).sort((a, b) => a - b);
+  }, [documents]);
 
   // Auto-open upload dialog when navigated with state
   useEffect(() => {
@@ -280,12 +329,29 @@ const Documents = () => {
       {/* Filters */}
       <Card className="mb-6">
         <CardContent className="p-6">
-          <DocumentFilters searchTerm={searchTerm} onSearchChange={setSearchTerm} selectedCategory={selectedCategory} onCategoryChange={setSelectedCategory} selectedStatus={statusFilter} onStatusChange={setStatusFilter} documentCounts={{
-          total: statusCounts.all,
-          'For Tender': statusCounts['For Tender'],
-          'For Information': statusCounts['For Information'],
-          'For Construction': statusCounts['For Construction']
-        }} />
+          <DocumentFilters 
+            searchTerm={searchTerm} 
+            onSearchChange={setSearchTerm} 
+            selectedCategory={selectedCategory} 
+            onCategoryChange={setSelectedCategory} 
+            selectedStatus={statusFilter} 
+            onStatusChange={setStatusFilter}
+            selectedFileType={selectedFileType}
+            onFileTypeChange={setSelectedFileType}
+            selectedUploadedBy={selectedUploadedBy}
+            onUploadedByChange={setSelectedUploadedBy}
+            selectedRevision={selectedRevision}
+            onRevisionChange={setSelectedRevision}
+            documentCounts={{
+              total: statusCounts.all,
+              'For Tender': statusCounts['For Tender'],
+              'For Information': statusCounts['For Information'],
+              'For Construction': statusCounts['For Construction']
+            }}
+            availableFileTypes={availableFileTypes}
+            availableUploaders={availableUploaders}
+            availableRevisions={availableRevisions}
+          />
         </CardContent>
       </Card>
 
