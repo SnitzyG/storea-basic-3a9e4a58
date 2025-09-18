@@ -27,12 +27,14 @@ interface RFIResponsesViewerProps {
   rfi: RFI | null;
   isOpen: boolean;
   onClose: () => void;
+  onCreateResponse?: (rfi: RFI) => void;
 }
 
 export const RFIResponsesViewer: React.FC<RFIResponsesViewerProps> = ({
   rfi,
   isOpen,
-  onClose
+  onClose,
+  onCreateResponse
 }) => {
   const [responses, setResponses] = useState<RFIResponse[]>([]);
   const [loading, setLoading] = useState(false);
@@ -61,7 +63,8 @@ export const RFIResponsesViewer: React.FC<RFIResponsesViewerProps> = ({
         responder_position: 'RFI Initiator',
         response_date: rfi.created_at,
         created_at: rfi.created_at,
-        type: 'original'
+        type: 'original',
+        attachments: rfi.attachments || []
       });
       
       // Add actual responses if they exist
@@ -326,6 +329,16 @@ export const RFIResponsesViewer: React.FC<RFIResponsesViewerProps> = ({
               {isMinimized ? 'RFI Responses' : `RFI Responses - ${rfi.rfi_number || `RFI-${rfi.id.slice(0, 8)}`}`}
             </DialogTitle>
             <div className="flex items-center gap-2">
+              {onCreateResponse && (
+                <Button
+                  variant="default"
+                  size="sm"
+                  onClick={() => onCreateResponse(rfi)}
+                  title="Add Response"
+                >
+                  Add Response
+                </Button>
+              )}
               <Button
                 variant="ghost"
                 size="sm"

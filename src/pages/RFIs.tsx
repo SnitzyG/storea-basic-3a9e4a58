@@ -914,6 +914,11 @@ const RFIs = () => {
           setResponsesViewerOpen(false);
           setResponsesViewerRFI(null);
         }}
+        onCreateResponse={(rfi) => {
+          setResponsesViewerOpen(false);
+          setResponsesViewerRFI(null);
+          handleCreateResponse(rfi);
+        }}
       />
     </div>;
 };
