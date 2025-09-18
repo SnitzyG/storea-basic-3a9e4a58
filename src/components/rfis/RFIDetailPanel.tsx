@@ -65,34 +65,35 @@ export const RFIDetailPanel: React.FC<RFIDetailPanelProps> = ({ rfi }) => {
       </CardHeader>
       <CardContent className="space-y-6">
         {/* Email-style header */}
-        <div className="space-y-3 pb-4 border-b">
-          <div className="grid grid-cols-1 gap-2 text-sm">
-            <div>
-              <span className="font-medium text-muted-foreground">From:</span>{' '}
-              <span>{rfi.raised_by_profile?.name || rfi.sender_name || 'Unknown'}</span>
+        <div className="bg-muted/30 p-4 rounded-lg space-y-3 border">
+          <div className="space-y-2 text-sm">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="font-semibold text-muted-foreground min-w-[60px]">From:</span>
+              <span className="font-medium">{rfi.raised_by_profile?.name || rfi.sender_name || 'Unknown'}</span>
               {rfi.sender_email && (
-                <span className="text-muted-foreground ml-2">({rfi.sender_email})</span>
+                <span className="text-muted-foreground text-xs">({rfi.sender_email})</span>
               )}
             </div>
-            <div>
-              <span className="font-medium text-muted-foreground">To:</span>{' '}
-              <span>{rfi.assigned_to_profile?.name || rfi.recipient_name || 'Unassigned'}</span>
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="font-semibold text-muted-foreground min-w-[60px]">To:</span>
+              <span className="font-medium">{rfi.assigned_to_profile?.name || rfi.recipient_name || 'Unassigned'}</span>
               {rfi.recipient_email && (
-                <span className="text-muted-foreground ml-2">({rfi.recipient_email})</span>
+                <span className="text-muted-foreground text-xs">({rfi.recipient_email})</span>
               )}
             </div>
-            <div>
-              <span className="font-medium text-muted-foreground">Project:</span>{' '}
-              <span>{rfi.project_name || 'N/A'}</span>
+            {/* CC field placeholder for future enhancement */}
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="font-semibold text-muted-foreground min-w-[60px]">Project:</span>
+              <span className="font-medium">{rfi.project_name || 'N/A'}</span>
             </div>
-            <div>
-              <span className="font-medium text-muted-foreground">Date:</span>{' '}
-              <span>{format(new Date(rfi.created_at), 'EEEE, MMMM d, yyyy \'at\' h:mm a')}</span>
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="font-semibold text-muted-foreground min-w-[60px]">Date:</span>
+              <span className="font-medium">{format(new Date(rfi.created_at), 'EEEE, MMMM d, yyyy \'at\' h:mm a')}</span>
             </div>
             {(rfi.due_date || rfi.required_response_by) && (
-              <div>
-                <span className="font-medium text-muted-foreground">Response Due:</span>{' '}
-                <span>{format(new Date(rfi.due_date || rfi.required_response_by), 'EEEE, MMMM d, yyyy')}</span>
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="font-semibold text-muted-foreground min-w-[60px]">Due:</span>
+                <span className="font-medium text-orange-600">{format(new Date(rfi.due_date || rfi.required_response_by), 'EEEE, MMMM d, yyyy')}</span>
               </div>
             )}
           </div>
