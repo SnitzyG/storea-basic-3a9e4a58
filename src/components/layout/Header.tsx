@@ -1,3 +1,4 @@
+import React, { useState, useEffect } from 'react';
 import { User } from '@supabase/supabase-js';
 import { Profile } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
@@ -9,14 +10,18 @@ import { useTheme } from '@/context/ThemeContext';
 import { NotificationCenter } from '@/components/notifications/NotificationCenter';
 import { ProjectSelector } from './ProjectSelector';
 import { ManageProfileDialog } from '@/components/profile/ManageProfileDialog';
+import { supabase } from '@/integrations/supabase/client';
+
 interface HeaderProps {
   user: User;
   profile?: Profile | null;
 }
+
 export const Header = ({
   user,
   profile
 }: HeaderProps) => {
+  const [companyName, setCompanyName] = useState<string | null>(null);
   const {
     signOut
   } = useAuth();
@@ -24,13 +29,41 @@ export const Header = ({
     theme,
     toggleTheme
   } = useTheme();
+
+  // Fetch company name if profile has company_id
+  useEffect(() => {
+    const fetchCompanyName = async () => {
+      if (profile?.company_id) {
+        try {
+          const { data, error } = await supabase
+            .from('companies')
+            .select('name')
+            .eq('id', profile.company_id)
+            .single();
+          
+          if (error) throw error;
+          setCompanyName(data?.name || null);
+        } catch (error) {
+          console.error('Error fetching company name:', error);
+          setCompanyName(null);
+        }
+      } else {
+        setCompanyName(null);
+      }
+    };
+
+    fetchCompanyName();
+  }, [profile?.company_id]);
+
   const initials = ((profile?.name || user.email || 'U')
     .split(' ')
     .map((n) => n[0])
     .join('') || 'U')
     .toUpperCase()
     .slice(0, 2);
-  return <header className="h-16 border-b border-border bg-card px-6 flex items-center justify-between">
+
+  return (
+    <header className="h-16 border-b border-border bg-card px-6 flex items-center justify-between">
       <div className="flex items-center gap-4">
         <ProjectSelector />
       </div>
@@ -60,6 +93,11 @@ export const Header = ({
                 <p className="text-xs leading-none text-muted-foreground capitalize">
                   {(profile?.role ?? 'member')}
                 </p>
+                {companyName && (
+                  <p className="text-xs leading-none text-muted-foreground pt-1 border-t border-border/50 mt-2">
+                    <span className="font-medium">Company:</span> {companyName}
+                  </p>
+                )}
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
@@ -77,5 +115,6 @@ export const Header = ({
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
-    </header>;
+    </header>
+  );
 };

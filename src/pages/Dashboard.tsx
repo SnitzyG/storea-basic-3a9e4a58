@@ -119,6 +119,7 @@ const Dashboard = () => {
         </div>
       </div>
 
+      {/* Global Search Component */}
       <GlobalSearch open={searchOpen} onOpenChange={setSearchOpen} />
     </div>
   );

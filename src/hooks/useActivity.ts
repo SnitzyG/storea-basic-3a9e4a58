@@ -40,17 +40,18 @@ export const useActivity = () => {
 
       const projectIds = projectUsers?.map(pu => pu.project_id) || [];
 
-      // Fetch activities from all user's projects + general activities
+      // Fetch recent activities (limit to 5 for better performance and UX)
       let query = supabase
         .from('activity_log')
         .select('*')
         .order('created_at', { ascending: false })
-        .limit(50);
+        .limit(5);
 
+      // Filter to show activities by or affecting the user
       if (projectIds.length > 0) {
-        query = query.or(`project_id.is.null,project_id.in.(${projectIds.join(',')})`);
+        query = query.or(`user_id.eq.${user.id},project_id.in.(${projectIds.join(',')}),project_id.is.null`);
       } else {
-        query = query.is('project_id', null);
+        query = query.eq('user_id', user.id);
       }
 
       const { data: activitiesData, error } = await query;
