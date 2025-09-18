@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -10,6 +10,7 @@ import { RFI } from '@/hooks/useRFIs';
 import { RFIStatusBadge, EnhancedRFIStatus } from './RFIStatusBadge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { CalendarDays, User, FileText } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
 
 interface RFIResponseComposerProps {
   rfi: RFI;
@@ -25,6 +26,7 @@ interface RFIResponseComposerProps {
 }
 
 export const RFIResponseComposer = ({ rfi, isOpen, onClose, onSubmit }: RFIResponseComposerProps) => {
+  const { profile } = useAuth();
   const [response, setResponse] = useState('');
   const [responderName, setResponderName] = useState('');
   const [responderPosition, setResponderPosition] = useState('');
@@ -32,6 +34,14 @@ export const RFIResponseComposer = ({ rfi, isOpen, onClose, onSubmit }: RFIRespo
   const [newPriority, setNewPriority] = useState<'low' | 'medium' | 'high' | 'critical'>(rfi.priority);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [saveAsDraft, setSaveAsDraft] = useState(false);
+
+  // Auto-populate responder details from user profile when dialog opens
+  useEffect(() => {
+    if (isOpen && profile) {
+      setResponderName(profile.name || '');
+      setResponderPosition(profile.role ? profile.role.charAt(0).toUpperCase() + profile.role.slice(1) : '');
+    }
+  }, [isOpen, profile]);
 
   const handleSubmit = async (isDraft: boolean = false) => {
     if (!response.trim() && !isDraft) return;
@@ -152,22 +162,28 @@ export const RFIResponseComposer = ({ rfi, isOpen, onClose, onSubmit }: RFIRespo
             
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="responderName">Responder Name (Optional)</Label>
+                <Label htmlFor="responderName">Responder Name</Label>
                 <Input
                   id="responderName"
                   value={responderName}
                   onChange={(e) => setResponderName(e.target.value)}
                   placeholder="Your name"
                 />
+                <p className="text-xs text-muted-foreground">
+                  Auto-populated from your profile
+                </p>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="responderPosition">Position/Title (Optional)</Label>
+                <Label htmlFor="responderPosition">Position/Title</Label>
                 <Input
                   id="responderPosition"
                   value={responderPosition}
                   onChange={(e) => setResponderPosition(e.target.value)}
                   placeholder="Your position or title"
                 />
+                <p className="text-xs text-muted-foreground">
+                  Auto-populated from your profile role
+                </p>
               </div>
             </div>
 
