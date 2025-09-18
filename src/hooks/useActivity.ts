@@ -23,6 +23,8 @@ export interface ActivityItem {
 
 export const useActivity = () => {
   const [activities, setActivities] = useState<ActivityItem[]>([]);
+  const [allActivities, setAllActivities] = useState<ActivityItem[]>([]);
+  const [dismissedActivityIds, setDismissedActivityIds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
 
@@ -40,12 +42,12 @@ export const useActivity = () => {
 
       const projectIds = projectUsers?.map(pu => pu.project_id) || [];
 
-      // Fetch recent activities (limit to 4 for better performance and UX)
+      // Fetch more activities to account for dismissed ones (limit to 20 to get enough for filtering)
       let query = supabase
         .from('activity_log')
         .select('*')
         .order('created_at', { ascending: false })
-        .limit(4);
+        .limit(20);
 
       // Filter to show activities by or affecting the user
       if (projectIds.length > 0) {
@@ -90,7 +92,14 @@ export const useActivity = () => {
         project: activity.project_id ? projectMap.get(activity.project_id) : undefined,
       })) as ActivityItem[];
 
-      setActivities(enrichedActivities);
+      setAllActivities(enrichedActivities);
+      
+      // Filter out dismissed activities and take only 4
+      const visibleActivities = enrichedActivities
+        .filter(activity => !dismissedActivityIds.has(activity.id))
+        .slice(0, 4);
+      
+      setActivities(visibleActivities);
     } catch (error) {
       console.error('Error fetching activities:', error);
       setActivities([]);
@@ -122,6 +131,20 @@ export const useActivity = () => {
       console.error('Error logging activity:', error);
     }
   };
+
+  const dismissActivity = (activityId: string) => {
+    setDismissedActivityIds(prev => new Set([...prev, activityId]));
+  };
+
+  // Update visible activities when dismissed items change
+  useEffect(() => {
+    if (allActivities.length > 0) {
+      const visibleActivities = allActivities
+        .filter(activity => !dismissedActivityIds.has(activity.id))
+        .slice(0, 4);
+      setActivities(visibleActivities);
+    }
+  }, [dismissedActivityIds, allActivities]);
 
   useEffect(() => {
     fetchActivities();
@@ -155,6 +178,7 @@ export const useActivity = () => {
     activities,
     loading,
     logActivity,
+    dismissActivity,
     refetch: fetchActivities,
   };
 };

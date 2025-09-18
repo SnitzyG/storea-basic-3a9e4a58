@@ -21,7 +21,8 @@ import {
   ExternalLink,
   Calendar,
   CheckSquare,
-  MoreHorizontal
+  MoreHorizontal,
+  X
 } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
@@ -54,7 +55,7 @@ const entityTypeColors = {
 };
 
 export const RecentActivity = () => {
-  const { activities, loading } = useActivity();
+  const { activities, loading, dismissActivity } = useActivity();
   const navigate = useNavigate();
   const { toast } = useToast();
   const { addTodo } = useTodos();
@@ -210,6 +211,18 @@ export const RecentActivity = () => {
                         </div>
                         
                         <div className="flex items-center gap-1">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              dismissActivity(activity.id);
+                            }}
+                          >
+                            <X className="h-3 w-3" />
+                          </Button>
+                          
                           <Button
                             variant="ghost"
                             size="sm"
