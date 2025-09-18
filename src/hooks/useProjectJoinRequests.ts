@@ -27,6 +27,8 @@ export interface ProjectJoinRequest {
     avatar_url?: string;
     role: string;
   };
+  // Track if current user is the project creator for this request
+  is_project_creator?: boolean;
 }
 
 export const useProjectJoinRequests = () => {
@@ -75,7 +77,8 @@ export const useProjectJoinRequests = () => {
           return {
             ...request,
             requester: profile,
-            project: request.projects
+            project: request.projects,
+            is_project_creator: true // Mark as requests I need to approve
           };
         })
       );
@@ -89,7 +92,8 @@ export const useProjectJoinRequests = () => {
         ...(requesterRequests || []).map(req => ({
           ...req,
           project: req.projects,
-          status: req.status as 'pending' | 'approved' | 'rejected'
+          status: req.status as 'pending' | 'approved' | 'rejected',
+          is_project_creator: false // Mark as my own requests
         }))
       ];
 

@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -38,12 +39,22 @@ export const ProjectJoinSection: React.FC<ProjectJoinSectionProps> = ({ classNam
   const [myRequestsOpen, setMyRequestsOpen] = useState(true);
   const [requestsForApprovalOpen, setRequestsForApprovalOpen] = useState(true);
   
+  const { profile } = useAuth();
   const { 
     joinRequests, 
     loading, 
     submitJoinRequest, 
     respondToJoinRequest 
   } = useProjectJoinRequests();
+
+  // Auto-fill from user profile on component mount
+  useEffect(() => {
+    if (profile) {
+      setName(profile.name || '');
+      setCompany(profile.company_name || '');
+      setRole(profile.role || '');
+    }
+  }, [profile]);
 
   const handleSubmitRequest = async () => {
     if (!projectCode.trim() || !name.trim() || !role) return;
@@ -90,9 +101,13 @@ export const ProjectJoinSection: React.FC<ProjectJoinSectionProps> = ({ classNam
 
   // Filter requests properly - requests for approval are where I'm the project creator
   const requestsForMyApproval = joinRequests.filter(req => 
-    req.project?.name && req.status === 'pending' && req.requester_id
+    (req as any).is_project_creator && req.status === 'pending'
   );
-  const myRequests = joinRequests.filter(req => req.requester_id);
+  
+  // Show only requests made by the current user
+  const myRequests = joinRequests.filter(req => 
+    !(req as any).is_project_creator
+  );
 
   return (
     <div className={`space-y-6 ${className}`}>
@@ -126,7 +141,12 @@ export const ProjectJoinSection: React.FC<ProjectJoinSectionProps> = ({ classNam
                 placeholder="Enter your full name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
+                readOnly={!!profile?.name}
+                className={profile?.name ? "bg-muted" : ""}
               />
+              {profile?.name && (
+                <p className="text-xs text-muted-foreground">Auto-filled from your profile</p>
+              )}
             </div>
             
             <div className="space-y-2">
@@ -135,25 +155,31 @@ export const ProjectJoinSection: React.FC<ProjectJoinSectionProps> = ({ classNam
                 placeholder="Your company name"
                 value={company}
                 onChange={(e) => setCompany(e.target.value)}
+                readOnly={!!profile?.company_name}
+                className={profile?.company_name ? "bg-muted" : ""}
               />
+              {profile?.company_name && (
+                <p className="text-xs text-muted-foreground">Auto-filled from your profile</p>
+              )}
             </div>
           </div>
           
           <div className="space-y-2">
             <label className="text-sm font-medium">Role *</label>
-            <Select value={role} onValueChange={setRole}>
-              <SelectTrigger>
+            <Select value={role} onValueChange={setRole} disabled={!!profile?.role}>
+              <SelectTrigger className={profile?.role ? "bg-muted" : ""}>
                 <SelectValue placeholder="Select your role" />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value="architect">Architect</SelectItem>
+                <SelectItem value="builder">Builder</SelectItem>
+                <SelectItem value="homeowner">Homeowner</SelectItem>
                 <SelectItem value="contractor">Contractor</SelectItem>
-                <SelectItem value="subcontractor">Subcontractor</SelectItem>
-                <SelectItem value="consultant">Consultant</SelectItem>
-                <SelectItem value="engineer">Engineer</SelectItem>
-                <SelectItem value="surveyor">Surveyor</SelectItem>
-                <SelectItem value="other">Other</SelectItem>
               </SelectContent>
             </Select>
+            {profile?.role && (
+              <p className="text-xs text-muted-foreground">Auto-filled from your profile</p>
+            )}
           </div>
           
           <div className="space-y-2">

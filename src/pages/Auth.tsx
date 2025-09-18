@@ -364,10 +364,6 @@ const Auth = () => {
                     <Label htmlFor="confirm-password">Confirm Password</Label>
                     <Input id="confirm-password" type="password" placeholder="Confirm your password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} required />
                   </div>
-                   <div className="space-y-2">
-                     <Label htmlFor="company">Company</Label>
-                     <Input id="company" type="text" placeholder="Enter your company name" value={company} onChange={e => setCompany(e.target.value)} />
-                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="role">Your Role</Label>
                     <Select value={role} onValueChange={setRole} required>
@@ -381,7 +377,24 @@ const Auth = () => {
                       </SelectContent>
                     </Select>
                   </div>
-                   <Button type="submit" className="w-full" disabled={isSubmitting || !role}>
+                  {role && role !== 'homeowner' && (
+                    <div className="space-y-2">
+                      <Label htmlFor="company">Company *</Label>
+                      <Input 
+                        id="company" 
+                        type="text" 
+                        placeholder="Enter your company name" 
+                        value={company} 
+                        onChange={e => setCompany(e.target.value)} 
+                        required={role !== 'homeowner'}
+                      />
+                    </div>
+                  )}
+                   <Button 
+                     type="submit" 
+                     className="w-full" 
+                     disabled={isSubmitting || !role || (role !== 'homeowner' && !company.trim())}
+                   >
                      {isSubmitting ? 'Creating account...' : 'Create Account'}
                    </Button>
                 </form>
