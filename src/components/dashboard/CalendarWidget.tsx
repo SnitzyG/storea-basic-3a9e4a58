@@ -538,12 +538,17 @@ export const CalendarWidget = () => {
                     <div className="space-y-2">
                       <Label>Related Information</Label>
                       <div className="space-y-2">
-                        <Select value={relatedType} onValueChange={(value: 'document' | 'rfi' | 'message' | '') => setRelatedType(value)}>
+                        <Select
+                          value={relatedType === '' ? 'none' : relatedType}
+                          onValueChange={(value: 'document' | 'rfi' | 'message' | 'none') =>
+                            setRelatedType(value === 'none' ? '' : (value as 'document' | 'rfi' | 'message'))
+                          }
+                        >
                           <SelectTrigger>
                             <SelectValue placeholder="Select type..." />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="">None</SelectItem>
+                            <SelectItem value="none">None</SelectItem>
                             <SelectItem value="document">Document</SelectItem>
                             <SelectItem value="rfi">RFI</SelectItem>
                             <SelectItem value="message">Message</SelectItem>
@@ -551,15 +556,18 @@ export const CalendarWidget = () => {
                         </Select>
                         
                         {relatedType === 'document' && (
-                          <Select value={attachedDocument} onValueChange={setAttachedDocument}>
+                          <Select
+                            value={attachedDocument === '' ? 'none' : attachedDocument}
+                            onValueChange={(v) => setAttachedDocument(v === 'none' ? '' : v)}
+                          >
                             <SelectTrigger>
                               <SelectValue placeholder="Select a document..." />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="">No document</SelectItem>
+                              <SelectItem value="none">No document</SelectItem>
                               {documents.length > 0 ? (
                                 documents.map((doc) => (
-                                  <SelectItem key={doc.id} value={doc.id || ""}>
+                                  <SelectItem key={doc.id} value={doc.id}>
                                     <div className="flex items-center gap-2">
                                       <Paperclip className="h-4 w-4" />
                                       {doc.name || 'Untitled Document'}
@@ -574,14 +582,17 @@ export const CalendarWidget = () => {
                         )}
 
                         {relatedType === 'rfi' && (
-                          <Select value={attachedRFI} onValueChange={setAttachedRFI}>
+                          <Select
+                            value={attachedRFI === '' ? 'none' : attachedRFI}
+                            onValueChange={(v) => setAttachedRFI(v === 'none' ? '' : v)}
+                          >
                             <SelectTrigger>
                               <SelectValue placeholder="Select an RFI..." />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="">No RFI</SelectItem>
+                              <SelectItem value="none">No RFI</SelectItem>
                               {rfis.map((rfi) => (
-                                <SelectItem key={rfi.id} value={rfi.id || ""}>
+                                <SelectItem key={rfi.id} value={rfi.id}>
                                   {rfi.rfi_number || rfi.subject || 'Untitled RFI'}
                                 </SelectItem>
                               ))}
@@ -590,15 +601,18 @@ export const CalendarWidget = () => {
                         )}
 
                         {relatedType === 'message' && (
-                          <Select value={attachedMessage} onValueChange={setAttachedMessage}>
+                          <Select
+                            value={attachedMessage === '' ? 'none' : attachedMessage}
+                            onValueChange={(v) => setAttachedMessage(v === 'none' ? '' : v)}
+                          >
                             <SelectTrigger>
                               <SelectValue placeholder="Select a message..." />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="">No message</SelectItem>
+                              <SelectItem value="none">No message</SelectItem>
                               {messages.length > 0 ? (
                                 messages.map((message) => (
-                                  <SelectItem key={message.id} value={message.id || ""}>
+                                  <SelectItem key={message.id} value={message.id}>
                                     {(message.content?.substring(0, 50) || 'Empty message') + (message.content && message.content.length > 50 ? '...' : '')}
                                   </SelectItem>
                                 ))

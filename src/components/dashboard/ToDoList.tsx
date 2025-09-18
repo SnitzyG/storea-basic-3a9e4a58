@@ -489,12 +489,17 @@ export const ToDoList = () => {
                 <div>
                   <Label>Related Information</Label>
                   <div className="space-y-2 mt-1">
-                    <Select value={relatedType} onValueChange={(value: 'document' | 'rfi' | 'message' | '') => setRelatedType(value)}>
+                    <Select
+                      value={relatedType === '' ? 'none' : relatedType}
+                      onValueChange={(value: 'document' | 'rfi' | 'message' | 'none') =>
+                        setRelatedType(value === 'none' ? '' : (value as 'document' | 'rfi' | 'message'))
+                      }
+                    >
                       <SelectTrigger>
                         <SelectValue placeholder="Select type..." />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">None</SelectItem>
+                        <SelectItem value="none">None</SelectItem>
                         <SelectItem value="document">Document</SelectItem>
                         <SelectItem value="rfi">RFI</SelectItem>
                         <SelectItem value="message">Message</SelectItem>
