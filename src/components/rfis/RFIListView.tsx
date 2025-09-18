@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { ArrowUpDown, Eye, Download, MoreHorizontal, MessageSquare, CheckSquare, Square } from 'lucide-react';
+import { ArrowUpDown, Eye, Download, MoreHorizontal, MessageSquare, CheckSquare, Square, Send } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -22,6 +22,7 @@ interface RFIListViewProps {
   selectedRFI?: RFI | null;
   onDoubleClick?: (rfi: RFI) => void;
   onUpdateRFI?: (rfiId: string, updates: Partial<RFI>) => Promise<void>;
+  onSendDraft?: (rfi: RFI) => void;
   projectUsers?: any[];
   showQuickActions?: boolean;
   selectedRFIIds?: string[];
@@ -58,6 +59,7 @@ export const RFIListView: React.FC<RFIListViewProps> = ({
   selectedRFI,
   onDoubleClick,
   onUpdateRFI,
+  onSendDraft,
   projectUsers = [],
   showQuickActions = false,
   selectedRFIIds = [],
@@ -264,6 +266,12 @@ export const RFIListView: React.FC<RFIListViewProps> = ({
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="bg-background border">
+                    {rfi.status === 'draft' && onSendDraft && (
+                      <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onSendDraft(rfi); }}>
+                        <Send className="h-3 w-3 mr-2" />
+                        Send RFI
+                      </DropdownMenuItem>
+                    )}
                     <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onView(rfi); }}>
                       <Eye className="h-3 w-3 mr-2" />
                       View Details

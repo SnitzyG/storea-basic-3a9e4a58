@@ -99,9 +99,15 @@ const RFIs = () => {
 
     switch (selectedInboxCategory) {
       case 'sent':
-        return projectRFIs.filter(rfi => rfi.raised_by === currentUserId);
+        return projectRFIs.filter(rfi => 
+          rfi.raised_by === currentUserId && 
+          rfi.status !== 'draft' // Exclude drafts from sent
+        );
       case 'received':
-        return projectRFIs.filter(rfi => rfi.assigned_to === currentUserId);
+        return projectRFIs.filter(rfi => 
+          rfi.assigned_to === currentUserId && 
+          rfi.status !== 'draft' // Exclude drafts from received
+        );
       case 'unresponded':
         return projectRFIs.filter(rfi => 
           rfi.raised_by === currentUserId && 
@@ -116,7 +122,7 @@ const RFIs = () => {
         return projectRFIs.filter(rfi => rfi.status === 'draft');
       case 'all':
       default:
-        return projectRFIs;
+        return projectRFIs.filter(rfi => rfi.status !== 'draft'); // Exclude drafts from all project RFIs
     }
   }, [projectRFIs, selectedInboxCategory, profile?.user_id]);
 
@@ -294,9 +300,9 @@ const RFIs = () => {
     if (!currentUserId) return { all: 0, sent: 0, received: 0, unresponded: 0, responded: 0, drafts: 0 };
 
     return {
-      all: projectRFIs.length,
-      sent: projectRFIs.filter(rfi => rfi.raised_by === currentUserId).length,
-      received: projectRFIs.filter(rfi => rfi.assigned_to === currentUserId).length,
+      all: projectRFIs.filter(rfi => rfi.status !== 'draft').length, // Exclude drafts from all count
+      sent: projectRFIs.filter(rfi => rfi.raised_by === currentUserId && rfi.status !== 'draft').length,
+      received: projectRFIs.filter(rfi => rfi.assigned_to === currentUserId && rfi.status !== 'draft').length,
       unresponded: projectRFIs.filter(rfi => 
         rfi.raised_by === currentUserId && 
         ['open', 'submitted'].includes(rfi.status)
@@ -371,6 +377,17 @@ const RFIs = () => {
   const handleReplyToRFI = (rfi: RFI) => {
     setReplyToRFI(rfi);
     setSimplifiedComposerOpen(true);
+  };
+
+  // Handler for sending draft RFIs
+  const handleSendDraft = async (rfi: RFI) => {
+    try {
+      await updateRFI(rfi.id, {
+        status: 'outstanding' // Change status from draft to outstanding (sent)
+      });
+    } catch (error) {
+      console.error('Error sending draft RFI:', error);
+    }
   };
 
   // Phase 3: Updated double-click handler - now opens responses viewer
@@ -844,6 +861,7 @@ const RFIs = () => {
                 selectedRFI={selectedRFIForDetail}
                 onDoubleClick={handleDoubleClickRFI}
                 onUpdateRFI={handleUpdateRFI}
+                onSendDraft={handleSendDraft}
                 projectUsers={projectUsers}
               />
             </div>
