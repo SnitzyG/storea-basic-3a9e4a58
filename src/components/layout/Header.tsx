@@ -4,12 +4,9 @@ import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useAuth } from '@/hooks/useAuth';
-import { LogOut, User as UserIcon, Bell, Search } from 'lucide-react';
-import { useNotifications } from '@/hooks/useNotifications';
+import { LogOut, User as UserIcon } from 'lucide-react';
 import { useTheme } from '@/context/ThemeContext';
-import { Badge } from '@/components/ui/badge';
 import { NotificationCenter } from '@/components/notifications/NotificationCenter';
-import { RealtimeIndicator } from '@/components/ui/realtime-indicator';
 import { ProjectSelector } from './ProjectSelector';
 import { ManageProfileDialog } from '@/components/profile/ManageProfileDialog';
 interface HeaderProps {
@@ -23,9 +20,6 @@ export const Header = ({
   const {
     signOut
   } = useAuth();
-  const {
-    unreadCount
-  } = useNotifications();
   const {
     theme,
     toggleTheme
@@ -42,8 +36,6 @@ export const Header = ({
       </div>
 
       <div className="flex items-center gap-4">
-        
-        <RealtimeIndicator />
         <NotificationCenter />
 
         <Button variant="ghost" size="sm" onClick={toggleTheme} title={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}>

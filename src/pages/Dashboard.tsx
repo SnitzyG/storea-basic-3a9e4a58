@@ -55,7 +55,7 @@ const Dashboard = () => {
               </div>
             </div>
             
-            {/* Action Buttons */}
+            {/* Quick Actions */}
             <div className="flex flex-wrap items-center gap-2">
               <Button 
                 size="sm" 
@@ -84,19 +84,6 @@ const Dashboard = () => {
                 <Upload className="h-3 w-3" />
                 <span className="hidden sm:inline">Upload</span>
               </Button>
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={() => setSearchOpen(true)} 
-                className="gap-2 h-8"
-              >
-                <Search className="h-3 w-3" />
-                <span className="hidden sm:inline">Search</span>
-                <kbd className="hidden sm:inline pointer-events-none ml-1 h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100">
-                  ⌘K
-                </kbd>
-              </Button>
-              <NotificationCenter />
             </div>
           </div>
         </div>
