@@ -40,12 +40,12 @@ export const useActivity = () => {
 
       const projectIds = projectUsers?.map(pu => pu.project_id) || [];
 
-      // Fetch recent activities (limit to 5 for better performance and UX)
+      // Fetch recent activities (limit to 4 for better performance and UX)
       let query = supabase
         .from('activity_log')
         .select('*')
         .order('created_at', { ascending: false })
-        .limit(5);
+        .limit(4);
 
       // Filter to show activities by or affecting the user
       if (projectIds.length > 0) {
