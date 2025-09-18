@@ -74,53 +74,109 @@ export const ToDoList = () => {
   const generatePDF = () => {
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.width;
+    const pageHeight = doc.internal.pageSize.height;
     
-    // Add title
-    doc.setFontSize(20);
-    doc.text('To-Do List', pageWidth / 2, 20, { align: 'center' });
+    // Header with enhanced styling
+    doc.setFillColor(59, 130, 246); // Blue background
+    doc.rect(0, 0, pageWidth, 40, 'F');
     
-    // Add date range
+    // Add title with white text
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(24);
+    doc.setFont('helvetica', 'bold');
+    doc.text('To-Do List Report', pageWidth / 2, 25, { align: 'center' });
+    
+    // Add project details if available
     doc.setFontSize(12);
+    doc.setFont('helvetica', 'normal');
+    if (selectedProject) {
+      doc.text(`Project: ${selectedProject.name}`, pageWidth / 2, 35, { align: 'center' });
+    }
+    
+    // Reset text color and add date range
+    doc.setTextColor(0, 0, 0);
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
     const startDate = getDateRangeStart();
     const endDate = getDateRangeEnd();
-    doc.text(`${format(startDate, 'PPP')} - ${format(endDate, 'PPP')}`, pageWidth / 2, 30, { align: 'center' });
+    doc.text(`Period: ${format(startDate, 'PPP')} - ${format(endDate, 'PPP')}`, pageWidth / 2, 55, { align: 'center' });
+    
+    // Add generation timestamp
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(100, 100, 100);
+    doc.text(`Generated on ${format(new Date(), 'PPP p')}`, pageWidth / 2, 62, { align: 'center' });
     
     // Filter todos in date range
     const todosInRange = todos.filter(todo => {
-      if (!todo.due_date) return exportFormat === 'day'; // Include undated todos only for day export
+      if (!todo.due_date) return exportFormat === 'day';
       const todoDate = new Date(todo.due_date);
       return todoDate >= startDate && todoDate <= endDate;
     });
     
+    // Add summary box
+    let yPosition = 75;
+    doc.setTextColor(0, 0, 0);
+    doc.setDrawColor(200, 200, 200);
+    doc.setFillColor(248, 250, 252);
+    doc.roundedRect(15, yPosition, pageWidth - 30, 25, 2, 2, 'FD');
+    
+    const pendingCount = todosInRange.filter(todo => !todo.completed).length;
+    const completedCount = todosInRange.filter(todo => todo.completed).length;
+    
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Summary:', 20, yPosition + 8);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`Total Tasks: ${todosInRange.length} | Pending: ${pendingCount} | Completed: ${completedCount}`, 20, yPosition + 18);
+    
+    yPosition += 40;
+    
     // Add pending todos
-    let yPosition = 50;
     const pendingTodos = todosInRange.filter(todo => !todo.completed);
     
     if (pendingTodos.length > 0) {
       doc.setFontSize(16);
-      doc.text('Pending Tasks:', 20, yPosition);
-      yPosition += 10;
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(220, 38, 38); // Red color for pending
+      doc.text('📋 Pending Tasks', 20, yPosition);
+      yPosition += 15;
       
-      pendingTodos.forEach((todo) => {
-        if (yPosition > 270) {
+      pendingTodos.forEach((todo, index) => {
+        if (yPosition > pageHeight - 40) {
           doc.addPage();
-          yPosition = 20;
+          yPosition = 30;
         }
         
-        doc.setFontSize(11);
-        doc.text(`☐ ${todo.content}`, 20, yPosition);
-        yPosition += 6;
+        // Task box
+        doc.setDrawColor(220, 38, 38);
+        doc.setFillColor(254, 242, 242);
+        doc.roundedRect(15, yPosition - 5, pageWidth - 30, 20, 1, 1, 'FD');
         
-        doc.setFontSize(9);
+        doc.setTextColor(0, 0, 0);
+        doc.setFontSize(12);
+        doc.setFont('helvetica', 'bold');
+        doc.text(`${index + 1}. ☐ ${todo.content}`, 20, yPosition + 5);
+        yPosition += 12;
+        
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(100, 100, 100);
+        
+        const details = [];
         if (todo.due_date) {
-          doc.text(`Due: ${format(new Date(todo.due_date), 'PPP p')}`, 25, yPosition);
-          yPosition += 5;
+          details.push(`Due: ${format(new Date(todo.due_date), 'PPP p')}`);
         }
         if (todo.priority !== 'medium') {
-          doc.text(`Priority: ${todo.priority}`, 25, yPosition);
-          yPosition += 5;
+          const priorityColor = todo.priority === 'high' ? '🔴' : '🟡';
+          details.push(`${priorityColor} Priority: ${todo.priority.toUpperCase()}`);
         }
-        yPosition += 3;
+        
+        if (details.length > 0) {
+          doc.text(details.join(' | '), 25, yPosition + 5);
+          yPosition += 8;
+        }
+        yPosition += 10;
       });
     }
     
@@ -128,40 +184,61 @@ export const ToDoList = () => {
     const completedTodos = todosInRange.filter(todo => todo.completed);
     if (completedTodos.length > 0) {
       yPosition += 10;
-      if (yPosition > 250) {
+      if (yPosition > pageHeight - 60) {
         doc.addPage();
-        yPosition = 20;
+        yPosition = 30;
       }
       
       doc.setFontSize(16);
-      doc.text('Completed Tasks:', 20, yPosition);
-      yPosition += 10;
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(34, 197, 94); // Green color for completed
+      doc.text('✅ Completed Tasks', 20, yPosition);
+      yPosition += 15;
       
-      completedTodos.forEach((todo) => {
-        if (yPosition > 270) {
+      completedTodos.forEach((todo, index) => {
+        if (yPosition > pageHeight - 40) {
           doc.addPage();
-          yPosition = 20;
+          yPosition = 30;
         }
         
-        doc.setFontSize(11);
-        doc.text(`☑ ${todo.content}`, 20, yPosition);
-        yPosition += 6;
+        // Task box
+        doc.setDrawColor(34, 197, 94);
+        doc.setFillColor(240, 253, 244);
+        doc.roundedRect(15, yPosition - 5, pageWidth - 30, 15, 1, 1, 'FD');
         
-        doc.setFontSize(9);
+        doc.setTextColor(0, 0, 0);
+        doc.setFontSize(12);
+        doc.setFont('helvetica', 'bold');
+        doc.text(`${index + 1}. ☑ ${todo.content}`, 20, yPosition + 5);
+        yPosition += 12;
+        
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(100, 100, 100);
         if (todo.due_date) {
-          doc.text(`Due: ${format(new Date(todo.due_date), 'PPP p')}`, 25, yPosition);
-          yPosition += 5;
+          doc.text(`Completed: ${format(new Date(todo.due_date), 'PPP p')}`, 25, yPosition + 3);
+          yPosition += 8;
         }
-        yPosition += 3;
+        yPosition += 8;
       });
     }
     
     if (todosInRange.length === 0) {
-      doc.setFontSize(12);
-      doc.text('No tasks in this date range', 20, yPosition);
+      doc.setFontSize(14);
+      doc.setTextColor(100, 100, 100);
+      doc.text('📝 No tasks found in this date range', pageWidth / 2, yPosition, { align: 'center' });
     }
     
-    doc.save(`todos-${exportFormat}-${format(new Date(), 'yyyy-MM-dd')}.pdf`);
+    // Footer
+    doc.setFontSize(8);
+    doc.setTextColor(150, 150, 150);
+    doc.text('Generated by STOREA Lite', pageWidth / 2, pageHeight - 10, { align: 'center' });
+    
+    const filename = selectedProject 
+      ? `${selectedProject.name}-todos-${exportFormat}-${format(new Date(), 'yyyy-MM-dd')}.pdf`
+      : `todos-${exportFormat}-${format(new Date(), 'yyyy-MM-dd')}.pdf`;
+    
+    doc.save(filename);
     
     toast({
       title: "Success",
@@ -430,11 +507,15 @@ export const ToDoList = () => {
                           <SelectValue placeholder="Select document..." />
                         </SelectTrigger>
                         <SelectContent>
-                          {documents.map((doc) => (
-                            <SelectItem key={doc.id} value={doc.name}>
-                              {doc.name}
-                            </SelectItem>
-                          ))}
+                          {documents.length > 0 ? (
+                            documents.map((doc) => (
+                              <SelectItem key={doc.id} value={doc.name || 'Untitled Document'}>
+                                {doc.name || 'Untitled Document'}
+                              </SelectItem>
+                            ))
+                          ) : (
+                            <SelectItem value="no-documents" disabled>No documents available</SelectItem>
+                          )}
                         </SelectContent>
                       </Select>
                     )}
@@ -445,11 +526,15 @@ export const ToDoList = () => {
                           <SelectValue placeholder="Select RFI..." />
                         </SelectTrigger>
                         <SelectContent>
-                          {rfis.map((rfi) => (
-                            <SelectItem key={rfi.id} value={rfi.rfi_number || rfi.subject || 'Untitled'}>
-                              {rfi.rfi_number || rfi.subject || 'Untitled RFI'}
-                            </SelectItem>
-                          ))}
+                          {rfis.length > 0 ? (
+                            rfis.map((rfi) => (
+                              <SelectItem key={rfi.id} value={rfi.rfi_number || rfi.subject || 'Untitled RFI'}>
+                                {rfi.rfi_number || rfi.subject || 'Untitled RFI'}
+                              </SelectItem>
+                            ))
+                          ) : (
+                            <SelectItem value="no-rfis" disabled>No RFIs available</SelectItem>
+                          )}
                         </SelectContent>
                       </Select>
                     )}
@@ -460,11 +545,15 @@ export const ToDoList = () => {
                           <SelectValue placeholder="Select message..." />
                         </SelectTrigger>
                         <SelectContent>
-                          {messages.map((message) => (
-                            <SelectItem key={message.id} value={message.content.substring(0, 50)}>
-                              {message.content.substring(0, 50)}...
-                            </SelectItem>
-                          ))}
+                          {messages.length > 0 ? (
+                            messages.map((message) => (
+                              <SelectItem key={message.id} value={message.content?.substring(0, 50) || 'Empty message'}>
+                                {(message.content?.substring(0, 50) || 'Empty message') + (message.content && message.content.length > 50 ? '...' : '')}
+                              </SelectItem>
+                            ))
+                          ) : (
+                            <SelectItem value="no-messages" disabled>No messages available</SelectItem>
+                          )}
                         </SelectContent>
                       </Select>
                     )}

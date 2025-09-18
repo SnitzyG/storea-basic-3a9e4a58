@@ -74,16 +74,38 @@ export const CalendarWidget = () => {
   const generatePDF = () => {
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.width;
+    const pageHeight = doc.internal.pageSize.height;
     
-    // Add title
-    doc.setFontSize(20);
-    doc.text('Calendar Events', pageWidth / 2, 20, { align: 'center' });
+    // Header with enhanced styling
+    doc.setFillColor(139, 69, 19); // Brown calendar theme
+    doc.rect(0, 0, pageWidth, 40, 'F');
     
-    // Add date range
+    // Add title with white text
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(24);
+    doc.setFont('helvetica', 'bold');
+    doc.text('📅 Calendar Events Report', pageWidth / 2, 25, { align: 'center' });
+    
+    // Add project details if available
     doc.setFontSize(12);
+    doc.setFont('helvetica', 'normal');
+    if (selectedProject) {
+      doc.text(`Project: ${selectedProject.name}`, pageWidth / 2, 35, { align: 'center' });
+    }
+    
+    // Reset text color and add date range
+    doc.setTextColor(0, 0, 0);
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
     const startDate = getDateRangeStart();
     const endDate = getDateRangeEnd();
-    doc.text(`${format(startDate, 'PPP')} - ${format(endDate, 'PPP')}`, pageWidth / 2, 30, { align: 'center' });
+    doc.text(`Period: ${format(startDate, 'PPP')} - ${format(endDate, 'PPP')}`, pageWidth / 2, 55, { align: 'center' });
+    
+    // Add generation timestamp
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(100, 100, 100);
+    doc.text(`Generated on ${format(new Date(), 'PPP p')}`, pageWidth / 2, 62, { align: 'center' });
     
     // Get events in date range
     const eventsInRange = todos.filter(todo => {
@@ -92,41 +114,119 @@ export const CalendarWidget = () => {
       return todoDate >= startDate && todoDate <= endDate;
     });
     
-    // Add events
-    let yPosition = 50;
-    if (eventsInRange.length > 0) {
-      doc.setFontSize(14);
-      doc.text('Events:', 20, yPosition);
-      yPosition += 10;
+    // Add summary box
+    let yPosition = 75;
+    doc.setTextColor(0, 0, 0);
+    doc.setDrawColor(200, 200, 200);
+    doc.setFillColor(248, 250, 252);
+    doc.roundedRect(15, yPosition, pageWidth - 30, 25, 2, 2, 'FD');
+    
+    const meetingCount = eventsInRange.filter(todo => todo.content.includes('Meeting:')).length;
+    const eventCount = eventsInRange.length - meetingCount;
+    
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Summary:', 20, yPosition + 8);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`Total Events: ${eventsInRange.length} | Meetings: ${meetingCount} | Other Events: ${eventCount}`, 20, yPosition + 18);
+    
+    yPosition += 40;
+    
+    // Group events by date
+    const eventsByDate = new Map();
+    eventsInRange.forEach(todo => {
+      const dateKey = format(new Date(todo.due_date!), 'yyyy-MM-dd');
+      if (!eventsByDate.has(dateKey)) {
+        eventsByDate.set(dateKey, []);
+      }
+      eventsByDate.get(dateKey).push(todo);
+    });
+    
+    // Sort dates
+    const sortedDates = Array.from(eventsByDate.keys()).sort();
+    
+    if (sortedDates.length > 0) {
+      doc.setFontSize(16);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(139, 69, 19);
+      doc.text('📋 Events by Date', 20, yPosition);
+      yPosition += 20;
       
-      eventsInRange.forEach((todo) => {
-        if (yPosition > 270) {
+      sortedDates.forEach(dateKey => {
+        const dayEvents = eventsByDate.get(dateKey);
+        
+        if (yPosition > pageHeight - 60) {
           doc.addPage();
-          yPosition = 20;
+          yPosition = 30;
         }
         
-        doc.setFontSize(11);
-        const dateStr = todo.due_date ? format(new Date(todo.due_date), 'PPP p') : 'No date';
-        doc.text(`• ${dateStr}`, 20, yPosition);
-        yPosition += 6;
+        // Date header
+        doc.setDrawColor(139, 69, 19);
+        doc.setFillColor(245, 245, 220);
+        doc.roundedRect(15, yPosition - 8, pageWidth - 30, 18, 2, 2, 'FD');
         
-        doc.setFontSize(10);
-        const lines = doc.splitTextToSize(todo.content, pageWidth - 40);
-        doc.text(lines, 25, yPosition);
-        yPosition += lines.length * 4 + 5;
+        doc.setTextColor(139, 69, 19);
+        doc.setFontSize(14);
+        doc.setFont('helvetica', 'bold');
+        const dateObj = new Date(dateKey);
+        doc.text(`📅 ${format(dateObj, 'EEEE, MMMM d, yyyy')}`, 20, yPosition + 2);
+        yPosition += 25;
         
-        if (todo.priority !== 'medium') {
-          doc.text(`Priority: ${todo.priority}`, 25, yPosition);
-          yPosition += 6;
-        }
-        yPosition += 5;
+        dayEvents.forEach((todo, index) => {
+          if (yPosition > pageHeight - 40) {
+            doc.addPage();
+            yPosition = 30;
+          }
+          
+          // Event box
+          const isMeeting = todo.content.includes('Meeting:');
+          doc.setDrawColor(isMeeting ? 34 : 59, isMeeting ? 197 : 130, isMeeting ? 94 : 246);
+          doc.setFillColor(isMeeting ? 240 : 239, isMeeting ? 253 : 246, isMeeting ? 244 : 255);
+          doc.roundedRect(20, yPosition - 5, pageWidth - 40, 25, 1, 1, 'FD');
+          
+          // Event icon and title
+          doc.setTextColor(0, 0, 0);
+          doc.setFontSize(12);
+          doc.setFont('helvetica', 'bold');
+          const eventIcon = isMeeting ? '🤝' : '📌';
+          const eventTime = todo.due_date ? format(new Date(todo.due_date), 'h:mm a') : 'All Day';
+          doc.text(`${eventIcon} ${eventTime}`, 25, yPosition + 5);
+          
+          // Event content
+          doc.setFontSize(11);
+          doc.setFont('helvetica', 'normal');
+          const contentLines = doc.splitTextToSize(todo.content, pageWidth - 70);
+          doc.text(contentLines, 25, yPosition + 12);
+          
+          // Priority indicator
+          if (todo.priority && todo.priority !== 'medium') {
+            doc.setFontSize(9);
+            doc.setFont('helvetica', 'bold');
+            const priorityColor = todo.priority === 'high' ? '🔴' : '🟡';
+            doc.text(`${priorityColor} ${todo.priority.toUpperCase()} PRIORITY`, 25, yPosition + 20);
+          }
+          
+          yPosition += 35;
+        });
+        
+        yPosition += 10;
       });
     } else {
-      doc.setFontSize(12);
-      doc.text('No events in this date range', 20, yPosition);
+      doc.setFontSize(14);
+      doc.setTextColor(100, 100, 100);
+      doc.text('📅 No events found in this date range', pageWidth / 2, yPosition, { align: 'center' });
     }
     
-    doc.save(`calendar-${exportFormat}-${format(new Date(), 'yyyy-MM-dd')}.pdf`);
+    // Footer
+    doc.setFontSize(8);
+    doc.setTextColor(150, 150, 150);
+    doc.text('Generated by STOREA Lite', pageWidth / 2, pageHeight - 10, { align: 'center' });
+    
+    const filename = selectedProject 
+      ? `${selectedProject.name}-calendar-${exportFormat}-${format(new Date(), 'yyyy-MM-dd')}.pdf`
+      : `calendar-${exportFormat}-${format(new Date(), 'yyyy-MM-dd')}.pdf`;
+    
+    doc.save(filename);
     
     toast({
       title: "Success",
@@ -457,14 +557,18 @@ export const CalendarWidget = () => {
                             </SelectTrigger>
                             <SelectContent>
                               <SelectItem value="">No document</SelectItem>
-                              {documents.map((doc) => (
-                                <SelectItem key={doc.id} value={doc.id || ""}>
-                                  <div className="flex items-center gap-2">
-                                    <Paperclip className="h-4 w-4" />
-                                    {doc.name}
-                                  </div>
-                                </SelectItem>
-                              ))}
+                              {documents.length > 0 ? (
+                                documents.map((doc) => (
+                                  <SelectItem key={doc.id} value={doc.id || ""}>
+                                    <div className="flex items-center gap-2">
+                                      <Paperclip className="h-4 w-4" />
+                                      {doc.name || 'Untitled Document'}
+                                    </div>
+                                  </SelectItem>
+                                ))
+                              ) : (
+                                <SelectItem value="no-documents" disabled>No documents available</SelectItem>
+                              )}
                             </SelectContent>
                           </Select>
                         )}
@@ -492,11 +596,15 @@ export const CalendarWidget = () => {
                             </SelectTrigger>
                             <SelectContent>
                               <SelectItem value="">No message</SelectItem>
-                              {messages.map((message) => (
-                                <SelectItem key={message.id} value={message.id || ""}>
-                                  {message.content.substring(0, 50)}...
-                                </SelectItem>
-                              ))}
+                              {messages.length > 0 ? (
+                                messages.map((message) => (
+                                  <SelectItem key={message.id} value={message.id || ""}>
+                                    {(message.content?.substring(0, 50) || 'Empty message') + (message.content && message.content.length > 50 ? '...' : '')}
+                                  </SelectItem>
+                                ))
+                              ) : (
+                                <SelectItem value="no-messages" disabled>No messages available</SelectItem>
+                              )}
                             </SelectContent>
                           </Select>
                         )}
