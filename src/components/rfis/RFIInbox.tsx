@@ -129,7 +129,7 @@ export const RFIInbox = ({
     },
     {
       id: 'answered',
-      label: 'Answered',
+      label: 'Answered', 
       icon: CheckCircle,
       description: 'RFIs that have been answered'
     },
