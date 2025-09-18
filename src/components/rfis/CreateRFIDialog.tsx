@@ -81,7 +81,7 @@ export const CreateRFIDialog: React.FC<CreateRFIDialogProps> = ({
       }));
     }
   }, [open, currentProject, profile, user]);
-  const rfiCategories = ['General', 'Structural', 'Mechanical', 'Electrical', 'Plumbing', 'HVAC', 'Fire Safety', 'Code Compliance', 'Materials', 'Schedule', 'Other'];
+  const rfiCategories = ['General Correspondence', 'Request for Information', 'General Advice'];
 
   // Handle recipient selection
   const handleRecipientChange = (value: string) => {
@@ -318,6 +318,23 @@ export const CreateRFIDialog: React.FC<CreateRFIDialogProps> = ({
               </div>
 
               
+            </div>
+
+            <div>
+              <Label htmlFor="rfi-type">RFI Type</Label>
+              <Select value={formData.category} onValueChange={(value: any) => setFormData(prev => ({
+              ...prev,
+              category: value
+            }))}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select RFI type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="General Correspondence">General Correspondence</SelectItem>
+                  <SelectItem value="Request for Information">Request for Information</SelectItem>
+                  <SelectItem value="General Advice">General Advice</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             <div>
