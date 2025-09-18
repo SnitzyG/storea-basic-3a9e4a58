@@ -23,8 +23,25 @@ export const ManageProfileDialog = ({ children }: ManageProfileDialogProps) => {
   const [companyName, setCompanyName] = useState('');
   const [companyPosition, setCompanyPosition] = useState('');
   const [companyAddress, setCompanyAddress] = useState('');
+  const [linkedCompanyName, setLinkedCompanyName] = useState<string | null>(null);
   const { user, profile } = useAuth();
   const { toast } = useToast();
+
+  const fetchLinkedCompany = async (companyId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('companies')
+        .select('name')
+        .eq('id', companyId)
+        .single();
+      
+      if (error) throw error;
+      setLinkedCompanyName(data.name);
+    } catch (error) {
+      console.error('Error fetching company:', error);
+      setLinkedCompanyName(null);
+    }
+  };
 
   React.useEffect(() => {
     if (profile) {
@@ -33,6 +50,13 @@ export const ManageProfileDialog = ({ children }: ManageProfileDialogProps) => {
       setCompanyName(profile.company_name || '');
       setCompanyPosition(profile.company_position || '');
       setCompanyAddress(profile.company_address || '');
+      
+      // Fetch linked company name if company_id exists
+      if (profile.company_id) {
+        fetchLinkedCompany(profile.company_id);
+      } else {
+        setLinkedCompanyName(null);
+      }
     }
     if (user) {
       setResetPasswordEmail(user.email || '');
@@ -183,33 +207,44 @@ export const ManageProfileDialog = ({ children }: ManageProfileDialogProps) => {
                 <Building2 className="h-4 w-4" />
                 Company Information
               </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <Label htmlFor="company-name">Company Name</Label>
-                <Input
-                  id="company-name"
-                  value={companyName}
-                  onChange={(e) => setCompanyName(e.target.value)}
-                  placeholder="Enter company name"
-                />
-              </div>
-              <div>
-                <Label htmlFor="company-position">Position/Title</Label>
-                <Input
-                  id="company-position"
-                  value={companyPosition}
-                  onChange={(e) => setCompanyPosition(e.target.value)}
-                  placeholder="Enter your position or title"
-                />
-              </div>
-              <div>
-                <Label htmlFor="company-address">Company Address</Label>
-                <Input
-                  id="company-address"
-                  value={companyAddress}
-                  onChange={(e) => setCompanyAddress(e.target.value)}
-                  placeholder="Enter company address"
+             </CardHeader>
+             <CardContent className="space-y-4">
+               {/* Show linked company from signup */}
+               {linkedCompanyName && (
+                 <div className="p-3 bg-muted/50 rounded-lg border">
+                   <Label className="text-sm font-medium">Linked Company (from signup)</Label>
+                   <p className="text-sm text-foreground mt-1">{linkedCompanyName}</p>
+                   <p className="text-xs text-muted-foreground mt-1">
+                     This company was automatically linked when you signed up
+                   </p>
+                 </div>
+               )}
+               
+               <div>
+                 <Label htmlFor="company-name">Additional Company Details</Label>
+                 <Input
+                   id="company-name"
+                   value={companyName}
+                   onChange={(e) => setCompanyName(e.target.value)}
+                   placeholder="Additional company information"
+                 />
+               </div>
+               <div>
+                 <Label htmlFor="company-position">Position/Title</Label>
+                 <Input
+                   id="company-position"
+                   value={companyPosition}
+                   onChange={(e) => setCompanyPosition(e.target.value)}
+                   placeholder="Enter your position or title"
+                 />
+               </div>
+               <div>
+                 <Label htmlFor="company-address">Company Address</Label>
+                 <Input
+                   id="company-address"
+                   value={companyAddress}
+                   onChange={(e) => setCompanyAddress(e.target.value)}
+                   placeholder="Enter company address"
                 />
               </div>
             </CardContent>

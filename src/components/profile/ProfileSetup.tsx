@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -16,10 +16,32 @@ export const ProfileSetup: React.FC<ProfileSetupProps> = ({ onComplete }) => {
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
-    role: 'contractor' as 'homeowner' | 'builder' | 'contractor' | 'architect'
+    role: 'contractor' as 'homeowner' | 'builder' | 'contractor' | 'architect',
+    company: ''
   });
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
+
+  // Initialize form data from signup metadata
+  useEffect(() => {
+    const initializeFromSignup = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user?.user_metadata) {
+          setFormData(prev => ({
+            ...prev,
+            name: user.user_metadata.name || '',
+            role: user.user_metadata.role || 'contractor',
+            company: user.user_metadata.company || ''
+          }));
+        }
+      } catch (error) {
+        console.error('Error loading signup data:', error);
+      }
+    };
+    
+    initializeFromSignup();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,6 +52,8 @@ export const ProfileSetup: React.FC<ProfileSetupProps> = ({ onComplete }) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('No authenticated user');
 
+      // The handle_new_user trigger will automatically handle company creation/linking
+      // based on the signup metadata, so we just need to create/update the profile
       const { error } = await supabase
         .from('profiles')
         .upsert({
@@ -118,6 +142,22 @@ export const ProfileSetup: React.FC<ProfileSetupProps> = ({ onComplete }) => {
                   <SelectItem value="contractor">Contractor</SelectItem>
                 </SelectContent>
               </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="company">Company Name</Label>
+              <Input
+                id="company"
+                value={formData.company}
+                onChange={(e) => setFormData(prev => ({ ...prev, company: e.target.value }))}
+                placeholder="Enter your company name (optional)"
+                disabled={!!formData.company} // Disable if pre-filled from signup
+              />
+              {formData.company && (
+                <p className="text-xs text-muted-foreground">
+                  Company information from signup
+                </p>
+              )}
             </div>
 
             <Button type="submit" disabled={loading || !formData.name.trim()} className="w-full">

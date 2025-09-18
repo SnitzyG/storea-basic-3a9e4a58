@@ -13,9 +13,10 @@ import { ProductionReadinessTester } from '@/components/testing/ProductionReadin
 import { SystemHealthMonitor } from '@/components/testing/SystemHealthMonitor';
 import { FinalProductionValidator } from '@/components/testing/FinalProductionValidator';
 import { EmailMonitoringDashboard } from '@/components/admin/EmailMonitoringDashboard';
+import { CompanyDisplay } from '@/components/companies/CompanyDisplay';
 
 import { useAuth } from '@/hooks/useAuth';
-import { TestTube, Activity, Shield, CheckCircle, AlertTriangle, Bug, Monitor, Zap, Rocket } from 'lucide-react';
+import { TestTube, Activity, Shield, CheckCircle, AlertTriangle, Bug, Monitor, Zap, Rocket, Building2 } from 'lucide-react';
   const Testing = () => {
 
   const { profile } = useAuth();
@@ -165,6 +166,10 @@ import { TestTube, Activity, Shield, CheckCircle, AlertTriangle, Bug, Monitor, Z
 
         <TabsContent value="production" className="space-y-6">
           <ProductionReadinessTester />
+        </TabsContent>
+
+        <TabsContent value="companies" className="space-y-6">
+          <CompanyDisplay />
         </TabsContent>
 
         <TabsContent value="health" className="space-y-6">
