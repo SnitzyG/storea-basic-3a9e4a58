@@ -108,19 +108,7 @@ export const RFIBulkActions = ({
   };
 
   if (selectedRFIIds.length === 0) {
-    return (
-      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={handleSelectAll}
-          className="h-8 w-8 p-0"
-        >
-          <Square className="h-4 w-4" />
-        </Button>
-        <span>Select RFIs for bulk actions</span>
-      </div>
-    );
+    return null;
   }
 
   return (
