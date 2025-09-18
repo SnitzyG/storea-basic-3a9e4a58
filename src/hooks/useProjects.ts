@@ -111,8 +111,9 @@ export const useProjects = () => {
 
   const createProject = async (projectData: {
     name: string;
+    project_type?: string;
     address?: string;
-    budget?: number;
+    budget?: string;
     description?: string;
     estimated_start_date?: string;
     estimated_finish_date?: string;
@@ -126,11 +127,32 @@ export const useProjects = () => {
     }>;
   }) => {
     try {
-      const { collaborators, ...projectCreateData } = projectData;
+      const { collaborators, budget, ...projectCreateData } = projectData;
+      
+      // Convert budget range to number for database storage
+      // Extract the middle value from budget ranges for database storage
+      let budgetNumber: number | undefined = undefined;
+      if (budget) {
+        if (budget === "Under $100,000") {
+          budgetNumber = 50000;
+        } else if (budget === "$2,500,000+") {
+          budgetNumber = 2500000;
+        } else {
+          // Extract numbers from range like "$100,000 – $200,000"
+          const matches = budget.match(/\$([0-9,]+)/g);
+          if (matches && matches.length >= 2) {
+            const lower = parseInt(matches[0].replace(/[$,]/g, ''));
+            const upper = parseInt(matches[1].replace(/[$,]/g, ''));
+            budgetNumber = (lower + upper) / 2;
+          }
+        }
+      }
+      
       const { data, error } = await supabase
         .from('projects')
         .insert([{
           ...projectCreateData,
+          budget: budgetNumber,
           created_by: (await supabase.auth.getUser()).data.user?.id,
           company_id: null // Allow projects without company association
         }])

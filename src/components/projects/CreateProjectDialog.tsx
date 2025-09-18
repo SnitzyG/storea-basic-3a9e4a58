@@ -29,9 +29,13 @@ export const CreateProjectDialog = ({ children }: CreateProjectDialogProps) => {
   const [open, setOpen] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
-    address: '',
-    budget: '',
+    project_type: '',
     description: '',
+    budget: '',
+    street_number: '',
+    street_name: '',
+    suburb: '',
+    postcode: '',
     estimated_start_date: undefined as Date | undefined,
     estimated_finish_date: undefined as Date | undefined,
     homeowner_name: '',
@@ -57,10 +61,10 @@ export const CreateProjectDialog = ({ children }: CreateProjectDialogProps) => {
     e.preventDefault();
 
     // Validation for required fields
-    if (!formData.estimated_start_date || !formData.estimated_finish_date || !formData.homeowner_name || !formData.homeowner_phone || !formData.homeowner_email) {
+    if (!formData.estimated_start_date || !formData.estimated_finish_date || !formData.homeowner_name || !formData.homeowner_phone || !formData.homeowner_email || !formData.project_type || !formData.budget) {
       toast({
         title: "Missing Required Fields",
-        description: "Please fill in all required fields including dates, homeowner name, phone number, and email.",
+        description: "Please fill in all required fields including project type, budget, dates, homeowner name, phone number, and email.",
         variant: "destructive"
       });
       return;
@@ -92,8 +96,9 @@ export const CreateProjectDialog = ({ children }: CreateProjectDialogProps) => {
     try {
       const project = await createProject({
         name: formData.name,
-        address: formData.address || undefined,
-        budget: formData.budget ? parseFloat(formData.budget) : undefined,
+        project_type: formData.project_type,
+        address: `${formData.street_number} ${formData.street_name}, ${formData.suburb} ${formData.postcode}`.trim(),
+        budget: formData.budget,
         description: formData.description || undefined,
         estimated_start_date: formData.estimated_start_date.toISOString().split('T')[0],
         estimated_finish_date: formData.estimated_finish_date.toISOString().split('T')[0],
@@ -105,9 +110,13 @@ export const CreateProjectDialog = ({ children }: CreateProjectDialogProps) => {
       
       setFormData({ 
         name: '', 
-        address: '', 
-        budget: '', 
+        project_type: '',
         description: '',
+        budget: '',
+        street_number: '',
+        street_name: '',
+        suburb: '',
+        postcode: '',
         estimated_start_date: undefined,
         estimated_finish_date: undefined,
         homeowner_name: '',
@@ -181,13 +190,22 @@ export const CreateProjectDialog = ({ children }: CreateProjectDialogProps) => {
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="address">Address</Label>
-                <Input
-                  id="address"
-                  value={formData.address}
-                  onChange={(e) => handleInputChange('address', e.target.value)}
-                  placeholder="Enter project address"
-                />
+                <Label htmlFor="project_type">Project Type *</Label>
+                <Select value={formData.project_type} onValueChange={(value) => handleInputChange('project_type', value)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select project type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="detached_home">Detached Home</SelectItem>
+                    <SelectItem value="duplex">Duplex</SelectItem>
+                    <SelectItem value="townhouse">Townhouse</SelectItem>
+                    <SelectItem value="apartment">Apartment</SelectItem>
+                    <SelectItem value="villa">Villa</SelectItem>
+                    <SelectItem value="renovation">Renovation</SelectItem>
+                    <SelectItem value="extension">Extension</SelectItem>
+                    <SelectItem value="commercial">Commercial</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 
@@ -203,15 +221,88 @@ export const CreateProjectDialog = ({ children }: CreateProjectDialogProps) => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="budget">Budget</Label>
-              <Input
-                id="budget"
-                type="number"
-                step="0.01"
-                value={formData.budget}
-                onChange={(e) => handleInputChange('budget', e.target.value)}
-                placeholder="Enter budget amount"
-              />
+              <Label htmlFor="budget">Budget *</Label>
+              <Select value={formData.budget} onValueChange={(value) => handleInputChange('budget', value)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select budget range" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Under $100,000">Under $100,000</SelectItem>
+                  <SelectItem value="$100,000 – $200,000">$100,000 – $200,000</SelectItem>
+                  <SelectItem value="$200,000 – $300,000">$200,000 – $300,000</SelectItem>
+                  <SelectItem value="$300,000 – $400,000">$300,000 – $400,000</SelectItem>
+                  <SelectItem value="$400,000 – $500,000">$400,000 – $500,000</SelectItem>
+                  <SelectItem value="$500,000 – $600,000">$500,000 – $600,000</SelectItem>
+                  <SelectItem value="$600,000 – $700,000">$600,000 – $700,000</SelectItem>
+                  <SelectItem value="$700,000 – $800,000">$700,000 – $800,000</SelectItem>
+                  <SelectItem value="$800,000 – $900,000">$800,000 – $900,000</SelectItem>
+                  <SelectItem value="$900,000 – $1,000,000">$900,000 – $1,000,000</SelectItem>
+                  <SelectItem value="$1,000,000 – $1,100,000">$1,000,000 – $1,100,000</SelectItem>
+                  <SelectItem value="$1,100,000 – $1,200,000">$1,100,000 – $1,200,000</SelectItem>
+                  <SelectItem value="$1,200,000 – $1,300,000">$1,200,000 – $1,300,000</SelectItem>
+                  <SelectItem value="$1,300,000 – $1,400,000">$1,300,000 – $1,400,000</SelectItem>
+                  <SelectItem value="$1,400,000 – $1,500,000">$1,400,000 – $1,500,000</SelectItem>
+                  <SelectItem value="$1,500,000 – $1,600,000">$1,500,000 – $1,600,000</SelectItem>
+                  <SelectItem value="$1,600,000 – $1,700,000">$1,600,000 – $1,700,000</SelectItem>
+                  <SelectItem value="$1,700,000 – $1,800,000">$1,700,000 – $1,800,000</SelectItem>
+                  <SelectItem value="$1,800,000 – $1,900,000">$1,800,000 – $1,900,000</SelectItem>
+                  <SelectItem value="$1,900,000 – $2,000,000">$1,900,000 – $2,000,000</SelectItem>
+                  <SelectItem value="$2,000,000 – $2,100,000">$2,000,000 – $2,100,000</SelectItem>
+                  <SelectItem value="$2,100,000 – $2,200,000">$2,100,000 – $2,200,000</SelectItem>
+                  <SelectItem value="$2,200,000 – $2,300,000">$2,200,000 – $2,300,000</SelectItem>
+                  <SelectItem value="$2,300,000 – $2,400,000">$2,300,000 – $2,400,000</SelectItem>
+                  <SelectItem value="$2,400,000 – $2,500,000">$2,400,000 – $2,500,000</SelectItem>
+                  <SelectItem value="$2,500,000+">$2,500,000+</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            {/* Project Address */}
+            <div className="space-y-4">
+              <h4 className="text-md font-medium">Project Address</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="street_number">Street Number</Label>
+                  <Input
+                    id="street_number"
+                    value={formData.street_number}
+                    onChange={(e) => handleInputChange('street_number', e.target.value)}
+                    placeholder="123"
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="street_name">Street Name</Label>
+                  <Input
+                    id="street_name"
+                    value={formData.street_name}
+                    onChange={(e) => handleInputChange('street_name', e.target.value)}
+                    placeholder="Main Street"
+                  />
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="suburb">Suburb</Label>
+                  <Input
+                    id="suburb"
+                    value={formData.suburb}
+                    onChange={(e) => handleInputChange('suburb', e.target.value)}
+                    placeholder="Sydney"
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="postcode">Postcode</Label>
+                  <Input
+                    id="postcode"
+                    value={formData.postcode}
+                    onChange={(e) => handleInputChange('postcode', e.target.value)}
+                    placeholder="2000"
+                  />
+                </div>
+              </div>
             </div>
           </div>
 
@@ -435,7 +526,7 @@ export const CreateProjectDialog = ({ children }: CreateProjectDialogProps) => {
             </Button>
             <Button 
               type="submit" 
-              disabled={loading || !formData.name || !formData.estimated_start_date || !formData.estimated_finish_date || !formData.homeowner_name || !formData.homeowner_phone || !formData.homeowner_email}
+              disabled={loading || !formData.name || !formData.project_type || !formData.budget || !formData.estimated_start_date || !formData.estimated_finish_date || !formData.homeowner_name || !formData.homeowner_phone || !formData.homeowner_email}
             >
               {loading ? 'Creating...' : 'Create Project'}
             </Button>
