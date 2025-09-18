@@ -42,6 +42,8 @@ const RFIs = () => {
   const [projectUsers, setProjectUsers] = useState<any[]>([]);
   const [selectedInboxCategory, setSelectedInboxCategory] = useState<RFIInboxCategory>('all');
   const [selectedStatusFilter, setSelectedStatusFilter] = useState<import('@/components/rfis/RFIInbox').RFIStatusFilter>('all');
+  const [selectedTypeFilter, setSelectedTypeFilter] = useState<import('@/components/rfis/RFIInbox').RFITypeFilter>('all');
+  const [selectedPriorityFilter, setSelectedPriorityFilter] = useState<import('@/components/rfis/RFIInbox').RFIPriorityFilter>('all');
   const [smartFilters, setSmartFilters] = useState<SmartFilters>({
     searchQuery: '',
     sortBy: 'created_at',
@@ -141,11 +143,27 @@ const RFIs = () => {
     return filteredRFIs.filter(rfi => mappedStatuses.includes(rfi.status));
   }, [filteredRFIs, selectedStatusFilter]);
 
+  // Apply type filtering
+  const typeFilteredRFIs = useMemo(() => {
+    if (selectedTypeFilter === 'all') {
+      return statusFilteredRFIs;
+    }
+    return statusFilteredRFIs.filter(rfi => rfi.category === selectedTypeFilter);
+  }, [statusFilteredRFIs, selectedTypeFilter]);
+
+  // Apply priority filtering
+  const priorityFilteredRFIs = useMemo(() => {
+    if (selectedPriorityFilter === 'all') {
+      return typeFilteredRFIs;
+    }
+    return typeFilteredRFIs.filter(rfi => rfi.priority === selectedPriorityFilter);
+  }, [typeFilteredRFIs, selectedPriorityFilter]);
+
   // Apply smart filters and sorting to the status filtered RFIs
   const processedRFIs = useMemo(() => {
     console.log('Processing RFIs with filters:', smartFilters);
-    console.log('Starting with', statusFilteredRFIs.length, 'RFIs after status filtering');
-    let result = [...statusFilteredRFIs];
+    console.log('Starting with', priorityFilteredRFIs.length, 'RFIs after all filtering');
+    let result = [...priorityFilteredRFIs];
 
     // Apply search filter
     if (smartFilters.searchQuery) {
@@ -232,7 +250,7 @@ const RFIs = () => {
 
     console.log('Final processed RFIs count:', result.length);
     return result;
-  }, [statusFilteredRFIs, smartFilters]);
+  }, [priorityFilteredRFIs, smartFilters]);
 
   // Saved views management
   const handleSaveView = (name: string, filters: SmartFilters) => {
@@ -315,6 +333,27 @@ const RFIs = () => {
       rejected: projectRFIs.filter(rfi => statusMapping.rejected.includes(rfi.status)).length,
       closed: projectRFIs.filter(rfi => statusMapping.closed.includes(rfi.status)).length,
       void: projectRFIs.filter(rfi => statusMapping.void.includes(rfi.status)).length
+    };
+  }, [projectRFIs]);
+
+  // Calculate counts for each type
+  const typeCounts = useMemo(() => {
+    return {
+      all: projectRFIs.length,
+      General: projectRFIs.filter(rfi => rfi.category === 'General').length,
+      'Request for Information': projectRFIs.filter(rfi => rfi.category === 'Request for Information').length,
+      Advice: projectRFIs.filter(rfi => rfi.category === 'Advice').length
+    };
+  }, [projectRFIs]);
+
+  // Calculate counts for each priority
+  const priorityCounts = useMemo(() => {
+    return {
+      all: projectRFIs.length,
+      low: projectRFIs.filter(rfi => rfi.priority === 'low').length,
+      medium: projectRFIs.filter(rfi => rfi.priority === 'medium').length,
+      high: projectRFIs.filter(rfi => rfi.priority === 'high').length,
+      critical: projectRFIs.filter(rfi => rfi.priority === 'critical').length
     };
   }, [projectRFIs]);
 
@@ -737,8 +776,14 @@ const RFIs = () => {
             onCategoryChange={setSelectedInboxCategory}
             selectedStatus={selectedStatusFilter}
             onStatusChange={setSelectedStatusFilter}
+            selectedType={selectedTypeFilter}
+            onTypeChange={setSelectedTypeFilter}
+            selectedPriority={selectedPriorityFilter}
+            onPriorityChange={setSelectedPriorityFilter}
             counts={inboxCounts}
             statusCounts={statusCounts}
+            typeCounts={typeCounts}
+            priorityCounts={priorityCounts}
           />
         </div>
 
