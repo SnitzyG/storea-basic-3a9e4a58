@@ -1,6 +1,6 @@
 import React, { useCallback, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { Upload, File, X, Check, Lock, Users } from 'lucide-react';
+import { Upload, File, X, Check, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
@@ -9,12 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useDocumentGroups } from '@/hooks/useDocumentGroups';
-import { TeamMemberSelector } from './TeamMemberSelector';
-import { useAuth } from '@/hooks/useAuth';
-import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
 import { getFileExtension, formatFileSize } from '@/utils/documentUtils';
 
 interface DocumentUploadProps {
@@ -35,7 +30,6 @@ interface UploadFile {
   isPrivate?: boolean;
   revisionDisplay?: string;
   version?: number;
-  selectedTeamMembers?: Set<string>;
 }
 
 const ACCEPTED_FILE_TYPES = {
@@ -57,8 +51,6 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
   const [files, setFiles] = useState<UploadFile[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const { createDocumentGroup } = useDocumentGroups();
-  const { profile } = useAuth();
-  const { toast } = useToast();
 
   const STATUS_OPTIONS = ['For Tender', 'For Information', 'For Construction'] as const;
   const FILE_TYPE_OPTIONS = ['Architectural', 'Structural', 'Permit'] as const;
@@ -72,10 +64,9 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
       title: file.name.replace(/\.[^/.]+$/, ""), // Remove extension for title
       documentStatus: 'For Information',
       fileType: 'Architectural',
-      isPrivate: true, // Default to private
+      isPrivate: false,
       revisionDisplay: 'A',
-      version: 1,
-      selectedTeamMembers: new Set()
+      version: 1
     }));
 
     setFiles(prev => [...prev, ...newFiles]);
@@ -160,33 +151,6 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
         clearInterval(progressInterval);
 
         if (result) {
-          // Share with selected team members if any
-          if (file.isPrivate && file.selectedTeamMembers && file.selectedTeamMembers.size > 0 && profile) {
-            try {
-              const shareInserts = Array.from(file.selectedTeamMembers).map(memberId => ({
-                document_id: result.id,
-                shared_by: profile.user_id,
-                shared_with: memberId,
-                permission_level: 'view'
-              }));
-
-              const { error: shareError } = await supabase
-                .from('document_shares')
-                .insert(shareInserts);
-
-              if (shareError) {
-                console.warn('Error sharing document:', shareError);
-                toast({
-                  title: "Warning",
-                  description: `Document uploaded but sharing with ${file.selectedTeamMembers.size} member(s) failed`,
-                  variant: "default"
-                });
-              }
-            } catch (shareError) {
-              console.warn('Error sharing document:', shareError);
-            }
-          }
-
           setFiles(prev => prev.map(f => 
             f.id === file.id 
               ? { ...f, status: 'success', progress: 100 } 
@@ -444,7 +408,7 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
                               Document Privacy
                             </Label>
                             <p className="text-xs text-muted-foreground">
-                              Private documents (recommended) are only visible to you and people you specifically share them with.
+                              Private documents are only visible to you and people you specifically share them with.
                               Public documents are visible to all project members.
                             </p>
                           </div>
@@ -456,44 +420,11 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
                               disabled={isUploading}
                             />
                             <span className="text-xs font-medium">
-                              {file.isPrivate ? 'Private (Recommended)' : 'Public (All Members)'}
+                              {file.isPrivate ? 'Private' : 'Public'}
                             </span>
                           </div>
                         </div>
                       </div>
-
-                      {/* Team Member Selection - Only show for private documents */}
-                      {file.isPrivate && (
-                        <div className="col-span-3">
-                          <Collapsible>
-                            <CollapsibleTrigger asChild>
-                              <Button variant="outline" className="w-full justify-between" type="button">
-                                <div className="flex items-center gap-2">
-                                  <Users className="h-4 w-4" />
-                                  <span>
-                                    Select Team Members to Share With 
-                                    {file.selectedTeamMembers && file.selectedTeamMembers.size > 0 && 
-                                      ` (${file.selectedTeamMembers.size} selected)`
-                                    }
-                                  </span>
-                                </div>
-                              </Button>
-                            </CollapsibleTrigger>
-                            <CollapsibleContent className="mt-4">
-                              <TeamMemberSelector
-                                projectId={projectId}
-                                selectedMembers={file.selectedTeamMembers || new Set()}
-                                onSelectionChange={(selectedMembers) => 
-                                  updateFileProperty(file.id, 'selectedTeamMembers', selectedMembers)
-                                }
-                                disabled={isUploading}
-                                title="Share with specific team members"
-                                description="Leave empty to keep private to you only"
-                              />
-                            </CollapsibleContent>
-                          </Collapsible>
-                        </div>
-                      )}
                     </div>
                   )}
                 </div>

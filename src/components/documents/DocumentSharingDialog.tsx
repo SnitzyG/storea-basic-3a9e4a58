@@ -271,12 +271,12 @@ export const DocumentSharingDialog: React.FC<DocumentSharingDialogProps> = ({
                   <h4 className="font-medium">Current Visibility</h4>
                   <p className="text-sm text-muted-foreground">
                     {document.visibility_scope === 'private' 
-                      ? 'Private - Only visible to you and people you share with (Recommended)'
+                      ? 'Private - Only visible to you and people you share with'
                       : 'Project - Visible to all project members'
                     }
                   </p>
                 </div>
-                <Badge variant={document.visibility_scope === 'private' ? 'default' : 'outline'}>
+                <Badge variant={document.visibility_scope === 'private' ? 'secondary' : 'outline'}>
                   {document.visibility_scope === 'private' ? 'Private' : 'Public'}
                 </Badge>
               </div>
