@@ -63,6 +63,38 @@ export const RFIInbox = ({
   typeCounts,
   priorityCounts
 }: RFIInboxProps) => {
+  
+  const handleCategoryChange = (category: RFIInboxCategory) => {
+    onCategoryChange(category);
+    // Clear other selections when category is selected
+    if (onStatusChange) onStatusChange('all');
+    if (onTypeChange) onTypeChange('all');
+    if (onPriorityChange) onPriorityChange('all');
+  };
+
+  const handleStatusChange = (status: RFIStatusFilter) => {
+    if (onStatusChange) onStatusChange(status);
+    // Clear other selections when status is selected
+    onCategoryChange('all');
+    if (onTypeChange) onTypeChange('all');
+    if (onPriorityChange) onPriorityChange('all');
+  };
+
+  const handleTypeChange = (type: RFITypeFilter) => {
+    if (onTypeChange) onTypeChange(type);
+    // Clear other selections when type is selected
+    onCategoryChange('all');
+    if (onStatusChange) onStatusChange('all');
+    if (onPriorityChange) onPriorityChange('all');
+  };
+
+  const handlePriorityChange = (priority: RFIPriorityFilter) => {
+    if (onPriorityChange) onPriorityChange(priority);
+    // Clear other selections when priority is selected
+    onCategoryChange('all');
+    if (onStatusChange) onStatusChange('all');
+    if (onTypeChange) onTypeChange('all');
+  };
   const categories = [
     {
       id: 'all' as const,
@@ -194,7 +226,7 @@ export const RFIInbox = ({
           {categories.map(({ id, label, icon: Icon, description }) => (
             <button
               key={id}
-              onClick={() => onCategoryChange(id)}
+              onClick={() => handleCategoryChange(id)}
               className={`w-full flex items-center gap-2 px-2 py-1.5 text-xs rounded-md transition-colors ${
                 selectedCategory === id
                   ? 'bg-accent text-accent-foreground font-medium'
@@ -227,7 +259,7 @@ export const RFIInbox = ({
             {statusCategories.map(({ id, label, icon: Icon, description }) => (
               <button
                 key={id}
-                onClick={() => onStatusChange?.(id as RFIStatusFilter)}
+                onClick={() => handleStatusChange(id as RFIStatusFilter)}
                 className={`w-full flex items-center gap-2 px-2 py-1.5 text-xs rounded-md transition-colors ${
                   selectedStatus === id
                     ? 'bg-accent text-accent-foreground font-medium'
@@ -262,7 +294,7 @@ export const RFIInbox = ({
             {rfiTypes.map(({ id, label, icon: Icon, description }) => (
               <button
                 key={id}
-                onClick={() => onTypeChange(id)}
+                onClick={() => handleTypeChange(id)}
                 className={`w-full flex items-center gap-2 px-2 py-1.5 text-xs rounded-md transition-colors ${
                   selectedType === id
                     ? 'bg-accent text-accent-foreground font-medium'
@@ -297,7 +329,7 @@ export const RFIInbox = ({
             {priorities.map(({ id, label, icon: Icon, description }) => (
               <button
                 key={id}
-                onClick={() => onPriorityChange(id)}
+                onClick={() => handlePriorityChange(id)}
                 className={`w-full flex items-center gap-2 px-2 py-1.5 text-xs rounded-md transition-colors ${
                   selectedPriority === id
                     ? 'bg-accent text-accent-foreground font-medium'
