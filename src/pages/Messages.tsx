@@ -329,20 +329,47 @@ const Messages = () => {
                   thread.participants.includes(user.user_id)
                 );
                 
+                // Determine display title - use custom title or default to user name
+                const getDisplayTitle = () => {
+                  if (existingThread) {
+                    // If custom title doesn't start with "Direct message with", use the custom title
+                    const isDefaultTitle = existingThread.title.startsWith('Direct message with');
+                    return isDefaultTitle ? (user.user_profile?.name || 'Unknown User') : existingThread.title;
+                  }
+                  return user.user_profile?.name || 'Unknown User';
+                };
+                
+                // If there's an existing thread, show ThreadCard with rename functionality
+                if (existingThread) {
+                  return (
+                    <ThreadCard
+                      key={user.user_id}
+                      thread={{
+                        id: existingThread.id,
+                        title: getDisplayTitle(),
+                        participants: existingThread.participants,
+                        updated_at: existingThread.updated_at,
+                        status: existingThread.status
+                      }}
+                      unreadCount={0}
+                      isSelected={currentThread === existingThread.id}
+                      isDirect={true}
+                      onClick={() => setCurrentThread(existingThread.id)}
+                      onEdit={(newTitle: string) => updateThreadTitle(existingThread.id, newTitle)}
+                      onClose={() => closeThread(existingThread.id)}
+                      onDelete={() => deleteThread(existingThread.id)}
+                    />
+                  );
+                }
+                
+                // If no existing thread, show regular user card
                 return (
                   <div
                     key={user.user_id}
-                    className={cn(
-                      "p-3 cursor-pointer border-b border-border/50 hover:bg-muted/50 transition-colors",
-                      existingThread && currentThread === existingThread.id && "bg-primary/10 border-l-4 border-l-primary"
-                    )}
+                    className="p-3 cursor-pointer border-b border-border/50 hover:bg-muted/50 transition-colors"
                     onClick={() => {
-                      if (existingThread) {
-                        setCurrentThread(existingThread.id);
-                      } else {
-                        // Create new thread with this user
-                        handleCreateThread(`Direct message with ${user.user_profile?.name}`, [user.user_id]);
-                      }
+                      // Create new thread with this user
+                      handleCreateThread(`Direct message with ${user.user_profile?.name}`, [user.user_id]);
                     }}
                   >
                     <div className="flex items-center gap-3">
@@ -362,16 +389,10 @@ const Messages = () => {
                           <h3 className="font-medium text-foreground truncate">
                             {user.user_profile?.name || 'Unknown User'}
                           </h3>
-                          {existingThread && existingThread.updated_at && (
-                            <span className="text-xs text-muted-foreground">
-                              {new Date(existingThread.updated_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
-                            </span>
-                          )}
                         </div>
                         <div className="flex items-center justify-between">
                           <p className="text-sm text-muted-foreground truncate">
-                            {typingUsers.has(user.user_id) ? 'typing...' : 
-                             existingThread ? 'Direct message' : 'Start conversation'}
+                            {typingUsers.has(user.user_id) ? 'typing...' : 'Start conversation'}
                           </p>
                           <span className="text-xs text-muted-foreground capitalize">
                             {user.user_profile?.role || user.role}

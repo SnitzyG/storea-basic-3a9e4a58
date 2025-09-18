@@ -42,6 +42,11 @@ export const ThreadCard: React.FC<ThreadCardProps> = ({
   const [isEditing, setIsEditing] = useState(false);
   const [editTitle, setEditTitle] = useState(thread.title);
 
+  // Update editTitle when thread title changes
+  React.useEffect(() => {
+    setEditTitle(thread.title);
+  }, [thread.title]);
+
   const handleSave = () => {
     if (onEdit && editTitle.trim() !== thread.title) {
       onEdit(editTitle.trim());
@@ -108,7 +113,7 @@ export const ThreadCard: React.FC<ThreadCardProps> = ({
                   "text-sm font-medium truncate",
                   isSelected ? "text-primary-foreground" : "text-foreground"
                 )}>
-                  {isDirect ? thread.title.replace('Direct message with ', '') : thread.title}
+                  {thread.title}
                 </span>
                 
                 <div className="flex items-center gap-1 ml-2">
