@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { Plus, Search, MessageSquare, Users2, Circle } from 'lucide-react';
-import { STOREAliteLogo } from '@/components/branding/STOREAliteLogo';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -246,9 +245,17 @@ const Messages = () => {
                 </g>
               </svg>
               
-               <div className="mt-6 text-center">
-                 <STOREAliteLogo animated={true} size="xl" />
-               </div>
+              {/* Enhanced STOREA Lite Logo */}
+              <div className="mt-6 text-center animate-[fadeIn_0.8s_ease-out_3.4s_both]">
+                <h1 className="text-4xl font-bold tracking-wider">
+                  <span className="bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent font-black">
+                    STOREA
+                  </span>
+                  <span className="bg-gradient-to-r from-accent to-accent/70 bg-clip-text text-transparent font-light ml-1">
+                    Lite
+                  </span>
+                </h1>
+              </div>
             </div>
             
             <div className="text-center py-8">
