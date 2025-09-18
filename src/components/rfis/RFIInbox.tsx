@@ -220,7 +220,7 @@ export const RFIInbox = ({
       {/* RFI Mail Section */}
       <div className="mb-3">
         <h3 className="text-xs font-medium text-muted-foreground/70 mb-2 uppercase tracking-wide">
-          RFI Mail
+          Mail
         </h3>
         <nav className="space-y-0.5">
           {categories.map(({ id, label, icon: Icon, description }) => (
