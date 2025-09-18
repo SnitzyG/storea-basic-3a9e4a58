@@ -18,6 +18,7 @@ interface RFIListViewProps {
   onExportPDF: (rfi: RFI) => void;
   onSelectRFI?: (rfi: RFI) => void;
   selectedRFI?: RFI | null;
+  onDoubleClick?: (rfi: RFI) => void;
 }
 
 type SortField = 'subject' | 'submitted_by' | 'assigned_to' | 'created_at' | 'status' | 'due_date';
@@ -42,7 +43,8 @@ export const RFIListView: React.FC<RFIListViewProps> = ({
   onView, 
   onExportPDF,
   onSelectRFI,
-  selectedRFI
+  selectedRFI,
+  onDoubleClick
 }) => {
   const [sortField, setSortField] = useState<SortField>('created_at');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
@@ -150,6 +152,7 @@ export const RFIListView: React.FC<RFIListViewProps> = ({
                 selectedRFI?.id === rfi.id ? 'bg-muted/50' : ''
               }`}
               onClick={() => handleRowClick(rfi)}
+              onDoubleClick={() => onDoubleClick?.(rfi)}
             >
               <TableCell className="font-mono text-xs">
                 {rfi.rfi_number || `RFI-${rfi.id.slice(0, 8)}`}

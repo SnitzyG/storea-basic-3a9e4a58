@@ -31,6 +31,8 @@ const RFIs = () => {
   const [selectedRFIForDetail, setSelectedRFIForDetail] = useState<RFI | null>(null);
   const [projectUsers, setProjectUsers] = useState<any[]>([]);
   const [sidebarFilter, setSidebarFilter] = useState<'all' | 'inbox' | 'sent' | 'draft'>('all');
+  const [isDetailOverlayOpen, setIsDetailOverlayOpen] = useState(false);
+  const [overlaySelectedRFI, setOverlaySelectedRFI] = useState<RFI | null>(null);
   const { selectedProject } = useProjectSelection();
   const {
     projects
@@ -74,6 +76,16 @@ const RFIs = () => {
   const handleReplyToRFI = (rfi: RFI) => {
     setReplyToRFI(rfi);
     setSimplifiedComposerOpen(true);
+  };
+
+  const handleDoubleClickRFI = (rfi: RFI) => {
+    setOverlaySelectedRFI(rfi);
+    setIsDetailOverlayOpen(true);
+  };
+
+  const handleCloseDetailOverlay = () => {
+    setIsDetailOverlayOpen(false);
+    setOverlaySelectedRFI(null);
   };
 
   const handleCreateMessageForRFI = (rfi: RFI) => {
@@ -516,8 +528,18 @@ const RFIs = () => {
         </div>
 
         {/* Center-Right Column - RFI List (Expanded, ~75-80% width) */}
-        <div className="col-span-10">
-          <div className="h-full border rounded-lg bg-card p-4 overflow-hidden">
+        <div className="col-span-10 relative">
+          {/* Backdrop overlay when detail panel is open */}
+          {isDetailOverlayOpen && (
+            <div 
+              className="absolute inset-0 bg-black/20 backdrop-blur-sm z-10 transition-all duration-300"
+              onClick={handleCloseDetailOverlay}
+            />
+          )}
+          
+          <div className={`h-full border rounded-lg bg-card p-4 overflow-hidden transition-all duration-300 ${
+            isDetailOverlayOpen ? 'brightness-75' : ''
+          }`}>
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold">RFI List</h2>
               <Button onClick={() => setSimplifiedComposerOpen(true)} size="sm">
@@ -531,9 +553,20 @@ const RFIs = () => {
                 onExportPDF={handleExportPDF}
                 onSelectRFI={setSelectedRFIForDetail}
                 selectedRFI={selectedRFIForDetail}
+                onDoubleClick={handleDoubleClickRFI}
               />
             </div>
           </div>
+
+          {/* Slide-over Detail Panel */}
+          {isDetailOverlayOpen && (
+            <div className="absolute top-0 right-0 h-full w-1/2 bg-card border-l border-border shadow-2xl z-20 animate-slide-in-right overflow-hidden">
+              <RFIDetailPanel 
+                rfi={overlaySelectedRFI} 
+                onClose={handleCloseDetailOverlay}
+              />
+            </div>
+          )}
         </div>
       </div>
 
