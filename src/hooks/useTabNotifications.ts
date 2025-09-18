@@ -82,7 +82,33 @@ export const useTabNotifications = () => {
     }
   };
 
-  const markTabAsRead = (tabId: string) => {
+  const markTabAsRead = async (tabId: string) => {
+    if (!user) return;
+    
+    // When a tab is clicked, mark relevant notifications as read
+    const tabTypeMap: Record<string, string[]> = {
+      'messages': ['message', 'message_received', 'message_sent', 'thread_created'],
+      'documents': ['document', 'document_uploaded', 'document_shared', 'document_updated'],
+      'rfis': ['rfi', 'rfi_created', 'rfi_updated', 'rfi_response'],
+      'tenders': ['tender', 'tender_created', 'tender_updated', 'tender_submission'],
+      'projects': ['project', 'project_created', 'project_updated', 'team_member_joined']
+    };
+
+    const notificationTypes = tabTypeMap[tabId] || [];
+    
+    if (notificationTypes.length > 0) {
+      try {
+        await supabase
+          .from('notifications')
+          .update({ read: true })
+          .eq('user_id', user.id)
+          .in('type', notificationTypes)
+          .eq('read', false);
+      } catch (error) {
+        console.error('Error marking tab notifications as read:', error);
+      }
+    }
+
     setCounts(prev => ({
       ...prev,
       [tabId]: 0,

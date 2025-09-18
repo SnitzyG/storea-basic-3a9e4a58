@@ -23,6 +23,16 @@ export const useNotifications = () => {
     if (!user) return;
 
     try {
+      // Get user's projects first for filtering
+      const { data: userProjects, error: projectError } = await supabase
+        .from('project_users')
+        .select('project_id')
+        .eq('user_id', user.id);
+
+      if (projectError) throw projectError;
+
+      const userProjectIds = userProjects?.map(p => p.project_id) || [];
+
       const { data, error } = await supabase
         .from('notifications')
         .select('*')
@@ -32,22 +42,28 @@ export const useNotifications = () => {
 
       if (error) throw error;
 
-      // Filter out notifications for deleted projects
+      // Filter notifications to only show relevant ones
       const validNotifications = [];
       for (const notification of data || []) {
         const notificationData = notification.data as any;
+        
+        // Check if notification is project-related
         if (notificationData?.project_id) {
-          const { data: projectExists } = await supabase
-            .from('projects')
-            .select('id')
-            .eq('id', notificationData.project_id)
-            .single();
-          
-          if (projectExists) {
-            validNotifications.push(notification);
+          // Only include if user is a member of this project
+          if (userProjectIds.includes(notificationData.project_id)) {
+            // Verify project still exists
+            const { data: projectExists } = await supabase
+              .from('projects')
+              .select('id')
+              .eq('id', notificationData.project_id)
+              .single();
+            
+            if (projectExists) {
+              validNotifications.push(notification);
+            }
           }
         } else {
-          // Include notifications without project association
+          // Include system notifications and non-project notifications
           validNotifications.push(notification);
         }
       }
