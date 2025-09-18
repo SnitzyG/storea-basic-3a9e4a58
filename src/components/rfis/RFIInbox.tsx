@@ -196,11 +196,11 @@ export const RFIInbox = ({
   ];
 
   return (
-    <div className="h-full border border-muted rounded-lg bg-muted/10 p-3 overflow-hidden flex flex-col">
+    <div className="h-full border border-muted rounded-lg bg-muted/10 p-3 flex flex-col overflow-y-auto">
       {/* RFI Inbox Section */}
       <div className="mb-6">
         <h3 className="text-xs font-medium text-muted-foreground/70 mb-4 uppercase tracking-wide">
-          RFI Inbox
+          RFI Mail
         </h3>
         <nav className="space-y-1">
           {categories.map(({ id, label, icon: Icon, description }) => (
@@ -303,7 +303,7 @@ export const RFIInbox = ({
       {onPriorityChange && (
         <div className="flex-1 min-h-0">
           <h4 className="text-xs font-medium text-muted-foreground/70 mb-3 uppercase tracking-wide">
-            Priority Level
+            RFI Priority
           </h4>
           <div className="space-y-1 overflow-y-auto">
             {priorities.map(({ id, label, icon: Icon, description }) => (
