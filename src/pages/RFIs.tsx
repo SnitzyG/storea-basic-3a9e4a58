@@ -457,28 +457,30 @@ const RFIs = () => {
       )}
 
       {/* Three-Column Layout */}
-      <div className="grid grid-cols-12 gap-6 h-[calc(100vh-200px)]">
-        {/* Left Column - Inbox (Narrow) */}
-        <div className="col-span-3">
-          <div className="h-full border rounded-lg bg-muted/20 p-4 overflow-hidden">
-            <h3 className="text-sm font-medium text-muted-foreground mb-4 uppercase tracking-wide">
-              Activity Feed
+      <div className="grid grid-cols-12 gap-4 h-[calc(100vh-200px)]">
+        {/* Left Column - Inbox (De-emphasized, ~20% width) */}
+        <div className="col-span-2">
+          <div className="h-full border border-muted rounded-lg bg-muted/10 p-2 overflow-hidden">
+            <h3 className="text-xs font-medium text-muted-foreground/70 mb-3 uppercase tracking-wide px-1">
+              Activity
             </h3>
-            <div className="space-y-2 overflow-y-auto h-full">
-              <EmailStyleRFIInbox 
-                rfis={projectRFIs}
-                onView={handleViewRFI}
-                onCreateNew={() => setSimplifiedComposerOpen(true)}
-                onReply={handleReplyToRFI}
-                projectUsers={projectUsers}
-                currentProject={selectedProject}
-              />
+            <div className="space-y-1 overflow-y-auto h-full">
+              <div className="text-xs space-y-1">
+                <EmailStyleRFIInbox 
+                  rfis={projectRFIs}
+                  onView={handleViewRFI}
+                  onCreateNew={() => setSimplifiedComposerOpen(true)}
+                  onReply={handleReplyToRFI}
+                  projectUsers={projectUsers}
+                  currentProject={selectedProject}
+                />
+              </div>
             </div>
           </div>
         </div>
 
         {/* Middle Column - RFI List (Primary) */}
-        <div className="col-span-5">
+        <div className="col-span-6">
           <div className="h-full border rounded-lg bg-card p-4 overflow-hidden">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold">RFI List</h2>
