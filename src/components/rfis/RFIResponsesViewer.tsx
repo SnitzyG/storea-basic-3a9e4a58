@@ -2,9 +2,10 @@ import React, { useEffect, useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { X, FileText, Download, Minimize2, Maximize2, Package } from 'lucide-react';
+import { X, FileText, Download, Minimize2, Maximize2, Package, Eye, Paperclip } from 'lucide-react';
 import { RFI } from '@/hooks/useRFIs';
 import { supabase } from '@/integrations/supabase/client';
+import jsPDF from 'jspdf';
 
 interface RFIResponse {
   id: string;
@@ -15,6 +16,11 @@ interface RFIResponse {
   response_date: string;
   created_at: string;
   type: 'original' | 'response';
+  attachments?: Array<{
+    name: string;
+    url: string;
+    size?: number;
+  }>;
 }
 
 interface RFIResponsesViewerProps {
@@ -230,11 +236,71 @@ export const RFIResponsesViewer: React.FC<RFIResponsesViewerProps> = ({
   };
 
   const downloadAllPDFs = () => {
+    const pdf = new jsPDF();
+    let pageHeight = pdf.internal.pageSize.height;
+    let yPosition = 20;
+
     responses.forEach((response, index) => {
-      setTimeout(() => {
-        downloadResponsePDF(response, index);
-      }, index * 1000); // Stagger downloads by 1 second
+      if (index > 0) {
+        pdf.addPage();
+        yPosition = 20;
+      }
+
+      const isOriginal = response.type === 'original';
+      const title = isOriginal ? 'Original RFI' : `Response ${index}`;
+      
+      // Add title
+      pdf.setFontSize(16);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text(title, 20, yPosition);
+      yPosition += 15;
+
+      // Add RFI number
+      pdf.setFontSize(12);
+      pdf.setFont('helvetica', 'normal');
+      pdf.text(`RFI: ${rfi?.rfi_number || `RFI-${rfi?.id.slice(0, 8)}`}`, 20, yPosition);
+      yPosition += 10;
+
+      // Add date
+      const date = new Date(response.response_date || response.created_at);
+      pdf.text(`Date: ${date.toLocaleDateString()}`, 20, yPosition);
+      yPosition += 15;
+
+      // Add content
+      if (isOriginal && rfi?.question) {
+        pdf.setFont('helvetica', 'bold');
+        pdf.text('Question:', 20, yPosition);
+        yPosition += 8;
+        pdf.setFont('helvetica', 'normal');
+        const questionLines = pdf.splitTextToSize(rfi.question, 170);
+        pdf.text(questionLines, 20, yPosition);
+        yPosition += questionLines.length * 5 + 10;
+      }
+
+      if (response.response) {
+        pdf.setFont('helvetica', 'bold');
+        pdf.text('Response:', 20, yPosition);
+        yPosition += 8;
+        pdf.setFont('helvetica', 'normal');
+        const responseLines = pdf.splitTextToSize(response.response, 170);
+        pdf.text(responseLines, 20, yPosition);
+        yPosition += responseLines.length * 5 + 10;
+      }
+
+      // Add attachments info
+      if (response.attachments && response.attachments.length > 0) {
+        pdf.setFont('helvetica', 'bold');
+        pdf.text('Attachments:', 20, yPosition);
+        yPosition += 8;
+        pdf.setFont('helvetica', 'normal');
+        response.attachments.forEach(attachment => {
+          pdf.text(`• ${attachment.name}`, 25, yPosition);
+          yPosition += 6;
+        });
+      }
     });
+
+    pdf.save(`RFI-${rfi?.rfi_number || rfi?.id}-responses.pdf`);
   };
 
   const toggleMinimize = (responseId: string) => {
@@ -348,18 +414,68 @@ export const RFIResponsesViewer: React.FC<RFIResponsesViewerProps> = ({
                         </div>
                         
                         {!isMinimizedItem && (
-                          <div className="h-[300px]">
-                            <iframe
-                              srcDoc={generateResponsePDF(response, displayIndex)}
-                              className="w-full h-full border-0"
-                              title={`${isOriginal ? 'Original RFI' : `Response ${displayIndex}`} Preview`}
-                            />
+                          <div className="p-4 max-h-[400px] overflow-y-auto">
+                            {/* Activity Timeline View */}
+                            <div className="space-y-4">
+                              <div className="flex items-start gap-3">
+                                <div className={`w-2 h-2 rounded-full mt-2 ${isOriginal ? 'bg-blue-500' : 'bg-green-500'}`}></div>
+                                <div className="flex-1">
+                                  <div className="flex items-center gap-2 mb-2">
+                                    <span className="font-medium">{response.responder_name}</span>
+                                    <span className="text-xs text-muted-foreground">
+                                      {response.responder_position}
+                                    </span>
+                                    <span className="text-xs text-muted-foreground">•</span>
+                                    <span className="text-xs text-muted-foreground">
+                                      {new Date(response.response_date).toLocaleString()}
+                                    </span>
+                                  </div>
+                                  
+                                  <div className="bg-muted/50 rounded-lg p-3 mb-3">
+                                    <p className="text-sm whitespace-pre-wrap">{response.response}</p>
+                                  </div>
+
+                                  {/* Attachments */}
+                                  {response.attachments && response.attachments.length > 0 && (
+                                    <div className="space-y-2">
+                                      <h4 className="text-sm font-medium flex items-center gap-1">
+                                        <Paperclip className="h-4 w-4" />
+                                        Attachments ({response.attachments.length})
+                                      </h4>
+                                      <div className="grid grid-cols-1 gap-2">
+                                        {response.attachments.map((attachment, attIndex) => (
+                                          <div key={attIndex} className="flex items-center justify-between p-2 bg-background border rounded">
+                                            <div className="flex items-center gap-2">
+                                              <FileText className="h-4 w-4 text-muted-foreground" />
+                                              <span className="text-sm truncate">{attachment.name}</span>
+                                              {attachment.size && (
+                                                <span className="text-xs text-muted-foreground">
+                                                  ({(attachment.size / 1024).toFixed(1)} KB)
+                                                </span>
+                                              )}
+                                            </div>
+                                            <Button
+                                              variant="ghost"
+                                              size="sm"
+                                              onClick={() => window.open(attachment.url, '_blank')}
+                                              className="h-7 w-7 p-0"
+                                            >
+                                              <Download className="h-3 w-3" />
+                                            </Button>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
                           </div>
                         )}
                         
                         {isMinimizedItem && (
                           <div className="p-3 text-sm text-muted-foreground">
-                            <p>By {response.responder_name} • Click expand to view</p>
+                            <p>By {response.responder_name} • Click expand to view details</p>
                           </div>
                         )}
                       </div>
