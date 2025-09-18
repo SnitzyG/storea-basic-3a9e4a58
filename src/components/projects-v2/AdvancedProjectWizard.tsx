@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -100,6 +100,29 @@ export const AdvancedProjectWizard = ({
 }: AdvancedProjectWizardProps) => {
   const [currentStep, setCurrentStep] = useState(1);
   const [loading, setLoading] = useState(false);
+
+  // Parse existing address into structured fields when editing
+  useEffect(() => {
+    if (projectToEdit?.address) {
+      const addressParts = projectToEdit.address.split(',');
+      if (addressParts.length >= 2) {
+        const streetParts = addressParts[0].trim().split(' ');
+        const streetNumber = streetParts[0] || '';
+        const streetName = streetParts.slice(1).join(' ') || '';
+        const locationParts = addressParts[1].trim().split(' ');
+        const suburb = locationParts.slice(0, -1).join(' ') || '';
+        const postcode = locationParts[locationParts.length - 1] || '';
+        
+        setFormData(prev => ({
+          ...prev,
+          street_number: streetNumber,
+          street_name: streetName,
+          suburb: suburb,
+          postcode: postcode
+        }));
+      }
+    }
+  }, [projectToEdit?.address]);
   const {
     createProject,
     updateProject
@@ -114,7 +137,10 @@ export const AdvancedProjectWizard = ({
     project_category: projectToEdit?.project_type || 'new_construction',
     project_type: projectToEdit?.project_type || 'detached_home',
     priority: projectToEdit?.priority || 'medium',
-    address: projectToEdit?.address || '',
+    street_number: '',
+    street_name: '',
+    suburb: '',
+    postcode: '',
     // Step 2: Project Details
     budget: projectToEdit?.budget?.toString() || '',
     square_footage: projectToEdit?.square_footage?.toString() || '',
@@ -222,7 +248,7 @@ export const AdvancedProjectWizard = ({
         description: formData.description || undefined,
         project_type: formData.project_type as any,
         priority: formData.priority,
-        address: formData.address || undefined,
+        address: `${formData.street_number} ${formData.street_name}, ${formData.suburb} ${formData.postcode}`.trim() || undefined,
         budget: formData.budget ? convertBudgetStringToNumber(formData.budget) : undefined,
         square_footage: formData.square_footage ? parseInt(formData.square_footage) : undefined,
         number_of_floors: formData.number_of_floors ? parseInt(formData.number_of_floors) : undefined,
@@ -246,7 +272,10 @@ export const AdvancedProjectWizard = ({
         project_category: 'new_construction',
         project_type: 'detached_home',
         priority: 'medium',
-        address: '',
+        street_number: '',
+        street_name: '',
+        suburb: '',
+        postcode: '',
         budget: '',
         square_footage: '',
         number_of_floors: '',
@@ -308,25 +337,54 @@ export const AdvancedProjectWizard = ({
 
                 
 
-                <div>
-                  <Label htmlFor="address">Project Address</Label>
-                  <div className="relative mt-1">
-                    <MapPin className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                    <Input 
-                      id="address" 
-                      value={formData.address} 
-                      onChange={e => handleInputChange('address', e.target.value)} 
-                      placeholder="Start typing address for autocomplete..." 
-                      className="pl-10" 
-                      list="address-suggestions"
-                    />
-                    <datalist id="address-suggestions">
-                      <option value="123 Main Street, Sydney NSW 2000" />
-                      <option value="456 George Street, Melbourne VIC 3000" />
-                      <option value="789 Queen Street, Brisbane QLD 4000" />
-                      <option value="321 King Street, Perth WA 6000" />
-                      <option value="654 Collins Street, Adelaide SA 5000" />
-                    </datalist>
+                <div className="space-y-4">
+                  <h4 className="text-md font-medium">Project Address</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="street_number">Street Number</Label>
+                      <Input
+                        id="street_number"
+                        value={formData.street_number}
+                        onChange={(e) => handleInputChange('street_number', e.target.value)}
+                        placeholder="123"
+                        className="mt-1"
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="street_name">Street Name</Label>
+                      <Input
+                        id="street_name"
+                        value={formData.street_name}
+                        onChange={(e) => handleInputChange('street_name', e.target.value)}
+                        placeholder="Main Street"
+                        className="mt-1"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="suburb">Suburb</Label>
+                      <Input
+                        id="suburb"
+                        value={formData.suburb}
+                        onChange={(e) => handleInputChange('suburb', e.target.value)}
+                        placeholder="Sydney"
+                        className="mt-1"
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="postcode">Postcode</Label>
+                      <Input
+                        id="postcode"
+                        value={formData.postcode}
+                        onChange={(e) => handleInputChange('postcode', e.target.value)}
+                        placeholder="2000"
+                        className="mt-1"
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
