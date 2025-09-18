@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -48,7 +48,41 @@ export const useDocumentGroups = (projectId?: string) => {
     try {
       setLoading(true);
       
-      // Build query
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        setDocumentGroups([]);
+        setLoading(false);
+        return;
+      }
+
+      // Only fetch documents for specified project and ensure user permissions
+      if (!filterProjectId && !projectId) {
+        setDocumentGroups([]);
+        setLoading(false);
+        return;
+      }
+
+      const targetProjectId = filterProjectId || projectId;
+
+      // Verify user is member of the project
+      const { data: membership } = await supabase
+        .from('project_users')
+        .select('user_id')
+        .eq('project_id', targetProjectId)
+        .eq('user_id', user.id)
+        .single();
+
+      if (!membership) {
+        // User is not a member of this project
+        setDocumentGroups([]);
+        setLoading(false);
+        return;
+      }
+
+      // Build query for documents where user is either:
+      // 1. Creator of the document
+      // 2. Document has been shared with them
+      // 3. Document visibility is 'project' (visible to all project members)
       let query = supabase
         .from('document_groups')
         .select(`
@@ -67,11 +101,9 @@ export const useDocumentGroups = (projectId?: string) => {
             created_at
           )
         `)
+        .eq('project_id', targetProjectId)
+        .or(`created_by.eq.${user.id},visibility_scope.eq.project`)
         .order('updated_at', { ascending: false });
-
-      if (filterProjectId || projectId) {
-        query = query.eq('project_id', filterProjectId || projectId);
-      }
 
       const { data, error } = await query;
 
@@ -80,8 +112,32 @@ export const useDocumentGroups = (projectId?: string) => {
         throw error;
       }
 
+      let filteredData = data || [];
+
+      // Additional check for shared documents if user is not the creator
+      if (filteredData.length > 0) {
+        const nonOwnedDocs = filteredData.filter(doc => doc.created_by !== user.id);
+        
+        if (nonOwnedDocs.length > 0) {
+          // Check for shared documents
+          const { data: sharedDocs } = await supabase
+            .from('document_shares')
+            .select('document_id')
+            .eq('shared_with', user.id);
+
+          const sharedDocIds = new Set(sharedDocs?.map(share => share.document_id) || []);
+          
+          // Filter out private documents that aren't shared with the user
+          filteredData = filteredData.filter(doc => 
+            doc.created_by === user.id || 
+            doc.visibility_scope === 'project' ||
+            sharedDocIds.has(doc.id)
+          );
+        }
+      }
+
       // Get user names for uploaded_by
-      const userIds = [...new Set(data?.map(group => group.current_revision?.uploaded_by).filter(Boolean) || [])];
+      const userIds = [...new Set(filteredData?.map(group => group.current_revision?.uploaded_by).filter(Boolean) || [])];
       let userNames: Record<string, { name: string; role: string }> = {};
       
       if (userIds.length > 0) {
@@ -94,7 +150,7 @@ export const useDocumentGroups = (projectId?: string) => {
       }
 
       // Enhance data with user names
-      const enhancedData = data?.map(group => ({
+      const enhancedData = filteredData?.map(group => ({
         ...group,
         current_revision: group.current_revision ? {
           ...group.current_revision,
@@ -411,6 +467,54 @@ export const useDocumentGroups = (projectId?: string) => {
       return false;
     }
   }, [fetchDocumentGroups, toast]);
+
+  // Set up real-time subscriptions
+  useEffect(() => {
+    if (!projectId) return;
+    
+    const documentsChannel = supabase
+      .channel('document_groups_changes')
+      .on('postgres_changes', 
+        { 
+          event: '*', 
+          schema: 'public', 
+          table: 'document_groups',
+          filter: `project_id=eq.${projectId}`
+        },
+        (payload) => {
+          console.log('Document groups change:', payload);
+          fetchDocumentGroups();
+        }
+      )
+      .on('postgres_changes',
+        { event: '*', schema: 'public', table: 'document_revisions' },
+        (payload) => {
+          console.log('Document revisions change:', payload);
+          fetchDocumentGroups();
+        }
+      )
+      .on('postgres_changes',
+        { 
+          event: '*', 
+          schema: 'public', 
+          table: 'document_shares'
+        },
+        (payload) => {
+          console.log('Document shares change:', payload);
+          fetchDocumentGroups();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(documentsChannel);
+    };
+  }, [projectId, fetchDocumentGroups]);
+
+  // Fetch document groups when projectId changes
+  useEffect(() => {
+    fetchDocumentGroups();
+  }, [fetchDocumentGroups]);
 
   return {
     documentGroups,

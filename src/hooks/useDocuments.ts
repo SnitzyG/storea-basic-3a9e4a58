@@ -67,15 +67,49 @@ export const useDocuments = (projectId?: string) => {
   const fetchDocuments = async (filterProjectId?: string) => {
     try {
       setLoading(true);
+      
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        setDocuments([]);
+        setLoading(false);
+        return;
+      }
+
+      // Only fetch documents for specified project and ensure user permissions
+      if (!filterProjectId && !projectId) {
+        setDocuments([]);
+        setLoading(false);
+        return;
+      }
+
+      const targetProjectId = filterProjectId || projectId;
+
+      // Verify user is member of the project
+      const { data: membership } = await supabase
+        .from('project_users')
+        .select('user_id')
+        .eq('project_id', targetProjectId)
+        .eq('user_id', user.id)
+        .single();
+
+      if (!membership) {
+        // User is not a member of this project
+        setDocuments([]);
+        setLoading(false);
+        return;
+      }
+
+      // Build query for documents where user is either:
+      // 1. Creator of the document
+      // 2. Document has been shared with them
+      // 3. Document visibility is 'project' (visible to all project members)
       let query = supabase
         .from('documents')
         .select('*')
         .eq('is_superseded', false) // Only show latest revisions
+        .eq('project_id', targetProjectId)
+        .or(`uploaded_by.eq.${user.id},visibility_scope.eq.project`)
         .order('created_at', { ascending: false });
-
-      if (filterProjectId || projectId) {
-        query = query.eq('project_id', filterProjectId || projectId);
-      }
 
       const { data, error } = await query;
 
@@ -83,12 +117,30 @@ export const useDocuments = (projectId?: string) => {
         console.error('Documents fetch error:', error);
         throw error;
       }
-      
-      // Filter out private documents that don't belong to the current user
-      const { data: { user } } = await supabase.auth.getUser();
-      const filteredData = data?.filter(doc => 
-        doc.visibility_scope !== 'private' || doc.uploaded_by === user?.id
-      ) || [];
+
+      let filteredData = data || [];
+
+      // Additional check for shared documents if user is not the creator
+      if (filteredData.length > 0) {
+        const nonOwnedDocs = filteredData.filter(doc => doc.uploaded_by !== user.id);
+        
+        if (nonOwnedDocs.length > 0) {
+          // Check for shared documents
+          const { data: sharedDocs } = await supabase
+            .from('document_shares')
+            .select('document_id')
+            .eq('shared_with', user.id);
+
+          const sharedDocIds = new Set(sharedDocs?.map(share => share.document_id) || []);
+          
+          // Filter out private documents that aren't shared with the user
+          filteredData = filteredData.filter(doc => 
+            doc.uploaded_by === user.id || 
+            doc.visibility_scope === 'project' ||
+            sharedDocIds.has(doc.id)
+          );
+        }
+      }
       
       setDocuments(filteredData);
     } catch (error: any) {
