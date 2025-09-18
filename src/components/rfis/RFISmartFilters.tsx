@@ -322,35 +322,6 @@ export const RFISmartFilters = ({
             )}
           </div>
         ))}
-
-        {/* Save Current View */}
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button variant="ghost" size="sm" className="h-7 text-xs text-muted-foreground">
-              <Settings2 className="h-3 w-3 mr-1" />
-              Save View
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-60" align="start">
-            <div className="space-y-3">
-              <Label>Save Current Filter Set</Label>
-              <Input
-                placeholder="View name (e.g., 'My Critical RFIs')"
-                value={newViewName}
-                onChange={(e) => setNewViewName(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleSaveCurrentView()}
-              />
-              <Button 
-                onClick={handleSaveCurrentView} 
-                disabled={!newViewName.trim()}
-                size="sm"
-                className="w-full"
-              >
-                Save View
-              </Button>
-            </div>
-          </PopoverContent>
-        </Popover>
       </div>
 
       {/* Active Filters Display */}
