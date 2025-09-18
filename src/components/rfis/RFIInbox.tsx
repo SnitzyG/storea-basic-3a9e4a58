@@ -183,20 +183,20 @@ export const RFIInbox = ({
       <div className="mb-4">
         <button
           onClick={() => onCategoryChange('all')}
-          className={`w-full flex items-center gap-2 px-2 py-2 text-sm rounded-md transition-colors font-medium ${
+          className={`w-full flex items-center gap-2 px-2 py-1.5 text-xs rounded-md transition-colors ${
             selectedCategory === 'all'
-              ? 'bg-primary text-primary-foreground'
-              : 'bg-accent/50 text-accent-foreground hover:bg-accent'
+              ? 'bg-accent text-accent-foreground font-medium'
+              : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
           }`}
           title="Full list of RFIs for the active project"
         >
-          <Archive className="h-4 w-4 flex-shrink-0" />
+          <Archive className="h-3 w-3 flex-shrink-0" />
           <span className="flex-1 text-left">All Project RFIs</span>
           {counts && counts.all > 0 && (
-            <span className={`text-xs px-1.5 py-0.5 rounded-full font-medium ${
+            <span className={`text-xs px-1 py-0.5 rounded-full font-medium ${
               selectedCategory === 'all'
-                ? 'bg-primary-foreground/20 text-primary-foreground'
-                : 'bg-accent-foreground/20 text-accent-foreground'
+                ? 'bg-accent-foreground/20 text-accent-foreground'
+                : 'bg-muted text-muted-foreground'
             }`}>
               {counts.all}
             </span>
