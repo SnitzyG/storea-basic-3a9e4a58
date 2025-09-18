@@ -227,31 +227,16 @@ export const CreateProjectDialog = ({ children }: CreateProjectDialogProps) => {
                   <SelectValue placeholder="Select budget range" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Under $100,000">Under $100,000</SelectItem>
+                  <SelectItem value="< $100,000">&lt; $100,000</SelectItem>
                   <SelectItem value="$100,000 – $200,000">$100,000 – $200,000</SelectItem>
                   <SelectItem value="$200,000 – $300,000">$200,000 – $300,000</SelectItem>
                   <SelectItem value="$300,000 – $400,000">$300,000 – $400,000</SelectItem>
                   <SelectItem value="$400,000 – $500,000">$400,000 – $500,000</SelectItem>
-                  <SelectItem value="$500,000 – $600,000">$500,000 – $600,000</SelectItem>
-                  <SelectItem value="$600,000 – $700,000">$600,000 – $700,000</SelectItem>
-                  <SelectItem value="$700,000 – $800,000">$700,000 – $800,000</SelectItem>
-                  <SelectItem value="$800,000 – $900,000">$800,000 – $900,000</SelectItem>
-                  <SelectItem value="$900,000 – $1,000,000">$900,000 – $1,000,000</SelectItem>
-                  <SelectItem value="$1,000,000 – $1,100,000">$1,000,000 – $1,100,000</SelectItem>
-                  <SelectItem value="$1,100,000 – $1,200,000">$1,100,000 – $1,200,000</SelectItem>
-                  <SelectItem value="$1,200,000 – $1,300,000">$1,200,000 – $1,300,000</SelectItem>
-                  <SelectItem value="$1,300,000 – $1,400,000">$1,300,000 – $1,400,000</SelectItem>
-                  <SelectItem value="$1,400,000 – $1,500,000">$1,400,000 – $1,500,000</SelectItem>
-                  <SelectItem value="$1,500,000 – $1,600,000">$1,500,000 – $1,600,000</SelectItem>
-                  <SelectItem value="$1,600,000 – $1,700,000">$1,600,000 – $1,700,000</SelectItem>
-                  <SelectItem value="$1,700,000 – $1,800,000">$1,700,000 – $1,800,000</SelectItem>
-                  <SelectItem value="$1,800,000 – $1,900,000">$1,800,000 – $1,900,000</SelectItem>
-                  <SelectItem value="$1,900,000 – $2,000,000">$1,900,000 – $2,000,000</SelectItem>
-                  <SelectItem value="$2,000,000 – $2,100,000">$2,000,000 – $2,100,000</SelectItem>
-                  <SelectItem value="$2,100,000 – $2,200,000">$2,100,000 – $2,200,000</SelectItem>
-                  <SelectItem value="$2,200,000 – $2,300,000">$2,200,000 – $2,300,000</SelectItem>
-                  <SelectItem value="$2,300,000 – $2,400,000">$2,300,000 – $2,400,000</SelectItem>
-                  <SelectItem value="$2,400,000 – $2,500,000">$2,400,000 – $2,500,000</SelectItem>
+                  <SelectItem value="$500,000 – $750,000">$500,000 – $750,000</SelectItem>
+                  <SelectItem value="$750,000 – $1,000,000">$750,000 – $1,000,000</SelectItem>
+                  <SelectItem value="$1,000,000 – $1,500,000">$1,000,000 – $1,500,000</SelectItem>
+                  <SelectItem value="$1,500,000 – $2,000,000">$1,500,000 – $2,000,000</SelectItem>
+                  <SelectItem value="$2,000,000 – $2,500,000">$2,000,000 – $2,500,000</SelectItem>
                   <SelectItem value="$2,500,000+">$2,500,000+</SelectItem>
                 </SelectContent>
               </Select>

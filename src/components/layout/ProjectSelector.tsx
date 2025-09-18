@@ -16,7 +16,12 @@ export const ProjectSelector = () => {
   }
 
   if (availableProjects.length === 0) {
-    return null;
+    return (
+      <div className="flex items-center gap-2 px-3 py-2 bg-muted/50 rounded-lg">
+        <Building className="h-4 w-4" />
+        <span className="text-sm">No project added</span>
+      </div>
+    );
   }
 
   return (
