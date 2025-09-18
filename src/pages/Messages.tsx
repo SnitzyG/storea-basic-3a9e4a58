@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { Plus, Search, MessageSquare, Users2, Wifi, WifiOff, UserCircle, Circle } from 'lucide-react';
+import { Plus, Search, MessageSquare, Users2, Circle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -23,7 +23,6 @@ import { cn } from '@/lib/utils';
 
 const Messages = () => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [messageType, setMessageType] = useState<'direct' | 'group'>('direct');
   const [connectionStatus, setConnectionStatus] = useState<'connected' | 'disconnected'>('connected');
   const { selectedProject } = useProjectSelection();
   const {
@@ -73,10 +72,6 @@ const Messages = () => {
     removeThread
   } = useMessages(selectedProject?.id);
 
-  // No need for manual project selection as it's handled by context
-
-  // No longer needed as we use useTeamSync hook
-
   // Handle direct messaging from project contacts
   useEffect(() => {
     const targetUserId = sessionStorage.getItem('targetUserId');
@@ -96,8 +91,6 @@ const Messages = () => {
     }
   }, [projectUsers, selectedProject, profile?.user_id, createThread]);
 
-  // No longer needed as we use useTeamSync hook which handles updates automatically
-
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({
@@ -114,16 +107,20 @@ const Messages = () => {
       }
     }
   }, [messages, profile?.user_id, markMessageAsRead]);
-  const filteredThreads = useMemo(() => {
-    const filtered = threads.filter(thread => thread.title.toLowerCase().includes(searchTerm.toLowerCase()));
 
-    // Filter by message type
-    if (messageType === 'direct') {
-      return filtered.filter(thread => thread.participants.length === 2);
-    } else {
-      return filtered.filter(thread => thread.participants.length > 2);
-    }
-  }, [threads, searchTerm, messageType]);
+  // Filter threads and team members based on search
+  const filteredThreads = useMemo(() => {
+    return threads.filter(thread => thread.title.toLowerCase().includes(searchTerm.toLowerCase()));
+  }, [threads, searchTerm]);
+
+  const filteredTeamMembers = useMemo(() => {
+    return projectUsers.filter(user => 
+      user.user_id !== profile?.user_id && 
+      (user.user_profile?.name?.toLowerCase().includes(searchTerm.toLowerCase()) || 
+       user.role?.toLowerCase().includes(searchTerm.toLowerCase()))
+    );
+  }, [projectUsers, profile?.user_id, searchTerm]);
+
   const getCurrentProjectName = () => {
     return selectedProject?.name || 'Select Project';
   };
@@ -307,32 +304,8 @@ const Messages = () => {
           </CreateThreadDialog>
         </div>
 
-        {/* Direct/Channels Toggle */}
-        <div className="p-3 border-b border-border">
-          <div className="flex bg-muted rounded-lg p-1">
-            <Button 
-              variant={messageType === 'direct' ? 'default' : 'ghost'} 
-              size="sm" 
-              className="flex-1 text-xs h-8"
-              onClick={() => setMessageType('direct')}
-            >
-              <UserCircle className="h-3 w-3 mr-1" />
-              Direct
-            </Button>
-            <Button 
-              variant={messageType === 'group' ? 'default' : 'ghost'} 
-              size="sm" 
-              className="flex-1 text-xs h-8"
-              onClick={() => setMessageType('group')}
-            >
-              <Users2 className="h-3 w-3 mr-1" />
-              Channels
-            </Button>
-          </div>
-        </div>
-
         {/* Search */}
-        <div className="px-3 pb-3">
+        <div className="p-3 border-b border-border">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
             <Input 
@@ -348,13 +321,72 @@ const Messages = () => {
         <div className="flex-1 overflow-hidden">
           <ScrollArea className="h-full">
             <div className="space-y-0">
-              {filteredThreads.map(thread => {
-                const isDirect = thread.participants.length === 2;
-                const otherParticipant = isDirect 
-                  ? projectUsers.find(u => u.user_id !== profile?.user_id && thread.participants.includes(u.user_id))
-                  : null;
+              {/* Show all team members */}
+              {filteredTeamMembers.map(user => {
+                // Find existing thread with this user
+                const existingThread = threads.find(thread => 
+                  thread.participants.length === 2 && 
+                  thread.participants.includes(user.user_id)
+                );
                 
                 return (
+                  <div
+                    key={user.user_id}
+                    className={cn(
+                      "p-3 cursor-pointer border-b border-border/50 hover:bg-muted/50 transition-colors",
+                      existingThread && currentThread === existingThread.id && "bg-primary/10 border-l-4 border-l-primary"
+                    )}
+                    onClick={() => {
+                      if (existingThread) {
+                        setCurrentThread(existingThread.id);
+                      } else {
+                        // Create new thread with this user
+                        handleCreateThread(`Direct message with ${user.user_profile?.name}`, [user.user_id]);
+                      }
+                    }}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="relative">
+                        <Avatar className="h-12 w-12">
+                          <AvatarFallback className="text-sm font-medium bg-primary/10 text-primary">
+                            {user.user_profile?.name?.charAt(0)?.toUpperCase() || 'U'}
+                          </AvatarFallback>
+                        </Avatar>
+                        {onlineUsers.has(user.user_id) && (
+                          <div className="absolute bottom-0 right-0 h-3 w-3 bg-green-500 rounded-full border-2 border-background" />
+                        )}
+                      </div>
+                      
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between">
+                          <h3 className="font-medium text-foreground truncate">
+                            {user.user_profile?.name || 'Unknown User'}
+                          </h3>
+                          {existingThread && existingThread.updated_at && (
+                            <span className="text-xs text-muted-foreground">
+                              {new Date(existingThread.updated_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <p className="text-sm text-muted-foreground truncate">
+                            {typingUsers.has(user.user_id) ? 'typing...' : 
+                             existingThread ? 'Direct message' : 'Start conversation'}
+                          </p>
+                          <span className="text-xs text-muted-foreground capitalize">
+                            {user.user_profile?.role || user.role}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+
+              {/* Show group threads */}
+              {filteredThreads
+                .filter(thread => thread.participants.length > 2)
+                .map(thread => (
                   <div
                     key={thread.id}
                     className={cn(
@@ -364,54 +396,33 @@ const Messages = () => {
                     onClick={() => setCurrentThread(thread.id)}
                   >
                     <div className="flex items-center gap-3">
-                      <div className="relative">
-                        {isDirect && otherParticipant ? (
-                          <Avatar className="h-12 w-12">
-                            <AvatarFallback className="text-sm font-medium bg-primary/10 text-primary">
-                              {otherParticipant.user_profile?.name?.charAt(0)?.toUpperCase() || 'U'}
-                            </AvatarFallback>
-                          </Avatar>
-                        ) : (
-                          <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center">
-                            <Users2 className="h-6 w-6 text-muted-foreground" />
-                          </div>
-                        )}
-                        {isDirect && otherParticipant && onlineUsers.has(otherParticipant.user_id) && (
-                          <div className="absolute bottom-0 right-0 h-3 w-3 bg-green-500 rounded-full border-2 border-background" />
-                        )}
+                      <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center">
+                        <Users2 className="h-6 w-6 text-muted-foreground" />
                       </div>
                       
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between">
                           <h3 className="font-medium text-foreground truncate">
-                            {isDirect && otherParticipant 
-                              ? otherParticipant.user_profile?.name || 'Unknown User'
-                              : thread.title
-                            }
+                            {thread.title}
                           </h3>
                           <span className="text-xs text-muted-foreground">
                             {thread.updated_at ? new Date(thread.updated_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : ''}
                           </span>
                         </div>
                         <p className="text-sm text-muted-foreground truncate">
-                          {isDirect ? (
-                            typingUsers.has(otherParticipant?.user_id || '') ? 'typing...' : 'No messages yet'
-                          ) : (
-                            `${thread.participants.length} members`
-                          )}
+                          {`${thread.participants.length} members`}
                         </p>
                       </div>
                     </div>
                   </div>
-                );
-              })}
+                ))}
               
-              {filteredThreads.length === 0 && (
+              {filteredTeamMembers.length === 0 && filteredThreads.filter(thread => thread.participants.length > 2).length === 0 && (
                 <div className="text-center py-12 px-4">
                   <MessageSquare className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-                  <h3 className="font-medium text-foreground mb-2">No conversations</h3>
+                  <h3 className="font-medium text-foreground mb-2">No team members</h3>
                   <p className="text-sm text-muted-foreground">
-                    Create your first message to get started
+                    Add team members to your project to start messaging
                   </p>
                 </div>
               )}
