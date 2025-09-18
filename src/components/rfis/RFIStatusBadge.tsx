@@ -8,9 +8,12 @@ export type EnhancedRFIStatus =
   | 'outstanding' 
   | 'overdue' 
   | 'in_review' 
+  | 'submitted' 
+  | 'open' 
   | 'answered' 
   | 'rejected' 
-  | 'closed';
+  | 'closed'
+  | 'void';
 
 interface RFIStatusBadgeProps {
   status: EnhancedRFIStatus;
@@ -49,6 +52,16 @@ const statusConfig = {
     variant: 'outline' as const,
     className: 'bg-purple-50 text-purple-700 border-purple-300 dark:bg-purple-950 dark:text-purple-400 dark:border-purple-700'
   },
+  submitted: {
+    label: 'Submitted',
+    variant: 'outline' as const,
+    className: 'bg-blue-50 text-blue-700 border-blue-300 dark:bg-blue-950 dark:text-blue-400 dark:border-blue-700'
+  },
+  open: {
+    label: 'Open',
+    variant: 'outline' as const,
+    className: 'bg-yellow-50 text-yellow-700 border-yellow-300 dark:bg-yellow-950 dark:text-yellow-400 dark:border-yellow-600'
+  },
   answered: {
     label: 'Answered',
     variant: 'default' as const,
@@ -63,33 +76,44 @@ const statusConfig = {
     label: 'Closed',
     variant: 'secondary' as const,
     className: 'bg-gray-100 text-gray-700 border-gray-300 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600'
+  },
+  void: {
+    label: 'Void',
+    variant: 'destructive' as const,
+    className: 'bg-red-100 text-red-800 border-red-300 dark:bg-red-950 dark:text-red-400 dark:border-red-700'
   }
 };
 
 // Status priority for sorting (higher number = more urgent)
 export const statusPriority: Record<EnhancedRFIStatus, number> = {
-  overdue: 9,
-  outstanding: 8,
-  in_review: 7,
-  received: 6,
-  sent: 5,
-  rejected: 4,
+  overdue: 10,
+  outstanding: 9,
+  open: 8,
+  submitted: 7,
+  in_review: 6,
+  received: 5,
+  sent: 4,
   answered: 3,
-  closed: 2,
-  draft: 1
+  rejected: 2,
+  closed: 1,
+  void: 0,
+  draft: 0
 };
 
 // Status workflow transitions
 export const statusWorkflow: Record<EnhancedRFIStatus, EnhancedRFIStatus[]> = {
-  draft: ['sent'],
+  draft: ['submitted', 'sent'],
   sent: ['received', 'outstanding'],
   received: ['outstanding', 'in_review'],
   outstanding: ['overdue', 'in_review', 'answered'],
   overdue: ['in_review', 'answered'],
   in_review: ['answered', 'rejected', 'outstanding'],
+  submitted: ['open'],
+  open: ['answered', 'rejected'],
   answered: ['closed'],
-  rejected: ['outstanding', 'draft'],
-  closed: []
+  rejected: ['open', 'draft'],
+  closed: [],
+  void: []
 };
 
 export const RFIStatusBadge: React.FC<RFIStatusBadgeProps> = ({ 
@@ -115,10 +139,10 @@ export const getNextStatuses = (currentStatus: EnhancedRFIStatus): EnhancedRFISt
 
 // Utility function to determine if a status is urgent
 export const isUrgentStatus = (status: EnhancedRFIStatus): boolean => {
-  return ['overdue', 'outstanding'].includes(status);
+  return ['overdue', 'outstanding', 'open', 'submitted'].includes(status);
 };
 
 // Utility function to determine if a status is completed
 export const isCompletedStatus = (status: EnhancedRFIStatus): boolean => {
-  return ['answered', 'closed', 'rejected'].includes(status);
+  return ['answered', 'closed', 'rejected', 'void'].includes(status);
 };

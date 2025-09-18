@@ -115,7 +115,7 @@ const RFIs = () => {
       case 'unresponded':
         return projectRFIs.filter(rfi => 
           rfi.raised_by === currentUserId && 
-          ['outstanding', 'overdue', 'sent', 'received'].includes(rfi.status)
+          ['open', 'submitted'].includes(rfi.status)
         );
       case 'responded':
         return projectRFIs.filter(rfi => 
@@ -123,7 +123,6 @@ const RFIs = () => {
           ['answered', 'closed'].includes(rfi.status)
         );
       case 'drafts':
-        // Now we can properly filter for draft status
         return projectRFIs.filter(rfi => rfi.status === 'draft');
       case 'all':
       default:
@@ -141,12 +140,12 @@ const RFIs = () => {
     const statusMapping: Record<RFIStatusFilter, string[]> = {
       'all': [],
       'draft': ['draft'],
-      'submitted': ['sent', 'received'],
-      'open': ['outstanding', 'overdue', 'sent', 'received'],
-      'answered': ['answered', 'in_review'],
+      'submitted': ['submitted'],
+      'open': ['open'],
+      'answered': ['answered'],
       'rejected': ['rejected'],
       'closed': ['closed'],
-      'void': [] // No current mapping for void status
+      'void': ['void']
     };
     
     const mappedStatuses = statusMapping[selectedStatusFilter] || [];
@@ -290,7 +289,7 @@ const RFIs = () => {
       received: projectRFIs.filter(rfi => rfi.assigned_to === currentUserId).length,
       unresponded: projectRFIs.filter(rfi => 
         rfi.raised_by === currentUserId && 
-        ['outstanding', 'overdue', 'sent', 'received'].includes(rfi.status)
+        ['open', 'submitted'].includes(rfi.status)
       ).length,
       responded: projectRFIs.filter(rfi => 
         rfi.assigned_to === currentUserId && 
@@ -305,12 +304,12 @@ const RFIs = () => {
     const statusMapping: Record<RFIStatusFilter, string[]> = {
       'all': [],
       'draft': ['draft'],
-      'submitted': ['sent', 'received'],
-      'open': ['outstanding', 'overdue', 'sent', 'received'],
-      'answered': ['answered', 'in_review'],
+      'submitted': ['submitted'],
+      'open': ['open'],
+      'answered': ['answered'],
       'rejected': ['rejected'],
       'closed': ['closed'],
-      'void': []
+      'void': ['void']
     };
 
     return {
@@ -321,7 +320,7 @@ const RFIs = () => {
       answered: projectRFIs.filter(rfi => statusMapping.answered.includes(rfi.status)).length,
       rejected: projectRFIs.filter(rfi => statusMapping.rejected.includes(rfi.status)).length,
       closed: projectRFIs.filter(rfi => statusMapping.closed.includes(rfi.status)).length,
-      void: 0 // No current mapping for void status
+      void: projectRFIs.filter(rfi => statusMapping.void.includes(rfi.status)).length
     };
   }, [projectRFIs]);
 

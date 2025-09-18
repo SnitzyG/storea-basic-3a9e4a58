@@ -68,7 +68,7 @@ export const RFIQuickActions = ({
 
   const handleMarkUnanswered = () => {
     handleQuickAction("Mark as Unanswered", { 
-      status: 'outstanding',
+      status: 'open',
       response_date: null
     });
   };
@@ -178,7 +178,7 @@ export const RFIQuickActions = ({
           {rfi.priority}
         </Badge>
         <Badge 
-          variant={rfi.status === 'overdue' ? 'destructive' : 'outline'}
+          variant={rfi.status === 'open' ? 'destructive' : 'outline'}
           className="text-xs"
         >
           {rfi.status}

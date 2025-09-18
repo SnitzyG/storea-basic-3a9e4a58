@@ -35,7 +35,7 @@ const priorityColors = {
 
 export const RFIDetailsDialog = ({ open, onOpenChange, rfi }: RFIDetailsDialogProps) => {
   const [response, setResponse] = useState('');
-  const [status, setStatus] = useState<'outstanding' | 'overdue' | 'answered' | 'closed' | 'draft' | 'sent' | 'received' | 'in_review' | 'rejected'>('outstanding');
+  const [status, setStatus] = useState<EnhancedRFIStatus>('outstanding');
   const [activities, setActivities] = useState<RFIActivity[]>([]);
   const [loading, setLoading] = useState(false);
   const [loadingActivities, setLoadingActivities] = useState(false);
