@@ -205,16 +205,6 @@ const AdvancedProjects = () => {
                             >
                               <Eye className="h-3 w-3" />
                             </Button>
-                            {canCreateProjects && (
-                              <Button 
-                                variant="outline" 
-                                size="sm" 
-                                onClick={() => handleProjectAction('archive', project)}
-                                title="Archive Project"
-                              >
-                                <Archive className="h-3 w-3" />
-                              </Button>
-                            )}
                           </div>
                         </TableCell>
                       </TableRow>
