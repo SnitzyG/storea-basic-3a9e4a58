@@ -41,7 +41,7 @@ const RFIs = () => {
   const [selectedRFIForDetail, setSelectedRFIForDetail] = useState<RFI | null>(null);
   const [projectUsers, setProjectUsers] = useState<any[]>([]);
   const [selectedInboxCategory, setSelectedInboxCategory] = useState<RFIInboxCategory>('all');
-  const [selectedStatusFilter, setSelectedStatusFilter] = useState<RFIStatusFilter>('all');
+  const [selectedStatusFilter, setSelectedStatusFilter] = useState<import('@/components/rfis/RFIInbox').RFIStatusFilter>('all');
   const [smartFilters, setSmartFilters] = useState<SmartFilters>({
     searchQuery: '',
     sortBy: 'created_at',
@@ -125,8 +125,9 @@ const RFIs = () => {
     }
     
     // Map new status names to existing RFI statuses
-    const statusMapping: Record<RFIStatusFilter, string[]> = {
+    const statusMapping: Record<import('@/components/rfis/RFIInbox').RFIStatusFilter, string[]> = {
       'all': [],
+      'outstanding': ['outstanding'],
       'draft': ['draft'],
       'submitted': ['submitted'],
       'open': ['open'],
@@ -292,8 +293,9 @@ const RFIs = () => {
 
   // Calculate counts for each status
   const statusCounts = useMemo(() => {
-    const statusMapping: Record<RFIStatusFilter, string[]> = {
+    const statusMapping: Record<import('@/components/rfis/RFIInbox').RFIStatusFilter, string[]> = {
       'all': [],
+      'outstanding': ['outstanding'],
       'draft': ['draft'],
       'submitted': ['submitted'],
       'open': ['open'],
@@ -305,6 +307,7 @@ const RFIs = () => {
 
     return {
       all: projectRFIs.length,
+      outstanding: projectRFIs.filter(rfi => statusMapping.outstanding.includes(rfi.status)).length,
       draft: projectRFIs.filter(rfi => statusMapping.draft.includes(rfi.status)).length,
       submitted: projectRFIs.filter(rfi => statusMapping.submitted.includes(rfi.status)).length,
       open: projectRFIs.filter(rfi => statusMapping.open.includes(rfi.status)).length,
@@ -732,12 +735,10 @@ const RFIs = () => {
           <RFIInbox
             selectedCategory={selectedInboxCategory}
             onCategoryChange={setSelectedInboxCategory}
-            counts={inboxCounts}
-          />
-          <RFIStatus
             selectedStatus={selectedStatusFilter}
             onStatusChange={setSelectedStatusFilter}
-            counts={statusCounts}
+            counts={inboxCounts}
+            statusCounts={statusCounts}
           />
         </div>
 
