@@ -15,6 +15,7 @@ import { RFIListView } from '@/components/rfis/RFIListView';
 import { RFIDetailPanel } from '@/components/rfis/RFIDetailPanel';
 import { SimplifiedRFIComposer } from '@/components/rfis/SimplifiedRFIComposer';
 import { RFIMessageComposer } from '@/components/messages/RFIMessageComposer';
+import { RFIInbox, RFIInboxCategory } from '@/components/rfis/RFIInbox';
 // Legacy components for fallback
 import { RFIDetailsDialog } from '@/components/rfis/RFIDetailsDialog';
 import { ProjectScopeValidator } from '@/components/rfis/ProjectScopeValidator';
@@ -30,7 +31,7 @@ const RFIs = () => {
   const [replyToRFI, setReplyToRFI] = useState<RFI | null>(null);
   const [selectedRFIForDetail, setSelectedRFIForDetail] = useState<RFI | null>(null);
   const [projectUsers, setProjectUsers] = useState<any[]>([]);
-  const [sidebarFilter, setSidebarFilter] = useState<'all' | 'inbox' | 'sent' | 'draft'>('all');
+  const [selectedInboxCategory, setSelectedInboxCategory] = useState<RFIInboxCategory>('all');
   const [isDetailOverlayOpen, setIsDetailOverlayOpen] = useState(false);
   const [overlaySelectedRFI, setOverlaySelectedRFI] = useState<RFI | null>(null);
   const { selectedProject } = useProjectSelection();
@@ -67,6 +68,47 @@ const RFIs = () => {
 
   // All RFIs for the current project - ensure proper project scoping
   const projectRFIs = rfis.filter(rfi => rfi.project_id === selectedProject?.id);
+
+  // Filter RFIs based on selected inbox category
+  const filteredRFIs = useMemo(() => {
+    const currentUserId = profile?.user_id;
+    if (!currentUserId) return projectRFIs;
+
+    switch (selectedInboxCategory) {
+      case 'sent':
+        return projectRFIs.filter(rfi => rfi.raised_by === currentUserId);
+      case 'received':
+        return projectRFIs.filter(rfi => rfi.assigned_to === currentUserId);
+      case 'unresponded':
+        return projectRFIs.filter(rfi => 
+          rfi.raised_by === currentUserId && 
+          ['outstanding', 'overdue'].includes(rfi.status)
+        );
+      case 'drafts':
+        // Note: Draft functionality would need to be implemented with a separate drafts system
+        return [];
+      case 'all':
+      default:
+        return projectRFIs;
+    }
+  }, [projectRFIs, selectedInboxCategory, profile?.user_id]);
+
+  // Calculate counts for each category
+  const inboxCounts = useMemo(() => {
+    const currentUserId = profile?.user_id;
+    if (!currentUserId) return { all: 0, sent: 0, received: 0, unresponded: 0, drafts: 0 };
+
+    return {
+      all: projectRFIs.length,
+      sent: projectRFIs.filter(rfi => rfi.raised_by === currentUserId).length,
+      received: projectRFIs.filter(rfi => rfi.assigned_to === currentUserId).length,
+      unresponded: projectRFIs.filter(rfi => 
+        rfi.raised_by === currentUserId && 
+        ['outstanding', 'overdue'].includes(rfi.status)
+      ).length,
+      drafts: 0 // Draft functionality to be implemented
+    };
+  }, [projectRFIs, profile?.user_id]);
 
   const handleViewRFI = (rfi: RFI) => {
     setSelectedRFI(rfi);
@@ -472,59 +514,13 @@ const RFIs = () => {
 
       {/* Three-Column Layout */}
       <div className="grid grid-cols-12 gap-4 h-[calc(100vh-200px)]">
-        {/* Left Column - Navigation Sidebar (~20% width) */}
+        {/* Left Column - RFI Inbox (~20% width) */}
         <div className="col-span-2">
-          <div className="h-full border border-muted rounded-lg bg-muted/10 p-3 overflow-hidden">
-            <h3 className="text-xs font-medium text-muted-foreground/70 mb-4 uppercase tracking-wide">
-              RFI Filters
-            </h3>
-            <nav className="space-y-1">
-              <button
-                onClick={() => setSidebarFilter('all')}
-                className={`w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md transition-colors ${
-                  sidebarFilter === 'all'
-                    ? 'bg-accent text-accent-foreground font-medium'
-                    : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
-                }`}
-              >
-                <Archive className="h-4 w-4" />
-                All
-              </button>
-              <button
-                onClick={() => setSidebarFilter('inbox')}
-                className={`w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md transition-colors ${
-                  sidebarFilter === 'inbox'
-                    ? 'bg-accent text-accent-foreground font-medium'
-                    : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
-                }`}
-              >
-                <Inbox className="h-4 w-4" />
-                Inbox
-              </button>
-              <button
-                onClick={() => setSidebarFilter('sent')}
-                className={`w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md transition-colors ${
-                  sidebarFilter === 'sent'
-                    ? 'bg-accent text-accent-foreground font-medium'
-                    : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
-                }`}
-              >
-                <Send className="h-4 w-4" />
-                Sent
-              </button>
-              <button
-                onClick={() => setSidebarFilter('draft')}
-                className={`w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md transition-colors ${
-                  sidebarFilter === 'draft'
-                    ? 'bg-accent text-accent-foreground font-medium'
-                    : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
-                }`}
-              >
-                <FileEdit className="h-4 w-4" />
-                Draft
-              </button>
-            </nav>
-          </div>
+          <RFIInbox
+            selectedCategory={selectedInboxCategory}
+            onCategoryChange={setSelectedInboxCategory}
+            counts={inboxCounts}
+          />
         </div>
 
         {/* Center-Right Column - RFI List (Expanded, ~75-80% width) */}
@@ -548,7 +544,7 @@ const RFIs = () => {
             </div>
             <div className="overflow-y-auto h-full">
               <RFIListView 
-                rfis={projectRFIs}
+                rfis={filteredRFIs}
                 onView={handleViewRFI}
                 onExportPDF={handleExportPDF}
                 onSelectRFI={setSelectedRFIForDetail}
