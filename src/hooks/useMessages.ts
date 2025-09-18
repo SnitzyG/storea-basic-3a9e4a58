@@ -50,19 +50,33 @@ export const useMessages = (projectId?: string) => {
   const fetchThreads = useCallback(async () => {
     try {
       setLoading(true);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user || !activeProjectId) {
+        setThreads([]);
+        return;
+      }
+
+      // CRITICAL: Only fetch threads where the current user is a participant
       let query = supabase
         .from('message_threads')
         .select('*')
+        .eq('project_id', activeProjectId)
+        .contains('participants', [user.id])  // User must be in participants array
         .order('updated_at', { ascending: false });
-
-      if (activeProjectId) {
-        query = query.eq('project_id', activeProjectId);
-      }
 
       const { data, error } = await query;
 
-      if (error) throw error;
-      setThreads(data || []);
+      if (error) {
+        console.error('Error fetching threads:', error);
+        throw error;
+      }
+      
+      // Double-check client-side that user is truly a participant
+      const userThreads = (data || []).filter(thread => 
+        thread.participants && thread.participants.includes(user.id)
+      );
+      
+      setThreads(userThreads);
     } catch (error) {
       console.error('Error fetching threads:', error);
       toast({
@@ -70,6 +84,7 @@ export const useMessages = (projectId?: string) => {
         description: "Failed to fetch message threads",
         variant: "destructive",
       });
+      setThreads([]);
     } finally {
       setLoading(false);
     }
@@ -82,15 +97,37 @@ export const useMessages = (projectId?: string) => {
 
   const fetchMessages = useCallback(async (threadId?: string) => {
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user || !activeProjectId) {
+        setMessages([]);
+        return;
+      }
+
       let query = supabase
         .from('messages')
         .select('*')
+        .eq('project_id', activeProjectId)
         .order('created_at', { ascending: true });
 
       if (threadId) {
+        // For threaded messages, verify user is participant of the thread
+        const { data: threadData } = await supabase
+          .from('message_threads')
+          .select('participants')
+          .eq('id', threadId)
+          .single();
+        
+        if (!threadData || !threadData.participants.includes(user.id)) {
+          console.warn('User not authorized to view this thread');
+          setMessages([]);
+          return;
+        }
+        
         query = query.eq('thread_id', threadId);
-      } else if (activeProjectId) {
-        query = query.eq('project_id', activeProjectId).is('thread_id', null);
+      } else {
+        // For direct messages (no thread), only show messages user sent or received
+        query = query.is('thread_id', null);
+        // Note: RLS policies will handle filtering for project members
       }
 
       const { data, error } = await query;
@@ -108,6 +145,7 @@ export const useMessages = (projectId?: string) => {
         description: "Failed to fetch messages",
         variant: "destructive",
       });
+      setMessages([]);
     }
   }, [activeProjectId, toast]);
 
@@ -298,21 +336,33 @@ export const useMessages = (projectId?: string) => {
   const getUnreadCount = async (threadId?: string): Promise<number> => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return 0;
+      if (!user || !activeProjectId) return 0;
 
+      // Base query for messages in this project
       let query = supabase
         .from('messages')
         .select('id', { count: 'exact' })
         .eq('project_id', activeProjectId)
-        .neq('sender_id', user.id);
+        .neq('sender_id', user.id); // Exclude messages sent by current user
 
       if (threadId) {
+        // For threaded messages, verify user is participant first
+        const { data: threadData } = await supabase
+          .from('message_threads')
+          .select('participants')
+          .eq('id', threadId)
+          .single();
+        
+        if (!threadData || !threadData.participants.includes(user.id)) {
+          return 0; // User not authorized to view this thread
+        }
+        
         query = query.eq('thread_id', threadId);
       } else {
         query = query.is('thread_id', null);
       }
 
-      // Get messages not in message_participants or with null read_at
+      // Get messages not marked as read
       const { data: unreadMessages, error } = await query;
 
       if (error) throw error;
@@ -342,7 +392,7 @@ export const useMessages = (projectId?: string) => {
 
     console.log('Setting up realtime subscriptions for project:', activeProjectId);
 
-    // Subscribe to message changes
+    // Subscribe to message changes - only for user's accessible threads
     const messagesChannel = supabase
       .channel('messages-changes')
       .on(
@@ -353,12 +403,30 @@ export const useMessages = (projectId?: string) => {
           table: 'messages',
           filter: `project_id=eq.${activeProjectId}`
         },
-        (payload) => {
+        async (payload) => {
           console.log('New message received:', payload);
           const newMessage = {
             ...payload.new,
             attachments: Array.isArray(payload.new.attachments) ? payload.new.attachments : []
           } as Message;
+          
+          // Verify user can access this message
+          const { data: { user } } = await supabase.auth.getUser();
+          if (!user) return;
+          
+          // If it's a threaded message, check thread participation
+          if (newMessage.thread_id) {
+            const { data: threadData } = await supabase
+              .from('message_threads')
+              .select('participants')
+              .eq('id', newMessage.thread_id)
+              .single();
+            
+            if (!threadData || !threadData.participants.includes(user.id)) {
+              return; // User not authorized to see this message
+            }
+          }
+          
           setMessages(prev => [...prev, newMessage]);
         }
       )
@@ -370,12 +438,30 @@ export const useMessages = (projectId?: string) => {
           table: 'messages',
           filter: `project_id=eq.${activeProjectId}`
         },
-        (payload) => {
+        async (payload) => {
           console.log('Message updated:', payload);
           const updatedMessage = {
             ...payload.new,
             attachments: Array.isArray(payload.new.attachments) ? payload.new.attachments : []
           } as Message;
+          
+          // Verify user can access this message
+          const { data: { user } } = await supabase.auth.getUser();
+          if (!user) return;
+          
+          // If it's a threaded message, check thread participation
+          if (updatedMessage.thread_id) {
+            const { data: threadData } = await supabase
+              .from('message_threads')
+              .select('participants')
+              .eq('id', updatedMessage.thread_id)
+              .single();
+            
+            if (!threadData || !threadData.participants.includes(user.id)) {
+              return; // User not authorized to see this message
+            }
+          }
+          
           setMessages(prev => prev.map(msg => 
             msg.id === updatedMessage.id ? updatedMessage : msg
           ));
@@ -383,7 +469,7 @@ export const useMessages = (projectId?: string) => {
       )
       .subscribe();
 
-    // Subscribe to thread changes
+    // Subscribe to thread changes - only for user's accessible threads
     const threadsChannel = supabase
       .channel('threads-changes')
       .on(
@@ -394,9 +480,19 @@ export const useMessages = (projectId?: string) => {
           table: 'message_threads',
           filter: `project_id=eq.${activeProjectId}`
         },
-        (payload) => {
+        async (payload) => {
           console.log('Thread changed:', payload);
-          fetchThreads();
+          // Only refresh if user is involved in this thread
+          const { data: { user } } = await supabase.auth.getUser();
+          if (!user) return;
+          
+           const threadData: any = payload.new || payload.old;
+           if (threadData && 
+               threadData.participants && 
+               Array.isArray(threadData.participants) && 
+               threadData.participants.includes(user.id)) {
+             fetchThreads();
+           }
         }
       )
       .subscribe();

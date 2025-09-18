@@ -108,14 +108,21 @@ const Messages = () => {
     }
   }, [messages, profile?.user_id, markMessageAsRead]);
 
-  // Filter threads and team members based on search
+  // Filter threads and team members based on search - with participant checks
   const filteredThreads = useMemo(() => {
-    return threads.filter(thread => thread.title.toLowerCase().includes(searchTerm.toLowerCase()));
-  }, [threads, searchTerm]);
+    if (!profile?.user_id) return [];
+    // Only show threads where current user is a participant
+    return threads.filter(thread => 
+      thread.participants.includes(profile.user_id) &&
+      thread.title.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [threads, searchTerm, profile?.user_id]);
 
   const filteredTeamMembers = useMemo(() => {
+    if (!profile?.user_id) return [];
+    // Only show team members from current project, excluding current user
     return projectUsers.filter(user => 
-      user.user_id !== profile?.user_id && 
+      user.user_id !== profile.user_id && 
       (user.user_profile?.name?.toLowerCase().includes(searchTerm.toLowerCase()) || 
        user.role?.toLowerCase().includes(searchTerm.toLowerCase()))
     );
@@ -321,12 +328,13 @@ const Messages = () => {
         <div className="flex-1 overflow-hidden">
           <ScrollArea className="h-full">
             <div className="space-y-0">
-              {/* Show all team members */}
+              {/* Show filtered team members - only project members current user can message */}
               {filteredTeamMembers.map(user => {
                 // Find existing thread with this user
                 const existingThread = threads.find(thread => 
                   thread.participants.length === 2 && 
-                  thread.participants.includes(user.user_id)
+                  thread.participants.includes(user.user_id) &&
+                  thread.participants.includes(profile?.user_id || '')
                 );
                 
                 // Determine display title - use custom title or default to user name
