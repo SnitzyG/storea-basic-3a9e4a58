@@ -254,9 +254,9 @@ export const ProjectTeamManagement = ({ projectId, projectName }: ProjectTeamMan
                           <span className="font-medium">{member.name}</span>
                           <Badge 
                             variant="secondary" 
-                            className={roleColors[member.role as keyof typeof roleColors]}
+                            className={roleColors[(member.user_profile?.role || member.role) as keyof typeof roleColors]}
                           >
-                            {roleLabels[member.role as keyof typeof roleLabels] || member.role}
+                            {roleLabels[(member.user_profile?.role || member.role) as keyof typeof roleLabels] || (member.user_profile?.role || member.role)}
                           </Badge>
                           {isPending && (
                             <Badge variant="outline" className="text-yellow-600 border-yellow-300">

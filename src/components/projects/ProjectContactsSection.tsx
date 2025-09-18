@@ -58,7 +58,7 @@ export const ProjectContactsSection = ({
 
   // Group users by role for better organization
   const usersByRole = teamMembers.reduce((acc, user) => {
-    const role = user.role || 'other';
+    const role = user.user_profile?.role || user.role || 'other';
     if (!acc[role]) acc[role] = [];
     acc[role].push(user);
     return acc;
@@ -149,10 +149,10 @@ export const ProjectContactsSection = ({
                         variant="secondary" 
                         className={cn(
                           "text-xs",
-                          roleColors[user.role as keyof typeof roleColors] || "bg-gray-100 text-gray-800"
+                          roleColors[user.user_profile?.role as keyof typeof roleColors] || roleColors[user.role as keyof typeof roleColors] || "bg-gray-100 text-gray-800"
                         )}
                       >
-                        {roleLabels[user.role as keyof typeof roleLabels] || user.role}
+                        {roleLabels[user.user_profile?.role as keyof typeof roleLabels] || roleLabels[user.role as keyof typeof roleLabels] || user.role}
                       </Badge>
                       {user.email && (
                         <p className="text-xs text-muted-foreground truncate">
@@ -181,7 +181,7 @@ export const ProjectContactsSection = ({
                   </Button>
 
                   {/* Remove Button (only in editing mode and for non-architects) */}
-                  {isEditing && onUserRemove && user.role !== 'architect' && (
+                  {isEditing && onUserRemove && (user.user_profile?.role || user.role) !== 'architect' && (
                     <Button
                       variant="ghost"
                       size="sm"

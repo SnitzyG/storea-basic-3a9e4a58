@@ -114,7 +114,7 @@ export const CreateThreadDialog: React.FC<CreateThreadDialogProps> = ({
                         </div>
                         <div>
                           <p className="text-sm font-medium">{user.user_profile?.name || 'Unknown User'}</p>
-                          <p className="text-xs text-muted-foreground capitalize">{user.role}</p>
+                          <p className="text-xs text-muted-foreground capitalize">{user.user_profile?.role || user.role}</p>
                         </div>
                       </div>
                       <Button

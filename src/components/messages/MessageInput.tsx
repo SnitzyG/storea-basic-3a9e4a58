@@ -150,7 +150,7 @@ export const MessageInput: React.FC<MessageInputProps> = ({
 
   const filteredUsers = projectUsers.filter(user =>
     user.user_profile?.name?.toLowerCase().includes(mentionQuery.toLowerCase()) ||
-    user.role.toLowerCase().includes(mentionQuery.toLowerCase())
+    (user.user_profile?.role || user.role).toLowerCase().includes(mentionQuery.toLowerCase())
   );
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -276,7 +276,7 @@ export const MessageInput: React.FC<MessageInputProps> = ({
                           </Avatar>
                           <div className="flex-1 min-w-0">
                             <p className="text-sm font-medium truncate">{user.user_profile?.name || 'Unknown User'}</p>
-                            <p className="text-xs text-muted-foreground capitalize">{user.role}</p>
+                            <p className="text-xs text-muted-foreground capitalize">{user.user_profile?.role || user.role}</p>
                           </div>
                         </div>
                       ))}

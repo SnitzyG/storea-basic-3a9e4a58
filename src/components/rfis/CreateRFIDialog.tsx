@@ -235,7 +235,7 @@ export const CreateRFIDialog: React.FC<CreateRFIDialogProps> = ({
                 </SelectTrigger>
                 <SelectContent>
                   {teamMembers.map(member => <SelectItem key={member.user_id} value={member.user_id}>
-                      {member.user_profile?.name || 'Unknown User'} ({member.role})
+                      {member.user_profile?.name || 'Unknown User'} ({member.user_profile?.role || member.role})
                     </SelectItem>)}
                   <SelectItem value="other">Other recipient</SelectItem>
                 </SelectContent>
@@ -351,7 +351,7 @@ export const CreateRFIDialog: React.FC<CreateRFIDialogProps> = ({
                   </SelectTrigger>
                   <SelectContent>
                     {teamMembers.map(member => <SelectItem key={member.user_id} value={member.user_id}>
-                        {member.user_profile?.name || 'Unknown User'} ({member.role})
+                        {member.user_profile?.name || 'Unknown User'} ({member.user_profile?.role || member.role})
                       </SelectItem>)}
                   </SelectContent>
                 </Select>

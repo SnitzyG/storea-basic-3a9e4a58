@@ -87,7 +87,7 @@ export const ProjectTeamList = ({
   };
 
   const groupedUsers = teamMembers.reduce((acc, user) => {
-    const role = user.role;
+    const role = user.user_profile?.role || user.role;
     if (!acc[role]) {
       acc[role] = [];
     }
@@ -183,9 +183,9 @@ export const ProjectTeamList = ({
                            <div className="flex-1 space-y-2">
                              <div className="flex items-center gap-2">
                                <h4 className="font-medium text-foreground">{user.user_profile.name}</h4>
-                               <Badge variant="secondary" className={roleColors[user.role as keyof typeof roleColors]}>
-                                 {roleLabels[user.role as keyof typeof roleLabels]}
-                               </Badge>
+                                <Badge variant="secondary" className={roleColors[user.user_profile?.role as keyof typeof roleColors] || roleColors[user.role as keyof typeof roleColors]}>
+                                  {roleLabels[user.user_profile?.role as keyof typeof roleLabels] || roleLabels[user.role as keyof typeof roleLabels]}
+                                </Badge>
                              </div>
                              
                              <div className="space-y-1">
@@ -224,7 +224,7 @@ export const ProjectTeamList = ({
                            </div>
                          </div>
                          
-                         {isEditing && showRemoveButton && profile?.role === 'architect' && user.role !== 'architect' && (
+                         {isEditing && showRemoveButton && profile?.role === 'architect' && (user.user_profile?.role || user.role) !== 'architect' && (
                            <Button
                              size="sm"
                              variant="ghost"

@@ -498,7 +498,7 @@ export const AdvancedRFIComposer: React.FC<AdvancedRFIComposerProps> = ({
                                   <div className="flex items-center space-x-2">
                                     <User className="h-4 w-4" />
                                     <span className="text-sm">{member.user_profile?.name}</span>
-                                    <Badge variant="outline" className="text-xs">{member.role}</Badge>
+                                    <Badge variant="outline" className="text-xs">{member.user_profile?.role || member.role}</Badge>
                                   </div>
                                 </div>)}
                             </CardContent>
@@ -547,7 +547,7 @@ export const AdvancedRFIComposer: React.FC<AdvancedRFIComposerProps> = ({
                                   <div className="flex items-center space-x-2">
                                     <User className="h-4 w-4" />
                                     <span className="text-sm">{member.user_profile?.name}</span>
-                                    <Badge variant="outline" className="text-xs">{member.role}</Badge>
+                                    <Badge variant="outline" className="text-xs">{member.user_profile?.role || member.role}</Badge>
                                   </div>
                                 </div>)}
                             </CardContent>

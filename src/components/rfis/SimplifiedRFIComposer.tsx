@@ -267,7 +267,7 @@ export const SimplifiedRFIComposer: React.FC<SimplifiedRFIComposerProps> = ({
                   <SelectContent>
                     {teamMembers.map(member => (
                       <SelectItem key={member.user_id} value={member.user_id}>
-                        {member.user_profile?.name || 'Unknown User'} ({member.role})
+                        {member.user_profile?.name || 'Unknown User'} ({member.user_profile?.role || member.role})
                       </SelectItem>
                     ))}
                   </SelectContent>
