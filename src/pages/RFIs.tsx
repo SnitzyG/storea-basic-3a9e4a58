@@ -515,8 +515,8 @@ const RFIs = () => {
           </div>
         </div>
 
-        {/* Middle Column - RFI List (Primary) */}
-        <div className="col-span-6">
+        {/* Center-Right Column - RFI List (Expanded, ~75-80% width) */}
+        <div className="col-span-10">
           <div className="h-full border rounded-lg bg-card p-4 overflow-hidden">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold">RFI List</h2>
@@ -533,13 +533,6 @@ const RFIs = () => {
                 selectedRFI={selectedRFIForDetail}
               />
             </div>
-          </div>
-        </div>
-
-        {/* Right Column - RFI Detail View */}
-        <div className="col-span-4">
-          <div className="h-full overflow-hidden">
-            <RFIDetailPanel rfi={selectedRFIForDetail} />
           </div>
         </div>
       </div>
