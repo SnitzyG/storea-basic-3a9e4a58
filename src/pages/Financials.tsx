@@ -27,14 +27,14 @@ export default function Financials() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!session?.user?.id || !selectedProject) return;
+    if (!session?.user?.id || !selectedProject?.id) return;
 
     const fetchUserRole = async () => {
       try {
         const { data: projectUser } = await supabase
           .from('project_users')
           .select('role')
-          .eq('project_id', selectedProject)
+          .eq('project_id', selectedProject.id)
           .eq('user_id', session.user.id)
           .single();
 
@@ -91,7 +91,7 @@ export default function Financials() {
       </div>
 
       {/* Budget Overview - Always visible */}
-      <BudgetOverview projectId={selectedProject} userRole={userRole} />
+      <BudgetOverview projectId={selectedProject.id} userRole={userRole} />
 
       <Tabs defaultValue="breakdown" className="space-y-6">
         <TabsList className="grid w-full grid-cols-4 lg:grid-cols-8">
@@ -132,36 +132,36 @@ export default function Financials() {
         </TabsList>
 
         <TabsContent value="breakdown">
-          <CostBreakdown projectId={selectedProject} userRole={userRole} />
+          <CostBreakdown projectId={selectedProject.id} userRole={userRole} />
         </TabsContent>
 
         <TabsContent value="invoices">
-          <InvoicesSection projectId={selectedProject} userRole={userRole} />
+          <InvoicesSection projectId={selectedProject.id} userRole={userRole} />
         </TabsContent>
 
         <TabsContent value="payments">
-          <PaymentsSection projectId={selectedProject} userRole={userRole} />
+          <PaymentsSection projectId={selectedProject.id} userRole={userRole} />
         </TabsContent>
 
         {!isClientView && (
           <TabsContent value="changes">
-            <ChangeOrdersSection projectId={selectedProject} userRole={userRole} />
+            <ChangeOrdersSection projectId={selectedProject.id} userRole={userRole} />
           </TabsContent>
         )}
 
         <TabsContent value="contributions">
-          <ClientContributionsSection projectId={selectedProject} userRole={userRole} />
+          <ClientContributionsSection projectId={selectedProject.id} userRole={userRole} />
         </TabsContent>
 
         {!isClientView && (
           <TabsContent value="cashflow">
-            <CashflowForecast projectId={selectedProject} userRole={userRole} />
+            <CashflowForecast projectId={selectedProject.id} userRole={userRole} />
           </TabsContent>
         )}
 
         {!isClientView && (
           <TabsContent value="billing">
-            <ProgressBilling projectId={selectedProject} userRole={userRole} />
+            <ProgressBilling projectId={selectedProject.id} userRole={userRole} />
           </TabsContent>
         )}
       </Tabs>

@@ -12,6 +12,7 @@ import Documents from "./pages/Documents";
 import Messages from "./pages/Messages";
 import RFIs from "./pages/RFIs";
 import Tenders from "./pages/Tenders";
+import Financials from "./pages/Financials";
 import Testing from "./pages/Testing";
 import TenderResponse from "./pages/TenderResponse";
 import TenderReviewDemo from "./pages/TenderReviewDemo";
@@ -62,6 +63,11 @@ const App = () => (
           <Route path="/rfis" element={
             <AppLayout>
               <RFIs />
+            </AppLayout>
+          } />
+          <Route path="/financials" element={
+            <AppLayout>
+              <Financials />
             </AppLayout>
           } />
           <Route path="/testing" element={
