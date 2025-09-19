@@ -232,11 +232,11 @@ export const CreateTenderDialog = ({ open, onOpenChange, projectId }: CreateTend
                               {doc.name}
                             </SelectItem>
                           ))}
-                        {documents.length === 0 && (
-                          <SelectItem value="" disabled>
-                            No documents available
-                          </SelectItem>
-                        )}
+                         {documents.length === 0 && (
+                           <SelectItem value="no-documents" disabled>
+                             No documents available
+                           </SelectItem>
+                         )}
                        </SelectContent>
                     </Select>
                   </div>
