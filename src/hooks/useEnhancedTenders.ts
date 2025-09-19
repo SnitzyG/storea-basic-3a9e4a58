@@ -384,10 +384,23 @@ export const useEnhancedTenders = (projectId?: string) => {
     if (!user) return null;
 
     try {
+      // Get next amendment number for this tender
+      const { data: existingAmendments } = await supabase
+        .from('tender_amendments')
+        .select('amendment_number')
+        .eq('tender_id', amendmentData.tender_id)
+        .order('amendment_number', { ascending: false })
+        .limit(1);
+
+      const nextAmendmentNumber = existingAmendments && existingAmendments.length > 0 
+        ? existingAmendments[0].amendment_number + 1 
+        : 1;
+
       const { data, error } = await supabase
         .from('tender_amendments')
         .insert({
           ...amendmentData,
+          amendment_number: nextAmendmentNumber,
           issued_by: user.id,
         })
         .select()
@@ -479,27 +492,31 @@ export const useEnhancedTenders = (projectId?: string) => {
 
     try {
       // Basic compliance check logic - can be enhanced
-      const bid = await supabase
+      const { data: bid, error } = await supabase
         .from('tender_bids')
         .select('*, tenders(*)')
         .eq('id', bidId)
         .single();
 
-      if (bid.error) throw bid.error;
+      if (error) throw error;
 
       const compliance_issues: string[] = [];
       
-      // Check if bid amount is within budget
-      if (bid.data.tenders.budget && bid.data.bid_amount > bid.data.tenders.budget * 1.1) {
-        compliance_issues.push('Bid amount exceeds budget by more than 10%');
+      // Check if bid amount is within budget (assuming tenders is properly joined)
+      const tender = bid.tenders;
+      if (tender && typeof tender === 'object' && !Array.isArray(tender) && 'budget' in tender) {
+        const tenderBudget = (tender as any).budget;
+        if (tenderBudget && bid.bid_amount > tenderBudget * 1.1) {
+          compliance_issues.push('Bid amount exceeds budget by more than 10%');
+        }
       }
 
       // Check if estimated duration is reasonable
-      if (bid.data.estimated_duration_days && bid.data.estimated_duration_days > 365) {
+      if (bid.estimated_duration_days && bid.estimated_duration_days > 365) {
         compliance_issues.push('Estimated duration exceeds 1 year');
       }
 
-      const { data, error } = await supabase
+      const { data: updateResult, error: updateError } = await supabase
         .from('tender_bids')
         .update({
           compliance_checked: true,
@@ -509,14 +526,14 @@ export const useEnhancedTenders = (projectId?: string) => {
         .select()
         .single();
 
-      if (error) throw error;
+      if (updateError) throw updateError;
 
       toast({
         title: "Success",
         description: `Compliance check completed. ${compliance_issues.length} issues found.`,
       });
 
-      return data;
+      return updateResult;
     } catch (error) {
       console.error('Error checking compliance:', error);
       toast({

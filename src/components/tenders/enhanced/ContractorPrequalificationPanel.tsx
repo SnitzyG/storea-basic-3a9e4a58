@@ -487,7 +487,7 @@ export const ContractorPrequalificationPanel = ({
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <h4 className="font-medium mb-2">Application Status</h4>
-                  <Badge className={getStatusColor(viewingPrequalification.status)} size="lg">
+                  <Badge className={getStatusColor(viewingPrequalification.status)}>
                     {getStatusIcon(viewingPrequalification.status)}
                     <span className="ml-2 capitalize">{viewingPrequalification.status}</span>
                   </Badge>
