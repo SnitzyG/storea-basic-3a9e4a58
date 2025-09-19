@@ -316,6 +316,60 @@ export type Database = {
         }
         Relationships: []
       }
+      contractor_prequalifications: {
+        Row: {
+          certifications: Json | null
+          contractor_id: string
+          contractor_references: Json | null
+          documents: Json | null
+          experience_years: number | null
+          financial_capacity: number | null
+          id: string
+          insurance_details: Json | null
+          previous_projects: Json | null
+          project_id: string
+          review_notes: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string | null
+          submitted_at: string | null
+        }
+        Insert: {
+          certifications?: Json | null
+          contractor_id: string
+          contractor_references?: Json | null
+          documents?: Json | null
+          experience_years?: number | null
+          financial_capacity?: number | null
+          id?: string
+          insurance_details?: Json | null
+          previous_projects?: Json | null
+          project_id: string
+          review_notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string | null
+          submitted_at?: string | null
+        }
+        Update: {
+          certifications?: Json | null
+          contractor_id?: string
+          contractor_references?: Json | null
+          documents?: Json | null
+          experience_years?: number | null
+          financial_capacity?: number | null
+          id?: string
+          insurance_details?: Json | null
+          previous_projects?: Json | null
+          project_id?: string
+          review_notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string | null
+          submitted_at?: string | null
+        }
+        Relationships: []
+      }
       document_approvals: {
         Row: {
           approved_date: string | null
@@ -1669,44 +1723,235 @@ export type Database = {
           },
         ]
       }
+      tender_amendments: {
+        Row: {
+          amendment_number: number
+          changes_made: Json
+          description: string
+          id: string
+          issued_at: string
+          issued_by: string
+          notification_sent: boolean | null
+          tender_id: string
+          title: string
+        }
+        Insert: {
+          amendment_number: number
+          changes_made?: Json
+          description: string
+          id?: string
+          issued_at?: string
+          issued_by: string
+          notification_sent?: boolean | null
+          tender_id: string
+          title: string
+        }
+        Update: {
+          amendment_number?: number
+          changes_made?: Json
+          description?: string
+          id?: string
+          issued_at?: string
+          issued_by?: string
+          notification_sent?: boolean | null
+          tender_id?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tender_amendments_tender_id_fkey"
+            columns: ["tender_id"]
+            isOneToOne: false
+            referencedRelation: "tenders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tender_bids: {
         Row: {
           attachments: Json | null
           bid_amount: number
           bidder_id: string
+          communication_score: number | null
+          compliance_checked: boolean | null
+          compliance_issues: Json | null
           created_at: string
+          estimated_duration_days: number | null
+          evaluated_at: string | null
+          evaluator_id: string | null
+          evaluator_notes: string | null
+          experience_score: number | null
           id: string
+          overall_score: number | null
+          price_score: number | null
           proposal_text: string | null
           status: string | null
           submitted_at: string
+          technical_score: number | null
           tender_id: string
+          timeline_score: number | null
           updated_at: string
         }
         Insert: {
           attachments?: Json | null
           bid_amount: number
           bidder_id: string
+          communication_score?: number | null
+          compliance_checked?: boolean | null
+          compliance_issues?: Json | null
           created_at?: string
+          estimated_duration_days?: number | null
+          evaluated_at?: string | null
+          evaluator_id?: string | null
+          evaluator_notes?: string | null
+          experience_score?: number | null
           id?: string
+          overall_score?: number | null
+          price_score?: number | null
           proposal_text?: string | null
           status?: string | null
           submitted_at?: string
+          technical_score?: number | null
           tender_id: string
+          timeline_score?: number | null
           updated_at?: string
         }
         Update: {
           attachments?: Json | null
           bid_amount?: number
           bidder_id?: string
+          communication_score?: number | null
+          compliance_checked?: boolean | null
+          compliance_issues?: Json | null
           created_at?: string
+          estimated_duration_days?: number | null
+          evaluated_at?: string | null
+          evaluator_id?: string | null
+          evaluator_notes?: string | null
+          experience_score?: number | null
           id?: string
+          overall_score?: number | null
+          price_score?: number | null
           proposal_text?: string | null
           status?: string | null
           submitted_at?: string
+          technical_score?: number | null
           tender_id?: string
+          timeline_score?: number | null
           updated_at?: string
         }
         Relationships: []
+      }
+      tender_discussions: {
+        Row: {
+          created_at: string
+          id: string
+          is_official: boolean | null
+          message: string
+          message_type: string | null
+          parent_id: string | null
+          tender_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_official?: boolean | null
+          message: string
+          message_type?: string | null
+          parent_id?: string | null
+          tender_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_official?: boolean | null
+          message?: string
+          message_type?: string | null
+          parent_id?: string | null
+          tender_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tender_discussions_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "tender_discussions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tender_discussions_tender_id_fkey"
+            columns: ["tender_id"]
+            isOneToOne: false
+            referencedRelation: "tenders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tender_documents: {
+        Row: {
+          access_level: string | null
+          document_name: string
+          document_type: string
+          file_path: string
+          file_size: number | null
+          id: string
+          is_current_version: boolean | null
+          replaced_document_id: string | null
+          tender_id: string
+          upload_date: string | null
+          uploaded_by: string
+          version_number: number | null
+        }
+        Insert: {
+          access_level?: string | null
+          document_name: string
+          document_type: string
+          file_path: string
+          file_size?: number | null
+          id?: string
+          is_current_version?: boolean | null
+          replaced_document_id?: string | null
+          tender_id: string
+          upload_date?: string | null
+          uploaded_by: string
+          version_number?: number | null
+        }
+        Update: {
+          access_level?: string | null
+          document_name?: string
+          document_type?: string
+          file_path?: string
+          file_size?: number | null
+          id?: string
+          is_current_version?: boolean | null
+          replaced_document_id?: string | null
+          tender_id?: string
+          upload_date?: string | null
+          uploaded_by?: string
+          version_number?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tender_documents_replaced_document_id_fkey"
+            columns: ["replaced_document_id"]
+            isOneToOne: false
+            referencedRelation: "tender_documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tender_documents_tender_id_fkey"
+            columns: ["tender_id"]
+            isOneToOne: false
+            referencedRelation: "tenders"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       tender_invitations: {
         Row: {
@@ -1752,6 +1997,89 @@ export type Database = {
           },
         ]
       }
+      tender_notifications: {
+        Row: {
+          id: string
+          message_template: string
+          metadata: Json | null
+          notification_type: string
+          recipient_ids: string[]
+          scheduled_for: string
+          sent_at: string | null
+          status: string | null
+          tender_id: string
+        }
+        Insert: {
+          id?: string
+          message_template: string
+          metadata?: Json | null
+          notification_type: string
+          recipient_ids: string[]
+          scheduled_for: string
+          sent_at?: string | null
+          status?: string | null
+          tender_id: string
+        }
+        Update: {
+          id?: string
+          message_template?: string
+          metadata?: Json | null
+          notification_type?: string
+          recipient_ids?: string[]
+          scheduled_for?: string
+          sent_at?: string | null
+          status?: string | null
+          tender_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tender_notifications_tender_id_fkey"
+            columns: ["tender_id"]
+            isOneToOne: false
+            referencedRelation: "tenders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tender_packages: {
+        Row: {
+          created_at: string
+          created_by: string
+          description: string | null
+          id: string
+          name: string
+          package_type: string | null
+          project_id: string
+          status: string | null
+          total_budget: number | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          description?: string | null
+          id?: string
+          name: string
+          package_type?: string | null
+          project_id: string
+          status?: string | null
+          total_budget?: number | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          id?: string
+          name?: string
+          package_type?: string | null
+          project_id?: string
+          status?: string | null
+          total_budget?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       tender_participants: {
         Row: {
           bid_amount: number | null
@@ -1795,52 +2123,70 @@ export type Database = {
       }
       tenders: {
         Row: {
+          auto_close_enabled: boolean | null
           awarded_to: string | null
           begin_date: string | null
           budget: number | null
+          compliance_requirements: Json | null
           created_at: string
           deadline: string | null
           description: string | null
           documents: Json | null
+          evaluation_criteria: Json | null
           id: string
           issued_by: string
           project_id: string
           requirements: Json | null
           status: Database["public"]["Enums"]["tender_status"]
+          tender_package_id: string | null
+          tender_type: string | null
           title: string
           updated_at: string
+          workflow_stage: string | null
         }
         Insert: {
+          auto_close_enabled?: boolean | null
           awarded_to?: string | null
           begin_date?: string | null
           budget?: number | null
+          compliance_requirements?: Json | null
           created_at?: string
           deadline?: string | null
           description?: string | null
           documents?: Json | null
+          evaluation_criteria?: Json | null
           id?: string
           issued_by: string
           project_id: string
           requirements?: Json | null
           status?: Database["public"]["Enums"]["tender_status"]
+          tender_package_id?: string | null
+          tender_type?: string | null
           title: string
           updated_at?: string
+          workflow_stage?: string | null
         }
         Update: {
+          auto_close_enabled?: boolean | null
           awarded_to?: string | null
           begin_date?: string | null
           budget?: number | null
+          compliance_requirements?: Json | null
           created_at?: string
           deadline?: string | null
           description?: string | null
           documents?: Json | null
+          evaluation_criteria?: Json | null
           id?: string
           issued_by?: string
           project_id?: string
           requirements?: Json | null
           status?: Database["public"]["Enums"]["tender_status"]
+          tender_package_id?: string | null
+          tender_type?: string | null
           title?: string
           updated_at?: string
+          workflow_stage?: string | null
         }
         Relationships: [
           {
@@ -1848,6 +2194,13 @@ export type Database = {
             columns: ["project_id"]
             isOneToOne: false
             referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tenders_tender_package_id_fkey"
+            columns: ["tender_package_id"]
+            isOneToOne: false
+            referencedRelation: "tender_packages"
             referencedColumns: ["id"]
           },
         ]
