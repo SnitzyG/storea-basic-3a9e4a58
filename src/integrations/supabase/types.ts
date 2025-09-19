@@ -50,6 +50,39 @@ export type Database = {
         }
         Relationships: []
       }
+      budget_categories: {
+        Row: {
+          allocated_amount: number
+          category_type: string
+          created_at: string
+          id: string
+          name: string
+          project_id: string
+          spent_amount: number
+          updated_at: string
+        }
+        Insert: {
+          allocated_amount?: number
+          category_type?: string
+          created_at?: string
+          id?: string
+          name: string
+          project_id: string
+          spent_amount?: number
+          updated_at?: string
+        }
+        Update: {
+          allocated_amount?: number
+          category_type?: string
+          created_at?: string
+          id?: string
+          name?: string
+          project_id?: string
+          spent_amount?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       calendar_events: {
         Row: {
           attendees: Json | null
@@ -108,6 +141,153 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      cashflow_items: {
+        Row: {
+          amount: number
+          category: string | null
+          created_at: string
+          created_by: string
+          description: string
+          forecast_date: string
+          id: string
+          item_type: string
+          linked_invoice_id: string | null
+          linked_payment_id: string | null
+          project_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          category?: string | null
+          created_at?: string
+          created_by: string
+          description: string
+          forecast_date: string
+          id?: string
+          item_type: string
+          linked_invoice_id?: string | null
+          linked_payment_id?: string | null
+          project_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          category?: string | null
+          created_at?: string
+          created_by?: string
+          description?: string
+          forecast_date?: string
+          id?: string
+          item_type?: string
+          linked_invoice_id?: string | null
+          linked_payment_id?: string | null
+          project_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      change_orders: {
+        Row: {
+          approval_date: string | null
+          approved_by: string | null
+          created_at: string
+          description: string | null
+          financial_impact: number
+          id: string
+          order_number: string
+          project_id: string
+          reason: string | null
+          requested_by: string
+          status: string
+          timeline_impact_days: number | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          approval_date?: string | null
+          approved_by?: string | null
+          created_at?: string
+          description?: string | null
+          financial_impact?: number
+          id?: string
+          order_number: string
+          project_id: string
+          reason?: string | null
+          requested_by: string
+          status?: string
+          timeline_impact_days?: number | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          approval_date?: string | null
+          approved_by?: string | null
+          created_at?: string
+          description?: string | null
+          financial_impact?: number
+          id?: string
+          order_number?: string
+          project_id?: string
+          reason?: string | null
+          requested_by?: string
+          status?: string
+          timeline_impact_days?: number | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      client_contributions: {
+        Row: {
+          amount: number
+          contribution_type: string
+          created_at: string
+          created_by: string
+          description: string | null
+          expected_date: string | null
+          id: string
+          payment_method: string | null
+          project_id: string
+          received_date: string | null
+          reference_number: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          contribution_type?: string
+          created_at?: string
+          created_by: string
+          description?: string | null
+          expected_date?: string | null
+          id?: string
+          payment_method?: string | null
+          project_id: string
+          received_date?: string | null
+          reference_number?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          contribution_type?: string
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          expected_date?: string | null
+          id?: string
+          payment_method?: string | null
+          project_id?: string
+          received_date?: string | null
+          reference_number?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       companies: {
         Row: {
@@ -866,6 +1046,105 @@ export type Database = {
           },
         ]
       }
+      project_budgets: {
+        Row: {
+          created_at: string
+          created_by: string
+          currency: string
+          id: string
+          original_budget: number
+          project_id: string
+          revised_budget: number | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          currency?: string
+          id?: string
+          original_budget: number
+          project_id: string
+          revised_budget?: number | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          currency?: string
+          id?: string
+          original_budget?: number
+          project_id?: string
+          revised_budget?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      project_invoices: {
+        Row: {
+          amount: number
+          approved_by: string | null
+          attachment_path: string | null
+          category_id: string | null
+          created_at: string
+          created_by: string
+          currency: string
+          description: string | null
+          due_date: string | null
+          id: string
+          invoice_date: string
+          invoice_number: string
+          paid_date: string | null
+          project_id: string
+          status: string
+          tax_amount: number | null
+          updated_at: string
+          vendor_email: string | null
+          vendor_name: string
+        }
+        Insert: {
+          amount: number
+          approved_by?: string | null
+          attachment_path?: string | null
+          category_id?: string | null
+          created_at?: string
+          created_by: string
+          currency?: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          invoice_date: string
+          invoice_number: string
+          paid_date?: string | null
+          project_id: string
+          status?: string
+          tax_amount?: number | null
+          updated_at?: string
+          vendor_email?: string | null
+          vendor_name: string
+        }
+        Update: {
+          amount?: number
+          approved_by?: string | null
+          attachment_path?: string | null
+          category_id?: string | null
+          created_at?: string
+          created_by?: string
+          currency?: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          invoice_date?: string
+          invoice_number?: string
+          paid_date?: string | null
+          project_id?: string
+          status?: string
+          tax_amount?: number | null
+          updated_at?: string
+          vendor_email?: string | null
+          vendor_name?: string
+        }
+        Relationships: []
+      }
       project_join_requests: {
         Row: {
           company: string | null
@@ -924,6 +1203,48 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      project_payments: {
+        Row: {
+          amount: number
+          created_at: string
+          created_by: string
+          description: string | null
+          id: string
+          invoice_id: string | null
+          payment_date: string
+          payment_method: string | null
+          project_id: string
+          recipient_name: string
+          reference_number: string | null
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          created_by: string
+          description?: string | null
+          id?: string
+          invoice_id?: string | null
+          payment_date: string
+          payment_method?: string | null
+          project_id: string
+          recipient_name: string
+          reference_number?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          id?: string
+          invoice_id?: string | null
+          payment_date?: string
+          payment_method?: string | null
+          project_id?: string
+          recipient_name?: string
+          reference_number?: string | null
+        }
+        Relationships: []
       }
       project_users: {
         Row: {
