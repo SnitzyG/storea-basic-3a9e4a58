@@ -183,15 +183,15 @@ export const CreateProjectDialog = ({ children }: CreateProjectDialogProps) => {
             
             {/* Project Reference Number - First field */}
             <div className="space-y-2">
-              <Label htmlFor="project_reference_number">Project Reference Number</Label>
+              <Label htmlFor="project_reference_number">Project Reference</Label>
               <Input
                 id="project_reference_number"
                 value={formData.project_reference_number}
                 onChange={(e) => handleInputChange('project_reference_number', e.target.value)}
-                placeholder="Enter your internal reference number (optional)"
+                placeholder="Enter your internal reference (optional)"
               />
               <p className="text-xs text-muted-foreground">
-                Your internal reference number or project code
+                Your internal reference code (numbers, letters, symbols)
               </p>
             </div>
             

@@ -161,11 +161,11 @@ export const ProjectDetailsDialog = ({
         <form onSubmit={handleSubmit} className="space-y-4">
           <ViewEditField
             type="text"
-            label="Project Reference Number"
+            label="Project Reference"
             value={formData.project_reference_number}
             onChange={(value) => handleInputChange('project_reference_number', value)}
             mode={mode}
-            placeholder="Your internal reference number"
+            placeholder="Your internal reference"
           />
           
           <ViewEditField

@@ -242,6 +242,7 @@ export const useAdvancedProjects = () => {
         .from('projects')
         .insert([{
           name: projectCreateData.name,
+          project_reference_number: projectCreateData.project_reference_number,
           address: projectCreateData.address,
           description: projectCreateData.description,
           budget: projectCreateData.budget,
