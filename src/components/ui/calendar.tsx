@@ -16,59 +16,38 @@ function Calendar({
   return (
     <DayPicker
       showOutsideDays={showOutsideDays}
-      className={cn("p-4 bg-background rounded-lg shadow-sm border", className)}
+      className={cn("p-3", className)}
       classNames={{
         months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
-        month: "space-y-3",
-        caption: "flex justify-center pt-1 relative items-center mb-4",
-        caption_label: "text-base font-semibold text-foreground",
+        month: "space-y-4",
+        caption: "flex justify-center pt-1 relative items-center",
+        caption_label: "text-sm font-medium",
         nav: "space-x-1 flex items-center",
-        nav_button_previous: cn(
-          buttonVariants({ variant: "outline", size: "sm" }),
-          "h-8 w-8 bg-background p-0 hover:bg-accent hover:text-accent-foreground absolute left-1 top-0"
+        nav_button: cn(
+          buttonVariants({ variant: "outline", size: "icon" }),
+          "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100"
         ),
-        nav_button_next: cn(
-          buttonVariants({ variant: "outline", size: "sm" }),
-          "h-8 w-8 bg-background p-0 hover:bg-accent hover:text-accent-foreground absolute right-1 top-0"
-        ),
-        table: "w-full border-collapse table",
-        head_row: "table-row",
-        head_cell: "text-muted-foreground rounded-md w-9 font-medium text-xs uppercase tracking-wide text-center py-2 bg-muted/30",
-        row: "table-row",
-        cell: cn(
-          "table-cell relative p-0 text-center text-sm",
-          "w-9 h-10 sm:h-12",
-          "focus-within:relative focus-within:z-20",
-          "[&:has([aria-selected].day_range_end)]:rounded-r-md",
-          "[&:has([aria-selected].day_outside)]:bg-accent/50",
-          "[&:has([aria-selected])]:bg-accent",
-          "first:[&:has([aria-selected])]:rounded-l-md",
-          "last:[&:has([aria-selected])]:rounded-r-md"
-        ),
+        nav_button_previous: "absolute left-1",
+        nav_button_next: "absolute right-1",
+        table: "w-full border-collapse space-y-1",
+        head_row: "flex",
+        head_cell:
+          "text-muted-foreground rounded-md w-9 font-normal text-[0.8rem]",
+        row: "flex w-full mt-2",
+        cell: "h-9 w-9 text-center text-sm p-0 relative [&:has([aria-selected].day-range-end)]:rounded-r-md [&:has([aria-selected].day-outside)]:bg-accent/50 [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
         day: cn(
-          "inline-flex items-center justify-center rounded-md w-full h-full p-0 text-sm font-normal",
-          "hover:bg-accent hover:text-accent-foreground",
-          "focus:bg-accent focus:text-accent-foreground focus:outline-none",
-          "disabled:pointer-events-none disabled:opacity-50",
-          "aria-selected:opacity-100 transition-colors"
+          buttonVariants({ variant: "ghost" }),
+          "h-9 w-9 p-0 font-normal aria-selected:opacity-100"
         ),
         day_range_end: "day-range-end",
-        day_selected: cn(
-          "bg-primary text-primary-foreground",
-          "hover:bg-primary hover:text-primary-foreground",
-          "focus:bg-primary focus:text-primary-foreground",
-          "font-semibold"
-        ),
-        day_today: cn(
-          "bg-accent text-accent-foreground font-semibold",
-          "before:absolute before:inset-0 before:rounded-md before:border-2 before:border-primary/40"
-        ),
-        day_outside: cn(
-          "day-outside text-muted-foreground/40 opacity-50",
-          "aria-selected:bg-accent/50 aria-selected:text-muted-foreground aria-selected:opacity-30"
-        ),
-        day_disabled: "text-muted-foreground opacity-30 cursor-not-allowed",
-        day_range_middle: "aria-selected:bg-accent aria-selected:text-accent-foreground",
+        day_selected:
+          "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
+        day_today: "bg-accent text-accent-foreground",
+        day_outside:
+          "day-outside text-muted-foreground opacity-50 aria-selected:bg-accent/50 aria-selected:text-muted-foreground aria-selected:opacity-30",
+        day_disabled: "text-muted-foreground opacity-50",
+        day_range_middle:
+          "aria-selected:bg-accent aria-selected:text-accent-foreground",
         day_hidden: "invisible",
         ...classNames,
       }}

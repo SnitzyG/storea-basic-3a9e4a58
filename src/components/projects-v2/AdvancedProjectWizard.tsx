@@ -437,7 +437,7 @@ export const AdvancedProjectWizard = ({
                             }
                           </Button>
                         </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
+                        <PopoverContent className="w-auto p-0" align="start" style={{ minWidth: '280px' }}>
                           <Calendar 
                             mode="single" 
                             selected={formData.estimated_start_date} 
@@ -470,7 +470,7 @@ export const AdvancedProjectWizard = ({
                             }
                           </Button>
                         </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
+                        <PopoverContent className="w-auto p-0" align="start" style={{ minWidth: '280px' }}>
                           <Calendar 
                             mode="single" 
                             selected={formData.estimated_finish_date} 
