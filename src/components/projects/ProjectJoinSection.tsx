@@ -156,31 +156,29 @@ export const ProjectJoinSection: React.FC<ProjectJoinSectionProps> = ({ classNam
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <label className="text-sm font-medium">Your Name *</label>
+              <label className="text-sm font-medium text-muted-foreground">Your Name *</label>
               <Input
                 placeholder="Enter your full name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                readOnly={!!profile?.name}
-                className={profile?.name ? "bg-muted" : ""}
+                readOnly
+                disabled
+                className="bg-muted text-muted-foreground cursor-not-allowed"
               />
-              {profile?.name && (
-                <p className="text-xs text-muted-foreground">Auto-filled from your profile</p>
-              )}
+              <p className="text-xs text-muted-foreground">Auto-filled from your profile</p>
             </div>
             
             <div className="space-y-2">
-              <label className="text-sm font-medium">Company</label>
+              <label className="text-sm font-medium text-muted-foreground">Company</label>
               <Input
                 placeholder="Your company name"
                 value={company}
                 onChange={(e) => setCompany(e.target.value)}
-                readOnly={!!profile?.company_id}
-                className={profile?.company_id ? "bg-muted" : ""}
+                readOnly
+                disabled
+                className="bg-muted text-muted-foreground cursor-not-allowed"
               />
-              {profile?.company_id && (
-                <p className="text-xs text-muted-foreground">Auto-filled from your profile</p>
-              )}
+              <p className="text-xs text-muted-foreground">Auto-filled from your profile</p>
             </div>
           </div>
           
