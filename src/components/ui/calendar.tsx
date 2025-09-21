@@ -32,12 +32,12 @@ function Calendar({
           "h-8 w-8 bg-background p-0 hover:bg-accent hover:text-accent-foreground absolute right-1 top-0"
         ),
         table: "w-full border-collapse table-auto",
-        head_row: "flex w-full mb-2",
-        head_cell: "text-muted-foreground rounded-md w-full font-medium text-xs uppercase tracking-wide text-center py-2 bg-muted/30",
-        row: "flex w-full",
+        head_row: "grid grid-cols-7 w-full mb-2",
+        head_cell: "text-muted-foreground rounded-md font-medium text-xs uppercase tracking-wide text-center py-2 bg-muted/30",
+        row: "grid grid-cols-7 w-full",
         cell: cn(
           "relative p-0 text-center text-sm",
-          "w-full h-10 sm:h-12",
+          "h-10 sm:h-12",
           "focus-within:relative focus-within:z-20",
           "[&:has([aria-selected].day_range_end)]:rounded-r-md",
           "[&:has([aria-selected].day_outside)]:bg-accent/50",
