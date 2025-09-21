@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Slider } from '@/components/ui/slider';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -139,7 +140,7 @@ export const AdvancedProjectWizard = ({
     suburb: '',
     postcode: '',
     // Step 2: Project Details
-    budget: projectToEdit?.budget?.toString() || '',
+    budget: projectToEdit?.budget || 100000,
     square_footage: projectToEdit?.square_footage?.toString() || '',
     number_of_floors: projectToEdit?.number_of_floors?.toString() || '',
     estimated_start_date: projectToEdit?.estimated_start_date ? new Date(projectToEdit.estimated_start_date) : undefined as Date | undefined,
@@ -177,6 +178,17 @@ export const AdvancedProjectWizard = ({
       ...prev,
       [field]: value
     }));
+  };
+
+  const handleBudgetChange = (value: number[]) => {
+    handleInputChange('budget', value[0]);
+  };
+
+  const formatBudgetLabel = (value: number) => {
+    if (value < 100000) return "Under $100K";
+    if (value >= 5000000) return "$5M+";
+    if (value >= 1000000) return `$${(value / 1000000).toFixed(1)}M`;
+    return `$${(value / 1000).toFixed(0)}K`;
   };
   const setProjectDuration = (months: number) => {
     if (formData.estimated_start_date) {
@@ -253,7 +265,7 @@ export const AdvancedProjectWizard = ({
         project_type: formData.project_type as any,
         priority: formData.priority,
         address: `${formData.street_number} ${formData.street_name}, ${formData.suburb} ${formData.postcode}`.trim() || undefined,
-        budget: formData.budget ? convertBudgetStringToNumber(formData.budget) : undefined,
+        budget: formData.budget,
         square_footage: formData.square_footage ? parseInt(formData.square_footage) : undefined,
         number_of_floors: formData.number_of_floors ? parseInt(formData.number_of_floors) : undefined,
         estimated_start_date: formData.estimated_start_date?.toISOString().split('T')[0],
@@ -281,7 +293,7 @@ export const AdvancedProjectWizard = ({
         street_name: '',
         suburb: '',
         postcode: '',
-        budget: '',
+        budget: 100000,
         square_footage: '',
         number_of_floors: '',
         estimated_start_date: undefined,
@@ -375,26 +387,28 @@ export const AdvancedProjectWizard = ({
             <div>
               <h3 className="text-lg font-semibold mb-4">Project Details & Timeline</h3>
               <div className="space-y-4">
-                <div>
+                <div className="space-y-3">
                   <Label htmlFor="budget">Project Budget</Label>
-                  <Select value={formData.budget} onValueChange={value => handleInputChange('budget', value)}>
-                    <SelectTrigger className="mt-1">
-                      <SelectValue placeholder="Select budget range" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="< $100,000">&lt; $100,000</SelectItem>
-                      <SelectItem value="$100,000 – $200,000">$100,000 – $200,000</SelectItem>
-                      <SelectItem value="$200,000 – $300,000">$200,000 – $300,000</SelectItem>
-                      <SelectItem value="$300,000 – $400,000">$300,000 – $400,000</SelectItem>
-                      <SelectItem value="$400,000 – $500,000">$400,000 – $500,000</SelectItem>
-                      <SelectItem value="$500,000 – $750,000">$500,000 – $750,000</SelectItem>
-                      <SelectItem value="$750,000 – $1,000,000">$750,000 – $1,000,000</SelectItem>
-                      <SelectItem value="$1,000,000 – $1,500,000">$1,000,000 – $1,500,000</SelectItem>
-                      <SelectItem value="$1,500,000 – $2,000,000">$1,500,000 – $2,000,000</SelectItem>
-                      <SelectItem value="$2,000,000 – $2,500,000">$2,000,000 – $2,500,000</SelectItem>
-                      <SelectItem value="$2,500,000+">$2,500,000+</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center">
+                      <div className="text-xl font-bold">${formData.budget?.toLocaleString()}</div>
+                      <div className="text-sm text-muted-foreground">{formatBudgetLabel(formData.budget || 100000)}</div>
+                    </div>
+                    
+                    <Slider
+                      value={[formData.budget || 100000]}
+                      onValueChange={handleBudgetChange}
+                      max={5000000}
+                      min={50000}
+                      step={25000}
+                      className="w-full"
+                    />
+                    
+                    <div className="flex justify-between text-xs text-muted-foreground">
+                      <span>Under $100K</span>
+                      <span>$5M+</span>
+                    </div>
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
