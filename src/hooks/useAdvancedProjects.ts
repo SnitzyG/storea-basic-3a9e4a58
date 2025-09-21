@@ -186,6 +186,7 @@ export const useAdvancedProjects = () => {
         );
       }
 
+      console.log('Fetched projects data:', filteredData);
       setProjects(filteredData as AdvancedProject[]);
     } catch (error: any) {
       console.error('Error fetching projects:', error);

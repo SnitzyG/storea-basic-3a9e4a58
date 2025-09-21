@@ -142,7 +142,9 @@ const AdvancedProjects = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {projects.map((project) => (
+                    {projects.map((project) => {
+                      console.log('Rendering project:', project.name, 'Reference:', project.project_reference_number);
+                      return (
                       <TableRow key={project.id}>
                         <TableCell>{project.project_reference_number || '-'}</TableCell>
                         <TableCell className="font-medium">{project.name}</TableCell>
@@ -210,7 +212,8 @@ const AdvancedProjects = () => {
                           </div>
                         </TableCell>
                       </TableRow>
-                    ))}
+                    )
+                    })}
                   </TableBody>
                 </Table>
               </CardContent>
