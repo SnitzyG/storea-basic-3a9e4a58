@@ -28,7 +28,6 @@ interface CollaboratorData {
   role: ProjectUser['role'];
   permissions?: Partial<ProjectUser['permissions']>;
 }
-
 interface HomeownerData {
   name: string;
   email: string;
@@ -52,8 +51,6 @@ const convertBudgetStringToNumber = (budgetString: string): number => {
   };
   return budgetMap[budgetString] || 0;
 };
-
-
 const PRIORITY_LEVELS = [{
   value: 'low',
   label: 'Low Priority',
@@ -112,7 +109,6 @@ export const AdvancedProjectWizard = ({
         const locationParts = addressParts[1].trim().split(' ');
         const suburb = locationParts.slice(0, -1).join(' ') || '';
         const postcode = locationParts[locationParts.length - 1] || '';
-        
         setFormData(prev => ({
           ...prev,
           street_number: streetNumber,
@@ -153,7 +149,7 @@ export const AdvancedProjectWizard = ({
       name: projectToEdit.homeowner_name,
       email: projectToEdit.homeowner_email || '',
       phone: projectToEdit.homeowner_phone || ''
-    }] : [] as HomeownerData[],
+    }] : [] as HomeownerData[]
   });
   const [newHomeowner, setNewHomeowner] = useState<HomeownerData>({
     name: '',
@@ -182,14 +178,12 @@ export const AdvancedProjectWizard = ({
       [field]: value
     }));
   };
-
   const setProjectDuration = (months: number) => {
     if (formData.estimated_start_date) {
       const finishDate = addMonths(formData.estimated_start_date, months);
       handleInputChange('estimated_finish_date', finishDate);
     }
   };
-
   const addHomeowner = () => {
     if (newHomeowner.name.trim() && newHomeowner.email.trim()) {
       setFormData(prev => ({
@@ -203,7 +197,6 @@ export const AdvancedProjectWizard = ({
       });
     }
   };
-  
   const nextStep = () => {
     if (currentStep < totalSteps) {
       setCurrentStep(currentStep + 1);
@@ -215,7 +208,6 @@ export const AdvancedProjectWizard = ({
       homeowners: prev.homeowners.filter((_, i) => i !== index)
     }));
   };
-  
   const prevStep = () => {
     if (currentStep > 1) {
       setCurrentStep(currentStep - 1);
@@ -228,7 +220,8 @@ export const AdvancedProjectWizard = ({
       case 2:
         return formData.estimated_start_date && formData.estimated_finish_date;
       case 3:
-        return true; // No mandatory fields for homeowners
+        return true;
+      // No mandatory fields for homeowners
       default:
         return true;
     }
@@ -299,20 +292,12 @@ export const AdvancedProjectWizard = ({
       case 1:
         return <div className="space-y-6">
             <div>
-              <h3 className="text-lg font-semibold mb-4">Basic Project Information</h3>
+              <h3 className="text-lg font-semibold mb-4">Project Information</h3>
               <div className="space-y-4">
                 <div>
                   <Label htmlFor="project_reference_number">Project Reference</Label>
-                  <Input 
-                    id="project_reference_number" 
-                    value={formData.project_reference_number} 
-                    onChange={e => handleInputChange('project_reference_number', e.target.value)} 
-                    placeholder="e.g. PRJ-2024-001, BUILD-A, Site#123 (optional)" 
-                    className="mt-1" 
-                  />
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Your internal reference code (numbers, letters, symbols)
-                  </p>
+                  <Input id="project_reference_number" value={formData.project_reference_number} onChange={e => handleInputChange('project_reference_number', e.target.value)} placeholder="e.g. PRJ-2024-001, BUILD-A, Site#123 (optional)" className="mt-1" />
+                  
                 </div>
 
                 <div>
@@ -323,19 +308,12 @@ export const AdvancedProjectWizard = ({
 
                 <div>
                   <Label htmlFor="description">Description</Label>
-                  <Textarea 
-                    id="description" 
-                    value={formData.description} 
-                    onChange={e => handleInputChange('description', e.target.value)} 
-                    placeholder="Enter project description..." 
-                    rows={3} 
-                    className="mt-1" 
-                  />
+                  <Textarea id="description" value={formData.description} onChange={e => handleInputChange('description', e.target.value)} placeholder="Enter project description..." rows={3} className="mt-1" />
                 </div>
 
                 <div>
                   <Label htmlFor="project_type">Project Type</Label>
-                  <Select value={formData.project_type} onValueChange={(value) => handleInputChange('project_type', value)}>
+                  <Select value={formData.project_type} onValueChange={value => handleInputChange('project_type', value)}>
                     <SelectTrigger className="mt-1">
                       <SelectValue placeholder="Select project type" />
                     </SelectTrigger>
@@ -359,48 +337,24 @@ export const AdvancedProjectWizard = ({
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="street_number">Street Number</Label>
-                      <Input
-                        id="street_number"
-                        value={formData.street_number}
-                        onChange={(e) => handleInputChange('street_number', e.target.value)}
-                        placeholder="123"
-                        className="mt-1"
-                      />
+                      <Input id="street_number" value={formData.street_number} onChange={e => handleInputChange('street_number', e.target.value)} placeholder="123" className="mt-1" />
                     </div>
                     
                     <div className="space-y-2">
                       <Label htmlFor="street_name">Street Name</Label>
-                      <Input
-                        id="street_name"
-                        value={formData.street_name}
-                        onChange={(e) => handleInputChange('street_name', e.target.value)}
-                        placeholder="Main Street"
-                        className="mt-1"
-                      />
+                      <Input id="street_name" value={formData.street_name} onChange={e => handleInputChange('street_name', e.target.value)} placeholder="Main Street" className="mt-1" />
                     </div>
                   </div>
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="suburb">Suburb</Label>
-                      <Input
-                        id="suburb"
-                        value={formData.suburb}
-                        onChange={(e) => handleInputChange('suburb', e.target.value)}
-                        placeholder="Sydney"
-                        className="mt-1"
-                      />
+                      <Input id="suburb" value={formData.suburb} onChange={e => handleInputChange('suburb', e.target.value)} placeholder="Sydney" className="mt-1" />
                     </div>
                     
                     <div className="space-y-2">
                       <Label htmlFor="postcode">Postcode</Label>
-                      <Input
-                        id="postcode"
-                        value={formData.postcode}
-                        onChange={(e) => handleInputChange('postcode', e.target.value)}
-                        placeholder="2000"
-                        className="mt-1"
-                      />
+                      <Input id="postcode" value={formData.postcode} onChange={e => handleInputChange('postcode', e.target.value)} placeholder="2000" className="mt-1" />
                     </div>
                   </div>
                 </div>
@@ -414,7 +368,7 @@ export const AdvancedProjectWizard = ({
               <div className="space-y-4">
                 <div>
                   <Label htmlFor="budget">Project Budget</Label>
-                  <Select value={formData.budget} onValueChange={(value) => handleInputChange('budget', value)}>
+                  <Select value={formData.budget} onValueChange={value => handleInputChange('budget', value)}>
                     <SelectTrigger className="mt-1">
                       <SelectValue placeholder="Select budget range" />
                     </SelectTrigger>
@@ -457,13 +411,7 @@ export const AdvancedProjectWizard = ({
                           </Button>
                         </PopoverTrigger>
                         <PopoverContent className="w-auto p-0" align="start">
-                          <Calendar 
-                            mode="single" 
-                            selected={formData.estimated_start_date} 
-                            onSelect={date => handleInputChange('estimated_start_date', date)} 
-                            initialFocus 
-                            className="pointer-events-auto" 
-                          />
+                          <Calendar mode="single" selected={formData.estimated_start_date} onSelect={date => handleInputChange('estimated_start_date', date)} initialFocus className="pointer-events-auto" />
                         </PopoverContent>
                       </Popover>
                     </div>
@@ -478,14 +426,7 @@ export const AdvancedProjectWizard = ({
                           </Button>
                         </PopoverTrigger>
                         <PopoverContent className="w-auto p-0" align="start">
-                          <Calendar 
-                            mode="single" 
-                            selected={formData.estimated_finish_date} 
-                            onSelect={date => handleInputChange('estimated_finish_date', date)} 
-                            disabled={date => formData.estimated_start_date ? date < formData.estimated_start_date : false} 
-                            initialFocus 
-                            className="pointer-events-auto" 
-                          />
+                          <Calendar mode="single" selected={formData.estimated_finish_date} onSelect={date => handleInputChange('estimated_finish_date', date)} disabled={date => formData.estimated_start_date ? date < formData.estimated_start_date : false} initialFocus className="pointer-events-auto" />
                         </PopoverContent>
                       </Popover>
                     </div>
@@ -495,80 +436,31 @@ export const AdvancedProjectWizard = ({
                   <div className="space-y-3">
                     <Label className="text-sm font-medium">Quick Duration Setup</Label>
                     <div className="flex flex-wrap gap-2">
-                      <Button
-                        type="button"
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => setProjectDuration(2)}
-                        disabled={!formData.estimated_start_date}
-                        className="flex items-center gap-1"
-                      >
+                      <Button type="button" variant="outline" size="sm" onClick={() => setProjectDuration(2)} disabled={!formData.estimated_start_date} className="flex items-center gap-1">
                         <Clock className="h-3 w-3" />
                         2 Months
                       </Button>
-                      <Button
-                        type="button"
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => setProjectDuration(2)}
-                        disabled={!formData.estimated_start_date}
-                        className="flex items-center gap-1"
-                      >
+                      <Button type="button" variant="outline" size="sm" onClick={() => setProjectDuration(2)} disabled={!formData.estimated_start_date} className="flex items-center gap-1">
                         <Clock className="h-3 w-3" />
                         2 Months
                       </Button>
-                      <Button
-                        type="button"
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => setProjectDuration(3)}
-                        disabled={!formData.estimated_start_date}
-                        className="flex items-center gap-1"
-                      >
+                      <Button type="button" variant="outline" size="sm" onClick={() => setProjectDuration(3)} disabled={!formData.estimated_start_date} className="flex items-center gap-1">
                         <Clock className="h-3 w-3" />
                         3 Months
                       </Button>
-                      <Button
-                        type="button"
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => setProjectDuration(6)}
-                        disabled={!formData.estimated_start_date}
-                        className="flex items-center gap-1"
-                      >
+                      <Button type="button" variant="outline" size="sm" onClick={() => setProjectDuration(6)} disabled={!formData.estimated_start_date} className="flex items-center gap-1">
                         <Clock className="h-3 w-3" />
                         6 Months
                       </Button>
-                      <Button
-                        type="button"
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => setProjectDuration(12)}
-                        disabled={!formData.estimated_start_date}
-                        className="flex items-center gap-1"
-                      >
+                      <Button type="button" variant="outline" size="sm" onClick={() => setProjectDuration(12)} disabled={!formData.estimated_start_date} className="flex items-center gap-1">
                         <Clock className="h-3 w-3" />
                         12 Months
                       </Button>
-                      <Button
-                        type="button"
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => setProjectDuration(18)}
-                        disabled={!formData.estimated_start_date}
-                        className="flex items-center gap-1"
-                      >
+                      <Button type="button" variant="outline" size="sm" onClick={() => setProjectDuration(18)} disabled={!formData.estimated_start_date} className="flex items-center gap-1">
                         <Clock className="h-3 w-3" />
                         18 Months
                       </Button>
-                      <Button
-                        type="button"
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => setProjectDuration(24)}
-                        disabled={!formData.estimated_start_date}
-                        className="flex items-center gap-1"
-                      >
+                      <Button type="button" variant="outline" size="sm" onClick={() => setProjectDuration(24)} disabled={!formData.estimated_start_date} className="flex items-center gap-1">
                         <Clock className="h-3 w-3" />
                         24 Months
                       </Button>
@@ -586,11 +478,9 @@ export const AdvancedProjectWizard = ({
               <h3 className="text-lg font-semibold mb-4">Client Information</h3>
               
               {/* Existing Homeowners */}
-              {formData.homeowners.length > 0 && (
-                <div className="space-y-4 mb-6">
+              {formData.homeowners.length > 0 && <div className="space-y-4 mb-6">
                   <Label className="text-sm font-medium">Homeowners/Clients</Label>
-                  {formData.homeowners.map((homeowner, index) => (
-                    <Card key={index} className="p-4">
+                  {formData.homeowners.map((homeowner, index) => <Card key={index} className="p-4">
                       <div className="flex items-start justify-between">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 flex-1">
                           <div>
@@ -602,20 +492,12 @@ export const AdvancedProjectWizard = ({
                             <p className="text-sm">{homeowner.phone || 'Not provided'}</p>
                           </div>
                         </div>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => removeHomeowner(index)}
-                          className="text-red-600 hover:text-red-700 ml-2"
-                        >
+                        <Button type="button" variant="ghost" size="sm" onClick={() => removeHomeowner(index)} className="text-red-600 hover:text-red-700 ml-2">
                           <X className="h-4 w-4" />
                         </Button>
                       </div>
-                    </Card>
-                  ))}
-                </div>
-              )}
+                    </Card>)}
+                </div>}
 
               {/* Add New Homeowner */}
               <Card>
@@ -630,13 +512,10 @@ export const AdvancedProjectWizard = ({
                     <Label htmlFor="new_homeowner_name">Name</Label>
                     <div className="relative mt-1">
                       <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                      <Input 
-                        id="new_homeowner_name" 
-                        value={newHomeowner.name} 
-                        onChange={e => setNewHomeowner(prev => ({ ...prev, name: e.target.value }))} 
-                        placeholder="Enter client name" 
-                        className="pl-10" 
-                      />
+                      <Input id="new_homeowner_name" value={newHomeowner.name} onChange={e => setNewHomeowner(prev => ({
+                      ...prev,
+                      name: e.target.value
+                    }))} placeholder="Enter client name" className="pl-10" />
                     </div>
                   </div>
                   
@@ -644,23 +523,14 @@ export const AdvancedProjectWizard = ({
                     <Label htmlFor="new_homeowner_phone">Phone Number (Optional)</Label>
                     <div className="relative mt-1">
                       <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                      <Input 
-                        id="new_homeowner_phone" 
-                        type="tel" 
-                        value={newHomeowner.phone} 
-                        onChange={e => setNewHomeowner(prev => ({ ...prev, phone: e.target.value }))} 
-                        placeholder="Enter phone number" 
-                        className="pl-10" 
-                      />
+                      <Input id="new_homeowner_phone" type="tel" value={newHomeowner.phone} onChange={e => setNewHomeowner(prev => ({
+                      ...prev,
+                      phone: e.target.value
+                    }))} placeholder="Enter phone number" className="pl-10" />
                     </div>
                   </div>
 
-                  <Button 
-                    type="button"
-                    onClick={addHomeowner}
-                    disabled={!newHomeowner.name.trim()}
-                    className="w-full"
-                  >
+                  <Button type="button" onClick={addHomeowner} disabled={!newHomeowner.name.trim()} className="w-full">
                     <Plus className="h-4 w-4 mr-2" />
                     Add Homeowner
                   </Button>
@@ -728,5 +598,4 @@ export const AdvancedProjectWizard = ({
       </DialogContent>
     </Dialog>;
 };
-
 export default AdvancedProjectWizard;
