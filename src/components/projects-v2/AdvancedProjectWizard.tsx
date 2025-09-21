@@ -411,7 +411,7 @@ export const AdvancedProjectWizard = ({
                           </Button>
                         </PopoverTrigger>
                         <PopoverContent className="w-auto p-0" align="start">
-                          <Calendar mode="single" selected={formData.estimated_start_date} onSelect={date => handleInputChange('estimated_start_date', date)} initialFocus className="p-3 pointer-events-auto" />
+                          <Calendar mode="single" selected={formData.estimated_start_date} onSelect={date => handleInputChange('estimated_start_date', date)} initialFocus className={cn("p-3 pointer-events-auto")} />
                         </PopoverContent>
                       </Popover>
                     </div>
@@ -426,7 +426,7 @@ export const AdvancedProjectWizard = ({
                           </Button>
                         </PopoverTrigger>
                         <PopoverContent className="w-auto p-0" align="start">
-                          <Calendar mode="single" selected={formData.estimated_finish_date} onSelect={date => handleInputChange('estimated_finish_date', date)} disabled={date => formData.estimated_start_date ? date < formData.estimated_start_date : false} initialFocus className="p-3 pointer-events-auto" />
+                          <Calendar mode="single" selected={formData.estimated_finish_date} onSelect={date => handleInputChange('estimated_finish_date', date)} disabled={date => formData.estimated_start_date ? date < formData.estimated_start_date : false} initialFocus className={cn("p-3 pointer-events-auto")} />
                         </PopoverContent>
                       </Popover>
                     </div>
