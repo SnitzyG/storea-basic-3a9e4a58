@@ -421,32 +421,16 @@ export const AdvancedProjectWizard = ({
                       <Label className="text-sm font-medium">
                         Start Date *
                       </Label>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <Button 
-                            variant="outline" 
-                            className={cn(
-                              "w-full justify-start text-left font-normal h-11",
-                              !formData.estimated_start_date && "text-muted-foreground"
-                            )}
-                          >
-                            <CalendarIcon className="mr-3 h-4 w-4" />
-                            {formData.estimated_start_date ? 
-                              format(formData.estimated_start_date, "EEEE, MMMM d, yyyy") : 
-                              "Select start date"
-                            }
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start" style={{ minWidth: '280px' }}>
-                          <Calendar 
-                            mode="single" 
-                            selected={formData.estimated_start_date} 
-                            onSelect={date => handleInputChange('estimated_start_date', date)} 
-                            initialFocus
-                            disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
-                          />
-                        </PopoverContent>
-                      </Popover>
+                      <Input
+                        type="date"
+                        value={formData.estimated_start_date ? format(formData.estimated_start_date, 'yyyy-MM-dd') : ''}
+                        onChange={(e) => {
+                          const date = e.target.value ? new Date(e.target.value) : undefined;
+                          handleInputChange('estimated_start_date', date);
+                        }}
+                        className="h-11"
+                        placeholder="YYYY-MM-DD"
+                      />
                     </div>
 
                     {/* Estimated Finish Date */}
@@ -454,35 +438,16 @@ export const AdvancedProjectWizard = ({
                       <Label className="text-sm font-medium">
                         Estimated Finish Date *
                       </Label>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <Button 
-                            variant="outline" 
-                            className={cn(
-                              "w-full justify-start text-left font-normal h-11",
-                              !formData.estimated_finish_date && "text-muted-foreground"
-                            )}
-                          >
-                            <CalendarIcon className="mr-3 h-4 w-4" />
-                            {formData.estimated_finish_date ? 
-                              format(formData.estimated_finish_date, "EEEE, MMMM d, yyyy") : 
-                              "Select finish date"
-                            }
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start" style={{ minWidth: '280px' }}>
-                          <Calendar 
-                            mode="single" 
-                            selected={formData.estimated_finish_date} 
-                            onSelect={date => handleInputChange('estimated_finish_date', date)} 
-                            initialFocus
-                            disabled={(date) => {
-                              if (!formData.estimated_start_date) return date < new Date(new Date().setHours(0, 0, 0, 0));
-                              return date < formData.estimated_start_date;
-                            }}
-                          />
-                        </PopoverContent>
-                      </Popover>
+                      <Input
+                        type="date"
+                        value={formData.estimated_finish_date ? format(formData.estimated_finish_date, 'yyyy-MM-dd') : ''}
+                        onChange={(e) => {
+                          const date = e.target.value ? new Date(e.target.value) : undefined;
+                          handleInputChange('estimated_finish_date', date);
+                        }}
+                        className="h-11"
+                        placeholder="YYYY-MM-DD"
+                      />
                     </div>
                   </div>
 
