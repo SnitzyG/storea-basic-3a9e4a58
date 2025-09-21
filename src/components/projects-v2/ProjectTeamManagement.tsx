@@ -144,70 +144,6 @@ export const ProjectTeamManagement = ({ projectId, projectName }: ProjectTeamMan
 
   return (
     <div className="space-y-6">
-      {/* Project Invitation Link */}
-      {isArchitect && (
-        <ProjectInviteLink projectId={projectId} projectName={projectName} />
-      )}
-
-      {/* Add New Member Section */}
-      {isArchitect && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Plus className="h-5 w-5" />
-              Invite Team Member
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <form onSubmit={handleAddMember} className="flex gap-4">
-              <div className="flex-1">
-                <Input
-                  type="email"
-                  placeholder="Enter email address (e.g., john@example.com)"
-                  value={newMemberEmail}
-                  onChange={(e) => setNewMemberEmail(e.target.value)}
-                  disabled={isInviting}
-                  className="focus:ring-2 focus:ring-primary"
-                  autoComplete="email"
-                />
-              </div>
-              <Select value={newMemberRole} onValueChange={setNewMemberRole} disabled={isInviting}>
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Select role" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="contractor">Contractor</SelectItem>
-                  <SelectItem value="builder">Builder</SelectItem>
-                  <SelectItem value="project_manager">Project Manager</SelectItem>
-                  <SelectItem value="consultant">Consultant</SelectItem>
-                  <SelectItem value="homeowner">Homeowner</SelectItem>
-                </SelectContent>
-              </Select>
-              <Button 
-                type="submit"
-                disabled={isInviting || !newMemberEmail.trim()}
-                className="min-w-[100px]"
-              >
-                {isInviting ? (
-                  <>
-                    <div className="animate-spin h-4 w-4 mr-2 border-2 border-white border-t-transparent rounded-full" />
-                    Inviting...
-                  </>
-                ) : (
-                  <>
-                    <Mail className="h-4 w-4 mr-2" />
-                    Invite
-                  </>
-                )}
-              </Button>
-            </form>
-            <div className="text-xs text-muted-foreground">
-              An invitation email will be sent to the specified address.
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
       {/* Team Members List */}
       <Card>
         <CardHeader>
@@ -221,9 +157,6 @@ export const ProjectTeamManagement = ({ projectId, projectName }: ProjectTeamMan
             <div className="text-center py-8 text-muted-foreground">
               <Users className="h-12 w-12 mx-auto mb-4" />
               <div>No team members yet</div>
-              {isArchitect && (
-                <div className="text-sm mt-2">Invite team members to start collaborating</div>
-              )}
             </div>
           ) : (
             <div className="space-y-4">
