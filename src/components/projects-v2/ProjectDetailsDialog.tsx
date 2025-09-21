@@ -3,6 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Slider } from '@/components/ui/slider';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { MapPin, Calendar, DollarSign, Users, Building, Clock, Trash2, Circle } from 'lucide-react';
 import { AdvancedProject } from '@/hooks/useAdvancedProjects';
@@ -15,16 +16,28 @@ interface ProjectDetailsDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onDelete?: (projectId: string) => void;
+  onUpdateBudget?: (projectId: string, budget: number) => void;
 }
 
 export const ProjectDetailsDialog = ({
   project,
   open,
   onOpenChange,
-  onDelete
+  onDelete,
+  onUpdateBudget
 }: ProjectDetailsDialogProps) => {
   const { profile } = useAuth();
   const isArchitect = profile?.role === 'architect';
+  const [budgetValue, setBudgetValue] = useState<number[]>([]);
+  
+  // Initialize budget value when project changes
+  React.useEffect(() => {
+    if (project?.budget) {
+      setBudgetValue([project.budget]);
+    } else {
+      setBudgetValue([100000]); // Default to 100k
+    }
+  }, [project?.budget]);
   
   if (!project) return null;
 
@@ -33,6 +46,20 @@ export const ProjectDetailsDialog = ({
       onDelete(project.id);
       onOpenChange(false);
     }
+  };
+
+  const handleBudgetChange = (value: number[]) => {
+    setBudgetValue(value);
+    if (onUpdateBudget && project) {
+      onUpdateBudget(project.id, value[0]);
+    }
+  };
+
+  const formatBudgetLabel = (value: number) => {
+    if (value < 100000) return "Under $100K";
+    if (value >= 5000000) return "$5M+";
+    if (value >= 1000000) return `$${(value / 1000000).toFixed(1)}M`;
+    return `$${(value / 1000).toFixed(0)}K`;
   };
 
   return (
@@ -187,21 +214,42 @@ export const ProjectDetailsDialog = ({
               </CardContent>
             </Card>
 
-            {/* Budget */}
-            {project.budget && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <DollarSign className="h-5 w-5" />
-                    Budget
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">${project.budget.toLocaleString()}</div>
-                  <div className="text-sm text-muted-foreground">Total project budget</div>
-                </CardContent>
-              </Card>
-            )}
+            {/* Budget Slider */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <DollarSign className="h-5 w-5" />
+                  Project Budget
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center">
+                    <div className="text-2xl font-bold">${budgetValue[0]?.toLocaleString()}</div>
+                    <div className="text-sm text-muted-foreground">{formatBudgetLabel(budgetValue[0] || 100000)}</div>
+                  </div>
+                  
+                  <Slider
+                    value={budgetValue}
+                    onValueChange={handleBudgetChange}
+                    max={5000000}
+                    min={50000}
+                    step={25000}
+                    className="w-full"
+                    disabled={!isArchitect}
+                  />
+                  
+                  <div className="flex justify-between text-xs text-muted-foreground">
+                    <span>Under $100K</span>
+                    <span>$5M+</span>
+                  </div>
+                  
+                  {!isArchitect && (
+                    <p className="text-xs text-muted-foreground">Only architects can modify the project budget</p>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
 
             {/* Homeowner Information */}
             {(project.homeowner_name || project.homeowner_email || project.homeowner_phone) && (

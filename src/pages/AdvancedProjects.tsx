@@ -118,6 +118,14 @@ const AdvancedProjects = () => {
       console.error('Error updating project status:', error);
     }
   };
+
+  const handleUpdateBudget = async (projectId: string, budget: number) => {
+    try {
+      await updateProject(projectId, { budget });
+    } catch (error) {
+      console.error('Error updating project budget:', error);
+    }
+  };
   if (loading) {
     return <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center">
@@ -278,10 +286,16 @@ const AdvancedProjects = () => {
       )}
 
       {/* Project Details Dialog */}
-      <ProjectDetailsDialog project={projectToView} open={detailsDialogOpen} onOpenChange={open => {
-      setDetailsDialogOpen(open);
-      if (!open) setProjectToView(null);
-    }} onDelete={handleDeleteProject} />
+      <ProjectDetailsDialog 
+        project={projectToView} 
+        open={detailsDialogOpen} 
+        onOpenChange={open => {
+          setDetailsDialogOpen(open);
+          if (!open) setProjectToView(null);
+        }} 
+        onDelete={handleDeleteProject}
+        onUpdateBudget={handleUpdateBudget}
+      />
     </div>;
 };
 export default AdvancedProjects;
