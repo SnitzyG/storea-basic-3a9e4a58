@@ -21,6 +21,7 @@ export interface AdvancedProject {
   company_id?: string;
   timeline?: any;
   project_id?: string;
+  project_reference_number?: string;
   // Extended fields for advanced project management
   project_type?: 'residential_new' | 'residential_renovation' | 'commercial_new' | 'commercial_renovation' | 'industrial' | 'infrastructure';
   priority?: 'low' | 'medium' | 'high' | 'urgent';

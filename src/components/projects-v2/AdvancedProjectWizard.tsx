@@ -132,6 +132,7 @@ export const AdvancedProjectWizard = ({
   } = useToast();
   const [formData, setFormData] = useState({
     // Step 1: Basic Information
+    project_reference_number: projectToEdit?.project_reference_number || '',
     name: projectToEdit?.name || '',
     description: projectToEdit?.description || '',
     project_category: projectToEdit?.project_type || 'new_construction',
@@ -245,6 +246,7 @@ export const AdvancedProjectWizard = ({
     try {
       const projectData = {
         name: formData.name,
+        project_reference_number: formData.project_reference_number || undefined,
         description: formData.description || undefined,
         project_type: formData.project_type as any,
         priority: formData.priority,
@@ -267,6 +269,7 @@ export const AdvancedProjectWizard = ({
 
       // Reset form
       setFormData({
+        project_reference_number: '',
         name: '',
         description: '',
         project_category: 'new_construction',
@@ -298,6 +301,20 @@ export const AdvancedProjectWizard = ({
             <div>
               <h3 className="text-lg font-semibold mb-4">Basic Project Information</h3>
               <div className="space-y-4">
+                <div>
+                  <Label htmlFor="project_reference_number">Project Reference Number</Label>
+                  <Input 
+                    id="project_reference_number" 
+                    value={formData.project_reference_number} 
+                    onChange={e => handleInputChange('project_reference_number', e.target.value)} 
+                    placeholder="Enter your internal reference number (optional)" 
+                    className="mt-1" 
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Your internal reference number or project code
+                  </p>
+                </div>
+
                 <div>
                   <Label htmlFor="name">Project Name *</Label>
                   <Input id="name" value={formData.name} onChange={e => handleInputChange('name', e.target.value)} placeholder="Enter project name" className="mt-1" />
