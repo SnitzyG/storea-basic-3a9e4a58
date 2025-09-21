@@ -218,7 +218,7 @@ export const AdvancedProjectWizard = ({
       case 1:
         return formData.name.trim() !== '';
       case 2:
-        return formData.estimated_start_date && formData.estimated_finish_date;
+        return true; // No mandatory fields for project details
       case 3:
         return true;
       // No mandatory fields for homeowners
@@ -398,74 +398,6 @@ export const AdvancedProjectWizard = ({
                     <Input id="number_of_floors" type="number" value={formData.number_of_floors} onChange={e => handleInputChange('number_of_floors', e.target.value)} placeholder="Floors" className="mt-1" />
                   </div>
                 </div>
-
-                <div className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                      <Label>Start Date *</Label>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !formData.estimated_start_date && "text-muted-foreground")}>
-                            <CalendarIcon className="mr-2 h-4 w-4" />
-                            {formData.estimated_start_date ? format(formData.estimated_start_date, "PPP") : <span>Pick start date</span>}
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                          <Calendar mode="single" selected={formData.estimated_start_date} onSelect={date => handleInputChange('estimated_start_date', date)} initialFocus />
-                        </PopoverContent>
-                      </Popover>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label>Estimated Finish Date *</Label>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !formData.estimated_finish_date && "text-muted-foreground")}>
-                            <CalendarIcon className="mr-2 h-4 w-4" />
-                            {formData.estimated_finish_date ? format(formData.estimated_finish_date, "PPP") : <span>Pick finish date</span>}
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                          <Calendar mode="single" selected={formData.estimated_finish_date} onSelect={date => handleInputChange('estimated_finish_date', date)} disabled={date => formData.estimated_start_date ? date < formData.estimated_start_date : false} initialFocus />
-                        </PopoverContent>
-                      </Popover>
-                    </div>
-                  </div>
-
-                  {/* Quick Duration Buttons */}
-                  <div className="space-y-3">
-                    <Label className="text-sm font-medium">Quick Duration Setup</Label>
-                    <div className="flex flex-wrap gap-2">
-                      
-                      <Button type="button" variant="outline" size="sm" onClick={() => setProjectDuration(2)} disabled={!formData.estimated_start_date} className="flex items-center gap-1">
-                        <Clock className="h-3 w-3" />
-                        2 Months
-                      </Button>
-                      <Button type="button" variant="outline" size="sm" onClick={() => setProjectDuration(3)} disabled={!formData.estimated_start_date} className="flex items-center gap-1">
-                        <Clock className="h-3 w-3" />
-                        3 Months
-                      </Button>
-                      <Button type="button" variant="outline" size="sm" onClick={() => setProjectDuration(6)} disabled={!formData.estimated_start_date} className="flex items-center gap-1">
-                        <Clock className="h-3 w-3" />
-                        6 Months
-                      </Button>
-                      <Button type="button" variant="outline" size="sm" onClick={() => setProjectDuration(12)} disabled={!formData.estimated_start_date} className="flex items-center gap-1">
-                        <Clock className="h-3 w-3" />
-                        12 Months
-                      </Button>
-                      <Button type="button" variant="outline" size="sm" onClick={() => setProjectDuration(18)} disabled={!formData.estimated_start_date} className="flex items-center gap-1">
-                        <Clock className="h-3 w-3" />
-                        18 Months
-                      </Button>
-                      <Button type="button" variant="outline" size="sm" onClick={() => setProjectDuration(24)} disabled={!formData.estimated_start_date} className="flex items-center gap-1">
-                        <Clock className="h-3 w-3" />
-                        24 Months
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-
-                
               </div>
             </div>
           </div>;
