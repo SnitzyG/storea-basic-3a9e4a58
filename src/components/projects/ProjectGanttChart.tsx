@@ -5,14 +5,14 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { Badge } from '@/components/ui/badge';
 import { ZoomIn, ZoomOut, Calendar, CalendarDays, Clock } from 'lucide-react';
 import { AdvancedProject } from '@/hooks/useAdvancedProjects';
-type ZoomLevel = 'day' | 'week' | 'month';
+type ZoomLevel = 'day' | 'week' | 'month' | 'quarter' | 'halfyear' | 'year';
 interface ProjectGanttChartProps {
   projects: AdvancedProject[];
 }
 export const ProjectGanttChart: React.FC<ProjectGanttChartProps> = ({
   projects
 }) => {
-  const [zoomLevel, setZoomLevel] = useState<ZoomLevel>('month');
+  const [zoomLevel, setZoomLevel] = useState<ZoomLevel>('quarter');
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   // Filter projects with valid dates
@@ -75,8 +75,7 @@ export const ProjectGanttChart: React.FC<ProjectGanttChartProps> = ({
         });
         current.setDate(current.getDate() + 7);
       }
-    } else {
-      // month
+    } else if (zoomLevel === 'month') {
       current.setDate(1); // Start from beginning of month
       while (current <= endWithPadding) {
         const month = String(current.getMonth() + 1).padStart(2, '0');
@@ -86,6 +85,43 @@ export const ProjectGanttChart: React.FC<ProjectGanttChartProps> = ({
           label: `${month}.${year}`
         });
         current.setMonth(current.getMonth() + 1);
+      }
+    } else if (zoomLevel === 'quarter') {
+      // Start from beginning of quarter
+      const quarter = Math.floor(current.getMonth() / 3);
+      current.setMonth(quarter * 3, 1);
+      while (current <= endWithPadding) {
+        const q = Math.floor(current.getMonth() / 3) + 1;
+        const year = String(current.getFullYear()).slice(-2);
+        labels.push({
+          date: new Date(current),
+          label: `Q${q}.${year}`
+        });
+        current.setMonth(current.getMonth() + 3);
+      }
+    } else if (zoomLevel === 'halfyear') {
+      // Start from beginning of half year (Jan or Jul)
+      const half = current.getMonth() < 6 ? 0 : 6;
+      current.setMonth(half, 1);
+      while (current <= endWithPadding) {
+        const h = current.getMonth() < 6 ? 1 : 2;
+        const year = String(current.getFullYear()).slice(-2);
+        labels.push({
+          date: new Date(current),
+          label: `H${h}.${year}`
+        });
+        current.setMonth(current.getMonth() + 6);
+      }
+    } else {
+      // year
+      current.setMonth(0, 1); // Start from beginning of year
+      while (current <= endWithPadding) {
+        const year = String(current.getFullYear()).slice(-2);
+        labels.push({
+          date: new Date(current),
+          label: year
+        });
+        current.setFullYear(current.getFullYear() + 1);
       }
     }
     return {
@@ -116,7 +152,14 @@ export const ProjectGanttChart: React.FC<ProjectGanttChartProps> = ({
   }, [validProjects, startDate, totalDays]);
   const getPixelWidth = () => {
     const baseWidth = 1200;
-    const multiplier = zoomLevel === 'day' ? 3 : zoomLevel === 'week' ? 2 : 1;
+    const multiplier = {
+      day: 3,
+      week: 2,
+      month: 1.5,
+      quarter: 1,
+      halfyear: 0.8,
+      year: 0.6
+    }[zoomLevel];
     return baseWidth * multiplier;
   };
   const statusColors = {
@@ -149,12 +192,18 @@ export const ProjectGanttChart: React.FC<ProjectGanttChartProps> = ({
               <Calendar className="h-5 w-5" />
               Project Timeline
             </CardTitle>
-            <div className="flex items-center gap-2">
-              
-              
+            <div className="flex items-center gap-1">
               <Button variant={zoomLevel === 'month' ? 'default' : 'outline'} size="sm" onClick={() => setZoomLevel('month')}>
-                <Calendar className="h-4 w-4 mr-1" />
-                Month
+                Monthly
+              </Button>
+              <Button variant={zoomLevel === 'quarter' ? 'default' : 'outline'} size="sm" onClick={() => setZoomLevel('quarter')}>
+                Quarterly
+              </Button>
+              <Button variant={zoomLevel === 'halfyear' ? 'default' : 'outline'} size="sm" onClick={() => setZoomLevel('halfyear')}>
+                Half-Yearly
+              </Button>
+              <Button variant={zoomLevel === 'year' ? 'default' : 'outline'} size="sm" onClick={() => setZoomLevel('year')}>
+                Yearly
               </Button>
             </div>
           </div>
