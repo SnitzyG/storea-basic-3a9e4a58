@@ -127,7 +127,7 @@ const AdvancedProjects = () => {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Project Reference Number</TableHead>
+                      <TableHead>Project Reference</TableHead>
                       <TableHead>Project Name</TableHead>
                       <TableHead>Project ID</TableHead>
                       <TableHead>Address</TableHead>

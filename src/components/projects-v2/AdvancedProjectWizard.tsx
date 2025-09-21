@@ -302,16 +302,16 @@ export const AdvancedProjectWizard = ({
               <h3 className="text-lg font-semibold mb-4">Basic Project Information</h3>
               <div className="space-y-4">
                 <div>
-                  <Label htmlFor="project_reference_number">Project Reference Number</Label>
+                  <Label htmlFor="project_reference_number">Project Reference</Label>
                   <Input 
                     id="project_reference_number" 
                     value={formData.project_reference_number} 
                     onChange={e => handleInputChange('project_reference_number', e.target.value)} 
-                    placeholder="Enter your internal reference number (optional)" 
+                    placeholder="e.g. PRJ-2024-001, BUILD-A, Site#123 (optional)" 
                     className="mt-1" 
                   />
                   <p className="text-xs text-muted-foreground mt-1">
-                    Your internal reference number or project code
+                    Your internal reference code (numbers, letters, symbols)
                   </p>
                 </div>
 
