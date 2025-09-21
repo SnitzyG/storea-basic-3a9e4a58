@@ -143,7 +143,7 @@ export const ProjectGanttChart: React.FC<ProjectGanttChartProps> = ({ projects }
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Calendar className="h-5 w-5" />
-            Project Timeline (Gantt)
+            Project Timeline
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -162,7 +162,7 @@ export const ProjectGanttChart: React.FC<ProjectGanttChartProps> = ({ projects }
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2">
               <Calendar className="h-5 w-5" />
-              Project Timeline (Gantt)
+              Project Timeline
             </CardTitle>
             <div className="flex items-center gap-2">
               <Button
