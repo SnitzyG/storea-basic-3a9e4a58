@@ -113,6 +113,20 @@ export const ProjectDetailsDialog = ({
                   </div>
                 )}
 
+                {project.homeowner_name && (
+                  <div>
+                    <div className="text-sm font-medium">Homeowner</div>
+                    <div className="text-sm text-muted-foreground">{project.homeowner_name}</div>
+                  </div>
+                )}
+
+                <div>
+                  <div className="text-sm font-medium">Created</div>
+                  <div className="text-sm text-muted-foreground">
+                    {new Date(project.created_at).toLocaleDateString()}
+                  </div>
+                </div>
+
                 {project.square_footage && (
                   <div>
                     <div className="text-sm font-medium">Square Footage</div>

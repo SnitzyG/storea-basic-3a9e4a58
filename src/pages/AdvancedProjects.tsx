@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus, BarChart3, Eye, Archive, Hash, UserPlus, Copy } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAdvancedProjects, AdvancedProject } from '@/hooks/useAdvancedProjects';
@@ -11,13 +12,56 @@ import { AdvancedProjectWizard } from '@/components/projects-v2/AdvancedProjectW
 import { ProjectDetailsDialog } from '@/components/projects-v2/ProjectDetailsDialog';
 import { ProjectJoinSection } from '@/components/projects/ProjectJoinSection';
 import { useAuth } from '@/hooks/useAuth';
+const StatusSelector = ({ project, onStatusChange }: { 
+  project: AdvancedProject, 
+  onStatusChange: (status: 'planning' | 'active' | 'on_hold' | 'completed' | 'cancelled') => void 
+}) => {
+  const statusOptions = [
+    { value: 'planning', label: 'Planning' },
+    { value: 'active', label: 'Active' },
+    { value: 'on_hold', label: 'On Hold' },
+    { value: 'completed', label: 'Completed' },
+    { value: 'cancelled', label: 'Cancelled' }
+  ];
+
+  const statusColors = {
+    planning: 'bg-blue-100 text-blue-800',
+    active: 'bg-green-100 text-green-800',
+    on_hold: 'bg-yellow-100 text-yellow-800',
+    completed: 'bg-gray-100 text-gray-800',
+    cancelled: 'bg-red-100 text-red-800'
+  };
+
+  return (
+    <Select value={project.status} onValueChange={onStatusChange}>
+      <SelectTrigger className="w-auto min-w-[120px]">
+        <SelectValue>
+          <Badge className={statusColors[project.status]}>
+            {project.status.replace('_', ' ').toUpperCase()}
+          </Badge>
+        </SelectValue>
+      </SelectTrigger>
+      <SelectContent>
+        {statusOptions.map((option) => (
+          <SelectItem key={option.value} value={option.value}>
+            <Badge className={statusColors[option.value]}>
+              {option.label.toUpperCase()}
+            </Badge>
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  );
+};
+
 const AdvancedProjects = () => {
   const {
     projects,
     loading,
     archiveProject,
     cloneProject,
-    deleteProject
+    deleteProject,
+    updateProject
   } = useAdvancedProjects();
   const {
     profile
@@ -65,6 +109,14 @@ const AdvancedProjects = () => {
   };
   const handleDeleteProject = async (projectId: string) => {
     await deleteProject(projectId);
+  };
+
+  const handleStatusChange = async (projectId: string, newStatus: 'planning' | 'active' | 'on_hold' | 'completed' | 'cancelled') => {
+    try {
+      await updateProject(projectId, { status: newStatus });
+    } catch (error) {
+      console.error('Error updating project status:', error);
+    }
   };
   if (loading) {
     return <div className="flex items-center justify-center min-h-[400px]">
@@ -124,23 +176,20 @@ const AdvancedProjects = () => {
           ) : (
             <Card>
               <CardContent className="p-0">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Project Reference</TableHead>
-                      <TableHead>Project Name</TableHead>
-                      <TableHead>Project ID</TableHead>
-                      <TableHead>Address</TableHead>
-                      <TableHead>Description</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Budget</TableHead>
-                      <TableHead>Start Date</TableHead>
-                      <TableHead>Finish Date</TableHead>
-                      <TableHead>Homeowner</TableHead>
-                      <TableHead>Created</TableHead>
-                      <TableHead>Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Project Reference</TableHead>
+                        <TableHead>Project Name</TableHead>
+                        <TableHead>Project ID</TableHead>
+                        <TableHead>Address</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Budget</TableHead>
+                        <TableHead>Start Date</TableHead>
+                        <TableHead>Finish Date</TableHead>
+                        <TableHead>Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
                   <TableBody>
                     {projects.map((project) => {
                       console.log('Rendering project:', project.name, 'Reference:', project.project_reference_number);
@@ -169,15 +218,11 @@ const AdvancedProjects = () => {
                           )}
                         </TableCell>
                         <TableCell>{project.address || '-'}</TableCell>
-                        <TableCell className="max-w-xs">
-                          <div className="truncate" title={project.description}>
-                            {project.description || '-'}
-                          </div>
-                        </TableCell>
                         <TableCell>
-                          <Badge className={statusColors[project.status]}>
-                            {project.status.replace('_', ' ').toUpperCase()}
-                          </Badge>
+                          <StatusSelector 
+                            project={project} 
+                            onStatusChange={(newStatus) => handleStatusChange(project.id, newStatus)} 
+                          />
                         </TableCell>
                         <TableCell>
                           {project.budget ? `$${project.budget.toLocaleString()}` : '-'}
@@ -193,12 +238,6 @@ const AdvancedProjects = () => {
                             ? new Date(project.estimated_finish_date).toLocaleDateString() 
                             : '-'
                           }
-                        </TableCell>
-                        <TableCell>
-                          {project.homeowner_name || '-'}
-                        </TableCell>
-                        <TableCell>
-                          {new Date(project.created_at).toLocaleDateString()}
                         </TableCell>
                         <TableCell>
                           <div className="flex gap-1">
