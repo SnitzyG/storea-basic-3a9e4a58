@@ -87,6 +87,21 @@ export const Sidebar = ({
           {visibleTabs.map(tab => {
           const Icon = tab.icon;
           const isActive = location.pathname.startsWith(tab.path);
+          const isDisabled = ['tenders', 'financials'].includes(tab.id);
+          
+          if (isDisabled) {
+            return <div 
+              key={tab.id} 
+              className="flex items-center justify-between px-4 py-3 rounded-lg text-sm font-medium text-muted-foreground cursor-not-allowed opacity-50"
+            >
+              <div className="flex items-center gap-3">
+                <Icon className="h-5 w-5" />
+                {tab.label}
+              </div>
+              <span className="text-xs text-muted-foreground">Coming Soon</span>
+            </div>;
+          }
+          
           return <Link 
             key={tab.id} 
             to={tab.path} 
