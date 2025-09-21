@@ -436,10 +436,7 @@ export const AdvancedProjectWizard = ({
                   <div className="space-y-3">
                     <Label className="text-sm font-medium">Quick Duration Setup</Label>
                     <div className="flex flex-wrap gap-2">
-                      <Button type="button" variant="outline" size="sm" onClick={() => setProjectDuration(2)} disabled={!formData.estimated_start_date} className="flex items-center gap-1">
-                        <Clock className="h-3 w-3" />
-                        2 Months
-                      </Button>
+                      
                       <Button type="button" variant="outline" size="sm" onClick={() => setProjectDuration(2)} disabled={!formData.estimated_start_date} className="flex items-center gap-1">
                         <Clock className="h-3 w-3" />
                         2 Months
