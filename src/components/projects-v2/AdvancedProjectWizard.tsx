@@ -180,7 +180,16 @@ export const AdvancedProjectWizard = ({
   };
   const setProjectDuration = (months: number) => {
     if (formData.estimated_start_date) {
-      const finishDate = addMonths(formData.estimated_start_date, months);
+      let finishDate: Date;
+      if (months < 1) {
+        // Handle weeks
+        const weeks = months * 4; // Convert months to weeks
+        finishDate = new Date(formData.estimated_start_date);
+        finishDate.setDate(finishDate.getDate() + (weeks * 7));
+      } else {
+        // Handle months
+        finishDate = addMonths(formData.estimated_start_date, months);
+      }
       handleInputChange('estimated_finish_date', finishDate);
     }
   };
@@ -218,7 +227,7 @@ export const AdvancedProjectWizard = ({
       case 1:
         return formData.name.trim() !== '';
       case 2:
-        return true; // No mandatory fields for project details
+        return formData.estimated_start_date && formData.estimated_finish_date;
       case 3:
         return true;
       // No mandatory fields for homeowners
@@ -398,7 +407,154 @@ export const AdvancedProjectWizard = ({
                     <Input id="number_of_floors" type="number" value={formData.number_of_floors} onChange={e => handleInputChange('number_of_floors', e.target.value)} placeholder="Floors" className="mt-1" />
                   </div>
                 </div>
-              </div>
+                </div>
+
+                <Separator className="my-6" />
+
+                {/* Date Selection Section */}
+                <div className="space-y-6">
+                  <h4 className="text-md font-medium">Project Timeline</h4>
+                  
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {/* Start Date */}
+                    <div className="space-y-3">
+                      <Label className="text-sm font-medium">
+                        Start Date *
+                      </Label>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button 
+                            variant="outline" 
+                            className={cn(
+                              "w-full justify-start text-left font-normal h-11",
+                              !formData.estimated_start_date && "text-muted-foreground"
+                            )}
+                          >
+                            <CalendarIcon className="mr-3 h-4 w-4" />
+                            {formData.estimated_start_date ? 
+                              format(formData.estimated_start_date, "EEEE, MMMM d, yyyy") : 
+                              "Select start date"
+                            }
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar 
+                            mode="single" 
+                            selected={formData.estimated_start_date} 
+                            onSelect={date => handleInputChange('estimated_start_date', date)} 
+                            initialFocus
+                            disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
+                          />
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+
+                    {/* Estimated Finish Date */}
+                    <div className="space-y-3">
+                      <Label className="text-sm font-medium">
+                        Estimated Finish Date *
+                      </Label>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button 
+                            variant="outline" 
+                            className={cn(
+                              "w-full justify-start text-left font-normal h-11",
+                              !formData.estimated_finish_date && "text-muted-foreground"
+                            )}
+                          >
+                            <CalendarIcon className="mr-3 h-4 w-4" />
+                            {formData.estimated_finish_date ? 
+                              format(formData.estimated_finish_date, "EEEE, MMMM d, yyyy") : 
+                              "Select finish date"
+                            }
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar 
+                            mode="single" 
+                            selected={formData.estimated_finish_date} 
+                            onSelect={date => handleInputChange('estimated_finish_date', date)} 
+                            initialFocus
+                            disabled={(date) => {
+                              if (!formData.estimated_start_date) return date < new Date(new Date().setHours(0, 0, 0, 0));
+                              return date < formData.estimated_start_date;
+                            }}
+                          />
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+                  </div>
+
+                  {/* Quick Duration Buttons */}
+                  {formData.estimated_start_date && (
+                    <div className="space-y-3">
+                      <Label className="text-sm font-medium">Quick Duration Setup</Label>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
+                        <Button 
+                          type="button" 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => setProjectDuration(0.25)} 
+                          className="flex items-center justify-center gap-1 h-9"
+                        >
+                          <Clock className="h-3 w-3" />
+                          1 Week
+                        </Button>
+                        <Button 
+                          type="button" 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => setProjectDuration(0.5)} 
+                          className="flex items-center justify-center gap-1 h-9"
+                        >
+                          <Clock className="h-3 w-3" />
+                          2 Weeks
+                        </Button>
+                        <Button 
+                          type="button" 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => setProjectDuration(1)} 
+                          className="flex items-center justify-center gap-1 h-9"
+                        >
+                          <Clock className="h-3 w-3" />
+                          1 Month
+                        </Button>
+                        <Button 
+                          type="button" 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => setProjectDuration(3)} 
+                          className="flex items-center justify-center gap-1 h-9"
+                        >
+                          <Clock className="h-3 w-3" />
+                          3 Months
+                        </Button>
+                        <Button 
+                          type="button" 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => setProjectDuration(6)} 
+                          className="flex items-center justify-center gap-1 h-9"
+                        >
+                          <Clock className="h-3 w-3" />
+                          6 Months
+                        </Button>
+                        <Button 
+                          type="button" 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => setProjectDuration(12)} 
+                          className="flex items-center justify-center gap-1 h-9"
+                        >
+                          <Clock className="h-3 w-3" />
+                          1 Year
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </div>
             </div>
           </div>;
       case 3:
