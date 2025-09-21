@@ -127,6 +127,7 @@ const AdvancedProjects = () => {
                 <Table>
                   <TableHeader>
                     <TableRow>
+                      <TableHead>Project Reference Number</TableHead>
                       <TableHead>Project Name</TableHead>
                       <TableHead>Project ID</TableHead>
                       <TableHead>Address</TableHead>
@@ -143,6 +144,7 @@ const AdvancedProjects = () => {
                   <TableBody>
                     {projects.map((project) => (
                       <TableRow key={project.id}>
+                        <TableCell>{project.project_reference_number || '-'}</TableCell>
                         <TableCell className="font-medium">{project.name}</TableCell>
                         <TableCell>
                           {(project as any).project_id ? (
