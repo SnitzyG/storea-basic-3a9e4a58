@@ -28,6 +28,7 @@ interface Collaborator {
 export const CreateProjectDialog = ({ children }: CreateProjectDialogProps) => {
   const [open, setOpen] = useState(false);
   const [formData, setFormData] = useState({
+    project_reference_number: '',
     name: '',
     project_type: '',
     description: '',
@@ -97,6 +98,7 @@ export const CreateProjectDialog = ({ children }: CreateProjectDialogProps) => {
       const project = await createProject({
         name: formData.name,
         project_type: formData.project_type,
+        project_reference_number: formData.project_reference_number || undefined,
         address: `${formData.street_number} ${formData.street_name}, ${formData.suburb} ${formData.postcode}`.trim(),
         budget: formData.budget,
         description: formData.description || undefined,
@@ -109,6 +111,7 @@ export const CreateProjectDialog = ({ children }: CreateProjectDialogProps) => {
       });
       
       setFormData({ 
+        project_reference_number: '',
         name: '', 
         project_type: '',
         description: '',
@@ -177,6 +180,21 @@ export const CreateProjectDialog = ({ children }: CreateProjectDialogProps) => {
           {/* Basic Information */}
           <div className="space-y-4">
             <h3 className="text-lg font-medium">Basic Information</h3>
+            
+            {/* Project Reference Number - First field */}
+            <div className="space-y-2">
+              <Label htmlFor="project_reference_number">Project Reference Number</Label>
+              <Input
+                id="project_reference_number"
+                value={formData.project_reference_number}
+                onChange={(e) => handleInputChange('project_reference_number', e.target.value)}
+                placeholder="Enter your internal reference number (optional)"
+              />
+              <p className="text-xs text-muted-foreground">
+                Your internal reference number or project code
+              </p>
+            </div>
+            
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="name">Project Name *</Label>

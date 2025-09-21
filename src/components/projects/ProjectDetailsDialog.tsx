@@ -39,6 +39,7 @@ export const ProjectDetailsDialog = ({
 }: ProjectDetailsDialogProps) => {
   const [formData, setFormData] = useState({
     name: '',
+    project_reference_number: '',
     address: '',
     budget: '',
     description: '',
@@ -66,6 +67,7 @@ export const ProjectDetailsDialog = ({
     if (project) {
       setFormData({
         name: project.name,
+        project_reference_number: project.project_reference_number || '',
         address: project.address || '',
         budget: project.budget?.toString() || '',
         description: project.description || '',
@@ -82,6 +84,7 @@ export const ProjectDetailsDialog = ({
     try {
       await updateProject(project.id, {
         name: formData.name,
+        project_reference_number: formData.project_reference_number || undefined,
         address: formData.address || undefined,
         budget: formData.budget ? parseFloat(formData.budget) : undefined,
         description: formData.description || undefined,
@@ -158,6 +161,15 @@ export const ProjectDetailsDialog = ({
         <form onSubmit={handleSubmit} className="space-y-4">
           <ViewEditField
             type="text"
+            label="Project Reference Number"
+            value={formData.project_reference_number}
+            onChange={(value) => handleInputChange('project_reference_number', value)}
+            mode={mode}
+            placeholder="Your internal reference number"
+          />
+          
+          <ViewEditField
+            type="text"
             label="Project Name"
             value={formData.name}
             onChange={(value) => handleInputChange('name', value)}
@@ -209,6 +221,11 @@ export const ProjectDetailsDialog = ({
           <div className="flex items-start justify-between">
             <div className="space-y-1">
               <h3 className="text-xl font-semibold">{project.name}</h3>
+              {project.project_reference_number && (
+                <p className="text-sm text-muted-foreground">
+                  Reference: {project.project_reference_number}
+                </p>
+              )}
               <ViewEditField
                 type="display"
                 label=""

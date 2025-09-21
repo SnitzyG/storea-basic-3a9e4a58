@@ -228,6 +228,28 @@ export const useRFIs = () => {
         }
       }
 
+      // Send email notification if RFI is assigned to someone
+      if (rfiData.assigned_to && rfiData.recipient_email) {
+        try {
+          await supabase.functions.invoke('send-rfi-notification', {
+            body: {
+              recipientEmail: rfiData.recipient_email,
+              recipientName: rfiData.recipient_name || 'Team Member',
+              rfiNumber: data.rfi_number || data.id.slice(0, 8),
+              rfiSubject: rfiData.subject || 'No Subject',
+              rfiQuestion: rfiData.question,
+              senderName: rfiData.sender_name || user.email || 'Unknown',
+              projectName: rfiData.project_name || 'Project',
+              dueDate: rfiData.required_response_by,
+              priority: rfiData.priority
+            }
+          });
+        } catch (emailError) {
+          console.error('Failed to send email notification:', emailError);
+          // Don't fail the RFI creation if email fails
+        }
+      }
+
       toast({
         title: "Success",
         description: "RFI created successfully",

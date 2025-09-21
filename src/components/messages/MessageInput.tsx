@@ -9,6 +9,7 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { FileSelector } from './FileSelector';
+import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
 import { cn } from '@/lib/utils';
 
 interface MessageInputProps {
@@ -41,6 +42,7 @@ export const MessageInput: React.FC<MessageInputProps> = ({
   const [mentionQuery, setMentionQuery] = useState('');
   const [isInquiry, setIsInquiry] = useState(false);
   const [showFileSelector, setShowFileSelector] = useState(false);
+  const [showConfirmation, setShowConfirmation] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout>();
 
@@ -90,6 +92,16 @@ export const MessageInput: React.FC<MessageInputProps> = ({
     e.preventDefault();
     if ((!message.trim() && attachments.length === 0) || sending || disabled) return;
 
+    // Show confirmation dialog for formal inquiries
+    if (isInquiry) {
+      setShowConfirmation(true);
+      return;
+    }
+
+    await sendMessage();
+  };
+
+  const sendMessage = async () => {
     setSending(true);
     try {
       // Send the message first
@@ -105,6 +117,7 @@ export const MessageInput: React.FC<MessageInputProps> = ({
       setShowMentions(false);
       setIsInquiry(false);
       setShowFileSelector(false);
+      setShowConfirmation(false);
       
       // Reset textarea height
       if (textareaRef.current) {
@@ -321,6 +334,17 @@ export const MessageInput: React.FC<MessageInputProps> = ({
           </div>
         </form>
       </div>
+
+      {/* Confirmation Dialog for Formal Inquiries */}
+      <ConfirmationDialog
+        open={showConfirmation}
+        onClose={() => setShowConfirmation(false)}
+        onConfirm={sendMessage}
+        title="Send Formal Inquiry"
+        description="You are about to send a formal inquiry. This will create an RFI entry that will be tracked and requires a formal response. Do you want to proceed?"
+        confirmText="Send Inquiry"
+        cancelText="Cancel"
+      />
     </div>
   );
 };

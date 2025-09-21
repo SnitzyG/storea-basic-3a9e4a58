@@ -11,6 +11,7 @@ import { RFIStatusBadge, EnhancedRFIStatus } from './RFIStatusBadge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { CalendarDays, User, FileText } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import { RFIAttachmentUpload } from './RFIAttachmentUpload';
 
 interface RFIResponseComposerProps {
   rfi: RFI;
@@ -22,6 +23,7 @@ interface RFIResponseComposerProps {
     responderPosition?: string;
     status?: EnhancedRFIStatus;
     priority?: 'low' | 'medium' | 'high' | 'critical';
+    attachments?: File[];
   }) => Promise<void>;
 }
 
@@ -34,6 +36,7 @@ export const RFIResponseComposer = ({ rfi, isOpen, onClose, onSubmit }: RFIRespo
   const [newPriority, setNewPriority] = useState<'low' | 'medium' | 'high' | 'critical'>(rfi.priority);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [saveAsDraft, setSaveAsDraft] = useState(false);
+  const [attachments, setAttachments] = useState<File[]>([]);
 
   // Auto-populate responder details from user profile when dialog opens
   useEffect(() => {
@@ -56,12 +59,14 @@ export const RFIResponseComposer = ({ rfi, isOpen, onClose, onSubmit }: RFIRespo
         responderPosition: responderPosition.trim() || undefined,
         status: newStatus,
         priority: newPriority,
+        attachments: attachments.length > 0 ? attachments : undefined,
       });
       
       // Reset form
       setResponse('');
       setResponderName('');
       setResponderPosition('');
+      setAttachments([]);
     } catch (error) {
       console.error('Failed to submit response:', error);
     } finally {
@@ -233,6 +238,15 @@ export const RFIResponseComposer = ({ rfi, isOpen, onClose, onSubmit }: RFIRespo
               <p className="text-xs text-muted-foreground">
                 Provide a clear and comprehensive response addressing the question or request.
               </p>
+            </div>
+
+            {/* Attachments */}
+            <div className="space-y-2">
+              <Label>Attachments (Optional)</Label>
+              <RFIAttachmentUpload 
+                onFilesChange={setAttachments}
+                disabled={isSubmitting}
+              />
             </div>
           </div>
 

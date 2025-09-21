@@ -12,6 +12,7 @@ export interface Project {
   timeline?: any;
   description?: string;
   company_id?: string;
+  project_reference_number?: string;
   created_at: string;
   updated_at: string;
 }
@@ -112,6 +113,7 @@ export const useProjects = () => {
   const createProject = async (projectData: {
     name: string;
     project_type?: string;
+    project_reference_number?: string;
     address?: string;
     budget?: string;
     description?: string;

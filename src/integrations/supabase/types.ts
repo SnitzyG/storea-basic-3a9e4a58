@@ -1359,6 +1359,7 @@ export type Database = {
           invitation_token: string | null
           name: string
           project_id: string | null
+          project_reference_number: string | null
           status: Database["public"]["Enums"]["project_status"]
           timeline: Json | null
           updated_at: string
@@ -1380,6 +1381,7 @@ export type Database = {
           invitation_token?: string | null
           name: string
           project_id?: string | null
+          project_reference_number?: string | null
           status?: Database["public"]["Enums"]["project_status"]
           timeline?: Json | null
           updated_at?: string
@@ -1401,6 +1403,7 @@ export type Database = {
           invitation_token?: string | null
           name?: string
           project_id?: string | null
+          project_reference_number?: string | null
           status?: Database["public"]["Enums"]["project_status"]
           timeline?: Json | null
           updated_at?: string
