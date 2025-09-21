@@ -5,26 +5,28 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { Badge } from '@/components/ui/badge';
 import { ZoomIn, ZoomOut, Calendar, CalendarDays, Clock } from 'lucide-react';
 import { AdvancedProject } from '@/hooks/useAdvancedProjects';
-
 type ZoomLevel = 'day' | 'week' | 'month';
-
 interface ProjectGanttChartProps {
   projects: AdvancedProject[];
 }
-
-export const ProjectGanttChart: React.FC<ProjectGanttChartProps> = ({ projects }) => {
+export const ProjectGanttChart: React.FC<ProjectGanttChartProps> = ({
+  projects
+}) => {
   const [zoomLevel, setZoomLevel] = useState<ZoomLevel>('month');
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   // Filter projects with valid dates
   const validProjects = useMemo(() => {
-    return projects.filter(project => 
-      project.estimated_start_date && project.estimated_finish_date
-    );
+    return projects.filter(project => project.estimated_start_date && project.estimated_finish_date);
   }, [projects]);
 
   // Calculate date range and scale
-  const { startDate, endDate, totalDays, dateLabels } = useMemo(() => {
+  const {
+    startDate,
+    endDate,
+    totalDays,
+    dateLabels
+  } = useMemo(() => {
     if (validProjects.length === 0) {
       const today = new Date();
       const nextMonth = new Date(today.getFullYear(), today.getMonth() + 1, today.getDate());
@@ -35,12 +37,7 @@ export const ProjectGanttChart: React.FC<ProjectGanttChartProps> = ({ projects }
         dateLabels: []
       };
     }
-
-    const allDates = validProjects.flatMap(project => [
-      new Date(project.estimated_start_date!),
-      new Date(project.estimated_finish_date!)
-    ]);
-
+    const allDates = validProjects.flatMap(project => [new Date(project.estimated_start_date!), new Date(project.estimated_finish_date!)]);
     const minDate = new Date(Math.min(...allDates.map(d => d.getTime())));
     const maxDate = new Date(Math.max(...allDates.map(d => d.getTime())));
 
@@ -50,14 +47,12 @@ export const ProjectGanttChart: React.FC<ProjectGanttChartProps> = ({ projects }
     startWithPadding.setDate(startWithPadding.getDate() - padding);
     const endWithPadding = new Date(maxDate);
     endWithPadding.setDate(endWithPadding.getDate() + padding);
-
     const diffTime = endWithPadding.getTime() - startWithPadding.getTime();
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
     // Generate date labels based on zoom level
     const labels = [];
     const current = new Date(startWithPadding);
-    
     if (zoomLevel === 'day') {
       while (current <= endWithPadding) {
         const month = String(current.getMonth() + 1).padStart(2, '0');
@@ -80,7 +75,8 @@ export const ProjectGanttChart: React.FC<ProjectGanttChartProps> = ({ projects }
         });
         current.setDate(current.getDate() + 7);
       }
-    } else { // month
+    } else {
+      // month
       current.setDate(1); // Start from beginning of month
       while (current <= endWithPadding) {
         const month = String(current.getMonth() + 1).padStart(2, '0');
@@ -92,7 +88,6 @@ export const ProjectGanttChart: React.FC<ProjectGanttChartProps> = ({ projects }
         current.setMonth(current.getMonth() + 1);
       }
     }
-
     return {
       startDate: startWithPadding,
       endDate: endWithPadding,
@@ -106,13 +101,10 @@ export const ProjectGanttChart: React.FC<ProjectGanttChartProps> = ({ projects }
     return validProjects.map(project => {
       const projectStart = new Date(project.estimated_start_date!);
       const projectEnd = new Date(project.estimated_finish_date!);
-      
       const startOffset = (projectStart.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24);
       const duration = (projectEnd.getTime() - projectStart.getTime()) / (1000 * 60 * 60 * 24);
-      
-      const leftPercent = (startOffset / totalDays) * 100;
-      const widthPercent = (duration / totalDays) * 100;
-
+      const leftPercent = startOffset / totalDays * 100;
+      const widthPercent = duration / totalDays * 100;
       return {
         project,
         leftPercent: Math.max(0, leftPercent),
@@ -122,13 +114,11 @@ export const ProjectGanttChart: React.FC<ProjectGanttChartProps> = ({ projects }
       };
     });
   }, [validProjects, startDate, totalDays]);
-
   const getPixelWidth = () => {
     const baseWidth = 1200;
     const multiplier = zoomLevel === 'day' ? 3 : zoomLevel === 'week' ? 2 : 1;
     return baseWidth * multiplier;
   };
-
   const statusColors = {
     planning: 'bg-blue-500',
     active: 'bg-green-500',
@@ -136,10 +126,8 @@ export const ProjectGanttChart: React.FC<ProjectGanttChartProps> = ({ projects }
     completed: 'bg-gray-500',
     cancelled: 'bg-red-500'
   };
-
   if (validProjects.length === 0) {
-    return (
-      <Card>
+    return <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Calendar className="h-5 w-5" />
@@ -151,12 +139,9 @@ export const ProjectGanttChart: React.FC<ProjectGanttChartProps> = ({ projects }
             No projects with valid start and finish dates found.
           </div>
         </CardContent>
-      </Card>
-    );
+      </Card>;
   }
-
-  return (
-    <TooltipProvider>
+  return <TooltipProvider>
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
@@ -165,27 +150,9 @@ export const ProjectGanttChart: React.FC<ProjectGanttChartProps> = ({ projects }
               Project Timeline
             </CardTitle>
             <div className="flex items-center gap-2">
-              <Button
-                variant={zoomLevel === 'day' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setZoomLevel('day')}
-              >
-                <Clock className="h-4 w-4 mr-1" />
-                Day
-              </Button>
-              <Button
-                variant={zoomLevel === 'week' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setZoomLevel('week')}
-              >
-                <CalendarDays className="h-4 w-4 mr-1" />
-                Week
-              </Button>
-              <Button
-                variant={zoomLevel === 'month' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setZoomLevel('month')}
-              >
+              
+              
+              <Button variant={zoomLevel === 'month' ? 'default' : 'outline'} size="sm" onClick={() => setZoomLevel('month')}>
                 <Calendar className="h-4 w-4 mr-1" />
                 Month
               </Button>
@@ -194,56 +161,36 @@ export const ProjectGanttChart: React.FC<ProjectGanttChartProps> = ({ projects }
         </CardHeader>
         <CardContent className="p-0">
           <div className="border-t">
-            <div 
-              ref={scrollContainerRef}
-              className="overflow-x-auto overflow-y-hidden"
-              style={{ maxHeight: '400px' }}
-            >
-              <div 
-                className="relative"
-                style={{ 
-                  width: `${getPixelWidth()}px`,
-                  minHeight: `${validProjects.length * 60 + 60}px`
-                }}
-              >
+            <div ref={scrollContainerRef} className="overflow-x-auto overflow-y-hidden" style={{
+            maxHeight: '400px'
+          }}>
+              <div className="relative" style={{
+              width: `${getPixelWidth()}px`,
+              minHeight: `${validProjects.length * 60 + 60}px`
+            }}>
                 {/* Timeline header */}
                 <div className="sticky top-0 bg-background border-b h-12 flex items-center relative z-10">
-                  {dateLabels.map((label, index) => (
-                    <div
-                      key={index}
-                      className="absolute text-xs text-muted-foreground border-l border-border pl-2"
-                      style={{ 
-                        left: `${((label.date.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24) / totalDays) * 100}%`,
-                        height: '100%',
-                        display: 'flex',
-                        alignItems: 'center'
-                      }}
-                    >
+                  {dateLabels.map((label, index) => <div key={index} className="absolute text-xs text-muted-foreground border-l border-border pl-2" style={{
+                  left: `${(label.date.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24) / totalDays * 100}%`,
+                  height: '100%',
+                  display: 'flex',
+                  alignItems: 'center'
+                }}>
                       {label.label}
-                    </div>
-                  ))}
+                    </div>)}
                 </div>
 
                 {/* Project bars */}
                 <div className="relative">
-                  {projectBars.map((bar, index) => (
-                    <div
-                      key={bar.project.id}
-                      className="absolute h-8 flex items-center"
-                      style={{
-                        top: `${index * 60 + 16}px`,
-                        left: `${bar.leftPercent}%`,
-                        width: `${bar.widthPercent}%`,
-                        minWidth: '80px'
-                      }}
-                    >
+                  {projectBars.map((bar, index) => <div key={bar.project.id} className="absolute h-8 flex items-center" style={{
+                  top: `${index * 60 + 16}px`,
+                  left: `${bar.leftPercent}%`,
+                  width: `${bar.widthPercent}%`,
+                  minWidth: '80px'
+                }}>
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <div
-                            className={`w-full h-6 rounded-md flex items-center px-2 text-white text-xs font-medium cursor-pointer hover:opacity-80 transition-opacity ${
-                              statusColors[bar.project.status] || 'bg-gray-500'
-                            }`}
-                          >
+                          <div className={`w-full h-6 rounded-md flex items-center px-2 text-white text-xs font-medium cursor-pointer hover:opacity-80 transition-opacity ${statusColors[bar.project.status] || 'bg-gray-500'}`}>
                             <span className="truncate">
                               {bar.project.project_reference_number || bar.project.name}
                             </span>
@@ -252,48 +199,35 @@ export const ProjectGanttChart: React.FC<ProjectGanttChartProps> = ({ projects }
                         <TooltipContent>
                           <div className="space-y-1">
                             <div className="font-medium">{bar.project.name}</div>
-                            {bar.project.project_reference_number && (
-                              <div className="text-xs text-muted-foreground">
+                            {bar.project.project_reference_number && <div className="text-xs text-muted-foreground">
                                 Ref: {bar.project.project_reference_number}
-                              </div>
-                            )}
+                              </div>}
                             <div className="text-xs">
                               Start: {bar.startDate.toLocaleDateString()}
                             </div>
                             <div className="text-xs">
                               Finish: {bar.endDate.toLocaleDateString()}
                             </div>
-                            <Badge 
-                              variant="secondary" 
-                              className="text-xs"
-                            >
+                            <Badge variant="secondary" className="text-xs">
                               {bar.project.status.replace('_', ' ').toUpperCase()}
                             </Badge>
                           </div>
                         </TooltipContent>
                       </Tooltip>
-                    </div>
-                  ))}
+                    </div>)}
                 </div>
 
                 {/* Grid lines */}
                 <div className="absolute inset-0 pointer-events-none">
-                  {dateLabels.map((label, index) => (
-                    <div
-                      key={index}
-                      className="absolute border-l border-border/30"
-                      style={{
-                        left: `${((label.date.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24) / totalDays) * 100}%`,
-                        height: '100%'
-                      }}
-                    />
-                  ))}
+                  {dateLabels.map((label, index) => <div key={index} className="absolute border-l border-border/30" style={{
+                  left: `${(label.date.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24) / totalDays * 100}%`,
+                  height: '100%'
+                }} />)}
                 </div>
               </div>
             </div>
           </div>
         </CardContent>
       </Card>
-    </TooltipProvider>
-  );
+    </TooltipProvider>;
 };
