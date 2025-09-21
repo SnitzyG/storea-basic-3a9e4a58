@@ -60,9 +60,11 @@ export const ProjectGanttChart: React.FC<ProjectGanttChartProps> = ({ projects }
     
     if (zoomLevel === 'day') {
       while (current <= endWithPadding) {
+        const month = String(current.getMonth() + 1).padStart(2, '0');
+        const day = String(current.getDate()).padStart(2, '0');
         labels.push({
           date: new Date(current),
-          label: current.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+          label: `${month}.${day}`
         });
         current.setDate(current.getDate() + 1);
       }
@@ -70,18 +72,22 @@ export const ProjectGanttChart: React.FC<ProjectGanttChartProps> = ({ projects }
       // Start from beginning of week
       current.setDate(current.getDate() - current.getDay());
       while (current <= endWithPadding) {
+        const month = String(current.getMonth() + 1).padStart(2, '0');
+        const day = String(current.getDate()).padStart(2, '0');
         labels.push({
           date: new Date(current),
-          label: current.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+          label: `${month}.${day}`
         });
         current.setDate(current.getDate() + 7);
       }
     } else { // month
       current.setDate(1); // Start from beginning of month
       while (current <= endWithPadding) {
+        const month = String(current.getMonth() + 1).padStart(2, '0');
+        const year = String(current.getFullYear()).slice(-2);
         labels.push({
           date: new Date(current),
-          label: current.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
+          label: `${month}.${year}`
         });
         current.setMonth(current.getMonth() + 1);
       }
