@@ -24,7 +24,11 @@ interface DocumentFiltersProps {
     'For Construction': number;
   };
   availableFileTypes: string[];
-  availableUploaders: { id: string; name: string; role: string }[];
+  availableUploaders: {
+    id: string;
+    name: string;
+    role: string;
+  }[];
   availableRevisions: number[];
 }
 const categories = [{
@@ -102,11 +106,9 @@ export const DocumentFilters: React.FC<DocumentFiltersProps> = ({
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All File Types</SelectItem>
-            {availableFileTypes.map(fileType => (
-              <SelectItem key={fileType} value={fileType}>
+            {availableFileTypes.map(fileType => <SelectItem key={fileType} value={fileType}>
                 {fileType.toUpperCase()}
-              </SelectItem>
-            ))}
+              </SelectItem>)}
           </SelectContent>
         </Select>
 
@@ -116,16 +118,14 @@ export const DocumentFilters: React.FC<DocumentFiltersProps> = ({
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Uploaders</SelectItem>
-            {availableUploaders.map(uploader => (
-              <SelectItem key={uploader.id} value={uploader.id}>
+            {availableUploaders.map(uploader => <SelectItem key={uploader.id} value={uploader.id}>
                 <div className="flex items-center gap-2">
                   <span>{uploader.name}</span>
                   <Badge variant="outline" className="text-xs">
                     {uploader.role}
                   </Badge>
                 </div>
-              </SelectItem>
-            ))}
+              </SelectItem>)}
           </SelectContent>
         </Select>
 
@@ -135,29 +135,14 @@ export const DocumentFilters: React.FC<DocumentFiltersProps> = ({
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Revisions</SelectItem>
-            {availableRevisions.map(revision => (
-              <SelectItem key={revision} value={revision.toString()}>
+            {availableRevisions.map(revision => <SelectItem key={revision} value={revision.toString()}>
                 Revision {revision}
-              </SelectItem>
-            ))}
+              </SelectItem>)}
           </SelectContent>
         </Select>
       </div>
 
       {/* Status Counts */}
-      <div className="flex flex-wrap items-center gap-2">
-        <Badge variant="secondary">
-          Total: {documentCounts.total}
-        </Badge>
-        <Badge variant="outline">
-          For Tender: {documentCounts['For Tender']}
-        </Badge>
-        <Badge variant="secondary">
-          For Information: {documentCounts['For Information']}
-        </Badge>
-        <Badge variant="default">
-          For Construction: {documentCounts['For Construction']}
-        </Badge>
-      </div>
+      
     </div>;
 };
