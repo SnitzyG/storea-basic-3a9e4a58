@@ -47,13 +47,11 @@ export const InfoPanel = () => {
       };
 
       const mockForecast = [
-        { day: format(new Date(), 'MMM d'), temperature: 22, condition: 'Partly Cloudy', rainfall: 0 },
-        { day: format(new Date(Date.now() + 86400000), 'MMM d'), temperature: 24, condition: 'Sunny', rainfall: 0 },
-        { day: format(new Date(Date.now() + 2 * 86400000), 'MMM d'), temperature: 20, condition: 'Rainy', rainfall: 8 },
-        { day: format(new Date(Date.now() + 3 * 86400000), 'MMM d'), temperature: 23, condition: 'Cloudy', rainfall: 2 },
-        { day: format(new Date(Date.now() + 4 * 86400000), 'MMM d'), temperature: 26, condition: 'Sunny', rainfall: 0 },
-        { day: format(new Date(Date.now() + 5 * 86400000), 'MMM d'), temperature: 25, condition: 'Partly Cloudy', rainfall: 1 },
-        { day: format(new Date(Date.now() + 6 * 86400000), 'MMM d'), temperature: 21, condition: 'Overcast', rainfall: 3 }
+        { day: format(new Date(), 'EEE'), minTemp: 11, maxTemp: 22, condition: 'Partly Cloudy', rainfall: 0 },
+        { day: format(new Date(Date.now() + 86400000), 'EEE'), minTemp: 12, maxTemp: 24, condition: 'Sunny', rainfall: 0 },
+        { day: format(new Date(Date.now() + 2 * 86400000), 'EEE'), minTemp: 10, maxTemp: 20, condition: 'Rainy', rainfall: 8 },
+        { day: format(new Date(Date.now() + 3 * 86400000), 'EEE'), minTemp: 13, maxTemp: 23, condition: 'Cloudy', rainfall: 2 },
+        { day: format(new Date(Date.now() + 4 * 86400000), 'EEE'), minTemp: 14, maxTemp: 26, condition: 'Sunny', rainfall: 0 }
       ];
 
       return { ...locations[location as keyof typeof locations] || locations['Melbourne CBD'], forecast: mockForecast };
@@ -87,16 +85,17 @@ export const InfoPanel = () => {
     }
     
     const weatherData = getWeatherForLocation(suburb);
-    
-    setWeather({
-      temperature: weatherData.temp,
-      condition: weatherData.condition,
-      humidity: weatherData.humidity,
-      windSpeed: weatherData.wind,
-      rainfall: weatherData.rainfall,
-      location: suburb,
-      forecast: weatherData.forecast
-    });
+        
+        setWeather({
+          temperature: weatherData.temp,
+          condition: weatherData.condition,
+          humidity: weatherData.humidity,
+          windSpeed: weatherData.wind,
+          rainfall: weatherData.rainfall,
+          location: suburb,
+          loading: false,
+          forecast: weatherData.forecast
+        });
   }, [selectedProject]);
 
   return (
@@ -170,7 +169,7 @@ export const InfoPanel = () => {
                     <span className="text-xs text-muted-foreground text-center flex-1">{day.condition}</span>
                   </div>
                   <div className="flex items-center justify-end gap-2 min-w-[80px]">
-                    <span className="font-semibold text-sm w-10 text-right">{day.temperature}°C</span>
+                    <span className="font-semibold text-sm text-right">{day.maxTemp}°{day.minTemp}°</span>
                   </div>
                 </div>
               ))}
