@@ -1645,6 +1645,7 @@ export type Database = {
           response: string | null
           response_date: string | null
           rfi_number: string | null
+          rfi_type: Database["public"]["Enums"]["rfi_type"]
           sender_email: string | null
           sender_name: string | null
           specification_section: string | null
@@ -1677,6 +1678,7 @@ export type Database = {
           response?: string | null
           response_date?: string | null
           rfi_number?: string | null
+          rfi_type?: Database["public"]["Enums"]["rfi_type"]
           sender_email?: string | null
           sender_name?: string | null
           specification_section?: string | null
@@ -1709,6 +1711,7 @@ export type Database = {
           response?: string | null
           response_date?: string | null
           rfi_number?: string | null
+          rfi_type?: Database["public"]["Enums"]["rfi_type"]
           sender_email?: string | null
           sender_name?: string | null
           specification_section?: string | null
@@ -2282,7 +2285,12 @@ export type Database = {
         Returns: string
       }
       generate_rfi_number: {
-        Args: { project_id_param: string }
+        Args:
+          | { project_id_param: string }
+          | {
+              project_id_param: string
+              rfi_type_param: Database["public"]["Enums"]["rfi_type"]
+            }
         Returns: string
       }
       generate_unique_project_id: {
@@ -2340,6 +2348,10 @@ export type Database = {
         | "in_review"
         | "answered"
         | "rejected"
+      rfi_type:
+        | "general_correspondence"
+        | "request_for_information"
+        | "general_advice"
       tender_status: "draft" | "open" | "closed" | "awarded" | "cancelled"
       user_role: "architect" | "builder" | "homeowner" | "contractor"
     }
@@ -2489,6 +2501,11 @@ export const Constants = {
         "in_review",
         "answered",
         "rejected",
+      ],
+      rfi_type: [
+        "general_correspondence",
+        "request_for_information",
+        "general_advice",
       ],
       tender_status: ["draft", "open", "closed", "awarded", "cancelled"],
       user_role: ["architect", "builder", "homeowner", "contractor"],

@@ -16,6 +16,7 @@ export interface RFI {
   priority: 'low' | 'medium' | 'high' | 'critical';
   due_date?: string;
   category?: string;
+  rfi_type?: 'general_correspondence' | 'request_for_information' | 'general_advice';
   attachments?: any[];
   created_at: string;
   updated_at: string;
@@ -144,6 +145,7 @@ export const useRFIs = () => {
     due_date?: string;
     category?: string;
     assigned_to?: string;
+    rfi_type?: 'general_correspondence' | 'request_for_information' | 'general_advice';
     // New structured fields
     project_name?: string;
     project_number?: string;

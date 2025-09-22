@@ -60,7 +60,8 @@ export const CreateRFIDialog: React.FC<CreateRFIDialogProps> = ({
     required_response_by: undefined as Date | undefined,
     priority: 'medium' as const,
     category: '',
-    assigned_to: ''
+    assigned_to: '',
+    rfi_type: 'request_for_information' as const
   });
   const [requiredResponseDate, setRequiredResponseDate] = useState<Date>();
   const [loading, setLoading] = useState(false);
@@ -81,7 +82,13 @@ export const CreateRFIDialog: React.FC<CreateRFIDialogProps> = ({
       }));
     }
   }, [open, currentProject, profile, user]);
-  const rfiCategories = ['General Correspondence', 'Request for Information', 'General Advice'];
+  
+  // Map display names to database enum values
+  const rfiTypeOptions = [
+    { label: 'General Correspondence', value: 'general_correspondence' },
+    { label: 'Request for Information', value: 'request_for_information' },
+    { label: 'General Advice', value: 'general_advice' }
+  ];
 
   // Handle recipient selection
   const handleRecipientChange = (value: string) => {
@@ -145,6 +152,7 @@ export const CreateRFIDialog: React.FC<CreateRFIDialogProps> = ({
         category: formData.category,
         assigned_to: formData.assigned_to,
         due_date: requiredResponseDate?.toISOString(),
+        rfi_type: formData.rfi_type,
         // New structured fields
         project_name: formData.project_name,
         project_number: formData.project_number,
@@ -180,7 +188,8 @@ export const CreateRFIDialog: React.FC<CreateRFIDialogProps> = ({
         required_response_by: undefined,
         priority: 'medium',
         category: '',
-        assigned_to: ''
+        assigned_to: '',
+        rfi_type: 'request_for_information'
       });
       setRequiredResponseDate(undefined);
       setSelectedRecipient('');
@@ -322,17 +331,19 @@ export const CreateRFIDialog: React.FC<CreateRFIDialogProps> = ({
 
             <div>
               <Label htmlFor="rfi-type">RFI Type</Label>
-              <Select value={formData.category} onValueChange={(value: any) => setFormData(prev => ({
+              <Select value={formData.rfi_type} onValueChange={(value: any) => setFormData(prev => ({
               ...prev,
-              category: value
+              rfi_type: value
             }))}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select RFI type" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="General Correspondence">General Correspondence</SelectItem>
-                  <SelectItem value="Request for Information">Request for Information</SelectItem>
-                  <SelectItem value="General Advice">General Advice</SelectItem>
+                  {rfiTypeOptions.map(option => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>

@@ -254,6 +254,7 @@ export const EnhancedRFIForm: React.FC<EnhancedRFIFormProps> = ({
           priority: data.priority,
           category: data.category,
           assigned_to: data.assigned_to,
+          rfi_type: 'request_for_information', // Default for now, can be made dynamic later
           required_response_by: data.required_response_by?.toISOString(),
           project_name: data.project_name,
           project_number: data.project_number,
