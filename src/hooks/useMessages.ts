@@ -12,6 +12,8 @@ export interface MessageThread {
   created_at: string;
   updated_at: string;
   status?: string;
+  is_pinned?: boolean;
+  is_archived?: boolean;
 }
 
 export interface Message {
@@ -225,6 +227,7 @@ export const useMessages = (projectId?: string) => {
       });
     }
   };
+
 
   const removeThread = async (threadId: string) => {
     try {
@@ -566,6 +569,22 @@ export const useMessages = (projectId?: string) => {
     }
   }, [activeProjectId]);
 
+  const pinThread = async (threadId: string) => {
+    await updateThread(threadId, { is_pinned: true });
+  };
+
+  const unpinThread = async (threadId: string) => {
+    await updateThread(threadId, { is_pinned: false });
+  };
+
+  const archiveThread = async (threadId: string) => {
+    await updateThread(threadId, { is_archived: true });
+  };
+
+  const unarchiveThread = async (threadId: string) => {
+    await updateThread(threadId, { is_archived: false });
+  };
+
   return {
     threads,
     messages,
@@ -582,6 +601,10 @@ export const useMessages = (projectId?: string) => {
     getUnreadCount,
     setTypingIndicator,
     updateThread,
-    removeThread
+    removeThread,
+    pinThread,
+    unpinThread,
+    archiveThread,
+    unarchiveThread
   };
 };

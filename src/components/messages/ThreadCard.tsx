@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { UserCircle, Users2, MoreHorizontal, Edit3, Archive, Trash2 } from 'lucide-react';
+import { UserCircle, Users2, MoreHorizontal, Edit3, Archive, Trash2, Pin, PinOff, ArchiveRestore } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -19,6 +19,8 @@ interface ThreadCardProps {
     participants: string[];
     updated_at: string;
     status?: string;
+    is_pinned?: boolean;
+    is_archived?: boolean;
   };
   unreadCount: number;
   isSelected: boolean;
@@ -27,6 +29,10 @@ interface ThreadCardProps {
   onEdit?: (title: string) => void;
   onClose?: () => void;
   onDelete?: () => void;
+  onPin?: () => void;
+  onUnpin?: () => void;
+  onArchive?: () => void;
+  onUnarchive?: () => void;
 }
 
 export const ThreadCard: React.FC<ThreadCardProps> = ({
@@ -38,6 +44,10 @@ export const ThreadCard: React.FC<ThreadCardProps> = ({
   onEdit,
   onClose,
   onDelete,
+  onPin,
+  onUnpin,
+  onArchive,
+  onUnarchive,
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editTitle, setEditTitle] = useState(thread.title);
@@ -59,13 +69,20 @@ export const ThreadCard: React.FC<ThreadCardProps> = ({
       className={cn(
         "px-2 py-1 rounded-md cursor-pointer group transition-all duration-150",
         "hover:bg-accent/50 active:bg-accent/70",
-        isSelected ? "bg-primary text-primary-foreground" : "text-foreground"
+        isSelected ? "bg-primary text-primary-foreground" : "text-foreground",
+        thread.is_archived && "opacity-60 bg-muted/50"
       )}
       onClick={onClick}
     >
       <div className="flex items-center gap-2">
         {/* Thread Type Indicator */}
-        <div className="flex-shrink-0">
+        <div className="flex-shrink-0 flex items-center gap-1">
+          {thread.is_pinned && (
+            <Pin className={cn(
+              "h-3 w-3",
+              isSelected ? "text-primary-foreground" : "text-primary"
+            )} />
+          )}
           {isDirect ? (
             <UserCircle className={cn(
               "h-4 w-4",
@@ -140,7 +157,7 @@ export const ThreadCard: React.FC<ThreadCardProps> = ({
                         <MoreHorizontal className="h-3 w-3" />
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-40">
+                    <DropdownMenuContent align="end" className="w-48">
                       <DropdownMenuItem onClick={(e) => {
                         e.stopPropagation();
                         setIsEditing(true);
@@ -148,15 +165,43 @@ export const ThreadCard: React.FC<ThreadCardProps> = ({
                         <Edit3 className="h-3 w-3 mr-2" />
                         Rename
                       </DropdownMenuItem>
-                      {thread.status === 'active' && (
+                      
+                      {!thread.is_pinned ? (
                         <DropdownMenuItem onClick={(e) => {
                           e.stopPropagation();
-                          onClose?.();
+                          onPin?.();
+                        }}>
+                          <Pin className="h-3 w-3 mr-2" />
+                          Pin Conversation
+                        </DropdownMenuItem>
+                      ) : (
+                        <DropdownMenuItem onClick={(e) => {
+                          e.stopPropagation();
+                          onUnpin?.();
+                        }}>
+                          <PinOff className="h-3 w-3 mr-2" />
+                          Unpin Conversation
+                        </DropdownMenuItem>
+                      )}
+                      
+                      {!thread.is_archived ? (
+                        <DropdownMenuItem onClick={(e) => {
+                          e.stopPropagation();
+                          onArchive?.();
                         }}>
                           <Archive className="h-3 w-3 mr-2" />
                           Archive
                         </DropdownMenuItem>
+                      ) : (
+                        <DropdownMenuItem onClick={(e) => {
+                          e.stopPropagation();
+                          onUnarchive?.();
+                        }}>
+                          <ArchiveRestore className="h-3 w-3 mr-2" />
+                          Unarchive
+                        </DropdownMenuItem>
                       )}
+                      
                       <DropdownMenuSeparator />
                       <DropdownMenuItem 
                         onClick={(e) => {

@@ -924,6 +924,8 @@ export type Database = {
           created_at: string
           created_by: string
           id: string
+          is_archived: boolean | null
+          is_pinned: boolean | null
           participants: string[] | null
           project_id: string
           status: string | null
@@ -934,6 +936,8 @@ export type Database = {
           created_at?: string
           created_by: string
           id?: string
+          is_archived?: boolean | null
+          is_pinned?: boolean | null
           participants?: string[] | null
           project_id: string
           status?: string | null
@@ -944,6 +948,8 @@ export type Database = {
           created_at?: string
           created_by?: string
           id?: string
+          is_archived?: boolean | null
+          is_pinned?: boolean | null
           participants?: string[] | null
           project_id?: string
           status?: string | null

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { Plus, Search, MessageSquare, Users2, Circle } from 'lucide-react';
+import { Plus, Search, MessageSquare, Users2, Circle, UserCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -54,6 +54,7 @@ const Messages = () => {
       window.removeEventListener('projectTeamUpdated', handleTeamUpdate);
     };
   }, [selectedProject, refreshTeam]);
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const {
     threads,
@@ -69,7 +70,11 @@ const Messages = () => {
     getUnreadCount,
     setTypingIndicator,
     updateThread,
-    removeThread
+    removeThread,
+    pinThread,
+    unpinThread,
+    archiveThread,
+    unarchiveThread
   } = useMessages(selectedProject?.id);
 
   // Handle direct messaging from project contacts
@@ -108,14 +113,24 @@ const Messages = () => {
     }
   }, [messages, profile?.user_id, markMessageAsRead]);
 
-  // Filter threads and team members based on search - with participant checks
-  const filteredThreads = useMemo(() => {
-    if (!profile?.user_id) return [];
-    // Only show threads where current user is a participant
-    return threads.filter(thread => 
+  // Filter and organize threads
+  const { pinnedThreads, activeThreads, archivedThreads } = useMemo(() => {
+    if (!profile?.user_id) return { pinnedThreads: [], activeThreads: [], archivedThreads: [] };
+    
+    const userThreads = threads.filter(thread => 
       thread.participants.includes(profile.user_id) &&
       thread.title.toLowerCase().includes(searchTerm.toLowerCase())
     );
+    
+    const pinned = userThreads.filter(thread => thread.is_pinned && !thread.is_archived);
+    const archived = userThreads.filter(thread => thread.is_archived);
+    const active = userThreads.filter(thread => !thread.is_pinned && !thread.is_archived);
+    
+    return {
+      pinnedThreads: pinned,
+      activeThreads: active,
+      archivedThreads: archived
+    };
   }, [threads, searchTerm, profile?.user_id]);
 
   const filteredTeamMembers = useMemo(() => {
@@ -328,71 +343,135 @@ const Messages = () => {
         {/* Conversations List */}
         <div className="flex-1 overflow-hidden">
           <ScrollArea className="h-full">
-            <div className="space-y-0">
-              {/* Show all existing message threads */}
-              {filteredThreads.map(thread => (
-                <ThreadCard
-                  key={thread.id}
-                  thread={thread}
-                  unreadCount={0}
-                  isSelected={currentThread === thread.id}
-                  isDirect={thread.participants.length === 2}
-                  onClick={() => setCurrentThread(thread.id)}
-                  onEdit={(newTitle: string) => updateThreadTitle(thread.id, newTitle)}
-                  onClose={() => closeThread(thread.id)}
-                  onDelete={() => deleteThread(thread.id)}
-                />
-              ))}
-
-              {/* Show team members for starting new conversations */}
-              {filteredTeamMembers.map(user => (
-                <div
-                  key={user.user_id}
-                  className="p-3 cursor-pointer border-b border-border/50 hover:bg-muted/50 transition-colors"
-                  onClick={() => {
-                    // Always create new thread with this user
-                    const timestamp = new Date().toLocaleTimeString();
-                    handleCreateThread(`Message with ${user.user_profile?.name} (${timestamp})`, [user.user_id]);
-                  }}
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="relative">
-                      <Avatar className="h-12 w-12">
-                        <AvatarFallback className="text-sm font-medium bg-primary/10 text-primary">
-                          {user.user_profile?.name?.charAt(0)?.toUpperCase() || 'U'}
-                        </AvatarFallback>
-                      </Avatar>
-                      {onlineUsers.has(user.user_id) && (
-                        <div className="absolute bottom-0 right-0 h-3 w-3 bg-green-500 rounded-full border-2 border-background" />
-                      )}
-                    </div>
-                    
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between">
-                        <h3 className="font-medium text-foreground truncate">
+            <div className="space-y-2">
+              {/* Team Members Section */}
+              <div className="px-3">
+                <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+                  Team Members
+                </h3>
+                <div className="space-y-1">
+                  {filteredTeamMembers.map(user => (
+                    <div
+                      key={user.user_id}
+                      className="flex items-center gap-3 p-2 rounded-md cursor-pointer hover:bg-muted/50 transition-colors"
+                      onClick={() => {
+                        const timestamp = new Date().toLocaleTimeString();
+                        handleCreateThread(`Message with ${user.user_profile?.name} (${timestamp})`, [user.user_id]);
+                      }}
+                    >
+                      <div className="relative">
+                        <Avatar className="h-8 w-8">
+                          <AvatarFallback className="text-xs bg-primary/10 text-primary">
+                            {user.user_profile?.name?.charAt(0)?.toUpperCase() || 'U'}
+                          </AvatarFallback>
+                        </Avatar>
+                        {onlineUsers.has(user.user_id) && (
+                          <div className="absolute bottom-0 right-0 h-2 w-2 bg-green-500 rounded-full border border-background" />
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium truncate">
                           {user.user_profile?.name || 'Unknown User'}
-                        </h3>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <p className="text-sm text-muted-foreground truncate">
-                          {typingUsers.has(user.user_id) ? 'typing...' : 'Start new conversation'}
                         </p>
-                        <span className="text-xs text-muted-foreground capitalize">
+                        <p className="text-xs text-muted-foreground capitalize">
                           {user.user_profile?.role || user.role}
-                        </span>
+                        </p>
                       </div>
                     </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Pinned Conversations */}
+              {pinnedThreads.length > 0 && (
+                <div className="px-3">
+                  <Separator className="mb-2" />
+                  <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+                    Pinned
+                  </h3>
+                  <div className="space-y-1">
+                    {pinnedThreads.map(thread => (
+                      <ThreadCard
+                        key={thread.id}
+                        thread={thread}
+                        unreadCount={0}
+                        isSelected={currentThread === thread.id}
+                        isDirect={thread.participants.length === 2}
+                        onClick={() => setCurrentThread(thread.id)}
+                        onEdit={(newTitle: string) => updateThreadTitle(thread.id, newTitle)}
+                        onDelete={() => deleteThread(thread.id)}
+                        onPin={() => pinThread(thread.id)}
+                        onUnpin={() => unpinThread(thread.id)}
+                        onArchive={() => archiveThread(thread.id)}
+                        onUnarchive={() => unarchiveThread(thread.id)}
+                      />
+                    ))}
                   </div>
                 </div>
-              ))}
-              
-              {filteredTeamMembers.length === 0 && filteredThreads.length === 0 && (
-                <div className="text-center py-12 px-4">
-                  <MessageSquare className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-                  <h3 className="font-medium text-foreground mb-2">No conversations</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Add team members to your project to start messaging
-                  </p>
+              )}
+
+              {/* Active Conversations */}
+              {activeThreads.length > 0 && (
+                <div className="px-3">
+                  <Separator className="mb-2" />
+                  <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+                    Messages
+                  </h3>
+                  <div className="space-y-1">
+                    {activeThreads.map(thread => (
+                      <ThreadCard
+                        key={thread.id}
+                        thread={thread}
+                        unreadCount={0}
+                        isSelected={currentThread === thread.id}
+                        isDirect={thread.participants.length === 2}
+                        onClick={() => setCurrentThread(thread.id)}
+                        onEdit={(newTitle: string) => updateThreadTitle(thread.id, newTitle)}
+                        onDelete={() => deleteThread(thread.id)}
+                        onPin={() => pinThread(thread.id)}
+                        onUnpin={() => unpinThread(thread.id)}
+                        onArchive={() => archiveThread(thread.id)}
+                        onUnarchive={() => unarchiveThread(thread.id)}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Archived Conversations */}
+              {archivedThreads.length > 0 && (
+                <div className="px-3">
+                  <Separator className="mb-2" />
+                  <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+                    Archived
+                  </h3>
+                  <div className="space-y-1">
+                    {archivedThreads.map(thread => (
+                      <ThreadCard
+                        key={thread.id}
+                        thread={thread}
+                        unreadCount={0}
+                        isSelected={currentThread === thread.id}
+                        isDirect={thread.participants.length === 2}
+                        onClick={() => setCurrentThread(thread.id)}
+                        onEdit={(newTitle: string) => updateThreadTitle(thread.id, newTitle)}
+                        onDelete={() => deleteThread(thread.id)}
+                        onPin={() => pinThread(thread.id)}
+                        onUnpin={() => unpinThread(thread.id)}
+                        onArchive={() => archiveThread(thread.id)}
+                        onUnarchive={() => unarchiveThread(thread.id)}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Empty state */}
+              {pinnedThreads.length === 0 && activeThreads.length === 0 && archivedThreads.length === 0 && filteredTeamMembers.length === 0 && (
+                <div className="text-center py-8 text-muted-foreground">
+                  <MessageSquare className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                  <p className="text-sm">No messages found</p>
+                  <p className="text-xs mt-1">Create a new message to get started</p>
                 </div>
               )}
             </div>
@@ -400,128 +479,72 @@ const Messages = () => {
         </div>
       </div>
 
-      {/* WhatsApp-style Main Chat */}
-      <div className="flex-1 flex flex-col bg-muted/20">
+      {/* Main Chat Area */}
+      <div className="flex-1 flex flex-col bg-background">
         {currentThread ? (
           <>
             {/* Chat Header */}
-            <div className="h-16 border-b border-border bg-background px-6 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                {(() => {
-                  const thread = threads.find(t => t.id === currentThread);
-                  const isDirect = thread?.participants.length === 2;
-                  const otherParticipant = isDirect 
-                    ? projectUsers.find(u => u.user_id !== profile?.user_id && thread.participants.includes(u.user_id))
-                    : null;
-                  
-                  return (
-                    <>
-                      <div className="relative">
-                        {isDirect && otherParticipant ? (
-                          <Avatar className="h-10 w-10">
-                            <AvatarFallback className="text-sm font-medium bg-primary/10 text-primary">
-                              {otherParticipant.user_profile?.name?.charAt(0)?.toUpperCase() || 'U'}
-                            </AvatarFallback>
-                          </Avatar>
-                        ) : (
-                          <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                            <Users2 className="h-5 w-5 text-primary" />
-                          </div>
-                        )}
-                        {isDirect && otherParticipant && onlineUsers.has(otherParticipant.user_id) && (
-                          <div className="absolute bottom-0 right-0 h-3 w-3 bg-green-500 rounded-full border-2 border-background" />
-                        )}
-                      </div>
-                      
-                      <div>
-                        <h1 className="font-semibold text-foreground">
-                          {isDirect && otherParticipant 
-                            ? otherParticipant.user_profile?.name || 'Unknown User'
-                            : thread?.title || 'Thread'
-                          }
-                        </h1>
-                        <div className="text-xs text-muted-foreground">
-                          {isDirect && otherParticipant ? (
-                            onlineUsers.has(otherParticipant.user_id) ? 'online' : 'last seen recently'
-                          ) : (
-                            `${thread?.participants.length || 0} members`
-                          )}
-                        </div>
-                      </div>
-                    </>
-                  );
-                })()}
+            <div className="border-b border-border p-4 bg-muted/30">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center text-sm font-semibold">
+                    {threads.find(t => t.id === currentThread)?.participants.length === 2 ? (
+                      <UserCircle className="h-5 w-5" />
+                    ) : (
+                      "#"
+                    )}
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-foreground">
+                      {threads.find(t => t.id === currentThread)?.title || 'Unknown Conversation'}
+                    </h3>
+                    <p className="text-sm text-muted-foreground">
+                      {threads.find(t => t.id === currentThread)?.participants.length} participants
+                    </p>
+                  </div>
+                </div>
               </div>
             </div>
 
-            {/* Messages Area with WhatsApp styling */}
-            <div className="flex-1 overflow-hidden relative">
-              {/* Chat background pattern */}
-              <div className="absolute inset-0 opacity-5" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60' viewBox='0 0 60 60'%3E%3Ccircle cx='30' cy='30' r='2' fill='%23000'/%3E%3C/svg%3E")`, backgroundRepeat: 'repeat' }}></div>
-              
+            {/* Messages */}
+            <div className="flex-1 overflow-hidden">
               <ScrollArea className="h-full">
-                <div className="p-4 space-y-1 relative z-10">
-                  {messages.length === 0 ? (
-                    <div className="text-center py-12">
-                      <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-muted flex items-center justify-center">
-                        <MessageSquare className="h-8 w-8 text-muted-foreground" />
-                      </div>
-                      <p className="text-sm text-muted-foreground">
-                        Send a message to start the conversation
-                      </p>
-                    </div>
-                  ) : (
-                    messages.map((message, index) => {
-                      const previousMessage = messages[index - 1];
-                      const isConsecutive = isMessageConsecutive(message, previousMessage);
-                      const senderProfile = projectUsers.find(u => u.user_id === message.sender_id);
-
-                      return (
-                        <MessageBubble
-                          key={message.id}
-                          message={message}
-                          isOwnMessage={message.sender_id === profile?.user_id}
-                          senderName={senderProfile?.user_profile?.name || 'Unknown User'}
-                          showAvatar={!isConsecutive}
-                          isConsecutive={isConsecutive}
-                        />
-                      );
-                    })
+                <div className="p-4 space-y-4">
+                  {messages.map((message, index) => (
+                    <MessageBubble
+                      key={message.id}
+                      message={message}
+                      isOwnMessage={message.sender_id === profile?.user_id}
+                      showAvatar={!isMessageConsecutive(message, messages[index - 1])}
+                    />
+                  ))}
+                  
+                  {Array.from(typingUsers).length > 0 && (
+                    <TypingIndicator typingUsers={Array.from(typingUsers)} />
                   )}
                   
-                  {typingUsers.size > 0 && (
-                    <TypingIndicator
-                      typingUsers={Array.from(typingUsers)}
-                      currentUserId={profile?.user_id}
-                    />
-                  )}
                   <div ref={messagesEndRef} />
                 </div>
               </ScrollArea>
             </div>
 
-            {/* WhatsApp-style Message Input */}
-            <MessageInput
-              onSendMessage={handleSendMessage}
-              onTyping={setTypingIndicator}
-              placeholder="Type a message..."
-              disabled={!selectedProject}
-              supportAttachments={true}
-              supportMentions={true}
-              projectUsers={projectUsers}
-              projectId={selectedProject?.id || ''}
-              onCreateRFI={handleCreateRFI}
-            />
+            {/* Message Input */}
+            <div className="border-t border-border p-4">
+              <MessageInput
+                onSendMessage={handleSendMessage}
+                onTyping={(isTyping: boolean) => setTypingIndicator(isTyping)}
+                onCreateRFI={handleCreateRFI}
+                placeholder="Type a message..."
+              />
+            </div>
           </>
         ) : (
-          <div className="flex-1 flex items-center justify-center bg-muted/20">
-            <div className="text-center max-w-md">
-              <div className="w-32 h-32 mx-auto mb-6 rounded-full bg-primary/10 flex items-center justify-center">
-                <MessageSquare className="h-16 w-16 text-primary/60" />
-              </div>
-              <h3 className="text-xl font-semibold mb-2 text-foreground">Welcome to Messages</h3>
-              <p className="text-muted-foreground">
-                Select a conversation to start messaging with your team members.
+          <div className="flex-1 flex items-center justify-center bg-muted/10">
+            <div className="text-center">
+              <MessageSquare className="h-16 w-16 mx-auto mb-4 text-muted-foreground/50" />
+              <h3 className="text-lg font-semibold mb-2">Welcome to Messages</h3>
+              <p className="text-muted-foreground max-w-md">
+                Select a conversation to start messaging, or create a new conversation with your team members.
               </p>
             </div>
           </div>
