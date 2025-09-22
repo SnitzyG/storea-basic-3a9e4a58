@@ -12,7 +12,6 @@ import {
 import { RFI } from '@/hooks/useRFIs';
 import { format } from 'date-fns';
 import { RFIQuickActions } from './RFIQuickActions';
-import { getRFIDisplayNumber } from '@/utils/rfiUtils';
 
 interface RFIListViewProps {
   rfis: RFI[];
@@ -211,7 +210,7 @@ export const RFIListView: React.FC<RFIListViewProps> = ({
                 </TableCell>
               )}
               <TableCell className="font-mono text-xs">
-                {getRFIDisplayNumber(rfi)}
+                {rfi.rfi_number || `RFI-${rfi.id.slice(0, 8)}`}
               </TableCell>
               <TableCell>
                 <div className="space-y-1">
