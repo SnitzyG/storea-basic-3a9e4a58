@@ -67,7 +67,7 @@ export const ThreadCard: React.FC<ThreadCardProps> = ({
   return (
     <div 
       className={cn(
-        "px-2 py-1 rounded-md cursor-pointer group transition-all duration-150",
+        "px-2 py-0.5 rounded-md cursor-pointer group transition-all duration-150",
         "hover:bg-accent/50 active:bg-accent/70",
         isSelected ? "bg-primary text-primary-foreground" : "text-foreground",
         thread.is_archived && "opacity-60 bg-muted/50"
@@ -128,7 +128,7 @@ export const ThreadCard: React.FC<ThreadCardProps> = ({
               <div className="flex items-start justify-between gap-2">
                 <div className="flex-1 min-w-0">
                   <span className={cn(
-                    "text-sm font-medium block leading-tight",
+                    "text-xs font-medium block leading-tight",
                     isSelected ? "text-primary-foreground" : "text-foreground"
                   )}>
                     {thread.title}
@@ -221,7 +221,7 @@ export const ThreadCard: React.FC<ThreadCardProps> = ({
               </div>
               
               <div className={cn(
-                "text-xs mt-1 flex items-center gap-1",
+                "text-xs mt-0.5 flex items-center gap-1",
                 isSelected ? "text-primary-foreground/70" : "text-muted-foreground"
               )}>
                 <span>{thread.participants.length} members</span>
