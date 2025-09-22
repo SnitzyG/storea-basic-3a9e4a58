@@ -293,9 +293,9 @@ const Messages = () => {
         </div>
       </div>;
   }
-  return <div className="space-y-6">
+  return <div className="min-h-screen flex flex-col">
       {/* Page Header */}
-      <div className="flex items-center justify-end">
+      <div className="flex items-center justify-end p-6 border-b border-border bg-background">
         <CreateThreadDialog projectId={selectedProject?.id || ''} onCreateThread={handleCreateThread}>
           <Button size="sm" className="bg-green-600 hover:bg-green-700 text-white">
             <Plus className="h-4 w-4 mr-2" />
@@ -305,7 +305,7 @@ const Messages = () => {
       </div>
       
       {/* Messages Layout */}
-      <div className="h-[calc(100vh-12rem)] flex bg-background">
+      <div className="flex-1 flex bg-background">
       {/* WhatsApp-style Sidebar */}
       <div className="w-60 border-r border-border bg-background flex flex-col">
         {/* Header with Project Info */}
