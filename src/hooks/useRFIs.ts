@@ -142,6 +142,17 @@ export const useRFIs = () => {
         };
       });
 
+      // Debug: Log first RFI to see data structure
+      if (enrichedRFIs.length > 0) {
+        console.log('Sample enriched RFI:', {
+          id: enrichedRFIs[0].id,
+          rfi_number: enrichedRFIs[0].rfi_number,
+          rfi_type: enrichedRFIs[0].rfi_type,
+          raised_by_company_name: enrichedRFIs[0].raised_by_company_name,
+          raised_by_profile: enrichedRFIs[0].raised_by_profile
+        });
+      }
+
       setRFIs(enrichedRFIs as RFI[]);
     } catch (error) {
       console.error('Error fetching RFIs:', error);
