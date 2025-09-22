@@ -1,5 +1,4 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import Logo from '@/components/ui/logo';
 import { Link } from 'react-router-dom';
 import { useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';

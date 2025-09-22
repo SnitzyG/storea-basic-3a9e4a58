@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import Logo from '@/components/ui/logo';
 import { Navigate, useSearchParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -33,12 +32,14 @@ const Auth = () => {
 
   // Removed early return to keep hooks order consistent and avoid hook mismatch errors during loading state
 
+
   useEffect(() => {
     // Check if user came from email confirmation
     if (searchParams.get('confirmed') === 'true') {
       setEmailConfirmed(true);
     }
   }, [searchParams]);
+
   useEffect(() => {
     if (user) {
       // Check for pending invitation tokens
@@ -77,18 +78,19 @@ const Auth = () => {
     await signUp(email, password, name, role, company);
     setIsSubmitting(false);
   };
+
   const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!resetEmail) {
       toast.error('Please enter your email address');
       return;
     }
+    
     try {
-      const {
-        error
-      } = await supabase.auth.resetPasswordForEmail(resetEmail, {
-        redirectTo: `${window.location.origin}/auth?reset=true`
+      const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
+        redirectTo: `${window.location.origin}/auth?reset=true`,
       });
+      
       if (error) {
         toast.error(error.message);
       } else {
@@ -100,22 +102,21 @@ const Auth = () => {
       toast.error('An unexpected error occurred');
     }
   };
+
   const handleDataWipe = async () => {
     const password = prompt('Enter the test password to wipe all data:');
     if (!password) return;
+
     try {
-      const {
-        data,
-        error
-      } = await supabase.functions.invoke('wipe-test-data', {
-        body: {
-          password
-        }
+      const { data, error } = await supabase.functions.invoke('wipe-test-data', {
+        body: { password }
       });
+
       if (error) {
         toast.error('Failed to wipe data: ' + error.message);
         return;
       }
+
       if (data.success) {
         toast.success('✅ All user data has been cleared successfully!');
         // Force reload the page to clear any cached state
@@ -133,26 +134,22 @@ const Auth = () => {
   useEffect(() => {
     let clickCount = 0;
     let clickTimeout: NodeJS.Timeout;
+    
     const handleCornerClick = (e: MouseEvent) => {
-      const {
-        innerWidth,
-        innerHeight
-      } = window;
-      const {
-        clientX,
-        clientY
-      } = e;
-
+      const { innerWidth, innerHeight } = window;
+      const { clientX, clientY } = e;
+      
       // Check if click is in bottom-right corner (last 80px of both dimensions for easier targeting)
       if (clientX > innerWidth - 80 && clientY > innerHeight - 80) {
         clickCount++;
         console.log(`Corner click ${clickCount}/3`); // Debug log
-
+        
         // Reset counter after 3 seconds of no clicks
         clearTimeout(clickTimeout);
         clickTimeout = setTimeout(() => {
           clickCount = 0;
         }, 3000);
+        
         if (clickCount >= 3) {
           setShowWipeButton(true);
           toast.info('🧪 Test data wipe button activated');
@@ -164,6 +161,7 @@ const Auth = () => {
         clearTimeout(clickTimeout);
       }
     };
+
     window.addEventListener('click', handleCornerClick);
     return () => {
       window.removeEventListener('click', handleCornerClick);
@@ -184,9 +182,11 @@ const Auth = () => {
     label: 'Contractor'
   }];
   return <div className="min-h-screen flex items-center justify-center bg-background px-4 relative">
-      {loading && <div className="fixed inset-0 grid place-items-center bg-background/80 z-50">
+      {loading && (
+        <div className="fixed inset-0 grid place-items-center bg-background/80 z-50">
           <div className="text-center">Loading...</div>
-        </div>}
+        </div>
+      )}
       <div className="w-full max-w-6xl flex flex-col lg:flex-row items-center lg:items-stretch lg:justify-between gap-8">
         {/* Animated House Illustration */}
         <div className="w-full lg:w-1/2 flex justify-center lg:order-2">
@@ -259,10 +259,16 @@ const Auth = () => {
                   </g>
                 </svg>
                 
-                {/* Enhanced STOREALite Logo */}
+                {/* Updated STOREALite Logo */}
                 <div className="mt-6 text-center animate-[fadeIn_0.8s_ease-out_3.4s_both]">
-                  <Logo size="xl" variant="default" showIcon={true} className="justify-center" />
-                  
+                  <h1 className="text-4xl font-bold tracking-wider">
+                    <span className="bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent font-black">
+                      STOREA
+                    </span>
+                    <span className="bg-gradient-to-r from-accent to-accent/70 bg-clip-text text-transparent font-light ml-1">
+                      Lite
+                    </span>
+                  </h1>
                 </div>
               </div>
             </CardContent>
@@ -290,7 +296,8 @@ const Auth = () => {
               </TabsList>
 
               <TabsContent value="signin" className="min-h-[400px]">
-                {!showForgotPassword ? <form onSubmit={handleSignIn} className="space-y-4">
+                {!showForgotPassword ? (
+                  <form onSubmit={handleSignIn} className="space-y-4">
                     <div className="space-y-2">
                       <Label htmlFor="signin-email">Email</Label>
                       <Input id="signin-email" type="email" placeholder="Enter your email" value={email} onChange={e => setEmail(e.target.value)} required />
@@ -302,21 +309,41 @@ const Auth = () => {
                     <Button type="submit" className="w-full" disabled={isSubmitting}>
                       {isSubmitting ? 'Signing in...' : 'Sign In'}
                     </Button>
-                    <Button type="button" variant="ghost" className="w-full text-sm" onClick={() => setShowForgotPassword(true)}>
+                    <Button 
+                      type="button" 
+                      variant="ghost" 
+                      className="w-full text-sm" 
+                      onClick={() => setShowForgotPassword(true)}
+                    >
                       Forgot Password?
                     </Button>
-                  </form> : <form onSubmit={handleForgotPassword} className="space-y-4">
+                  </form>
+                ) : (
+                  <form onSubmit={handleForgotPassword} className="space-y-4">
                     <div className="space-y-2">
                       <Label htmlFor="reset-email">Email</Label>
-                      <Input id="reset-email" type="email" placeholder="Enter your email to reset password" value={resetEmail} onChange={e => setResetEmail(e.target.value)} required />
+                      <Input 
+                        id="reset-email" 
+                        type="email" 
+                        placeholder="Enter your email to reset password" 
+                        value={resetEmail} 
+                        onChange={e => setResetEmail(e.target.value)} 
+                        required 
+                      />
                     </div>
                     <Button type="submit" className="w-full">
                       Send Reset Email
                     </Button>
-                    <Button type="button" variant="ghost" className="w-full text-sm" onClick={() => setShowForgotPassword(false)}>
+                    <Button 
+                      type="button" 
+                      variant="ghost" 
+                      className="w-full text-sm" 
+                      onClick={() => setShowForgotPassword(false)}
+                    >
                       Back to Sign In
                     </Button>
-                  </form>}
+                  </form>
+                )}
               </TabsContent>
 
               <TabsContent value="signup" className="min-h-[400px]">
@@ -350,11 +377,24 @@ const Auth = () => {
                       </SelectContent>
                     </Select>
                   </div>
-                  {role && role !== 'homeowner' && <div className="space-y-2">
+                  {role && role !== 'homeowner' && (
+                    <div className="space-y-2">
                       <Label htmlFor="company">Company *</Label>
-                      <Input id="company" type="text" placeholder="Enter your company name" value={company} onChange={e => setCompany(e.target.value)} required={role !== 'homeowner'} />
-                    </div>}
-                   <Button type="submit" className="w-full" disabled={isSubmitting || !role || role !== 'homeowner' && !company.trim()}>
+                      <Input 
+                        id="company" 
+                        type="text" 
+                        placeholder="Enter your company name" 
+                        value={company} 
+                        onChange={e => setCompany(e.target.value)} 
+                        required={role !== 'homeowner'}
+                      />
+                    </div>
+                  )}
+                   <Button 
+                     type="submit" 
+                     className="w-full" 
+                     disabled={isSubmitting || !role || (role !== 'homeowner' && !company.trim())}
+                   >
                      {isSubmitting ? 'Creating account...' : 'Create Account'}
                    </Button>
                 </form>
@@ -366,11 +406,17 @@ const Auth = () => {
       </div>
       
       {/* Hidden data wipe button for testing */}
-      {showWipeButton && <Button onClick={handleDataWipe} variant="ghost" size="sm" className="fixed bottom-4 right-4 opacity-50 hover:opacity-100 transition-opacity text-xs bg-destructive/10 hover:bg-destructive/20 border border-destructive/30 z-50" style={{
-      userSelect: 'none'
-    }}>
+      {showWipeButton && (
+        <Button
+          onClick={handleDataWipe}
+          variant="ghost"
+          size="sm"
+          className="fixed bottom-4 right-4 opacity-50 hover:opacity-100 transition-opacity text-xs bg-destructive/10 hover:bg-destructive/20 border border-destructive/30 z-50"
+          style={{ userSelect: 'none' }}
+        >
           🧪 Wipe Test Data
-        </Button>}
+        </Button>
+      )}
     </div>;
 };
 export default Auth;
