@@ -839,7 +839,7 @@ const RFIs = () => {
                   Respond to RFI
                 </Button>
                 <Button onClick={() => setSimplifiedComposerOpen(true)} size="sm" className="bg-green-600 hover:bg-green-700 text-white">
-                  Create RFI
+                  Create New RFI
                 </Button>
               </div>
             </div>
