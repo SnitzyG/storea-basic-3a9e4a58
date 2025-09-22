@@ -406,6 +406,80 @@ export const useProjects = () => {
     };
   }, []);
 
+  // Set up comprehensive real-time subscriptions for instant updates
+  useEffect(() => {
+    const setupRealtime = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const channels = [];
+
+      // Subscribe to projects table changes
+      const projectsChannel = supabase
+        .channel('projects-changes')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'projects',
+          },
+          (payload) => {
+            console.log('Project change detected:', payload);
+            fetchProjects();
+          }
+        )
+        .subscribe();
+
+      channels.push(projectsChannel);
+
+      // Subscribe to project_users changes for membership updates
+      const projectUsersChannel = supabase
+        .channel('project-users-changes')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'project_users',
+            filter: `user_id=eq.${user.id}`,
+          },
+          (payload) => {
+            console.log('Project membership change detected:', payload);
+            fetchProjects();
+          }
+        )
+        .subscribe();
+
+      channels.push(projectUsersChannel);
+
+      // Subscribe to invitations changes
+      const invitationsChannel = supabase
+        .channel('invitations-changes')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'invitations',
+          },
+          (payload) => {
+            console.log('Invitation change detected:', payload);
+            fetchProjects();
+          }
+        )
+        .subscribe();
+
+      channels.push(invitationsChannel);
+
+      return () => {
+        channels.forEach(channel => supabase.removeChannel(channel));
+      };
+    };
+
+    setupRealtime();
+  }, []);
+
   return {
     projects,
     loading,

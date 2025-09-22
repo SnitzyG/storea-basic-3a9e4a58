@@ -1,4 +1,6 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -55,7 +57,52 @@ const entityTypeColors = {
 };
 
 export const RecentActivity = () => {
-  const { activities, loading, dismissActivity } = useActivity();
+  const { activities, loading, dismissActivity, refetch } = useActivity();
+  const { user } = useAuth();
+
+  // Set up real-time updates for dashboard refresh
+  useEffect(() => {
+    if (!user) return;
+
+    const activityChannel = supabase
+      .channel('dashboard-activity-updates')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'activity_log',
+        },
+        (payload) => {
+          console.log('Activity log change detected for dashboard:', payload);
+          refetch();
+        }
+      )
+      .subscribe();
+
+    // Also listen for project membership changes that affect activity visibility
+    const membershipChannel = supabase
+      .channel('dashboard-membership-updates')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'project_users',
+          filter: `user_id=eq.${user.id}`,
+        },
+        (payload) => {
+          console.log('Project membership change detected for dashboard:', payload);
+          refetch();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(activityChannel);
+      supabase.removeChannel(membershipChannel);
+    };
+  }, [user?.id, refetch]);
   const navigate = useNavigate();
   const { toast } = useToast();
   const { addTodo } = useTodos();

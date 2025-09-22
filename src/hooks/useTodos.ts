@@ -141,6 +141,32 @@ export const useTodos = (projectId?: string) => {
     };
   }, [user, projectId]);
 
+  // Set up additional real-time subscriptions for instant updates
+  useEffect(() => {
+    if (!user) return;
+
+    const todosChannel = supabase
+      .channel('todos-changes-enhanced')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'todos',
+          filter: `user_id=eq.${user.id}`,
+        },
+        (payload) => {
+          console.log('Todo change detected:', payload);
+          fetchTodos();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(todosChannel);
+    };
+  }, [user?.id]);
+
   return {
     todos,
     loading,

@@ -1061,4 +1061,112 @@ export const useDocuments = (projectId?: string) => {
     toggleDocumentLock,
     supersedeDocument
   };
+
+  // Set up comprehensive real-time subscriptions for instant updates
+  useEffect(() => {
+    if (!projectId) return;
+
+    const channels = [];
+
+    // Subscribe to documents table changes
+    const documentsChannel = supabase
+      .channel('documents-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'documents',
+          filter: `project_id=eq.${projectId}`,
+        },
+        (payload) => {
+          console.log('Document change detected:', payload);
+          fetchDocuments();
+        }
+      )
+      .subscribe();
+
+    channels.push(documentsChannel);
+
+    // Subscribe to document_groups table changes
+    const documentGroupsChannel = supabase
+      .channel('document-groups-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'document_groups',
+          filter: `project_id=eq.${projectId}`,
+        },
+        (payload) => {
+          console.log('Document group change detected:', payload);
+          fetchDocuments();
+        }
+      )
+      .subscribe();
+
+    channels.push(documentGroupsChannel);
+
+    // Subscribe to document_revisions table changes
+    const documentRevisionsChannel = supabase
+      .channel('document-revisions-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'document_revisions',
+        },
+        (payload) => {
+          console.log('Document revision change detected:', payload);
+          fetchDocuments();
+        }
+      )
+      .subscribe();
+
+    channels.push(documentRevisionsChannel);
+
+    // Subscribe to document_shares changes for shared documents
+    const documentSharesChannel = supabase
+      .channel('document-shares-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'document_shares',
+        },
+        (payload) => {
+          console.log('Document share change detected:', payload);
+          fetchDocuments();
+        }
+      )
+      .subscribe();
+
+    channels.push(documentSharesChannel);
+
+    // Subscribe to document_approvals changes
+    const documentApprovalsChannel = supabase
+      .channel('document-approvals-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'document_approvals',
+        },
+        (payload) => {
+          console.log('Document approval change detected:', payload);
+          fetchDocuments();
+        }
+      )
+      .subscribe();
+
+    channels.push(documentApprovalsChannel);
+
+    return () => {
+      channels.forEach(channel => supabase.removeChannel(channel));
+    };
+  }, [projectId]);
 };
