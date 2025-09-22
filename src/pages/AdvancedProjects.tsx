@@ -13,18 +13,29 @@ import { ProjectDetailsDialog } from '@/components/projects-v2/ProjectDetailsDia
 import { ProjectJoinSection } from '@/components/projects/ProjectJoinSection';
 import { ProjectGanttChart } from '@/components/projects/ProjectGanttChart';
 import { useAuth } from '@/hooks/useAuth';
-const StatusSelector = ({ project, onStatusChange }: { 
-  project: AdvancedProject, 
-  onStatusChange: (status: 'planning' | 'active' | 'on_hold' | 'completed' | 'cancelled') => void 
+const StatusSelector = ({
+  project,
+  onStatusChange
+}: {
+  project: AdvancedProject;
+  onStatusChange: (status: 'planning' | 'active' | 'on_hold' | 'completed' | 'cancelled') => void;
 }) => {
-  const statusOptions = [
-    { value: 'planning', label: 'Planning' },
-    { value: 'active', label: 'Active' },
-    { value: 'on_hold', label: 'On Hold' },
-    { value: 'completed', label: 'Completed' },
-    { value: 'cancelled', label: 'Cancelled' }
-  ];
-
+  const statusOptions = [{
+    value: 'planning',
+    label: 'Planning'
+  }, {
+    value: 'active',
+    label: 'Active'
+  }, {
+    value: 'on_hold',
+    label: 'On Hold'
+  }, {
+    value: 'completed',
+    label: 'Completed'
+  }, {
+    value: 'cancelled',
+    label: 'Cancelled'
+  }];
   const statusColors = {
     planning: 'bg-blue-100 text-blue-800',
     active: 'bg-green-100 text-green-800',
@@ -32,9 +43,7 @@ const StatusSelector = ({ project, onStatusChange }: {
     completed: 'bg-gray-100 text-gray-800',
     cancelled: 'bg-red-100 text-red-800'
   };
-
-  return (
-    <Select value={project.status} onValueChange={onStatusChange}>
+  return <Select value={project.status} onValueChange={onStatusChange}>
       <SelectTrigger className="w-auto min-w-[120px]">
         <SelectValue>
           <Badge className={statusColors[project.status]}>
@@ -43,18 +52,14 @@ const StatusSelector = ({ project, onStatusChange }: {
         </SelectValue>
       </SelectTrigger>
       <SelectContent>
-        {statusOptions.map((option) => (
-          <SelectItem key={option.value} value={option.value}>
+        {statusOptions.map(option => <SelectItem key={option.value} value={option.value}>
             <Badge className={statusColors[option.value]}>
               {option.label.toUpperCase()}
             </Badge>
-          </SelectItem>
-        ))}
+          </SelectItem>)}
       </SelectContent>
-    </Select>
-  );
+    </Select>;
 };
-
 const AdvancedProjects = () => {
   const {
     projects,
@@ -67,7 +72,9 @@ const AdvancedProjects = () => {
   const {
     profile
   } = useAuth();
-  const { toast } = useToast();
+  const {
+    toast
+  } = useToast();
   const [wizardOpen, setWizardOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState<AdvancedProject | null>(null);
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
@@ -96,7 +103,6 @@ const AdvancedProjects = () => {
       });
     }
   };
-
   const handleProjectAction = async (action: string, project: AdvancedProject) => {
     switch (action) {
       case 'view':
@@ -111,18 +117,20 @@ const AdvancedProjects = () => {
   const handleDeleteProject = async (projectId: string) => {
     await deleteProject(projectId);
   };
-
   const handleStatusChange = async (projectId: string, newStatus: 'planning' | 'active' | 'on_hold' | 'completed' | 'cancelled') => {
     try {
-      await updateProject(projectId, { status: newStatus });
+      await updateProject(projectId, {
+        status: newStatus
+      });
     } catch (error) {
       console.error('Error updating project status:', error);
     }
   };
-
   const handleUpdateBudget = async (projectId: string, budget: number) => {
     try {
-      await updateProject(projectId, { budget });
+      await updateProject(projectId, {
+        budget
+      });
     } catch (error) {
       console.error('Error updating project budget:', error);
     }
@@ -139,16 +147,12 @@ const AdvancedProjects = () => {
       <div className="flex items-center justify-between">
         <div>
           
-          <p className="text-muted-foreground">
-            Advanced construction project management and collaboration
-          </p>
+          
         </div>
-        {canCreateProjects && (
-          <Button onClick={() => setWizardOpen(true)} className="bg-primary hover:bg-primary/90">
+        {canCreateProjects && <Button onClick={() => setWizardOpen(true)} className="bg-primary hover:bg-primary/90">
             <Plus className="h-4 w-4 mr-2" />
             New Project
-          </Button>
-        )}
+          </Button>}
       </div>
 
       {/* Main Content Tabs */}
@@ -166,24 +170,19 @@ const AdvancedProjects = () => {
 
         <TabsContent value="projects" className="space-y-6">
           {/* Projects List View */}
-          {projects.length === 0 ? (
-            <Card>
+          {projects.length === 0 ? <Card>
               <CardContent className="text-center py-12">
                 <BarChart3 className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                 <h3 className="text-lg font-medium mb-2">No projects found</h3>
                 <p className="text-muted-foreground mb-4">
                   {canCreateProjects ? "Create your first project to get started." : "You haven't been assigned to any projects yet. Contact your architect to be added to a project."}
                 </p>
-                {canCreateProjects && (
-                  <Button onClick={() => setWizardOpen(true)} className="bg-primary hover:bg-primary/90">
+                {canCreateProjects && <Button onClick={() => setWizardOpen(true)} className="bg-primary hover:bg-primary/90">
                     <Plus className="h-4 w-4 mr-2" />
                     Create Your First Project
-                  </Button>
-                )}
+                  </Button>}
               </CardContent>
-            </Card>
-          ) : (
-            <Card>
+            </Card> : <Card>
               <CardContent className="p-0">
                   <Table>
                     <TableHeader>
@@ -200,78 +199,51 @@ const AdvancedProjects = () => {
                       </TableRow>
                     </TableHeader>
                   <TableBody>
-                    {projects.map((project) => {
-                      console.log('Rendering project:', project.name, 'Reference:', project.project_reference_number);
-                      return (
-                      <TableRow key={project.id}>
+                    {projects.map(project => {
+                  console.log('Rendering project:', project.name, 'Reference:', project.project_reference_number);
+                  return <TableRow key={project.id}>
                         <TableCell>{project.project_reference_number || '-'}</TableCell>
                         <TableCell className="font-medium">{project.name}</TableCell>
                         <TableCell>
-                          {(project as any).project_id ? (
-                            <div className="flex items-center gap-2">
+                          {(project as any).project_id ? <div className="flex items-center gap-2">
                               <div className="flex items-center gap-1 text-xs text-primary font-mono bg-primary/10 px-2 py-1 rounded">
                                 <Hash className="h-3 w-3" />
                                 {(project as any).project_id}
                               </div>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => copyProjectId((project as any).project_id)}
-                                className="h-6 w-6 p-0"
-                              >
+                              <Button variant="ghost" size="sm" onClick={() => copyProjectId((project as any).project_id)} className="h-6 w-6 p-0">
                                 <Copy className="h-3 w-3" />
                               </Button>
-                            </div>
-                          ) : (
-                            '-'
-                          )}
+                            </div> : '-'}
                         </TableCell>
                         <TableCell>{project.address || '-'}</TableCell>
                         <TableCell>
-                          <StatusSelector 
-                            project={project} 
-                            onStatusChange={(newStatus) => handleStatusChange(project.id, newStatus)} 
-                          />
+                          <StatusSelector project={project} onStatusChange={newStatus => handleStatusChange(project.id, newStatus)} />
                         </TableCell>
                         <TableCell>
                           {project.budget ? `$${project.budget.toLocaleString()}` : '-'}
                         </TableCell>
                         <TableCell>
-                          {project.estimated_start_date 
-                            ? new Date(project.estimated_start_date).toLocaleDateString() 
-                            : '-'
-                          }
+                          {project.estimated_start_date ? new Date(project.estimated_start_date).toLocaleDateString() : '-'}
                         </TableCell>
                         <TableCell>
-                          {project.estimated_finish_date 
-                            ? new Date(project.estimated_finish_date).toLocaleDateString() 
-                            : '-'
-                          }
+                          {project.estimated_finish_date ? new Date(project.estimated_finish_date).toLocaleDateString() : '-'}
                         </TableCell>
                         <TableCell>
                           <div className="flex gap-1">
-                            <Button 
-                              variant="outline" 
-                              size="sm" 
-                              onClick={() => handleProjectAction('view', project)}
-                            >
+                            <Button variant="outline" size="sm" onClick={() => handleProjectAction('view', project)}>
                               <Eye className="h-3 w-3" />
                             </Button>
                           </div>
                         </TableCell>
-                      </TableRow>
-                    )
-                    })}
+                      </TableRow>;
+                })}
                   </TableBody>
                 </Table>
               </CardContent>
-            </Card>
-          )}
+            </Card>}
 
           {/* Gantt Chart Section */}
-          {projects.length > 0 && (
-            <ProjectGanttChart projects={projects} />
-          )}
+          {projects.length > 0 && <ProjectGanttChart projects={projects} />}
         </TabsContent>
 
         <TabsContent value="join" className="space-y-6">
@@ -280,28 +252,16 @@ const AdvancedProjects = () => {
       </Tabs>
 
       {/* Project Wizard - Only accessible to architects */}
-      {canCreateProjects && (
-        <AdvancedProjectWizard 
-          open={wizardOpen} 
-          onOpenChange={(open) => {
-            setWizardOpen(open);
-            if (!open) setSelectedProject(null);
-          }} 
-          projectToEdit={selectedProject} 
-        />
-      )}
+      {canCreateProjects && <AdvancedProjectWizard open={wizardOpen} onOpenChange={open => {
+      setWizardOpen(open);
+      if (!open) setSelectedProject(null);
+    }} projectToEdit={selectedProject} />}
 
       {/* Project Details Dialog */}
-      <ProjectDetailsDialog 
-        project={projectToView} 
-        open={detailsDialogOpen} 
-        onOpenChange={open => {
-          setDetailsDialogOpen(open);
-          if (!open) setProjectToView(null);
-        }} 
-        onDelete={handleDeleteProject}
-        onUpdateBudget={handleUpdateBudget}
-      />
+      <ProjectDetailsDialog project={projectToView} open={detailsDialogOpen} onOpenChange={open => {
+      setDetailsDialogOpen(open);
+      if (!open) setProjectToView(null);
+    }} onDelete={handleDeleteProject} onUpdateBudget={handleUpdateBudget} />
     </div>;
 };
 export default AdvancedProjects;
