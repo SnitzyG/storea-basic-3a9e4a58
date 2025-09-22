@@ -117,7 +117,7 @@ export const FormalInquiryDialog: React.FC<FormalInquiryDialogProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden flex flex-col">
+      <DialogContent className="max-w-6xl max-h-[90vh] overflow-hidden flex flex-col">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Send className="h-5 w-5" />
@@ -125,9 +125,9 @@ export const FormalInquiryDialog: React.FC<FormalInquiryDialogProps> = ({
           </DialogTitle>
         </DialogHeader>
 
-        <div className="flex-1 flex gap-6 overflow-hidden">
+        <div className="flex-1 flex gap-6 overflow-hidden min-h-[600px]">
           {/* Left Panel - Message Selection */}
-          <div className="flex-1 flex flex-col">
+          <div className="flex-1 flex flex-col min-h-0">
             <div className="mb-4">
               <Label className="text-sm font-medium">Select Messages to Include</Label>
               <p className="text-xs text-muted-foreground mt-1">
@@ -198,7 +198,7 @@ export const FormalInquiryDialog: React.FC<FormalInquiryDialogProps> = ({
           <Separator orientation="vertical" className="h-full" />
 
           {/* Right Panel - RFI Details */}
-          <div className="w-80 flex flex-col">
+          <div className="w-96 flex flex-col min-h-[600px]">
             {/* RFI Number Preview */}
             <div className="mb-4 p-3 bg-primary/5 rounded-lg border border-primary/20">
               <Label className="text-sm font-medium">RFI Number</Label>
@@ -267,7 +267,7 @@ export const FormalInquiryDialog: React.FC<FormalInquiryDialogProps> = ({
 
               {/* Due Date */}
               <div>
-                <Label className="text-sm font-medium">Response Required By</Label>
+                <Label className="text-sm font-medium">Response Required By (Optional)</Label>
                 <Input
                   type="date"
                   value={dueDate}
