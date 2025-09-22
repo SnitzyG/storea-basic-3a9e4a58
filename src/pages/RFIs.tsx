@@ -834,10 +834,8 @@ const RFIs = () => {
                 <Button 
                   onClick={() => setQuickRespondDialogOpen(true)} 
                   size="sm" 
-                  variant="outline"
-                  className="gap-2"
+                  className="bg-green-600 hover:bg-green-700 text-white"
                 >
-                  <AlertCircle className="w-4 h-4" />
                   Respond to RFI
                 </Button>
                 <Button onClick={() => setSimplifiedComposerOpen(true)} size="sm" className="bg-green-600 hover:bg-green-700 text-white">
