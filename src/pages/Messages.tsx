@@ -20,11 +20,12 @@ import { MessageBubble } from '@/components/messages/MessageBubble';
 import { MessageInput } from '@/components/messages/MessageInput';
 import { TypingIndicator } from '@/components/messages/TypingIndicator';
 import { cn } from '@/lib/utils';
-
 const Messages = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [connectionStatus, setConnectionStatus] = useState<'connected' | 'disconnected'>('connected');
-  const { selectedProject } = useProjectSelection();
+  const {
+    selectedProject
+  } = useProjectSelection();
   const {
     profile
   } = useAuth();
@@ -54,7 +55,6 @@ const Messages = () => {
       window.removeEventListener('projectTeamUpdated', handleTeamUpdate);
     };
   }, [selectedProject, refreshTeam]);
-
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const {
     threads,
@@ -114,35 +114,31 @@ const Messages = () => {
   }, [messages, profile?.user_id, markMessageAsRead]);
 
   // Filter and organize threads
-  const { pinnedThreads, activeThreads, archivedThreads } = useMemo(() => {
-    if (!profile?.user_id) return { pinnedThreads: [], activeThreads: [], archivedThreads: [] };
-    
-    const userThreads = threads.filter(thread => 
-      thread.participants.includes(profile.user_id) &&
-      thread.title.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-    
+  const {
+    pinnedThreads,
+    activeThreads,
+    archivedThreads
+  } = useMemo(() => {
+    if (!profile?.user_id) return {
+      pinnedThreads: [],
+      activeThreads: [],
+      archivedThreads: []
+    };
+    const userThreads = threads.filter(thread => thread.participants.includes(profile.user_id) && thread.title.toLowerCase().includes(searchTerm.toLowerCase()));
     const pinned = userThreads.filter(thread => thread.is_pinned && !thread.is_archived);
     const archived = userThreads.filter(thread => thread.is_archived);
     const active = userThreads.filter(thread => !thread.is_pinned && !thread.is_archived);
-    
     return {
       pinnedThreads: pinned,
       activeThreads: active,
       archivedThreads: archived
     };
   }, [threads, searchTerm, profile?.user_id]);
-
   const filteredTeamMembers = useMemo(() => {
     if (!profile?.user_id) return [];
     // Only show team members from current project, excluding current user
-    return projectUsers.filter(user => 
-      user.user_id !== profile.user_id && 
-      (user.user_profile?.name?.toLowerCase().includes(searchTerm.toLowerCase()) || 
-       user.role?.toLowerCase().includes(searchTerm.toLowerCase()))
-    );
+    return projectUsers.filter(user => user.user_id !== profile.user_id && (user.user_profile?.name?.toLowerCase().includes(searchTerm.toLowerCase()) || user.role?.toLowerCase().includes(searchTerm.toLowerCase())));
   }, [projectUsers, profile?.user_id, searchTerm]);
-
   const getCurrentProjectName = () => {
     return selectedProject?.name || 'Select Project';
   };
@@ -287,7 +283,6 @@ const Messages = () => {
         </Card>
       </div>;
   }
-
   if (loading) {
     return <div className="space-y-6">
         <div className="flex items-center justify-between">
@@ -298,12 +293,10 @@ const Messages = () => {
         </div>
       </div>;
   }
-
-  return (
-    <div className="space-y-6">
+  return <div className="space-y-6">
       {/* Page Header */}
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">Messages</h1>
+        
         <CreateThreadDialog projectId={selectedProject?.id || ''} onCreateThread={handleCreateThread}>
           <Button size="sm" className="bg-green-600 hover:bg-green-700 text-white">
             <Plus className="h-4 w-4 mr-2" />
@@ -336,12 +329,7 @@ const Messages = () => {
         <div className="p-2 border-b border-border">
           <div className="relative">
             <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-muted-foreground h-3 w-3" />
-            <Input 
-              placeholder="Search messages..." 
-              value={searchTerm} 
-              onChange={e => setSearchTerm(e.target.value)} 
-              className="pl-8 h-8 bg-muted/50 border-border rounded-full text-xs"
-            />
+            <Input placeholder="Search messages..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="pl-8 h-8 bg-muted/50 border-border rounded-full text-xs" />
           </div>
         </div>
 
@@ -355,24 +343,17 @@ const Messages = () => {
                   Team Members
                 </h3>
                 <div className="space-y-1">
-                  {filteredTeamMembers.map(user => (
-                    <div
-                      key={user.user_id}
-                      className="flex items-center gap-2 p-2 rounded-md cursor-pointer hover:bg-muted/50 transition-colors"
-                      onClick={() => {
-                        const timestamp = new Date().toLocaleTimeString();
-                        handleCreateThread(`Message with ${user.user_profile?.name} (${timestamp})`, [user.user_id]);
-                      }}
-                    >
+                  {filteredTeamMembers.map(user => <div key={user.user_id} className="flex items-center gap-2 p-2 rounded-md cursor-pointer hover:bg-muted/50 transition-colors" onClick={() => {
+                    const timestamp = new Date().toLocaleTimeString();
+                    handleCreateThread(`Message with ${user.user_profile?.name} (${timestamp})`, [user.user_id]);
+                  }}>
                       <div className="relative">
                         <Avatar className="h-6 w-6">
                           <AvatarFallback className="text-xs bg-primary/10 text-primary">
                             {user.user_profile?.name?.charAt(0)?.toUpperCase() || 'U'}
                           </AvatarFallback>
                         </Avatar>
-                        {onlineUsers.has(user.user_id) && (
-                          <div className="absolute bottom-0 right-0 h-1.5 w-1.5 bg-green-500 rounded-full border border-background" />
-                        )}
+                        {onlineUsers.has(user.user_id) && <div className="absolute bottom-0 right-0 h-1.5 w-1.5 bg-green-500 rounded-full border border-background" />}
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium truncate">
@@ -382,103 +363,49 @@ const Messages = () => {
                           {user.user_profile?.role || user.role}
                         </p>
                       </div>
-                    </div>
-                  ))}
+                    </div>)}
                 </div>
               </div>
 
               {/* Pinned Conversations */}
-              {pinnedThreads.length > 0 && (
-                <div className="px-2">
+              {pinnedThreads.length > 0 && <div className="px-2">
                   <Separator className="mb-2" />
                   <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
                     Pinned
                   </h3>
                   <div className="space-y-1">
-                    {pinnedThreads.map(thread => (
-                      <ThreadCard
-                        key={thread.id}
-                        thread={thread}
-                        unreadCount={0}
-                        isSelected={currentThread === thread.id}
-                        isDirect={thread.participants.length === 2}
-                        onClick={() => setCurrentThread(thread.id)}
-                        onEdit={(newTitle: string) => updateThreadTitle(thread.id, newTitle)}
-                        onDelete={() => deleteThread(thread.id)}
-                        onPin={() => pinThread(thread.id)}
-                        onUnpin={() => unpinThread(thread.id)}
-                        onArchive={() => archiveThread(thread.id)}
-                        onUnarchive={() => unarchiveThread(thread.id)}
-                      />
-                    ))}
+                    {pinnedThreads.map(thread => <ThreadCard key={thread.id} thread={thread} unreadCount={0} isSelected={currentThread === thread.id} isDirect={thread.participants.length === 2} onClick={() => setCurrentThread(thread.id)} onEdit={(newTitle: string) => updateThreadTitle(thread.id, newTitle)} onDelete={() => deleteThread(thread.id)} onPin={() => pinThread(thread.id)} onUnpin={() => unpinThread(thread.id)} onArchive={() => archiveThread(thread.id)} onUnarchive={() => unarchiveThread(thread.id)} />)}
                   </div>
-                </div>
-              )}
+                </div>}
 
               {/* Active Conversations */}
-              {activeThreads.length > 0 && (
-                <div className="px-2">
+              {activeThreads.length > 0 && <div className="px-2">
                   <Separator className="mb-2" />
                   <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
                     Messages
                   </h3>
                   <div className="space-y-1">
-                    {activeThreads.map(thread => (
-                      <ThreadCard
-                        key={thread.id}
-                        thread={thread}
-                        unreadCount={0}
-                        isSelected={currentThread === thread.id}
-                        isDirect={thread.participants.length === 2}
-                        onClick={() => setCurrentThread(thread.id)}
-                        onEdit={(newTitle: string) => updateThreadTitle(thread.id, newTitle)}
-                        onDelete={() => deleteThread(thread.id)}
-                        onPin={() => pinThread(thread.id)}
-                        onUnpin={() => unpinThread(thread.id)}
-                        onArchive={() => archiveThread(thread.id)}
-                        onUnarchive={() => unarchiveThread(thread.id)}
-                      />
-                    ))}
+                    {activeThreads.map(thread => <ThreadCard key={thread.id} thread={thread} unreadCount={0} isSelected={currentThread === thread.id} isDirect={thread.participants.length === 2} onClick={() => setCurrentThread(thread.id)} onEdit={(newTitle: string) => updateThreadTitle(thread.id, newTitle)} onDelete={() => deleteThread(thread.id)} onPin={() => pinThread(thread.id)} onUnpin={() => unpinThread(thread.id)} onArchive={() => archiveThread(thread.id)} onUnarchive={() => unarchiveThread(thread.id)} />)}
                   </div>
-                </div>
-              )}
+                </div>}
 
               {/* Archived Conversations */}
-              {archivedThreads.length > 0 && (
-                <div className="px-2">
+              {archivedThreads.length > 0 && <div className="px-2">
                   <Separator className="mb-2" />
                   <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
                     Archived
                   </h3>
                   <div className="space-y-1">
-                    {archivedThreads.map(thread => (
-                      <ThreadCard
-                        key={thread.id}
-                        thread={thread}
-                        unreadCount={0}
-                        isSelected={currentThread === thread.id}
-                        isDirect={thread.participants.length === 2}
-                        onClick={() => setCurrentThread(thread.id)}
-                        onEdit={(newTitle: string) => updateThreadTitle(thread.id, newTitle)}
-                        onDelete={() => deleteThread(thread.id)}
-                        onPin={() => pinThread(thread.id)}
-                        onUnpin={() => unpinThread(thread.id)}
-                        onArchive={() => archiveThread(thread.id)}
-                        onUnarchive={() => unarchiveThread(thread.id)}
-                      />
-                    ))}
+                    {archivedThreads.map(thread => <ThreadCard key={thread.id} thread={thread} unreadCount={0} isSelected={currentThread === thread.id} isDirect={thread.participants.length === 2} onClick={() => setCurrentThread(thread.id)} onEdit={(newTitle: string) => updateThreadTitle(thread.id, newTitle)} onDelete={() => deleteThread(thread.id)} onPin={() => pinThread(thread.id)} onUnpin={() => unpinThread(thread.id)} onArchive={() => archiveThread(thread.id)} onUnarchive={() => unarchiveThread(thread.id)} />)}
                   </div>
-                </div>
-              )}
+                </div>}
 
               {/* Empty state */}
-              {pinnedThreads.length === 0 && activeThreads.length === 0 && archivedThreads.length === 0 && filteredTeamMembers.length === 0 && (
-                <div className="text-center py-6 text-muted-foreground">
+              {pinnedThreads.length === 0 && activeThreads.length === 0 && archivedThreads.length === 0 && filteredTeamMembers.length === 0 && <div className="text-center py-6 text-muted-foreground">
                   <MessageSquare className="h-8 w-8 mx-auto mb-3 opacity-50" />
                   <p className="text-xs">No messages found</p>
                   <p className="text-xs mt-1">Create a new message to get started</p>
-                </div>
-              )}
+                </div>}
             </div>
           </ScrollArea>
         </div>
@@ -486,18 +413,13 @@ const Messages = () => {
 
       {/* Main Chat Area */}
       <div className="flex-1 flex flex-col bg-background">
-        {currentThread ? (
-          <>
+        {currentThread ? <>
             {/* Chat Header */}
             <div className="border-b border-border p-4 bg-muted/30">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center text-sm font-semibold">
-                    {threads.find(t => t.id === currentThread)?.participants.length === 2 ? (
-                      <UserCircle className="h-5 w-5" />
-                    ) : (
-                      "#"
-                    )}
+                    {threads.find(t => t.id === currentThread)?.participants.length === 2 ? <UserCircle className="h-5 w-5" /> : "#"}
                   </div>
                   <div>
                     <h3 className="font-semibold text-foreground">
@@ -515,18 +437,9 @@ const Messages = () => {
             <div className="flex-1 overflow-hidden">
               <ScrollArea className="h-full">
                 <div className="p-4 space-y-4">
-                  {messages.map((message, index) => (
-                    <MessageBubble
-                      key={message.id}
-                      message={message}
-                      isOwnMessage={message.sender_id === profile?.user_id}
-                      showAvatar={!isMessageConsecutive(message, messages[index - 1])}
-                    />
-                  ))}
+                  {messages.map((message, index) => <MessageBubble key={message.id} message={message} isOwnMessage={message.sender_id === profile?.user_id} showAvatar={!isMessageConsecutive(message, messages[index - 1])} />)}
                   
-                  {Array.from(typingUsers).length > 0 && (
-                    <TypingIndicator typingUsers={Array.from(typingUsers)} />
-                  )}
+                  {Array.from(typingUsers).length > 0 && <TypingIndicator typingUsers={Array.from(typingUsers)} />}
                   
                   <div ref={messagesEndRef} />
                 </div>
@@ -535,16 +448,9 @@ const Messages = () => {
 
             {/* Message Input */}
             <div className="border-t border-border p-4">
-              <MessageInput
-                onSendMessage={handleSendMessage}
-                onTyping={(isTyping: boolean) => setTypingIndicator(isTyping)}
-                onCreateRFI={handleCreateRFI}
-                placeholder="Type a message..."
-              />
+              <MessageInput onSendMessage={handleSendMessage} onTyping={(isTyping: boolean) => setTypingIndicator(isTyping)} onCreateRFI={handleCreateRFI} placeholder="Type a message..." />
             </div>
-          </>
-        ) : (
-          <div className="flex-1 flex items-center justify-center bg-muted/10">
+          </> : <div className="flex-1 flex items-center justify-center bg-muted/10">
             <div className="text-center">
               <MessageSquare className="h-16 w-16 mx-auto mb-4 text-muted-foreground/50" />
               <h3 className="text-lg font-semibold mb-2">Welcome to Messages</h3>
@@ -552,12 +458,9 @@ const Messages = () => {
                 Select a conversation to start messaging, or create a new conversation with your team members.
               </p>
             </div>
-          </div>
-        )}
+          </div>}
       </div>
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default Messages;
