@@ -2292,6 +2292,7 @@ export type Database = {
       }
       generate_rfi_number: {
         Args:
+          | { company_name_param: string; project_id_param: string }
           | { project_id_param: string }
           | {
               project_id_param: string
