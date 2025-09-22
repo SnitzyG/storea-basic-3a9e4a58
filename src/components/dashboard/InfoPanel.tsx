@@ -34,68 +34,56 @@ export const InfoPanel = () => {
     return () => clearInterval(timer);
   }, []);
 
-  // Mock weather data based on project location
+  // Real weather data based on project location via Edge Function
   useEffect(() => {
-    const getWeatherForLocation = (location: string) => {
-      // Mock weather data - in production this would be an API call
-      const locations = {
-        'Melbourne CBD': { temp: 22, condition: 'Partly Cloudy', humidity: 65, wind: 12, rainfall: 0 },
-        'Sydney': { temp: 25, condition: 'Sunny', humidity: 60, wind: 8, rainfall: 0 },
-        'Brisbane': { temp: 28, condition: 'Cloudy', humidity: 70, wind: 15, rainfall: 2 },
-        'Perth': { temp: 24, condition: 'Clear', humidity: 55, wind: 10, rainfall: 0 },
-        'Adelaide': { temp: 21, condition: 'Overcast', humidity: 68, wind: 14, rainfall: 1 }
-      };
+    const fetchWeather = async () => {
+      const projectLocation = selectedProject?.address || 'Melbourne CBD';
+      // Extract suburb from address - improved parsing
+      let suburb = 'Melbourne CBD';
 
-      const mockForecast = [
-        { day: format(new Date(), 'EEE'), minTemp: 11, maxTemp: 22, condition: 'Partly Cloudy', rainfall: 0 },
-        { day: format(new Date(Date.now() + 86400000), 'EEE'), minTemp: 12, maxTemp: 24, condition: 'Sunny', rainfall: 0 },
-        { day: format(new Date(Date.now() + 2 * 86400000), 'EEE'), minTemp: 10, maxTemp: 20, condition: 'Rainy', rainfall: 8 },
-        { day: format(new Date(Date.now() + 3 * 86400000), 'EEE'), minTemp: 13, maxTemp: 23, condition: 'Cloudy', rainfall: 2 },
-        { day: format(new Date(Date.now() + 4 * 86400000), 'EEE'), minTemp: 14, maxTemp: 26, condition: 'Sunny', rainfall: 0 }
-      ];
-
-      return { ...locations[location as keyof typeof locations] || locations['Melbourne CBD'], forecast: mockForecast };
-    };
-
-    const projectLocation = selectedProject?.address || 'Melbourne CBD';
-    // Extract suburb from address - improved parsing
-    let suburb = 'Melbourne CBD';
-    
-    if (projectLocation && projectLocation !== 'Melbourne CBD') {
-      // Try to extract suburb from common address formats
-      // e.g., "123 Main St, Suburb, State" or "123 Main St, Suburb 3941"
-      const parts = projectLocation.split(',').map(part => part.trim());
-      if (parts.length >= 2) {
-        // Take the second part as suburb (after street address)
-        let locationPart = parts[1];
-        // Extract suburb name by removing postcode (4 digits at the end)
-        suburb = locationPart.replace(/\s+\d{4}$/, '').trim();
-        // Remove state abbreviations if present
-        suburb = suburb.replace(/\s+(VIC|NSW|QLD|SA|WA|TAS|NT|ACT)$/i, '').trim();
-      } else if (parts.length === 1) {
-        // If no comma, try to extract from the end
-        const words = projectLocation.split(' ');
-        if (words.length > 2) {
-          // Take last 1-2 words as potential suburb, excluding postcode
-          const withoutPostcode = projectLocation.replace(/\s+\d{4}$/, '').trim();
-          const cleanWords = withoutPostcode.split(' ');
-          suburb = cleanWords.slice(-2).join(' ');
+      if (projectLocation && projectLocation !== 'Melbourne CBD') {
+        const parts = projectLocation.split(',').map(part => part.trim());
+        if (parts.length >= 2) {
+          let locationPart = parts[1];
+          suburb = locationPart.replace(/\s+\d{4}$/, '').trim();
+          suburb = suburb.replace(/\s+(VIC|NSW|QLD|SA|WA|TAS|NT|ACT)$/i, '').trim();
+        } else if (parts.length === 1) {
+          const words = projectLocation.split(' ');
+          if (words.length > 2) {
+            const withoutPostcode = projectLocation.replace(/\s+\d{4}$/, '').trim();
+            const cleanWords = withoutPostcode.split(' ');
+            suburb = cleanWords.slice(-2).join(' ');
+          }
         }
       }
-    }
-    
-    const weatherData = getWeatherForLocation(suburb);
-        
-        setWeather({
-          temperature: weatherData.temp,
-          condition: weatherData.condition,
-          humidity: weatherData.humidity,
-          windSpeed: weatherData.wind,
-          rainfall: weatherData.rainfall,
-          location: suburb,
-          loading: false,
-          forecast: weatherData.forecast
+
+      try {
+        setWeather(prev => ({ ...prev, loading: true, location: suburb }));
+        const { data, error } = await supabase.functions.invoke('get-weather', {
+          body: { location: suburb, country: 'AU' }
         });
+        if (error) throw error;
+
+        setWeather({
+          temperature: Math.round(data.current.temp),
+          condition: data.current.condition,
+          humidity: data.current.humidity,
+          windSpeed: Math.round(data.current.wind_kmh),
+          rainfall: data.current.rainfall_mm || 0,
+          location: data.city || suburb,
+          loading: false,
+          forecast: (data.forecast || []).slice(0, 7)
+        });
+      } catch (err) {
+        console.error('Weather fetch failed, using fallback:', err);
+        setWeather(prev => ({
+          ...prev,
+          loading: false
+        }));
+      }
+    };
+
+    fetchWeather();
   }, [selectedProject]);
 
   return (
