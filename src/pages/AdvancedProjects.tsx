@@ -138,7 +138,7 @@ const AdvancedProjects = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Project Management</h1>
+          
           <p className="text-muted-foreground">
             Advanced construction project management and collaboration
           </p>
