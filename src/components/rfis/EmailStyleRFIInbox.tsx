@@ -225,7 +225,7 @@ export const EmailStyleRFIInbox: React.FC<EmailStyleRFIInboxProps> = ({
                   <div className="flex items-center gap-2">
                     <TypeIcon className={`h-4 w-4 ${rfiTypeConfig[rfiType].color}`} />
                     <span className="text-xs text-muted-foreground font-medium">
-                      {rfiType}
+                      {rfi.rfi_number || `RFI-${rfi.id.slice(0, 8)}`} - {getRFITypeDisplay(rfi)}
                     </span>
                     {isResponseRequired && (
                       <Badge variant="outline" className="text-xs">
@@ -252,10 +252,10 @@ export const EmailStyleRFIInbox: React.FC<EmailStyleRFIInboxProps> = ({
                   </p>
                 </div>
 
-                <div className="flex items-center justify-between mt-3 text-xs text-muted-foreground">
-                  <div className="flex items-center gap-4">
-                    <span>From: {rfi.raised_by_profile?.name || 'Unknown'}</span>
-                    <span>To: {rfi.recipient_name || 'Unassigned'}</span>
+                  <div className="flex items-center justify-between mt-3 text-xs text-muted-foreground">
+                    <div className="flex items-center gap-4">
+                      <span>From: {rfi.raised_by_profile?.name || 'Unknown'}</span>
+                      <span>To: {rfi.recipient_name || 'Unassigned'}</span>
                     {rfi.attachments && rfi.attachments.length > 0 && (
                       <div className="flex items-center gap-1 text-muted-foreground">
                         <Paperclip className="h-3 w-3" />

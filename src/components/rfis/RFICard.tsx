@@ -53,9 +53,17 @@ export const RFICard = ({ rfi, onView, onEdit, onAssign }: RFICardProps) => {
               <CardTitle className="text-lg line-clamp-2">
                 {rfi.question}
               </CardTitle>
-              <Badge variant="secondary" className="ml-2 font-mono text-xs">
-                {rfi.rfi_number || `RFI-${rfi.id.slice(0, 8)}`}
-              </Badge>
+              <div className="ml-2 space-y-1 text-right">
+                <Badge variant="secondary" className="font-mono text-xs block">
+                  {rfi.rfi_number || `RFI-${rfi.id.slice(0, 8)}`}
+                </Badge>
+                <div className="text-xs text-muted-foreground">
+                  {rfi.rfi_type === 'general_correspondence' && 'General Correspondence'}
+                  {rfi.rfi_type === 'request_for_information' && 'Request for Information'}
+                  {rfi.rfi_type === 'general_advice' && 'General Advice'}
+                  {!rfi.rfi_type && 'General Correspondence'}
+                </div>
+              </div>
             </div>
             <div className="flex flex-wrap gap-2 mb-3">
               <Badge className={statusColors[rfi.status]}>
