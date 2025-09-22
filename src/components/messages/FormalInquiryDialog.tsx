@@ -62,7 +62,7 @@ export const FormalInquiryDialog: React.FC<FormalInquiryDialogProps> = ({
   // Generate RFI number preview
   const generateRFINumber = () => {
     const companyCode = companyName.substring(0, 3).toUpperCase();
-    // This would normally come from a sequence, but for preview we'll use a placeholder
+    // For message inquiries, always use MES
     return `${companyCode}-MES-0001`;
   };
 
@@ -125,7 +125,7 @@ export const FormalInquiryDialog: React.FC<FormalInquiryDialogProps> = ({
           </DialogTitle>
         </DialogHeader>
 
-        <div className="flex-1 flex gap-6 overflow-hidden min-h-[600px]">
+        <div className="flex-1 flex gap-8 overflow-hidden min-h-[650px]">{/*Increased gap and height*/}
           {/* Left Panel - Message Selection */}
           <div className="flex-1 flex flex-col min-h-0">
             <div className="mb-4">
@@ -206,11 +206,11 @@ export const FormalInquiryDialog: React.FC<FormalInquiryDialogProps> = ({
                 {generateRFINumber()}
               </div>
               <p className="text-xs text-muted-foreground mt-1">
-                {companyName} - MES - Auto-generated
+                {companyName} - Message Inquiry - Auto-generated
               </p>
             </div>
 
-            <div className="space-y-4 flex-1">
+            <div className="space-y-4 flex-1 overflow-y-auto">{/*Added overflow handling*/}
               {/* Assignment */}
               <div>
                 <Label className="text-sm font-medium">Assign To *</Label>
