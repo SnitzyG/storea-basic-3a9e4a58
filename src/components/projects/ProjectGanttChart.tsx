@@ -5,7 +5,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { Badge } from '@/components/ui/badge';
 import { ZoomIn, ZoomOut, Calendar, CalendarDays, Clock } from 'lucide-react';
 import { AdvancedProject } from '@/hooks/useAdvancedProjects';
-type ZoomLevel = 'day' | 'week' | 'month' | 'quarter' | 'halfyear' | 'year';
+type ZoomLevel = 'day' | 'week' | 'fortnightly' | 'month' | 'quarter' | 'halfyear' | 'year';
 interface ProjectGanttChartProps {
   projects: AdvancedProject[];
 }
@@ -74,6 +74,18 @@ export const ProjectGanttChart: React.FC<ProjectGanttChartProps> = ({
           label: `${month}.${day}`
         });
         current.setDate(current.getDate() + 7);
+      }
+    } else if (zoomLevel === 'fortnightly') {
+      // Start from beginning of week, show every 2 weeks
+      current.setDate(current.getDate() - current.getDay());
+      while (current <= endWithPadding) {
+        const month = String(current.getMonth() + 1).padStart(2, '0');
+        const day = String(current.getDate()).padStart(2, '0');
+        labels.push({
+          date: new Date(current),
+          label: `${month}.${day}`
+        });
+        current.setDate(current.getDate() + 14);
       }
     } else if (zoomLevel === 'month') {
       current.setDate(1); // Start from beginning of month
@@ -151,14 +163,15 @@ export const ProjectGanttChart: React.FC<ProjectGanttChartProps> = ({
     });
   }, [validProjects, startDate, totalDays]);
   const getPixelWidth = () => {
-    const baseWidth = 800; // Reduced from 1200
+    const baseWidth = 800;
     const multiplier = {
       day: 2,
       week: 1.5,
+      fortnightly: 1.2,
       month: 1,
-      quarter: 0.8, // Reduced from 1
-      halfyear: 0.6, // Reduced from 0.8
-      year: 0.5 // Reduced from 0.6
+      quarter: 0.8,
+      halfyear: 0.6,
+      year: 0.5
     }[zoomLevel];
     return baseWidth * multiplier;
   };
@@ -208,6 +221,22 @@ export const ProjectGanttChart: React.FC<ProjectGanttChartProps> = ({
             </CardTitle>
             <div className="flex items-center gap-2 bg-background/50 backdrop-blur-sm rounded-lg p-1 border">
               <Button 
+                variant={zoomLevel === 'week' ? 'default' : 'ghost'} 
+                size="sm" 
+                onClick={() => setZoomLevel('week')}
+                className="transition-all duration-200 hover:scale-105"
+              >
+                Weekly
+              </Button>
+              <Button 
+                variant={zoomLevel === 'fortnightly' ? 'default' : 'ghost'} 
+                size="sm" 
+                onClick={() => setZoomLevel('fortnightly')}
+                className="transition-all duration-200 hover:scale-105"
+              >
+                Fortnightly
+              </Button>
+              <Button 
                 variant={zoomLevel === 'month' ? 'default' : 'ghost'} 
                 size="sm" 
                 onClick={() => setZoomLevel('month')}
@@ -252,17 +281,19 @@ export const ProjectGanttChart: React.FC<ProjectGanttChartProps> = ({
               minHeight: `${validProjects.length * 50 + 60}px` // Reduced height from 70 to 50
             }}>
                 {/* Timeline header */}
-                <div className="sticky top-0 bg-gradient-to-r from-background via-background/95 to-background border-b-2 border-primary/20 h-12 flex items-center relative z-10 shadow-sm">
-                  {dateLabels.map((label, index) => <div key={index} className="absolute text-xs font-medium text-foreground/80 border-l-2 border-primary/30 pl-2" style={{
-                  left: `${(label.date.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24) / totalDays * 100}%`,
-                  height: '100%',
-                  display: 'flex',
-                  alignItems: 'center'
-                }}>
+                <div className="sticky top-0 bg-gradient-to-r from-background via-background/95 to-background border-b-2 border-primary/20 h-12 flex items-center relative z-10 shadow-sm w-full">
+                  <div className="absolute inset-0 w-full">
+                    {dateLabels.map((label, index) => <div key={index} className="absolute text-xs font-medium text-foreground/80 border-l-2 border-primary/30 pl-2" style={{
+                    left: `${(label.date.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24) / totalDays * 100}%`,
+                    height: '100%',
+                    display: 'flex',
+                    alignItems: 'center'
+                  }}>
                       <div className="bg-background/80 backdrop-blur-sm px-1.5 py-0.5 rounded text-xs shadow-sm border">
                         {label.label}
                       </div>
                     </div>)}
+                  </div>
                 </div>
 
                 {/* Project bars */}
