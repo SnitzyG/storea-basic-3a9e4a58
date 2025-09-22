@@ -11,7 +11,7 @@ import { useAdvancedProjects, AdvancedProject } from '@/hooks/useAdvancedProject
 import { AdvancedProjectWizard } from '@/components/projects-v2/AdvancedProjectWizard';
 import { ProjectDetailsDialog } from '@/components/projects-v2/ProjectDetailsDialog';
 import { ProjectJoinSection } from '@/components/projects/ProjectJoinSection';
-import { ProjectGanttChart } from '@/components/projects/ProjectGanttChart';
+
 import { useAuth } from '@/hooks/useAuth';
 const StatusSelector = ({
   project,
@@ -242,8 +242,6 @@ const AdvancedProjects = () => {
               </CardContent>
             </Card>}
 
-          {/* Gantt Chart Section */}
-          {projects.length > 0 && <ProjectGanttChart projects={projects} />}
         </TabsContent>
 
         <TabsContent value="join" className="space-y-6">
