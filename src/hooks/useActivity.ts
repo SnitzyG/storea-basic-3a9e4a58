@@ -96,7 +96,12 @@ export const useActivity = () => {
       
       // Filter out dismissed activities and take only 4
       const visibleActivities = enrichedActivities
-        .filter(activity => !dismissedActivityIds.has(activity.id))
+        .filter(activity => {
+          // Check if activity is dismissed by this user
+          const metadata = (typeof activity.metadata === 'object' && activity.metadata !== null && !Array.isArray(activity.metadata)) ? activity.metadata : {};
+          const dismissedBy = Array.isArray((metadata as any).dismissed_by) ? (metadata as any).dismissed_by : [];
+          return !dismissedBy.includes(user.id);
+        })
         .slice(0, 4);
       
       setActivities(visibleActivities);
@@ -136,18 +141,42 @@ export const useActivity = () => {
     if (!user) return;
 
     try {
-      // Delete the activity from the database
+      // Get the current activity
+      const { data: activity, error: fetchError } = await supabase
+        .from('activity_log')
+        .select('metadata')
+        .eq('id', activityId)
+        .single();
+
+      if (fetchError) throw fetchError;
+
+      // Update metadata to include this user in dismissed_by array
+      const currentMetadata = (typeof activity.metadata === 'object' && activity.metadata !== null && !Array.isArray(activity.metadata)) ? activity.metadata : {};
+      const dismissedBy = Array.isArray((currentMetadata as any).dismissed_by) ? (currentMetadata as any).dismissed_by : [];
+      
+      if (!dismissedBy.includes(user.id)) {
+        dismissedBy.push(user.id);
+      }
+
+      const updatedMetadata = {
+        ...(typeof currentMetadata === 'object' && !Array.isArray(currentMetadata) ? currentMetadata : {}),
+        dismissed_by: dismissedBy
+      };
+
+      // Update the activity in the database
       const { error } = await supabase
         .from('activity_log')
-        .delete()
-        .eq('id', activityId)
-        .eq('user_id', user.id); // Ensure user can only delete their own activities
+        .update({ metadata: updatedMetadata })
+        .eq('id', activityId);
 
       if (error) throw error;
 
       // Update local state to remove the activity immediately
-      setAllActivities(prev => prev.filter(activity => activity.id !== activityId));
+      setDismissedActivityIds(prev => new Set([...prev, activityId]));
       setActivities(prev => prev.filter(activity => activity.id !== activityId));
+      
+      // Also refresh to get more activities to fill the space
+      setTimeout(() => fetchActivities(), 100);
     } catch (error) {
       console.error('Error dismissing activity:', error);
       // Fallback to local dismissal if database operation fails
@@ -159,11 +188,16 @@ export const useActivity = () => {
   useEffect(() => {
     if (allActivities.length > 0) {
       const visibleActivities = allActivities
-        .filter(activity => !dismissedActivityIds.has(activity.id))
+        .filter(activity => {
+          // Check if activity is dismissed by this user
+          const metadata = (typeof activity.metadata === 'object' && activity.metadata !== null && !Array.isArray(activity.metadata)) ? activity.metadata : {};
+          const dismissedBy = Array.isArray((metadata as any).dismissed_by) ? (metadata as any).dismissed_by : [];
+          return !dismissedBy.includes(user.id) && !dismissedActivityIds.has(activity.id);
+        })
         .slice(0, 4);
       setActivities(visibleActivities);
     }
-  }, [dismissedActivityIds, allActivities]);
+  }, [dismissedActivityIds, allActivities, user]);
 
   useEffect(() => {
     fetchActivities();
