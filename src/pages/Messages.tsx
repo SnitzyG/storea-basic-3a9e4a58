@@ -300,31 +300,35 @@ const Messages = () => {
   }
 
   return (
-    <div className="h-[calc(100vh-8rem)] flex bg-background">
+    <div className="space-y-6">
+      {/* Page Header */}
+      <div className="flex items-center justify-between">
+        <h1 className="text-3xl font-bold">Messages</h1>
+        <CreateThreadDialog projectId={selectedProject?.id || ''} onCreateThread={handleCreateThread}>
+          <Button size="sm" className="bg-green-600 hover:bg-green-700 text-white">
+            <Plus className="h-4 w-4 mr-2" />
+            Create New Message
+          </Button>
+        </CreateThreadDialog>
+      </div>
+      
+      {/* Messages Layout */}
+      <div className="h-[calc(100vh-12rem)] flex bg-background">
       {/* WhatsApp-style Sidebar */}
       <div className="w-60 border-r border-border bg-background flex flex-col">
         {/* Header with Project Info */}
         <div className="p-3 border-b border-border bg-muted/30">
-          <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-semibold">
-                {getCurrentProjectName().charAt(0).toUpperCase()}
-              </div>
-              <div className="flex-1">
-                <h2 className="font-semibold text-sm text-foreground">{getCurrentProjectName()}</h2>
-                <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                  <Circle className={cn("h-2 w-2 fill-current", connectionStatus === 'connected' ? 'text-green-500' : 'text-red-500')} />
-                  {onlineUsers.size} online
-                </div>
+          <div className="flex items-center gap-2 mb-2">
+            <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-semibold">
+              {getCurrentProjectName().charAt(0).toUpperCase()}
+            </div>
+            <div className="flex-1">
+              <h2 className="font-semibold text-sm text-foreground">{getCurrentProjectName()}</h2>
+              <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                <Circle className={cn("h-2 w-2 fill-current", connectionStatus === 'connected' ? 'text-green-500' : 'text-red-500')} />
+                {onlineUsers.size} online
               </div>
             </div>
-            
-            {/* Create Message Button */}
-            <CreateThreadDialog projectId={selectedProject?.id || ''} onCreateThread={handleCreateThread}>
-              <Button size="sm" className="bg-green-600 hover:bg-green-700 text-white">
-                <Plus className="h-4 w-4" />
-              </Button>
-            </CreateThreadDialog>
           </div>
         </div>
 
@@ -550,6 +554,7 @@ const Messages = () => {
             </div>
           </div>
         )}
+      </div>
       </div>
     </div>
   );
