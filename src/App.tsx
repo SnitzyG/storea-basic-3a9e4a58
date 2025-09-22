@@ -15,7 +15,6 @@ import RFIs from "./pages/RFIs";
 import Tenders from "./pages/Tenders";
 import Financials from "./pages/Financials";
 import Testing from "./pages/Testing";
-import DesignSystem from "./pages/DesignSystem";
 import TenderResponse from "./pages/TenderResponse";
 import TenderReviewDemo from "./pages/TenderReviewDemo";
 import AcceptInvitation from "./pages/AcceptInvitation";
@@ -81,11 +80,6 @@ const App = () => (
           <Route path="/testing" element={
             <AppLayout>
               <Testing />
-            </AppLayout>
-          } />
-          <Route path="/design-system" element={
-            <AppLayout>
-              <DesignSystem />
             </AppLayout>
           } />
           <Route path="/tender/:tenderId" element={<TenderResponse />} />

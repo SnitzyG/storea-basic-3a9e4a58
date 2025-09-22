@@ -775,8 +775,7 @@ const RFIs = () => {
   }
 
 
-  return <div className="min-h-screen bg-background p-6">
-    <div className="space-y-6 animate-fade-in">
+  return <div className="space-y-6">
       {/* Debug validators - only show in development */}
       {showDebug && (
         <div className="space-y-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
@@ -826,11 +825,11 @@ const RFIs = () => {
             />
           )}
           
-          <div className={`h-full border rounded-lg bg-card p-4 overflow-hidden transition-all duration-300 shadow-md hover:shadow-lg ${
+          <div className={`h-full border rounded-lg bg-card p-4 overflow-hidden transition-all duration-300 ${
             isDetailOverlayOpen ? 'brightness-75' : ''
           }`}>
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold font-display text-foreground">RFI List</h2>
+              <h2 className="text-lg font-semibold">RFI List</h2>
               <div className="flex items-center space-x-2">
                 <Button 
                   onClick={() => setQuickRespondDialogOpen(true)} 
@@ -841,11 +840,7 @@ const RFIs = () => {
                   <AlertCircle className="w-4 h-4" />
                   RFI Respond
                 </Button>
-                <Button 
-                  onClick={() => setSimplifiedComposerOpen(true)} 
-                  size="sm" 
-                  className="shadow-md hover:shadow-lg transition-all hover-scale"
-                >
+                <Button onClick={() => setSimplifiedComposerOpen(true)} size="sm" className="bg-green-600 hover:bg-green-700 text-white">
                   Create RFI
                 </Button>
               </div>
@@ -972,8 +967,7 @@ const RFIs = () => {
         rfis={projectRFIs}
         onRespond={handleCreateResponse}
       />
-    </div>
-  </div>;
+    </div>;
 };
 
 export default RFIs;

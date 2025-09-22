@@ -1,6 +1,6 @@
 import { cn } from '@/lib/utils';
 import { useLocation, Link } from 'react-router-dom';
-import { BarChart3, FolderOpen, FileStack, MessageSquare, HelpCircle, Briefcase, TestTube, DollarSign, Palette } from 'lucide-react';
+import { BarChart3, FolderOpen, FileStack, MessageSquare, HelpCircle, Briefcase, TestTube, DollarSign } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { useTabNotifications } from '@/hooks/useTabNotifications';
 interface SidebarProps {
@@ -47,11 +47,6 @@ export const Sidebar = ({
       label: 'Financials',
       icon: DollarSign,
       path: '/financials'
-    }, {
-      id: 'design-system',
-      label: 'Design System',
-      icon: Palette,
-      path: '/design-system'
     }];
     switch (role) {
       case 'architect':

@@ -124,7 +124,7 @@ export const RFIListView: React.FC<RFIListViewProps> = ({
   const SortButton: React.FC<{ field: SortField; children: React.ReactNode }> = ({ field, children }) => (
     <button
       onClick={() => handleSort(field)}
-      className="flex items-center gap-1 hover:bg-muted/30 p-1 rounded transition-all duration-200 hover-scale"
+      className="flex items-center gap-1 hover:bg-muted/50 p-1 rounded transition-colors"
     >
       {children}
       <ArrowUpDown className="h-3 w-3" />
@@ -187,9 +187,9 @@ export const RFIListView: React.FC<RFIListViewProps> = ({
           {sortedRFIs.map((rfi) => (
             <TableRow 
               key={rfi.id} 
-              className={`hover:bg-muted/30 cursor-pointer transition-all duration-200 interactive-card ${
-                selectedRFI?.id === rfi.id ? 'bg-muted/30 shadow-md' : ''
-              } ${isRFISelected(rfi.id) ? 'bg-accent/20 border-l-4 border-l-accent' : ''}`}
+              className={`hover:bg-muted/50 cursor-pointer ${
+                selectedRFI?.id === rfi.id ? 'bg-muted/50' : ''
+              } ${isRFISelected(rfi.id) ? 'bg-accent/20' : ''}`}
               onClick={() => handleRowClick(rfi)}
               onDoubleClick={() => onDoubleClick?.(rfi)}
             >

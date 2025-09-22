@@ -8,173 +8,96 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    /* Base colors */
     --background: 0 0% 100%;
-    --foreground: 224 71% 4%;
+    --foreground: 222.2 84% 4.9%;
 
-    /* Surface colors */
     --card: 0 0% 100%;
-    --card-foreground: 224 71% 4%;
+    --card-foreground: 222.2 84% 4.9%;
+
     --popover: 0 0% 100%;
-    --popover-foreground: 224 71% 4%;
+    --popover-foreground: 222.2 84% 4.9%;
 
-    /* Primary brand colors - Modern blue system */
-    --primary: 221 83% 53%;
-    --primary-hover: 221 83% 45%;
-    --primary-light: 221 83% 95%;
-    --primary-foreground: 210 40% 98%;
+    /* STOREALite modern theme - emerald green and navy */
+    --primary: 160 84% 39%;
+    --primary-foreground: 0 0% 98%;
 
-    /* Secondary colors - Sophisticated grays */
-    --secondary: 210 40% 96%;
-    --secondary-hover: 210 40% 92%;
-    --secondary-foreground: 222 47% 11%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
 
-    /* Accent colors - Complementary emerald */
-    --accent: 142 76% 36%;
-    --accent-hover: 142 76% 28%;
-    --accent-light: 142 76% 95%;
-    --accent-foreground: 210 40% 98%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
 
-    /* Muted/neutral colors */
-    --muted: 210 40% 96%;
-    --muted-hover: 210 40% 92%;
-    --muted-foreground: 215 16% 47%;
+    /* Vibrant accent for modern appearance */
+    --accent: 160 84% 95%;
+    --accent-foreground: 160 84% 39%;
 
-    /* Semantic colors */
-    --success: 142 76% 36%;
-    --success-foreground: 210 40% 98%;
-    --warning: 43 96% 56%;
-    --warning-foreground: 224 71% 4%;
-    --error: 0 84% 60%;
-    --error-foreground: 210 40% 98%;
-    --info: 221 83% 53%;
-    --info-foreground: 210 40% 98%;
-
-    /* Destructive (error) colors */
-    --destructive: 0 84% 60%;
+    --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
 
-    /* Border and input colors */
-    --border: 214 32% 91%;
-    --input: 214 32% 91%;
-    --ring: 221 83% 53%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 160 84% 39%;
 
-    /* Design system tokens */
     --radius: 0.5rem;
-    --radius-sm: 0.25rem;
-    --radius-md: 0.375rem;
-    --radius-lg: 0.5rem;
-    --radius-xl: 0.75rem;
 
-    /* Spacing system (4px base) */
-    --spacing-xs: 0.25rem;   /* 4px */
-    --spacing-sm: 0.5rem;    /* 8px */
-    --spacing-md: 0.75rem;   /* 12px */
-    --spacing-lg: 1rem;      /* 16px */
-    --spacing-xl: 1.5rem;    /* 24px */
-    --spacing-2xl: 2rem;     /* 32px */
-    --spacing-3xl: 3rem;     /* 48px */
-    --spacing-4xl: 4rem;     /* 64px */
+    /* Sidebar styling - modern dark navy background */
+    --sidebar-background: 217 32% 14%;
+    --sidebar-foreground: 0 0% 0%;
+    --sidebar-primary: 160 84% 39%;
+    --sidebar-primary-foreground: 217 32% 14%;
+    --sidebar-accent: 217 20% 20%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 217 20% 20%;
+    --sidebar-ring: 160 84% 39%;
 
-    /* Typography scale */
-    --font-size-xs: 0.75rem;    /* 12px */
-    --font-size-sm: 0.875rem;   /* 14px */
-    --font-size-base: 1rem;     /* 16px */
-    --font-size-lg: 1.125rem;   /* 18px */
-    --font-size-xl: 1.25rem;    /* 20px */
-    --font-size-2xl: 1.5rem;    /* 24px */
-    --font-size-3xl: 2rem;      /* 32px */
-    --font-size-4xl: 3rem;      /* 48px */
-
-    /* Shadows */
-    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-    --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
-
-    /* Sidebar styling */
-    --sidebar-background: 224 71% 4%;
-    --sidebar-foreground: 210 40% 98%;
-    --sidebar-primary: 221 83% 53%;
-    --sidebar-primary-foreground: 210 40% 98%;
-    --sidebar-accent: 215 28% 17%;
-    --sidebar-accent-foreground: 210 40% 98%;
-    --sidebar-border: 215 28% 17%;
-    --sidebar-ring: 221 83% 53%;
-
-    /* Construction project specific colors */
-    --construction-warning: 43 96% 56%;
-    --construction-success: 142 76% 36%;
-    --construction-info: 221 83% 53%;
+    /* STOREALite brand colors */
+    --construction-warning: 45 93% 47%;
+    --construction-success: 160 84% 39%;
+    --construction-info: 217 91% 60%;
     
     /* Role-specific colors */
-    --role-architect: 221 83% 53%;
+    --role-architect: 160 84% 39%;
     --role-builder: 142 76% 36%;
     --role-homeowner: 271 81% 56%;
-    --role-contractor: 43 96% 56%;
+    --role-contractor: 45 93% 47%;
   }
 
   .dark {
-    /* Base colors - dark theme */
-    --background: 224 71% 4%;
+    --background: 222.2 84% 4.9%;
     --foreground: 210 40% 98%;
 
-    /* Surface colors - dark theme */
-    --card: 224 71% 4%;
+    --card: 222.2 84% 4.9%;
     --card-foreground: 210 40% 98%;
-    --popover: 224 71% 4%;
+
+    --popover: 222.2 84% 4.9%;
     --popover-foreground: 210 40% 98%;
 
-    /* Primary colors - dark theme */
-    --primary: 221 83% 53%;
-    --primary-hover: 221 83% 61%;
-    --primary-light: 221 83% 15%;
-    --primary-foreground: 210 40% 98%;
+    --primary: 210 40% 98%;
+    --primary-foreground: 222.2 47.4% 11.2%;
 
-    /* Secondary colors - dark theme */
-    --secondary: 215 28% 17%;
-    --secondary-hover: 215 28% 21%;
+    --secondary: 217.2 32.6% 17.5%;
     --secondary-foreground: 210 40% 98%;
 
-    /* Accent colors - dark theme */
-    --accent: 142 76% 36%;
-    --accent-hover: 142 76% 44%;
-    --accent-light: 142 76% 15%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+
+    --accent: 217.2 32.6% 17.5%;
     --accent-foreground: 210 40% 98%;
 
-    /* Muted colors - dark theme */
-    --muted: 215 28% 17%;
-    --muted-hover: 215 28% 21%;
-    --muted-foreground: 217 11% 65%;
-
-    /* Semantic colors - dark theme */
-    --success: 142 76% 36%;
-    --success-foreground: 210 40% 98%;
-    --warning: 43 96% 56%;
-    --warning-foreground: 224 71% 4%;
-    --error: 0 84% 60%;
-    --error-foreground: 210 40% 98%;
-    --info: 221 83% 53%;
-    --info-foreground: 210 40% 98%;
-
-    /* Destructive colors - dark theme */
-    --destructive: 0 63% 31%;
+    --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
 
-    /* Border and input - dark theme */
-    --border: 215 28% 17%;
-    --input: 215 28% 17%;
-    --ring: 221 83% 53%;
-
-    /* Sidebar styling - dark theme */
-    --sidebar-background: 224 71% 4%;
-    --sidebar-foreground: 210 40% 98%;
-    --sidebar-primary: 221 83% 53%;
-    --sidebar-primary-foreground: 210 40% 98%;
-    --sidebar-accent: 215 28% 17%;
-    --sidebar-accent-foreground: 210 40% 98%;
-    --sidebar-border: 215 28% 17%;
-    --sidebar-ring: 221 83% 53%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 212.7 26.8% 83.9%;
+    --sidebar-background: 217 32% 14%;
+    --sidebar-foreground: 0 0% 0%;
+    --sidebar-primary: 160 84% 39%;
+    --sidebar-primary-foreground: 217 32% 14%;
+    --sidebar-accent: 217 20% 20%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 217 20% 20%;
+    --sidebar-ring: 160 84% 39%;
   }
 }
 
@@ -242,44 +165,6 @@ All colors MUST be HSL.
 
   .animate-slide-in-right {
     animation: slide-in-right 0.3s ease-out;
-  }
-
-  /* Utility Classes for Design System */
-  .hover-scale {
-    @apply transition-transform duration-200 hover:scale-105;
-  }
-
-  .hover-lift {
-    @apply transition-all duration-200 hover:shadow-md hover:-translate-y-0.5;
-  }
-
-  .focus-ring {
-    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2;
-  }
-
-  .gradient-primary {
-    background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent)));
-  }
-
-  .gradient-secondary {
-    background: linear-gradient(135deg, hsl(var(--secondary)), hsl(var(--muted)));
-  }
-
-  .glass-effect {
-    @apply backdrop-blur-sm bg-background/80 border;
-  }
-
-  .text-gradient {
-    @apply bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent;
-  }
-
-  /* Interactive Elements */
-  .interactive-card {
-    @apply transition-all duration-200 hover:shadow-md hover:bg-muted/30 cursor-pointer;
-  }
-
-  .button-press {
-    @apply active:scale-[0.98] transition-transform duration-75;
   }
 }
 
