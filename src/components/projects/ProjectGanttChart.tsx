@@ -163,101 +163,144 @@ export const ProjectGanttChart: React.FC<ProjectGanttChartProps> = ({
     return baseWidth * multiplier;
   };
   const statusColors = {
-    planning: 'bg-blue-500',
-    active: 'bg-green-500',
-    on_hold: 'bg-yellow-500',
-    completed: 'bg-gray-500',
-    cancelled: 'bg-red-500'
+    planning: 'bg-gradient-to-r from-blue-500 to-blue-600',
+    active: 'bg-gradient-to-r from-green-500 to-green-600',
+    on_hold: 'bg-gradient-to-r from-yellow-500 to-orange-500',
+    completed: 'bg-gradient-to-r from-emerald-500 to-teal-600',
+    cancelled: 'bg-gradient-to-r from-red-500 to-red-600'
   };
   if (validProjects.length === 0) {
-    return <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Calendar className="h-5 w-5" />
-            Project Timeline
+    return <Card className="shadow-lg border-0 bg-gradient-to-br from-card to-card/50">
+        <CardHeader className="bg-gradient-to-r from-primary/5 to-accent/5 border-b">
+          <CardTitle className="flex items-center gap-3 text-xl font-bold">
+            <div className="p-2 rounded-lg bg-primary/10">
+              <CalendarDays className="h-5 w-5 text-primary" />
+            </div>
+            <span className="bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+              Project Timeline
+            </span>
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="text-center py-8 text-muted-foreground">
-            No projects with valid start and finish dates found.
+        <CardContent className="p-8">
+          <div className="text-center py-12">
+            <div className="mx-auto mb-4 w-16 h-16 rounded-full bg-muted/50 flex items-center justify-center">
+              <Calendar className="h-8 w-8 text-muted-foreground" />
+            </div>
+            <h3 className="text-lg font-semibold mb-2">No Timeline Data</h3>
+            <p className="text-muted-foreground max-w-md mx-auto">
+              No projects with valid start and finish dates found. Add project dates to see your timeline visualization.
+            </p>
           </div>
         </CardContent>
       </Card>;
   }
   return <TooltipProvider>
-      <Card>
-        <CardHeader>
+      <Card className="shadow-lg border-0 bg-gradient-to-br from-card to-card/50">
+        <CardHeader className="bg-gradient-to-r from-primary/5 to-accent/5 border-b">
           <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center gap-2">
-              <Calendar className="h-5 w-5" />
-              Project Timeline
+            <CardTitle className="flex items-center gap-3 text-xl font-bold">
+              <div className="p-2 rounded-lg bg-primary/10">
+                <CalendarDays className="h-5 w-5 text-primary" />
+              </div>
+              <span className="bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+                Project Timeline
+              </span>
             </CardTitle>
-            <div className="flex items-center gap-1">
-              <Button variant={zoomLevel === 'month' ? 'default' : 'outline'} size="sm" onClick={() => setZoomLevel('month')}>
+            <div className="flex items-center gap-2 bg-background/50 backdrop-blur-sm rounded-lg p-1 border">
+              <Button 
+                variant={zoomLevel === 'month' ? 'default' : 'ghost'} 
+                size="sm" 
+                onClick={() => setZoomLevel('month')}
+                className="transition-all duration-200 hover:scale-105"
+              >
                 Monthly
               </Button>
-              <Button variant={zoomLevel === 'quarter' ? 'default' : 'outline'} size="sm" onClick={() => setZoomLevel('quarter')}>
+              <Button 
+                variant={zoomLevel === 'quarter' ? 'default' : 'ghost'} 
+                size="sm" 
+                onClick={() => setZoomLevel('quarter')}
+                className="transition-all duration-200 hover:scale-105"
+              >
                 Quarterly
               </Button>
-              <Button variant={zoomLevel === 'halfyear' ? 'default' : 'outline'} size="sm" onClick={() => setZoomLevel('halfyear')}>
+              <Button 
+                variant={zoomLevel === 'halfyear' ? 'default' : 'ghost'} 
+                size="sm" 
+                onClick={() => setZoomLevel('halfyear')}
+                className="transition-all duration-200 hover:scale-105"
+              >
                 Half-Yearly
               </Button>
-              <Button variant={zoomLevel === 'year' ? 'default' : 'outline'} size="sm" onClick={() => setZoomLevel('year')}>
+              <Button 
+                variant={zoomLevel === 'year' ? 'default' : 'ghost'} 
+                size="sm" 
+                onClick={() => setZoomLevel('year')}
+                className="transition-all duration-200 hover:scale-105"
+              >
                 Yearly
               </Button>
             </div>
           </div>
         </CardHeader>
         <CardContent className="p-0">
-          <div className="border-t">
+          <div className="border-t bg-gradient-to-b from-background to-muted/20">
             <div ref={scrollContainerRef} className="overflow-x-auto overflow-y-hidden" style={{
-            maxHeight: '400px'
+            maxHeight: '500px'
           }}>
               <div className="relative" style={{
               width: `${getPixelWidth()}px`,
-              minHeight: `${validProjects.length * 60 + 60}px`
+              minHeight: `${validProjects.length * 70 + 80}px`
             }}>
                 {/* Timeline header */}
-                <div className="sticky top-0 bg-background border-b h-12 flex items-center relative z-10">
-                  {dateLabels.map((label, index) => <div key={index} className="absolute text-xs text-muted-foreground border-l border-border pl-2" style={{
+                <div className="sticky top-0 bg-gradient-to-r from-background via-background/95 to-background border-b-2 border-primary/20 h-16 flex items-center relative z-10 shadow-sm">
+                  {dateLabels.map((label, index) => <div key={index} className="absolute text-sm font-medium text-foreground/80 border-l-2 border-primary/30 pl-3" style={{
                   left: `${(label.date.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24) / totalDays * 100}%`,
                   height: '100%',
                   display: 'flex',
                   alignItems: 'center'
                 }}>
-                      {label.label}
+                      <div className="bg-background/80 backdrop-blur-sm px-2 py-1 rounded-md shadow-sm border">
+                        {label.label}
+                      </div>
                     </div>)}
                 </div>
 
                 {/* Project bars */}
-                <div className="relative">
-                  {projectBars.map((bar, index) => <div key={bar.project.id} className="absolute h-8 flex items-center" style={{
-                  top: `${index * 60 + 16}px`,
+                <div className="relative py-4">
+                  {projectBars.map((bar, index) => <div key={bar.project.id} className="absolute h-12 flex items-center group" style={{
+                  top: `${index * 70 + 20}px`,
                   left: `${bar.leftPercent}%`,
                   width: `${bar.widthPercent}%`,
-                  minWidth: '80px'
+                  minWidth: '120px'
                 }}>
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <div className={`w-full h-6 rounded-md flex items-center px-2 text-white text-xs font-medium cursor-pointer hover:opacity-80 transition-opacity ${statusColors[bar.project.status] || 'bg-gray-500'}`}>
-                            <span className="truncate">
+                          <div className={`w-full h-8 rounded-xl flex items-center px-4 text-white text-sm font-semibold cursor-pointer transition-all duration-300 hover:scale-105 hover:shadow-lg group-hover:shadow-xl ${statusColors[bar.project.status] || 'bg-gray-500'} shadow-md relative overflow-hidden`}>
+                            <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent opacity-50"></div>
+                            <div className="absolute inset-0 bg-gradient-to-l from-black/10 to-transparent"></div>
+                            <Clock className="h-4 w-4 mr-2 opacity-80" />
+                            <span className="truncate relative z-10">
                               {bar.project.project_reference_number || bar.project.name}
                             </span>
                           </div>
                         </TooltipTrigger>
-                        <TooltipContent>
-                          <div className="space-y-1">
-                            <div className="font-medium">{bar.project.name}</div>
-                            {bar.project.project_reference_number && <div className="text-xs text-muted-foreground">
-                                Ref: {bar.project.project_reference_number}
+                        <TooltipContent className="max-w-sm bg-background/95 backdrop-blur-sm border-2">
+                          <div className="space-y-3 p-2">
+                            <div className="font-bold text-lg text-primary">{bar.project.name}</div>
+                            {bar.project.project_reference_number && <div className="text-sm text-muted-foreground bg-muted/50 px-2 py-1 rounded">
+                                Reference: {bar.project.project_reference_number}
                               </div>}
-                            <div className="text-xs">
-                              Start: {bar.startDate.toLocaleDateString()}
+                            <div className="grid grid-cols-2 gap-3 text-sm">
+                              <div className="space-y-1">
+                                <div className="font-medium text-green-600">Start Date</div>
+                                <div>{bar.startDate.toLocaleDateString()}</div>
+                              </div>
+                              <div className="space-y-1">
+                                <div className="font-medium text-red-600">End Date</div>
+                                <div>{bar.endDate.toLocaleDateString()}</div>
+                              </div>
                             </div>
-                            <div className="text-xs">
-                              Finish: {bar.endDate.toLocaleDateString()}
-                            </div>
-                            <Badge variant="secondary" className="text-xs">
+                            <Badge variant="secondary" className="text-sm px-3 py-1 font-medium">
                               {bar.project.status.replace('_', ' ').toUpperCase()}
                             </Badge>
                           </div>
@@ -266,12 +309,24 @@ export const ProjectGanttChart: React.FC<ProjectGanttChartProps> = ({
                     </div>)}
                 </div>
 
-                {/* Grid lines */}
+                {/* Enhanced Grid lines */}
                 <div className="absolute inset-0 pointer-events-none">
-                  {dateLabels.map((label, index) => <div key={index} className="absolute border-l border-border/30" style={{
+                  {dateLabels.map((label, index) => <div key={index} className="absolute border-l border-primary/10" style={{
                   left: `${(label.date.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24) / totalDays * 100}%`,
-                  height: '100%'
+                  height: '100%',
+                  background: 'linear-gradient(to bottom, transparent 0%, hsl(var(--primary) / 0.05) 50%, transparent 100%)'
                 }} />)}
+                  {/* Horizontal grid lines */}
+                  {validProjects.map((_, index) => (
+                    <div 
+                      key={index} 
+                      className="absolute border-b border-muted/30 w-full"
+                      style={{
+                        top: `${index * 70 + 56}px`,
+                        height: '1px'
+                      }}
+                    />
+                  ))}
                 </div>
               </div>
             </div>
