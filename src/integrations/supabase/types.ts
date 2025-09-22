@@ -2289,6 +2289,11 @@ export type Database = {
           | { project_id_param: string }
           | {
               project_id_param: string
+              raised_by_param: string
+              rfi_type_param: Database["public"]["Enums"]["rfi_type"]
+            }
+          | {
+              project_id_param: string
               rfi_type_param: Database["public"]["Enums"]["rfi_type"]
             }
         Returns: string
