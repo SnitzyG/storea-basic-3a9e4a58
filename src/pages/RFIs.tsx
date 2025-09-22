@@ -838,7 +838,7 @@ const RFIs = () => {
                   className="gap-2"
                 >
                   <AlertCircle className="w-4 h-4" />
-                  RFI Respond
+                  Respond to RFI
                 </Button>
                 <Button onClick={() => setSimplifiedComposerOpen(true)} size="sm" className="bg-green-600 hover:bg-green-700 text-white">
                   Create RFI
