@@ -1,4 +1,5 @@
 import { cn } from '@/lib/utils';
+import Logo from '@/components/ui/logo';
 import { useLocation, Link } from 'react-router-dom';
 import { BarChart3, FolderOpen, FileStack, MessageSquare, HelpCircle, Briefcase, TestTube, DollarSign, Palette } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
@@ -73,17 +74,8 @@ export const Sidebar = ({
   const visibleTabs = getVisibleTabs(userRole);
   return <div className="w-64 bg-sidebar-background border-r border-sidebar-border flex flex-col">
       <div className="p-6 border-b border-sidebar-border">
-        <div className="flex items-center gap-2 mx-0 px-[50px]">
-          <div>
-            <h1 className="text-xl font-bold tracking-wider">
-              <span className="bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent font-black">
-                STOREA
-              </span>
-              <span className="bg-gradient-to-r from-accent to-accent/70 bg-clip-text text-transparent font-light ml-1">
-                Lite
-              </span>
-            </h1>
-          </div>
+        <div className="flex items-center justify-center">
+          <Logo size="md" variant="white" showIcon={true} />
         </div>
       </div>
 

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import Logo from '@/components/ui/logo';
 import { Navigate, useSearchParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -259,16 +260,12 @@ const Auth = () => {
                   </g>
                 </svg>
                 
-                {/* Updated STOREALite Logo */}
+                {/* Enhanced STOREALite Logo */}
                 <div className="mt-6 text-center animate-[fadeIn_0.8s_ease-out_3.4s_both]">
-                  <h1 className="text-4xl font-bold tracking-wider">
-                    <span className="bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent font-black">
-                      STOREA
-                    </span>
-                    <span className="bg-gradient-to-r from-accent to-accent/70 bg-clip-text text-transparent font-light ml-1">
-                      Lite
-                    </span>
-                  </h1>
+                  <Logo size="xl" variant="default" showIcon={true} className="justify-center" />
+                  <p className="text-muted-foreground mt-3 text-lg font-medium">
+                    Professional Project Management Platform
+                  </p>
                 </div>
               </div>
             </CardContent>
