@@ -125,15 +125,17 @@ export const ThreadCard: React.FC<ThreadCardProps> = ({
             </div>
           ) : (
             <>
-              <div className="flex items-center justify-between">
-                <span className={cn(
-                  "text-sm font-medium truncate",
-                  isSelected ? "text-primary-foreground" : "text-foreground"
-                )}>
-                  {thread.title}
-                </span>
+              <div className="flex items-start justify-between gap-2">
+                <div className="flex-1 min-w-0">
+                  <span className={cn(
+                    "text-sm font-medium block leading-tight",
+                    isSelected ? "text-primary-foreground" : "text-foreground"
+                  )}>
+                    {thread.title}
+                  </span>
+                </div>
                 
-                <div className="flex items-center gap-1 ml-2">
+                <div className="flex items-center gap-1 flex-shrink-0">
                   {unreadCount > 0 && (
                     <div className={cn(
                       "h-5 w-5 rounded-full flex items-center justify-center text-xs font-medium",
@@ -219,7 +221,7 @@ export const ThreadCard: React.FC<ThreadCardProps> = ({
               </div>
               
               <div className={cn(
-                "text-xs mt-0.5 flex items-center gap-1",
+                "text-xs mt-1 flex items-center gap-1",
                 isSelected ? "text-primary-foreground/70" : "text-muted-foreground"
               )}>
                 <span>{thread.participants.length} members</span>
