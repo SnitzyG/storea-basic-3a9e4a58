@@ -9,7 +9,7 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { FileSelector } from './FileSelector';
-import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
+import { FormalInquiryDialog } from './FormalInquiryDialog';
 import { cn } from '@/lib/utils';
 
 interface MessageInputProps {
@@ -21,7 +21,18 @@ interface MessageInputProps {
   supportMentions?: boolean;
   projectUsers?: any[];
   projectId?: string;
-  onCreateRFI?: (content: string, attachments?: any[]) => Promise<void>;
+  onCreateRFI?: (inquiryData: {
+    selectedMessages: string[];
+    assignedTo: string;
+    subject: string;
+    description: string;
+    priority: 'low' | 'medium' | 'high' | 'critical';
+    dueDate?: string;
+    attachments?: any[];
+  }) => Promise<void>;
+  messages?: any[];
+  currentUserId?: string;
+  companyName?: string;
 }
 
 export const MessageInput: React.FC<MessageInputProps> = ({
@@ -33,7 +44,10 @@ export const MessageInput: React.FC<MessageInputProps> = ({
   supportMentions = false,
   projectUsers = [],
   projectId = '',
-  onCreateRFI
+  onCreateRFI,
+  messages = [],
+  currentUserId,
+  companyName
 }) => {
   const [message, setMessage] = useState('');
   const [sending, setSending] = useState(false);
@@ -42,7 +56,7 @@ export const MessageInput: React.FC<MessageInputProps> = ({
   const [mentionQuery, setMentionQuery] = useState('');
   const [isInquiry, setIsInquiry] = useState(false);
   const [showFileSelector, setShowFileSelector] = useState(false);
-  const [showConfirmation, setShowConfirmation] = useState(false);
+  const [showFormalInquiryDialog, setShowFormalInquiryDialog] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout>();
 
@@ -92,9 +106,9 @@ export const MessageInput: React.FC<MessageInputProps> = ({
     e.preventDefault();
     if ((!message.trim() && attachments.length === 0) || sending || disabled) return;
 
-    // Show confirmation dialog for formal inquiries
+    // Show formal inquiry dialog for formal inquiries
     if (isInquiry) {
-      setShowConfirmation(true);
+      setShowFormalInquiryDialog(true);
       return;
     }
 
@@ -104,20 +118,13 @@ export const MessageInput: React.FC<MessageInputProps> = ({
   const sendMessage = async () => {
     setSending(true);
     try {
-      // Send the message first
       await onSendMessage(message.trim(), attachments.length > 0 ? attachments : undefined, isInquiry);
-      
-      // If it's a formal inquiry, also create an RFI entry
-      if (isInquiry && onCreateRFI) {
-        await onCreateRFI(message.trim(), attachments.length > 0 ? attachments : undefined);
-      }
       
       setMessage('');
       setAttachments([]);
       setShowMentions(false);
       setIsInquiry(false);
       setShowFileSelector(false);
-      setShowConfirmation(false);
       
       // Reset textarea height
       if (textareaRef.current) {
@@ -132,6 +139,40 @@ export const MessageInput: React.FC<MessageInputProps> = ({
       console.error('Error sending message:', error);
     } finally {
       setSending(false);
+    }
+  };
+
+  const handleFormalInquiry = async (inquiryData: {
+    selectedMessages: string[];
+    assignedTo: string;
+    subject: string;
+    description: string;
+    priority: 'low' | 'medium' | 'high' | 'critical';
+    dueDate?: string;
+  }) => {
+    if (onCreateRFI) {
+      await onCreateRFI({
+        ...inquiryData,
+        attachments: attachments.length > 0 ? attachments : undefined,
+      });
+    }
+    
+    // Reset form
+    setMessage('');
+    setAttachments([]);
+    setShowMentions(false);
+    setIsInquiry(false);
+    setShowFileSelector(false);
+    setShowFormalInquiryDialog(false);
+    
+    // Reset textarea height
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+    }
+    
+    // Stop typing indicator
+    if (onTyping) {
+      onTyping(false);
     }
   };
 
@@ -335,15 +376,15 @@ export const MessageInput: React.FC<MessageInputProps> = ({
         </form>
       </div>
 
-      {/* Confirmation Dialog for Formal Inquiries */}
-      <ConfirmationDialog
-        open={showConfirmation}
-        onClose={() => setShowConfirmation(false)}
-        onConfirm={sendMessage}
-        title="Send Formal Inquiry"
-        description="You are about to send a formal inquiry. This will create an RFI entry that will be tracked and requires a formal response. Do you want to proceed?"
-        confirmText="Send Inquiry"
-        cancelText="Cancel"
+      {/* Formal Inquiry Dialog */}
+      <FormalInquiryDialog
+        open={showFormalInquiryDialog}
+        onClose={() => setShowFormalInquiryDialog(false)}
+        onSubmit={handleFormalInquiry}
+        messages={messages}
+        projectUsers={projectUsers}
+        currentUserId={currentUserId}
+        companyName={companyName}
       />
     </div>
   );

@@ -14,6 +14,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useProjectTeam } from '@/hooks/useProjectTeam';
 import { useRFIs } from '@/hooks/useRFIs';
 import { useProjectSelection } from '@/context/ProjectSelectionContext';
+import { supabase } from '@/integrations/supabase/client';
 import { ThreadCard } from '@/components/messages/ThreadCard';
 import { CreateThreadDialog } from '@/components/messages/CreateThreadDialog';
 import { MessageBubble } from '@/components/messages/MessageBubble';
@@ -139,6 +140,32 @@ const Messages = () => {
     // Only show team members from current project, excluding current user
     return projectUsers.filter(user => user.user_id !== profile.user_id && (user.user_profile?.name?.toLowerCase().includes(searchTerm.toLowerCase()) || user.role?.toLowerCase().includes(searchTerm.toLowerCase())));
   }, [projectUsers, profile?.user_id, searchTerm]);
+
+  // Get company name for current user
+  const [companyName, setCompanyName] = useState<string>('COMPANY');
+  
+  useEffect(() => {
+    const fetchCompanyName = async () => {
+      if (!profile?.user_id) return;
+      
+      try {
+        const { data: profileData } = await supabase
+          .from('profiles')
+          .select('company_id, companies(name)')
+          .eq('user_id', profile.user_id)
+          .single();
+
+        if (profileData?.companies) {
+          setCompanyName((profileData.companies as any).name || 'COMPANY');
+        }
+      } catch (error) {
+        console.error('Error fetching company name:', error);
+      }
+    };
+
+    fetchCompanyName();
+  }, [profile?.user_id]);
+
   const getCurrentProjectName = () => {
     return selectedProject?.name || 'Select Project';
   };
@@ -148,19 +175,61 @@ const Messages = () => {
   const handleSendMessage = async (content: string, attachments?: any[], isInquiry?: boolean) => {
     await sendMessage(content, currentThread || undefined, attachments, isInquiry);
   };
-  const handleCreateRFI = async (content: string, attachments?: any[]) => {
+  const handleCreateRFI = async (inquiryData: {
+    selectedMessages: string[];
+    assignedTo: string;
+    subject: string;
+    description: string;
+    priority: 'low' | 'medium' | 'high' | 'critical';
+    dueDate?: string;
+    attachments?: any[];
+  }) => {
     if (!selectedProject || !profile?.user_id) return;
+    
     try {
+      // Get selected message contents
+      const selectedMessageContents = messages
+        .filter(msg => inquiryData.selectedMessages.includes(msg.id))
+        .map(msg => {
+          const senderName = 'Unknown'; // We'll get this from project users
+          return `[${new Date(msg.created_at).toLocaleString()}] ${senderName}: ${msg.content}`;
+        })
+        .join('\n\n');
+
+      // Get company name from profile
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('company_id, companies(name)')
+        .eq('user_id', profile.user_id)
+        .single();
+
+      const companyName = (profileData?.companies as any)?.name || 'COMPANY';
+      const companyCode = companyName.substring(0, 3).toUpperCase();
+
+      // Get next RFI number
+      const { data: rfiCount } = await supabase
+        .from('rfis')
+        .select('id', { count: 'exact' })
+        .eq('project_id', selectedProject.id);
+
+      const nextNumber = String((rfiCount?.length || 0) + 1).padStart(4, '0');
+      const rfiNumber = `${companyCode}-MES-${nextNumber}`;
+
+      const fullQuestion = `${inquiryData.subject}\n\n${inquiryData.description}\n\nBased on message history:\n${selectedMessageContents}`;
+
       await createRFI({
         project_id: selectedProject.id,
-        question: content,
-        priority: 'medium',
-        subject: `Inquiry from Message: ${content.substring(0, 50)}${content.length > 50 ? '...' : ''}`,
+        question: fullQuestion,
+        subject: inquiryData.subject,
+        priority: inquiryData.priority,
+        assigned_to: inquiryData.assignedTo,
+        required_response_by: inquiryData.dueDate,
         sender_name: profile.name || 'Unknown User',
         sender_email: profile.user_id,
-        // Store user ID as identifier
         category: 'Message Inquiry',
-        rfi_type: 'general_correspondence'
+        rfi_type: 'general_correspondence',
+        project_name: selectedProject.name,
+        project_number: selectedProject.id,
       });
     } catch (error) {
       console.error('Error creating RFI:', error);
@@ -447,7 +516,19 @@ const Messages = () => {
 
             {/* Message Input */}
             <div className="border-t border-border p-4">
-              <MessageInput onSendMessage={handleSendMessage} onTyping={(isTyping: boolean) => setTypingIndicator(isTyping)} onCreateRFI={handleCreateRFI} placeholder="Type a message..." />
+              <MessageInput 
+                onSendMessage={handleSendMessage} 
+                onTyping={(isTyping: boolean) => setTypingIndicator(isTyping)} 
+                onCreateRFI={handleCreateRFI} 
+                placeholder="Type a message..." 
+                supportAttachments={true}
+                supportMentions={true}
+                projectUsers={projectUsers}
+                projectId={selectedProject?.id}
+                messages={messages}
+                currentUserId={profile?.user_id}
+                companyName={companyName}
+              />
             </div>
           </> : <div className="flex-1 flex items-center justify-center bg-muted/10">
             <div className="text-center">
