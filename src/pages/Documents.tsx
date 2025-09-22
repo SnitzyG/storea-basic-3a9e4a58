@@ -30,11 +30,15 @@ const Documents = () => {
   const [previewDocument, setPreviewDocument] = useState<DocumentGroup | null>(null);
   const [detailsDocument, setDetailsDocument] = useState<DocumentGroup | null>(null);
   const [activityDocument, setActivityDocument] = useState<DocumentGroup | null>(null);
-  const { selectedProject } = useProjectSelection();
+  const {
+    selectedProject
+  } = useProjectSelection();
   const {
     profile
   } = useAuth();
-  const { toast } = useToast();
+  const {
+    toast
+  } = useToast();
   const {
     projects
   } = useProjects();
@@ -52,27 +56,16 @@ const Documents = () => {
   const filteredDocuments = useMemo(() => {
     return documents.filter(doc => {
       // Enhanced search - search in title, category, document number
-      const searchFields = [
-        doc.title,
-        doc.category,
-        doc.document_number,
-        `rev ${doc.current_revision?.revision_number || 1}` // Include revision number
+      const searchFields = [doc.title, doc.category, doc.document_number, `rev ${doc.current_revision?.revision_number || 1}` // Include revision number
       ].filter(Boolean).join(' ').toLowerCase();
-      
       const matchesSearch = searchTerm === '' || searchFields.includes(searchTerm.toLowerCase());
       const matchesCategory = selectedCategory === 'all' || doc.category === selectedCategory;
       const matchesStatus = statusFilter === 'all' || doc.status === statusFilter;
-      
+
       // New filter logic
-      const matchesFileType = selectedFileType === 'all' || 
-        (doc.current_revision?.file_extension && doc.current_revision.file_extension.toLowerCase() === selectedFileType.toLowerCase());
-      
-      const matchesUploadedBy = selectedUploadedBy === 'all' || 
-        doc.current_revision?.uploaded_by === selectedUploadedBy;
-      
-      const matchesRevision = selectedRevision === 'all' || 
-        (doc.current_revision?.revision_number && doc.current_revision.revision_number.toString() === selectedRevision);
-      
+      const matchesFileType = selectedFileType === 'all' || doc.current_revision?.file_extension && doc.current_revision.file_extension.toLowerCase() === selectedFileType.toLowerCase();
+      const matchesUploadedBy = selectedUploadedBy === 'all' || doc.current_revision?.uploaded_by === selectedUploadedBy;
+      const matchesRevision = selectedRevision === 'all' || doc.current_revision?.revision_number && doc.current_revision.revision_number.toString() === selectedRevision;
       return matchesSearch && matchesCategory && matchesStatus && matchesFileType && matchesUploadedBy && matchesRevision;
     });
   }, [documents, searchTerm, selectedCategory, statusFilter, selectedFileType, selectedUploadedBy, selectedRevision]);
@@ -85,29 +78,39 @@ const Documents = () => {
   const handleDownload = async (groupId: string) => {
     const group = documents.find(d => d.id === groupId);
     if (!group?.current_revision?.file_path) {
-      toast({ title: "Error", description: "No file available for download", variant: "destructive" });
+      toast({
+        title: "Error",
+        description: "No file available for download",
+        variant: "destructive"
+      });
       return;
     }
-
     try {
-      const { downloadFromStorage, normalizeStorageError } = await import('@/utils/storageUtils');
-      await downloadFromStorage(
-        group.current_revision.file_path,
-        group.current_revision.file_name || 'document'
-      );
-      toast({ title: "Success", description: "File downloaded successfully" });
+      const {
+        downloadFromStorage,
+        normalizeStorageError
+      } = await import('@/utils/storageUtils');
+      await downloadFromStorage(group.current_revision.file_path, group.current_revision.file_name || 'document');
+      toast({
+        title: "Success",
+        description: "File downloaded successfully"
+      });
     } catch (e: any) {
       console.error('Download failed:', e);
-      const { normalizeStorageError } = await import('@/utils/storageUtils');
-      toast({ title: "Error", description: normalizeStorageError(e?.message), variant: "destructive" });
+      const {
+        normalizeStorageError
+      } = await import('@/utils/storageUtils');
+      toast({
+        title: "Error",
+        description: normalizeStorageError(e?.message),
+        variant: "destructive"
+      });
     }
   };
-
   const handleStatusChange = async (groupId: string, status: string) => {
     // Implementation for status change would go here
     console.log('Status change:', groupId, status);
   };
-
   const handleTypeChange = async (groupId: string, type: string) => {
     // Implementation for type change would go here
     console.log('Type change:', groupId, type);
@@ -138,9 +141,12 @@ const Documents = () => {
     });
     return Array.from(fileTypes).sort();
   }, [documents]);
-
   const availableUploaders = useMemo(() => {
-    const uploaders = new Map<string, { id: string; name: string; role: string }>();
+    const uploaders = new Map<string, {
+      id: string;
+      name: string;
+      role: string;
+    }>();
     documents.forEach(doc => {
       if (doc.current_revision?.uploaded_by && doc.current_revision?.uploaded_by_name) {
         uploaders.set(doc.current_revision.uploaded_by, {
@@ -152,7 +158,6 @@ const Documents = () => {
     });
     return Array.from(uploaders.values()).sort((a, b) => a.name.localeCompare(b.name));
   }, [documents]);
-
   const availableRevisions = useMemo(() => {
     const revisions = new Set<number>();
     documents.forEach(doc => {
@@ -273,7 +278,6 @@ const Documents = () => {
         </Card>
       </div>;
   }
-
   if (loading) {
     return <div className="space-y-6">
         <div className="flex items-center justify-between">
@@ -288,10 +292,8 @@ const Documents = () => {
       {/* Header */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Document Management</h1>
-          <p className="text-muted-foreground">
-            Professional document control and collaboration system
-          </p>
+          
+          
         </div>
         
         <div className="flex items-center gap-2">
@@ -306,21 +308,14 @@ const Documents = () => {
               <DialogHeader>
                 <DialogTitle>Upload Documents</DialogTitle>
               </DialogHeader>
-              {projects.length > 0 ? (
-                <DocumentUpload 
-                  projectId={selectedProject?.id || projects[0]?.id || ''}
-                  onUploadComplete={() => {
-                    setUploadDialogOpen(false);
-                    fetchDocumentGroups(); // Refresh list after upload
-                  }} 
-                />
-              ) : (
-                <div className="text-center py-8">
+              {projects.length > 0 ? <DocumentUpload projectId={selectedProject?.id || projects[0]?.id || ''} onUploadComplete={() => {
+              setUploadDialogOpen(false);
+              fetchDocumentGroups(); // Refresh list after upload
+            }} /> : <div className="text-center py-8">
                   <p className="text-muted-foreground">
                     No projects available. Create a project first to upload documents.
                   </p>
-                </div>
-              )}
+                </div>}
             </DialogContent>
           </Dialog>
         </div>
@@ -329,29 +324,12 @@ const Documents = () => {
       {/* Filters */}
       <Card className="mb-6">
         <CardContent className="p-6">
-          <DocumentFilters 
-            searchTerm={searchTerm} 
-            onSearchChange={setSearchTerm} 
-            selectedCategory={selectedCategory} 
-            onCategoryChange={setSelectedCategory} 
-            selectedStatus={statusFilter} 
-            onStatusChange={setStatusFilter}
-            selectedFileType={selectedFileType}
-            onFileTypeChange={setSelectedFileType}
-            selectedUploadedBy={selectedUploadedBy}
-            onUploadedByChange={setSelectedUploadedBy}
-            selectedRevision={selectedRevision}
-            onRevisionChange={setSelectedRevision}
-            documentCounts={{
-              total: statusCounts.all,
-              'For Tender': statusCounts['For Tender'],
-              'For Information': statusCounts['For Information'],
-              'For Construction': statusCounts['For Construction']
-            }}
-            availableFileTypes={availableFileTypes}
-            availableUploaders={availableUploaders}
-            availableRevisions={availableRevisions}
-          />
+          <DocumentFilters searchTerm={searchTerm} onSearchChange={setSearchTerm} selectedCategory={selectedCategory} onCategoryChange={setSelectedCategory} selectedStatus={statusFilter} onStatusChange={setStatusFilter} selectedFileType={selectedFileType} onFileTypeChange={setSelectedFileType} selectedUploadedBy={selectedUploadedBy} onUploadedByChange={setSelectedUploadedBy} selectedRevision={selectedRevision} onRevisionChange={setSelectedRevision} documentCounts={{
+          total: statusCounts.all,
+          'For Tender': statusCounts['For Tender'],
+          'For Information': statusCounts['For Information'],
+          'For Construction': statusCounts['For Construction']
+        }} availableFileTypes={availableFileTypes} availableUploaders={availableUploaders} availableRevisions={availableRevisions} />
         </CardContent>
       </Card>
 
@@ -369,22 +347,7 @@ const Documents = () => {
                 Upload Documents
               </Button>}
           </CardContent>
-        </Card> : <DocumentListView 
-          documentGroups={filteredDocuments} 
-          onDownload={handleDownload} 
-          onDelete={deleteDocumentGroup} 
-          onStatusChange={handleStatusChange} 
-          onTypeChange={handleTypeChange} 
-          onPreview={setPreviewDocument} 
-          onViewDetails={setDetailsDocument} 
-          onViewActivity={setActivityDocument} 
-          onSupersede={supersedeDocument}
-          onToggleLock={toggleDocumentLock}
-          onEdit={updateDocumentMetadata}
-          canEdit={filteredDocuments.some(doc => canEditDocument(doc))} 
-          canApprove={canApproveDocument()} 
-          selectedProject={selectedProject?.id || ''}
-        />}
+        </Card> : <DocumentListView documentGroups={filteredDocuments} onDownload={handleDownload} onDelete={deleteDocumentGroup} onStatusChange={handleStatusChange} onTypeChange={handleTypeChange} onPreview={setPreviewDocument} onViewDetails={setDetailsDocument} onViewActivity={setActivityDocument} onSupersede={supersedeDocument} onToggleLock={toggleDocumentLock} onEdit={updateDocumentMetadata} canEdit={filteredDocuments.some(doc => canEditDocument(doc))} canApprove={canApproveDocument()} selectedProject={selectedProject?.id || ''} />}
 
       {/* Document Preview Dialog */}
       {previewDocument && <DocumentPreview document={previewDocument} isOpen={!!previewDocument} onClose={() => setPreviewDocument(null)} onDownload={handleDownload} />}
@@ -393,16 +356,14 @@ const Documents = () => {
       <DocumentDetailsDialog document={detailsDocument} isOpen={!!detailsDocument} onClose={() => setDetailsDocument(null)} />
 
       {/* Document Activity Dialog */}
-      {activityDocument && (
-        <Dialog open={!!activityDocument} onOpenChange={() => setActivityDocument(null)}>
+      {activityDocument && <Dialog open={!!activityDocument} onOpenChange={() => setActivityDocument(null)}>
           <DialogContent className="max-w-4xl max-h-[80vh]">
             <DialogHeader>
               <DialogTitle>Document Activity - {activityDocument.title}</DialogTitle>
             </DialogHeader>
             <DocumentActivity document={activityDocument} />
           </DialogContent>
-        </Dialog>
-      )}
+        </Dialog>}
     </div>;
 };
 export default Documents;
