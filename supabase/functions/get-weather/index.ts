@@ -12,178 +12,136 @@ interface WeatherRequestBody {
   lon?: number;
 }
 
+// Australian city coordinates for better location matching
+const australianCities: { [key: string]: { lat: number; lon: number; name: string } } = {
+  "rye": { lat: -38.3667, lon: 144.8167, name: "Rye, VIC" },
+  "melbourne": { lat: -37.8136, lon: 144.9631, name: "Melbourne, VIC" },
+  "sydney": { lat: -33.8688, lon: 151.2093, name: "Sydney, NSW" },
+  "brisbane": { lat: -27.4698, lon: 153.0251, name: "Brisbane, QLD" },
+  "perth": { lat: -31.9505, lon: 115.8605, name: "Perth, WA" },
+  "adelaide": { lat: -34.9285, lon: 138.6007, name: "Adelaide, SA" },
+  "geelong": { lat: -38.1499, lon: 144.3617, name: "Geelong, VIC" },
+  "ballarat": { lat: -37.5622, lon: 143.8503, name: "Ballarat, VIC" },
+  "bendigo": { lat: -36.7570, lon: 144.2794, name: "Bendigo, VIC" },
+  "frankston": { lat: -38.1342, lon: 145.1234, name: "Frankston, VIC" },
+  "mornington": { lat: -38.2222, lon: 145.0420, name: "Mornington, VIC" },
+  "sorrento": { lat: -38.3333, lon: 144.7333, name: "Sorrento, VIC" },
+  "portsea": { lat: -38.3167, lon: 144.7167, name: "Portsea, VIC" }
+};
+
+async function getCoordinates(location: string): Promise<{ lat: number; lon: number; displayName: string } | null> {
+  const locationKey = location.toLowerCase().trim();
+  
+  // Check our Australian cities first
+  if (australianCities[locationKey]) {
+    const city = australianCities[locationKey];
+    return { lat: city.lat, lon: city.lon, displayName: city.name };
+  }
+  
+  // If not in our predefined list, try geocoding with Nominatim (free)
+  try {
+    const geocodeUrl = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(location + ', Victoria, Australia')}&format=json&limit=1`;
+    const response = await fetch(geocodeUrl, {
+      headers: { 'User-Agent': 'STOREALite-Weather-App' }
+    });
+    
+    if (response.ok) {
+      const data = await response.json();
+      if (data && data.length > 0) {
+        return {
+          lat: parseFloat(data[0].lat),
+          lon: parseFloat(data[0].lon),
+          displayName: data[0].display_name.split(',')[0] + ', VIC'
+        };
+      }
+    }
+  } catch (error) {
+    console.error('Geocoding failed:', error);
+  }
+  
+  // Fallback to Melbourne
+  return { lat: -37.8136, lon: 144.9631, displayName: "Melbourne, VIC" };
+}
+
 serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const apiKey = Deno.env.get("OPENWEATHER_API_KEY");
-    if (!apiKey) {
-      return new Response(
-        JSON.stringify({ error: "Missing OPENWEATHER_API_KEY" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
+    const { location, lat, lon }: WeatherRequestBody = await req.json().catch(() => ({}));
 
-    const { location, country = "AU", lat, lon }: WeatherRequestBody = await req.json().catch(() => ({}));
-
-    if ((!lat || !lon) && !location) {
+    let coordinates: { lat: number; lon: number; displayName: string };
+    
+    if (lat && lon) {
+      coordinates = { lat, lon, displayName: location || `${lat}, ${lon}` };
+    } else if (location) {
+      const coords = await getCoordinates(location);
+      if (!coords) {
+        throw new Error('Could not resolve location');
+      }
+      coordinates = coords;
+    } else {
       return new Response(
         JSON.stringify({ error: "Provide either lat/lon or a location string" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    // Improve location formatting for Australian cities
-    let queryLocation = location;
-    if (location && !lat && !lon) {
-      // For Australian locations, be more specific
-      if (country === "AU") {
-        // Add state if not present
-        if (!location.includes("VIC") && !location.includes("NSW") && !location.includes("QLD") && 
-            !location.includes("SA") && !location.includes("WA") && !location.includes("TAS") && 
-            !location.includes("NT") && !location.includes("ACT")) {
-          queryLocation = `${location}, VIC, AU`; // Default to VIC, can be improved with more location data
-        } else {
-          queryLocation = `${location}, AU`;
-        }
-      } else {
-        queryLocation = `${location}, ${country}`;
-      }
+    console.log(`Getting weather for: ${coordinates.displayName} (${coordinates.lat}, ${coordinates.lon})`);
+
+    // Use Open-Meteo API (free, no API key required)
+    const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${coordinates.lat}&longitude=${coordinates.lon}&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m,precipitation&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum&timezone=Australia/Melbourne&forecast_days=7`;
+    
+    const weatherResponse = await fetch(weatherUrl);
+    
+    if (!weatherResponse.ok) {
+      throw new Error(`Open-Meteo API error: ${weatherResponse.status}`);
     }
 
-    console.log(`Searching weather for: ${queryLocation}`);
+    const weatherData = await weatherResponse.json();
 
-    const forecastUrl = lat && lon
-      ? `https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric`
-      : `https://api.openweathermap.org/data/2.5/forecast?q=${encodeURIComponent(queryLocation)}&appid=${apiKey}&units=metric`;
+    // Weather code mapping for Open-Meteo
+    const getConditionFromCode = (code: number): string => {
+      if (code === 0) return 'Clear';
+      if (code <= 3) return 'Partly Cloudy';
+      if (code <= 48) return 'Cloudy';
+      if (code <= 57) return 'Light Rain';
+      if (code <= 67) return 'Rain';
+      if (code <= 77) return 'Snow';
+      if (code <= 82) return 'Rain';
+      if (code <= 86) return 'Snow';
+      if (code <= 99) return 'Thunderstorm';
+      return 'Unknown';
+    };
 
-    const currentUrl = lat && lon
-      ? `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric`
-      : `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(queryLocation)}&appid=${apiKey}&units=metric`;
-
-    const [forecastRes, currentRes] = await Promise.all([
-      fetch(forecastUrl),
-      fetch(currentUrl)
-    ]);
-
-    if (!forecastRes.ok || !currentRes.ok) {
-      const fTxt = await forecastRes.text();
-      const cTxt = await currentRes.text();
-      console.error(`OpenWeather API error for location "${queryLocation}": forecast ${forecastRes.status} ${fTxt} | current ${currentRes.status} ${cTxt}`);
+    // Process forecast data
+    const forecast = [];
+    for (let i = 0; i < Math.min(7, weatherData.daily.time.length); i++) {
+      const date = new Date(weatherData.daily.time[i]);
+      const day = date.toLocaleDateString('en-US', { weekday: 'short' });
       
-      // Try fallback to Melbourne if the location wasn't found
-      if (forecastRes.status === 404 || currentRes.status === 404) {
-        console.log(`Location "${queryLocation}" not found, trying fallback to Melbourne, VIC, AU`);
-        const fallbackLocation = "Melbourne, VIC, AU";
-        
-        const fallbackForecastUrl = `https://api.openweathermap.org/data/2.5/forecast?q=${encodeURIComponent(fallbackLocation)}&appid=${apiKey}&units=metric`;
-        const fallbackCurrentUrl = `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(fallbackLocation)}&appid=${apiKey}&units=metric`;
-        
-        const [fallbackForecastRes, fallbackCurrentRes] = await Promise.all([
-          fetch(fallbackForecastUrl),
-          fetch(fallbackCurrentUrl)
-        ]);
-        
-        if (fallbackForecastRes.ok && fallbackCurrentRes.ok) {
-          const fallbackForecastData = await fallbackForecastRes.json();
-          const fallbackCurrentData = await fallbackCurrentRes.json();
-          
-          // Process fallback data the same way as normal data
-          const daysMap = new Map<string, { day: string; min: number; max: number; condition: string; rainfall: number }>();
-          for (const item of fallbackForecastData.list) {
-            const date = new Date(item.dt * 1000);
-            const dayKey = date.toLocaleDateString('en-US', { weekday: 'short' });
-            const min = item.main.temp_min;
-            const max = item.main.temp_max;
-            const cond = item.weather?.[0]?.main ?? 'N/A';
-            const rain = item.rain?.['3h'] ?? 0;
-
-            if (!daysMap.has(dayKey)) {
-              daysMap.set(dayKey, { day: dayKey, min, max, condition: cond, rainfall: rain });
-            } else {
-              const d = daysMap.get(dayKey)!;
-              d.min = Math.min(d.min, min);
-              d.max = Math.max(d.max, max);
-              d.rainfall += rain;
-            }
-          }
-
-          const forecast = Array.from(daysMap.values()).slice(0, 7).map(d => ({
-            day: d.day,
-            minTemp: Math.round(d.min),
-            maxTemp: Math.round(d.max),
-            condition: d.condition,
-            rainfall: Math.round(d.rainfall)
-          }));
-
-          const current = {
-            temp: fallbackCurrentData.main?.temp,
-            condition: fallbackCurrentData.weather?.[0]?.main ?? 'N/A',
-            humidity: fallbackCurrentData.main?.humidity ?? 0,
-            wind_kmh: Math.round((fallbackCurrentData.wind?.speed ?? 0) * 3.6),
-            rainfall_mm: fallbackCurrentData.rain?.['1h'] ?? fallbackCurrentData.rain?.['3h'] ?? 0
-          };
-
-          return new Response(
-            JSON.stringify({
-              city: `${location} (showing Melbourne weather)`,
-              country: fallbackForecastData.city?.country ?? country,
-              current,
-              forecast
-            }),
-            { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-          );
-        }
-      }
-      
-      throw new Error(`OpenWeather error: forecast ${forecastRes.status} ${fTxt} | current ${currentRes.status} ${cTxt}`);
+      forecast.push({
+        day,
+        minTemp: Math.round(weatherData.daily.temperature_2m_min[i]),
+        maxTemp: Math.round(weatherData.daily.temperature_2m_max[i]),
+        condition: getConditionFromCode(weatherData.daily.weather_code[i]),
+        rainfall: Math.round(weatherData.daily.precipitation_sum[i] || 0)
+      });
     }
-
-    const forecastData = await forecastRes.json();
-    const currentData = await currentRes.json();
-
-    // Group 3-hourly data into daily min/max + simple condition + rainfall
-    const daysMap = new Map<string, { day: string; min: number; max: number; condition: string; rainfall: number }>();
-    for (const item of forecastData.list) {
-      const date = new Date(item.dt * 1000);
-      const dayKey = date.toLocaleDateString('en-US', { weekday: 'short' });
-      const min = item.main.temp_min;
-      const max = item.main.temp_max;
-      const cond = item.weather?.[0]?.main ?? 'N/A';
-      const rain = item.rain?.['3h'] ?? 0;
-
-      if (!daysMap.has(dayKey)) {
-        daysMap.set(dayKey, { day: dayKey, min, max, condition: cond, rainfall: rain });
-      } else {
-        const d = daysMap.get(dayKey)!;
-        d.min = Math.min(d.min, min);
-        d.max = Math.max(d.max, max);
-        d.rainfall += rain;
-      }
-    }
-
-    const forecast = Array.from(daysMap.values()).slice(0, 7).map(d => ({
-      day: d.day,
-      minTemp: Math.round(d.min),
-      maxTemp: Math.round(d.max),
-      condition: d.condition,
-      rainfall: Math.round(d.rainfall)
-    }));
 
     const current = {
-      temp: currentData.main?.temp,
-      condition: currentData.weather?.[0]?.main ?? 'N/A',
-      humidity: currentData.main?.humidity ?? 0,
-      wind_kmh: Math.round((currentData.wind?.speed ?? 0) * 3.6),
-      rainfall_mm: currentData.rain?.['1h'] ?? currentData.rain?.['3h'] ?? 0
+      temp: Math.round(weatherData.current.temperature_2m),
+      condition: getConditionFromCode(weatherData.current.weather_code),
+      humidity: Math.round(weatherData.current.relative_humidity_2m),
+      wind_kmh: Math.round(weatherData.current.wind_speed_10m * 3.6), // Convert m/s to km/h
+      rainfall_mm: Math.round(weatherData.current.precipitation || 0)
     };
 
     return new Response(
       JSON.stringify({
-        city: forecastData.city?.name ?? location ?? 'Unknown',
-        country: forecastData.city?.country ?? country,
+        city: coordinates.displayName,
+        country: 'AU',
         current,
         forecast
       }),
