@@ -370,7 +370,7 @@ const Messages = () => {
                         )}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-xs font-medium truncate">
+                        <p className="text-sm font-medium truncate">
                           {user.user_profile?.name || 'Unknown User'}
                         </p>
                         <p className="text-xs text-muted-foreground capitalize">
