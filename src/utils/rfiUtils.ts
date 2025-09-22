@@ -33,12 +33,25 @@ export const getRFITypeCode = (rfiType?: string): string => {
 };
 
 /**
+ * Format the RFI number for display, correcting legacy type codes
+ * For message-based inquiries (category === 'Message Inquiry'), ensure code is MES
+ */
+export const getRfiNumberDisplay = (rfi: RFI): string => {
+  const raw = rfi.rfi_number || `RFI-${rfi.id.slice(0, 8)}`;
+  if (rfi.category === 'Message Inquiry') {
+    // Replace middle segment with MES while preserving company code and number
+    return raw.replace(/^([A-Z]{3})-[A-Z]+-(\d{4,})$/, '$1-MES-$2');
+  }
+  return raw;
+};
+
+/**
  * Format the full RFI display number with type and company
  * Format: "RFI_NUMBER - Type Description from Company"
  * Example: "RGA-GC-0001 - General Correspondence from RG Architects"
  */
 export const getRFIDisplayNumber = (rfi: RFI): string => {
-  const rfiNumber = rfi.rfi_number || `RFI-${rfi.id.slice(0, 8)}`;
+  const rfiNumber = getRfiNumberDisplay(rfi);
   const typeLabel = getRFITypeLabel(rfi.rfi_type);
   const companyName = rfi.raised_by_company_name || 'Unknown Company';
   return `${rfiNumber} - ${typeLabel} from ${companyName}`;
@@ -50,7 +63,7 @@ export const getRFIDisplayNumber = (rfi: RFI): string => {
  * Example: "RGA-GC-0001 - General Correspondence"
  */
 export const getRFINumberWithType = (rfi: RFI): string => {
-  const rfiNumber = rfi.rfi_number || `RFI-${rfi.id.slice(0, 8)}`;
+  const rfiNumber = getRfiNumberDisplay(rfi);
   const typeLabel = getRFITypeLabel(rfi.rfi_type);
   return `${rfiNumber} - ${typeLabel}`;
 };

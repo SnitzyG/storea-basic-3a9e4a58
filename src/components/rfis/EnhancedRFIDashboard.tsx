@@ -26,6 +26,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { format } from 'date-fns';
 import { RFI } from '@/hooks/useRFIs';
+import { getRfiNumberDisplay } from '@/utils/rfiUtils';
 
 interface EnhancedRFIDashboardProps {
   rfis: RFI[];
@@ -302,7 +303,7 @@ export const EnhancedRFIDashboard: React.FC<EnhancedRFIDashboardProps> = ({
                 {filteredAndSortedRFIs.map((rfi) => (
                   <TableRow key={rfi.id} className="hover:bg-muted/50">
                     <TableCell className="font-medium">
-                      {rfi.rfi_number || `RFI-${rfi.id.slice(0, 8)}`}
+                      {getRfiNumberDisplay(rfi)}
                     </TableCell>
                     <TableCell>
                       {format(new Date(rfi.created_at), 'MMM dd, yyyy')}

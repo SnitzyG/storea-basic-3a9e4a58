@@ -13,6 +13,7 @@ import {
 import { RFI } from '@/hooks/useRFIs';
 import { format } from 'date-fns';
 import { RFIQuickActions } from './RFIQuickActions';
+import { getRfiNumberDisplay } from '@/utils/rfiUtils';
 
 interface RFIListViewProps {
   rfis: RFI[];
@@ -213,7 +214,7 @@ export const RFIListView: React.FC<RFIListViewProps> = ({
                 </TableCell>
               )}
               <TableCell className="font-mono text-xs">
-                {rfi.rfi_number || `RFI-${rfi.id.slice(0, 8)}`}
+                {getRfiNumberDisplay(rfi)}
               </TableCell>
               <TableCell>
                 <div className="space-y-1">
