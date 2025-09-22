@@ -210,15 +210,15 @@ export const RFIListView: React.FC<RFIListViewProps> = ({
                 </TableCell>
               )}
               <TableCell className="font-mono text-xs">
-                <div className="space-y-1">
-                  <div>{rfi.rfi_number || `RFI-${rfi.id.slice(0, 8)}`}</div>
-                  <div className="text-xs text-muted-foreground">
-                    {rfi.rfi_type === 'general_correspondence' && 'General Correspondence'}
-                    {rfi.rfi_type === 'request_for_information' && 'Request for Information'}
-                    {rfi.rfi_type === 'general_advice' && 'General Advice'}
-                    {!rfi.rfi_type && 'General Correspondence'}
-                  </div>
-                </div>
+                {`${rfi.rfi_number || `RFI-${rfi.id.slice(0, 8)}`} - ${
+                  rfi.rfi_type === 'general_correspondence'
+                    ? 'General Correspondence'
+                    : rfi.rfi_type === 'request_for_information'
+                    ? 'Request for Information'
+                    : rfi.rfi_type === 'general_advice'
+                    ? 'General Advice'
+                    : 'General Correspondence'
+                } from ${rfi.raised_by_company_name || 'Unknown Company'}`}
               </TableCell>
               <TableCell>
                 <div className="space-y-1">

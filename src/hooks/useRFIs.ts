@@ -46,6 +46,8 @@ export interface RFI {
     name: string;
     role: string;
   };
+  raised_by_company_name?: string;
+  assigned_to_company_name?: string;
 }
 
 export interface RFIActivity {
@@ -109,16 +111,36 @@ export const useRFIs = () => {
 
       const { data: profiles } = await supabase
         .from('profiles')
-        .select('user_id, name, role')
+        .select('user_id, name, role, company_id')
         .in('user_id', userIds);
 
-      const profileMap = new Map(profiles?.map(p => [p.user_id, p]) || []);
+      // Fetch companies for those profiles to get company names
+      const companyIds = [...new Set((profiles || []).map(p => p.company_id).filter(Boolean))] as string[];
+      let companyMap = new Map<string, { id: string; name: string }>();
+      if (companyIds.length > 0) {
+        const { data: companies } = await supabase
+          .from('companies')
+          .select('id, name')
+          .in('id', companyIds);
+        companyMap = new Map((companies || []).map(c => [c.id, c]));
+      }
 
-      const enrichedRFIs = rfisData.map(rfi => ({
-        ...rfi,
-        raised_by_profile: profileMap.get(rfi.raised_by),
-        assigned_to_profile: rfi.assigned_to ? profileMap.get(rfi.assigned_to) : undefined,
-      }));
+      const profileMap = new Map((profiles || []).map(p => [p.user_id, p]) || []);
+
+      const enrichedRFIs = rfisData.map(rfi => {
+        const raisedProfile = profileMap.get(rfi.raised_by);
+        const assignedProfile = rfi.assigned_to ? profileMap.get(rfi.assigned_to) : undefined;
+        const raisedCompanyName = raisedProfile?.company_id ? companyMap.get(raisedProfile.company_id)?.name : undefined;
+        const assignedCompanyName = assignedProfile?.company_id ? companyMap.get(assignedProfile.company_id)?.name : undefined;
+
+        return {
+          ...rfi,
+          raised_by_profile: raisedProfile ? { name: raisedProfile.name, role: raisedProfile.role } : undefined,
+          assigned_to_profile: assignedProfile ? { name: assignedProfile.name, role: assignedProfile.role } : undefined,
+          raised_by_company_name: raisedCompanyName,
+          assigned_to_company_name: assignedCompanyName,
+        };
+      });
 
       setRFIs(enrichedRFIs as RFI[]);
     } catch (error) {
