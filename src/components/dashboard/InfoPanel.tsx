@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Calendar, Cloud, Clock, Thermometer, Droplets, Wind, CloudRain } from 'lucide-react';
 import { format } from 'date-fns';
 import { useProjectSelection } from '@/context/ProjectSelectionContext';
+import { supabase } from '@/integrations/supabase/client';
 
 export const InfoPanel = () => {
   const [currentTime, setCurrentTime] = useState(new Date());
@@ -15,9 +16,11 @@ export const InfoPanel = () => {
     windSpeed: 12,
     rainfall: 0,
     location: 'Melbourne CBD',
+    loading: true,
     forecast: [] as Array<{
       day: string;
-      temperature: number;
+      minTemp: number;
+      maxTemp: number;
       condition: string;
       rainfall: number;
     }>
