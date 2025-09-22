@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useCallback } from 'react';
+import { getRFIDisplayNumber, getRFITypeLabel, isResponseRequired as checkResponseRequired } from '@/utils/rfiUtils';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -117,23 +118,7 @@ export const EmailStyleRFIInbox: React.FC<EmailStyleRFIInboxProps> = ({
   };
 
   const getResponseRequired = (rfi: RFI): boolean => {
-    // Use rfi_type if available, otherwise fall back to category mapping
-    const rfiType = rfi.rfi_type || mapCategoryToType(rfi.category);
-    return rfiType === 'request_for_information';
-  };
-
-  const getRFITypeDisplay = (rfi: RFI): string => {
-    const rfiType = rfi.rfi_type || mapCategoryToType(rfi.category);
-    switch (rfiType) {
-      case 'general_correspondence':
-        return 'General Correspondence';
-      case 'request_for_information':
-        return 'Request for Information';
-      case 'general_advice':
-        return 'General Advice';
-      default:
-        return 'General Correspondence';
-    }
+    return checkResponseRequired(rfi);
   };
 
   const clearFilters = handleClearFilters;
@@ -225,7 +210,7 @@ export const EmailStyleRFIInbox: React.FC<EmailStyleRFIInboxProps> = ({
                   <div className="flex items-center gap-2">
                     <TypeIcon className={`h-4 w-4 ${rfiTypeConfig[rfiType].color}`} />
                     <span className="text-xs text-muted-foreground font-medium">
-                      {rfi.rfi_number || `RFI-${rfi.id.slice(0, 8)}`} - {getRFITypeDisplay(rfi)}
+                      {getRFIDisplayNumber(rfi)}
                     </span>
                     {isResponseRequired && (
                       <Badge variant="outline" className="text-xs">

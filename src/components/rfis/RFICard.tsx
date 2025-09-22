@@ -5,20 +5,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Calendar, Clock, User, AlertTriangle } from 'lucide-react';
 import { RFI } from '@/hooks/useRFIs';
 import { formatDistanceToNow } from 'date-fns';
-
-// Helper function to get RFI type display label
-const getRFITypeLabel = (rfiType?: string): string => {
-  switch (rfiType) {
-    case 'general_correspondence':
-      return 'General Correspondence';
-    case 'request_for_information':
-      return 'Request for Information';
-    case 'general_advice':
-      return 'General Advice';
-    default:
-      return 'General Correspondence';
-  }
-};
+import { getRFITypeLabel } from '@/utils/rfiUtils';
 
 interface RFICardProps {
   rfi: RFI;

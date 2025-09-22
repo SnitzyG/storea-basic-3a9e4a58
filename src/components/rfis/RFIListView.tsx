@@ -12,28 +12,7 @@ import {
 import { RFI } from '@/hooks/useRFIs';
 import { format } from 'date-fns';
 import { RFIQuickActions } from './RFIQuickActions';
-
-// Helper function to get RFI type display label
-const getRFITypeLabel = (rfiType?: string): string => {
-  switch (rfiType) {
-    case 'general_correspondence':
-      return 'General Correspondence';
-    case 'request_for_information':
-      return 'Request for Information';
-    case 'general_advice':
-      return 'General Advice';
-    default:
-      return 'General Correspondence';
-  }
-};
-
-// Helper function to format RFI display number
-const getRFIDisplayNumber = (rfi: RFI): string => {
-  const rfiNumber = rfi.rfi_number || `RFI-${rfi.id.slice(0, 8)}`;
-  const typeLabel = getRFITypeLabel(rfi.rfi_type);
-  const companyName = rfi.raised_by_company_name || 'Unknown Company';
-  return `${rfiNumber} - ${typeLabel} from ${companyName}`;
-};
+import { getRFIDisplayNumber } from '@/utils/rfiUtils';
 
 interface RFIListViewProps {
   rfis: RFI[];
