@@ -35,11 +35,6 @@ export const useProjectLinking = () => {
             // Dispatch custom event to refresh projects and team data
             window.dispatchEvent(new CustomEvent('projectsUpdated'));
             window.dispatchEvent(new CustomEvent('teamMembersUpdated'));
-            
-            // Delay reload to show toast first and let events propagate
-            setTimeout(() => {
-              window.location.reload();
-            }, 1500);
           }
         }
       } catch (error) {
