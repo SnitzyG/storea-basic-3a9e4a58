@@ -31,7 +31,7 @@ interface EmailStyleRFIInboxProps {
   selectedRFI?: RFI | null;
 }
 
-type RFIType = 'General Correspondence' | 'Request for Information' | 'General Advice';
+type RFIType = 'general_correspondence' | 'request_for_information' | 'general_advice';
 
 const rfiTypeConfig = {
   'General': { icon: MessageSquare, color: 'text-blue-600' },
@@ -106,19 +106,34 @@ export const EmailStyleRFIInbox: React.FC<EmailStyleRFIInboxProps> = ({
 
   // Map existing categories to new RFI types
   const mapCategoryToType = (category?: string): RFIType => {
-    if (!category) return 'General Correspondence';
+    if (!category) return 'general_correspondence';
     if (category.toLowerCase().includes('information') || category.toLowerCase().includes('request')) {
-      return 'Request for Information';
+      return 'request_for_information';
     }
     if (category.toLowerCase().includes('advice')) {
-      return 'General Advice';
+      return 'general_advice';
     }
-    return 'General Correspondence';
+    return 'general_correspondence';
   };
 
   const getResponseRequired = (rfi: RFI): boolean => {
-    const rfiType = mapCategoryToType(rfi.category);
-    return rfiType === 'Request for Information';
+    // Use rfi_type if available, otherwise fall back to category mapping
+    const rfiType = rfi.rfi_type || mapCategoryToType(rfi.category);
+    return rfiType === 'request_for_information';
+  };
+
+  const getRFITypeDisplay = (rfi: RFI): string => {
+    const rfiType = rfi.rfi_type || mapCategoryToType(rfi.category);
+    switch (rfiType) {
+      case 'general_correspondence':
+        return 'General Correspondence';
+      case 'request_for_information':
+        return 'Request for Information';
+      case 'general_advice':
+        return 'General Advice';
+      default:
+        return 'General Correspondence';
+    }
   };
 
   const clearFilters = handleClearFilters;

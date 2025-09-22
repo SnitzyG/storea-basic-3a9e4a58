@@ -3,7 +3,7 @@ import { Inbox, Send, FileEdit, Archive, MessageSquare, Clock, CheckCircle, XCir
 
 export type RFIInboxCategory = 'all' | 'sent' | 'received' | 'drafts';
 export type RFIStatusFilter = 'all' | 'outstanding' | 'answered' | 'rejected' | 'closed' | 'void' | 'draft' | 'submitted' | 'open';
-export type RFITypeFilter = 'all' | 'General Correspondence' | 'Request for Information' | 'General Advice';
+export type RFITypeFilter = 'all' | 'general_correspondence' | 'request_for_information' | 'general_advice';
 export type RFIPriorityFilter = 'all' | 'low' | 'medium' | 'high' | 'critical';
 
 interface RFIInboxProps {

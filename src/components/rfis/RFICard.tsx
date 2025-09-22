@@ -49,9 +49,14 @@ export const RFICard = ({ rfi, onView, onEdit, onAssign }: RFICardProps) => {
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
           <div className="flex-1">
-            <CardTitle className="text-lg line-clamp-2 mb-2">
-              {rfi.question}
-            </CardTitle>
+            <div className="flex items-center justify-between mb-2">
+              <CardTitle className="text-lg line-clamp-2">
+                {rfi.question}
+              </CardTitle>
+              <Badge variant="secondary" className="ml-2 font-mono text-xs">
+                {rfi.rfi_number || `RFI-${rfi.id.slice(0, 8)}`}
+              </Badge>
+            </div>
             <div className="flex flex-wrap gap-2 mb-3">
               <Badge className={statusColors[rfi.status]}>
                 {statusLabels[rfi.status]}
