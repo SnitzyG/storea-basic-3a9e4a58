@@ -151,14 +151,14 @@ export const ProjectGanttChart: React.FC<ProjectGanttChartProps> = ({
     });
   }, [validProjects, startDate, totalDays]);
   const getPixelWidth = () => {
-    const baseWidth = 1200;
+    const baseWidth = 800; // Reduced from 1200
     const multiplier = {
-      day: 3,
-      week: 2,
-      month: 1.5,
-      quarter: 1,
-      halfyear: 0.8,
-      year: 0.6
+      day: 2,
+      week: 1.5,
+      month: 1,
+      quarter: 0.8, // Reduced from 1
+      halfyear: 0.6, // Reduced from 0.8
+      year: 0.5 // Reduced from 0.6
     }[zoomLevel];
     return baseWidth * multiplier;
   };
@@ -208,14 +208,6 @@ export const ProjectGanttChart: React.FC<ProjectGanttChartProps> = ({
             </CardTitle>
             <div className="flex items-center gap-2 bg-background/50 backdrop-blur-sm rounded-lg p-1 border">
               <Button 
-                variant={zoomLevel === 'month' ? 'default' : 'ghost'} 
-                size="sm" 
-                onClick={() => setZoomLevel('month')}
-                className="transition-all duration-200 hover:scale-105"
-              >
-                Monthly
-              </Button>
-              <Button 
                 variant={zoomLevel === 'quarter' ? 'default' : 'ghost'} 
                 size="sm" 
                 onClick={() => setZoomLevel('quarter')}
@@ -245,40 +237,40 @@ export const ProjectGanttChart: React.FC<ProjectGanttChartProps> = ({
         <CardContent className="p-0">
           <div className="border-t bg-gradient-to-b from-background to-muted/20">
             <div ref={scrollContainerRef} className="overflow-x-auto overflow-y-hidden" style={{
-            maxHeight: '500px'
+            maxHeight: '350px' // Reduced from 500px
           }}>
               <div className="relative" style={{
               width: `${getPixelWidth()}px`,
-              minHeight: `${validProjects.length * 70 + 80}px`
+              minHeight: `${validProjects.length * 50 + 60}px` // Reduced height from 70 to 50
             }}>
                 {/* Timeline header */}
-                <div className="sticky top-0 bg-gradient-to-r from-background via-background/95 to-background border-b-2 border-primary/20 h-16 flex items-center relative z-10 shadow-sm">
-                  {dateLabels.map((label, index) => <div key={index} className="absolute text-sm font-medium text-foreground/80 border-l-2 border-primary/30 pl-3" style={{
+                <div className="sticky top-0 bg-gradient-to-r from-background via-background/95 to-background border-b-2 border-primary/20 h-12 flex items-center relative z-10 shadow-sm">
+                  {dateLabels.map((label, index) => <div key={index} className="absolute text-xs font-medium text-foreground/80 border-l-2 border-primary/30 pl-2" style={{
                   left: `${(label.date.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24) / totalDays * 100}%`,
                   height: '100%',
                   display: 'flex',
                   alignItems: 'center'
                 }}>
-                      <div className="bg-background/80 backdrop-blur-sm px-2 py-1 rounded-md shadow-sm border">
+                      <div className="bg-background/80 backdrop-blur-sm px-1.5 py-0.5 rounded text-xs shadow-sm border">
                         {label.label}
                       </div>
                     </div>)}
                 </div>
 
                 {/* Project bars */}
-                <div className="relative py-4">
-                  {projectBars.map((bar, index) => <div key={bar.project.id} className="absolute h-12 flex items-center group" style={{
-                  top: `${index * 70 + 20}px`,
+                <div className="relative py-2">
+                  {projectBars.map((bar, index) => <div key={bar.project.id} className="absolute h-8 flex items-center group" style={{
+                  top: `${index * 50 + 12}px`,
                   left: `${bar.leftPercent}%`,
                   width: `${bar.widthPercent}%`,
-                  minWidth: '120px'
+                  minWidth: '100px'
                 }}>
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <div className={`w-full h-8 rounded-xl flex items-center px-4 text-white text-sm font-semibold cursor-pointer transition-all duration-300 hover:scale-105 hover:shadow-lg group-hover:shadow-xl ${statusColors[bar.project.status] || 'bg-gray-500'} shadow-md relative overflow-hidden`}>
+                          <div className={`w-full h-6 rounded-lg flex items-center px-3 text-white text-xs font-semibold cursor-pointer transition-all duration-300 hover:scale-105 hover:shadow-lg group-hover:shadow-xl ${statusColors[bar.project.status] || 'bg-gray-500'} shadow-md relative overflow-hidden`}> {/* Reduced from h-8 to h-6, px-4 to px-3, text-sm to text-xs */}
                             <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent opacity-50"></div>
                             <div className="absolute inset-0 bg-gradient-to-l from-black/10 to-transparent"></div>
-                            <Clock className="h-4 w-4 mr-2 opacity-80" />
+                            <Clock className="h-3 w-3 mr-1.5 opacity-80" /> {/* Reduced from h-4 w-4 mr-2 to h-3 w-3 mr-1.5 */}
                             <span className="truncate relative z-10">
                               {bar.project.project_reference_number || bar.project.name}
                             </span>
@@ -322,7 +314,7 @@ export const ProjectGanttChart: React.FC<ProjectGanttChartProps> = ({
                       key={index} 
                       className="absolute border-b border-muted/30 w-full"
                       style={{
-                        top: `${index * 70 + 56}px`,
+                        top: `${index * 50 + 40}px`, // Adjusted for new spacing
                         height: '1px'
                       }}
                     />
