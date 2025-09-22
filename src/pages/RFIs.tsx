@@ -828,8 +828,7 @@ const RFIs = () => {
           <div className={`h-full border rounded-lg bg-card p-4 overflow-hidden transition-all duration-300 ${
             isDetailOverlayOpen ? 'brightness-75' : ''
           }`}>
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold">RFI List</h2>
+            <div className="flex items-center justify-end mb-4">
               <div className="flex items-center space-x-2">
                 <Button 
                   onClick={() => setQuickRespondDialogOpen(true)} 
