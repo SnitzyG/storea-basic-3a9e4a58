@@ -315,15 +315,4 @@ export const RFIListView: React.FC<RFIListViewProps> = ({
       )}
     </div>
   );
-      </Table>
-      
-      {sortedRFIs.length === 0 && (
-        <div className="text-center py-12 text-muted-foreground">
-          <MessageSquare className="h-12 w-12 mx-auto mb-2 opacity-50" />
-          <p>No RFIs found</p>
-          <p className="text-sm">Create your first RFI to get started</p>
-        </div>
-      )}
-    </div>
-  );
 };
