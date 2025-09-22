@@ -12,7 +12,7 @@ interface ProjectGanttChartProps {
 export const ProjectGanttChart: React.FC<ProjectGanttChartProps> = ({
   projects
 }) => {
-  const [zoomLevel, setZoomLevel] = useState<ZoomLevel>('quarter');
+  const [zoomLevel, setZoomLevel] = useState<ZoomLevel>('month');
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   // Filter projects with valid dates
@@ -207,6 +207,14 @@ export const ProjectGanttChart: React.FC<ProjectGanttChartProps> = ({
               </span>
             </CardTitle>
             <div className="flex items-center gap-2 bg-background/50 backdrop-blur-sm rounded-lg p-1 border">
+              <Button 
+                variant={zoomLevel === 'month' ? 'default' : 'ghost'} 
+                size="sm" 
+                onClick={() => setZoomLevel('month')}
+                className="transition-all duration-200 hover:scale-105"
+              >
+                Monthly
+              </Button>
               <Button 
                 variant={zoomLevel === 'quarter' ? 'default' : 'ghost'} 
                 size="sm" 
