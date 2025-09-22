@@ -302,16 +302,16 @@ const Messages = () => {
   return (
     <div className="h-[calc(100vh-8rem)] flex bg-background">
       {/* WhatsApp-style Sidebar */}
-      <div className="w-80 border-r border-border bg-background flex flex-col">
+      <div className="w-60 border-r border-border bg-background flex flex-col">
         {/* Header with Project Info */}
-        <div className="p-4 border-b border-border bg-muted/30">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-semibold">
+        <div className="p-3 border-b border-border bg-muted/30">
+          <div className="flex items-center gap-2 mb-2">
+            <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-semibold">
               {getCurrentProjectName().charAt(0).toUpperCase()}
             </div>
             <div className="flex-1">
-              <h2 className="font-semibold text-foreground">{getCurrentProjectName()}</h2>
-              <div className="flex items-center gap-1 text-sm text-muted-foreground">
+              <h2 className="font-semibold text-sm text-foreground">{getCurrentProjectName()}</h2>
+              <div className="flex items-center gap-1 text-xs text-muted-foreground">
                 <Circle className={cn("h-2 w-2 fill-current", connectionStatus === 'connected' ? 'text-green-500' : 'text-red-500')} />
                 {onlineUsers.size} online
               </div>
@@ -320,22 +320,22 @@ const Messages = () => {
 
           {/* Create Message Button */}
           <CreateThreadDialog projectId={selectedProject?.id || ''} onCreateThread={handleCreateThread}>
-            <Button variant="outline" className="w-full">
-              <Plus className="h-4 w-4 mr-2" />
+            <Button variant="outline" className="w-full text-xs py-1">
+              <Plus className="h-3 w-3 mr-1" />
               Create New Message
             </Button>
           </CreateThreadDialog>
         </div>
 
         {/* Search */}
-        <div className="p-3 border-b border-border">
+        <div className="p-2 border-b border-border">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+            <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-muted-foreground h-3 w-3" />
             <Input 
               placeholder="Search messages..." 
               value={searchTerm} 
               onChange={e => setSearchTerm(e.target.value)} 
-              className="pl-10 h-9 bg-muted/50 border-border rounded-full"
+              className="pl-8 h-8 bg-muted/50 border-border rounded-full text-xs"
             />
           </div>
         </div>
@@ -345,7 +345,7 @@ const Messages = () => {
           <ScrollArea className="h-full">
             <div className="space-y-2">
               {/* Team Members Section */}
-              <div className="px-3">
+              <div className="px-2">
                 <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
                   Team Members
                 </h3>
@@ -353,24 +353,24 @@ const Messages = () => {
                   {filteredTeamMembers.map(user => (
                     <div
                       key={user.user_id}
-                      className="flex items-center gap-3 p-2 rounded-md cursor-pointer hover:bg-muted/50 transition-colors"
+                      className="flex items-center gap-2 p-2 rounded-md cursor-pointer hover:bg-muted/50 transition-colors"
                       onClick={() => {
                         const timestamp = new Date().toLocaleTimeString();
                         handleCreateThread(`Message with ${user.user_profile?.name} (${timestamp})`, [user.user_id]);
                       }}
                     >
                       <div className="relative">
-                        <Avatar className="h-8 w-8">
+                        <Avatar className="h-6 w-6">
                           <AvatarFallback className="text-xs bg-primary/10 text-primary">
                             {user.user_profile?.name?.charAt(0)?.toUpperCase() || 'U'}
                           </AvatarFallback>
                         </Avatar>
                         {onlineUsers.has(user.user_id) && (
-                          <div className="absolute bottom-0 right-0 h-2 w-2 bg-green-500 rounded-full border border-background" />
+                          <div className="absolute bottom-0 right-0 h-1.5 w-1.5 bg-green-500 rounded-full border border-background" />
                         )}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium truncate">
+                        <p className="text-xs font-medium truncate">
                           {user.user_profile?.name || 'Unknown User'}
                         </p>
                         <p className="text-xs text-muted-foreground capitalize">
@@ -384,7 +384,7 @@ const Messages = () => {
 
               {/* Pinned Conversations */}
               {pinnedThreads.length > 0 && (
-                <div className="px-3">
+                <div className="px-2">
                   <Separator className="mb-2" />
                   <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
                     Pinned
@@ -412,7 +412,7 @@ const Messages = () => {
 
               {/* Active Conversations */}
               {activeThreads.length > 0 && (
-                <div className="px-3">
+                <div className="px-2">
                   <Separator className="mb-2" />
                   <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
                     Messages
@@ -440,7 +440,7 @@ const Messages = () => {
 
               {/* Archived Conversations */}
               {archivedThreads.length > 0 && (
-                <div className="px-3">
+                <div className="px-2">
                   <Separator className="mb-2" />
                   <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
                     Archived
@@ -468,9 +468,9 @@ const Messages = () => {
 
               {/* Empty state */}
               {pinnedThreads.length === 0 && activeThreads.length === 0 && archivedThreads.length === 0 && filteredTeamMembers.length === 0 && (
-                <div className="text-center py-8 text-muted-foreground">
-                  <MessageSquare className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                  <p className="text-sm">No messages found</p>
+                <div className="text-center py-6 text-muted-foreground">
+                  <MessageSquare className="h-8 w-8 mx-auto mb-3 opacity-50" />
+                  <p className="text-xs">No messages found</p>
                   <p className="text-xs mt-1">Create a new message to get started</p>
                 </div>
               )}
