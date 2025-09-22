@@ -295,8 +295,7 @@ const Messages = () => {
   }
   return <div className="space-y-6">
       {/* Page Header */}
-      <div className="flex items-center justify-between">
-        
+      <div className="flex items-center justify-end">
         <CreateThreadDialog projectId={selectedProject?.id || ''} onCreateThread={handleCreateThread}>
           <Button size="sm" className="bg-green-600 hover:bg-green-700 text-white">
             <Plus className="h-4 w-4 mr-2" />
