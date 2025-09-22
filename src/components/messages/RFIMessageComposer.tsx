@@ -57,6 +57,7 @@ export const RFIMessageComposer: React.FC<RFIMessageComposerProps> = ({
         question: formData.message,
         priority: 'medium',
         category: 'General', // Message defaults to General
+        rfi_type: 'general_correspondence',
         project_name: currentProject?.name || '',
         sender_name: profile?.name || '',
         sender_email: user?.email || '',

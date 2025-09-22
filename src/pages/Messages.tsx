@@ -148,7 +148,8 @@ const Messages = () => {
         sender_name: profile.name || 'Unknown User',
         sender_email: profile.user_id,
         // Store user ID as identifier
-        category: 'Message Inquiry'
+        category: 'Message Inquiry',
+        rfi_type: 'general_correspondence'
       });
     } catch (error) {
       console.error('Error creating RFI:', error);

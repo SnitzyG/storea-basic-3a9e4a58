@@ -24,7 +24,7 @@ interface SimplifiedRFIComposerProps {
   replyToRFI?: any; // For reply functionality
 }
 
-type RFIType = 'General Correspondence' | 'Request for Information' | 'General Advice';
+type RFITypeLabel = 'General Correspondence' | 'Request for Information' | 'General Advice';
 
 export const SimplifiedRFIComposer: React.FC<SimplifiedRFIComposerProps> = ({
   open,
@@ -41,7 +41,7 @@ export const SimplifiedRFIComposer: React.FC<SimplifiedRFIComposerProps> = ({
   const isReply = !!replyToRFI;
 
   const [formData, setFormData] = useState({
-    rfi_type: 'General Correspondence' as RFIType,
+    rfi_type: 'General Correspondence' as RFITypeLabel,
     priority: 'medium' as 'low' | 'medium' | 'high',
     recipient_name: '',
     recipient_email: '',
@@ -132,21 +132,27 @@ export const SimplifiedRFIComposer: React.FC<SimplifiedRFIComposerProps> = ({
         // Create new RFI first
         const isResponseRequired = formData.rfi_type === 'Request for Information';
         
-        const rfiResult = await createRFI({
-          project_id: projectId,
-          question: formData.message,
-          priority: formData.priority,
-          category: formData.rfi_type, // Map type to category
-          assigned_to: formData.assigned_to,
-          due_date: isResponseRequired ? requiredResponseDate?.toISOString() : undefined,
-          project_name: currentProject?.name || '',
-          recipient_name: formData.recipient_name,
-          recipient_email: formData.recipient_email,
-          sender_name: profile?.name || '',
-          sender_email: user?.email || '',
-          subject: formData.subject,
-          required_response_by: isResponseRequired ? requiredResponseDate?.toISOString() : undefined
-        });
+          const rfiResult = await createRFI({
+            project_id: projectId,
+            question: formData.message,
+            priority: formData.priority,
+            category: formData.rfi_type, // Map type to category (UI label)
+            rfi_type:
+              formData.rfi_type === 'General Correspondence'
+                ? 'general_correspondence'
+                : formData.rfi_type === 'General Advice'
+                ? 'general_advice'
+                : 'request_for_information',
+            assigned_to: formData.assigned_to,
+            due_date: isResponseRequired ? requiredResponseDate?.toISOString() : undefined,
+            project_name: currentProject?.name || '',
+            recipient_name: formData.recipient_name,
+            recipient_email: formData.recipient_email,
+            sender_name: profile?.name || '',
+            sender_email: user?.email || '',
+            subject: formData.subject,
+            required_response_by: isResponseRequired ? requiredResponseDate?.toISOString() : undefined
+          });
 
         // Update status if it's a draft
         if (rfiResult && isDraft) {
@@ -233,7 +239,7 @@ export const SimplifiedRFIComposer: React.FC<SimplifiedRFIComposerProps> = ({
                 <Label htmlFor="rfi-type">RFI Type</Label>
                 <Select 
                   value={formData.rfi_type} 
-                  onValueChange={(value: RFIType) => setFormData(prev => ({ ...prev, rfi_type: value }))}
+                  onValueChange={(value: RFITypeLabel) => setFormData(prev => ({ ...prev, rfi_type: value }))}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select RFI type" />
