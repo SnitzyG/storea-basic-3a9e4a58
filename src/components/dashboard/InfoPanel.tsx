@@ -149,16 +149,12 @@ export const InfoPanel = () => {
           {/* 7-Day Forecast */}
           <div className="space-y-3">
             <h5 className="text-xs font-medium text-muted-foreground uppercase tracking-wide">5-Day Forecast</h5>
-            <div className="space-y-1">
+            <div className="grid grid-cols-5 gap-2">
               {weather.forecast.slice(0, 5).map((day, index) => (
-                <div key={index} className="flex items-center justify-between p-2 rounded-md bg-muted/20 hover:bg-muted/30 transition-colors">
-                  <div className="flex items-center gap-3 flex-1">
-                    <span className="font-medium text-sm w-12 text-left">{day.day}</span>
-                    <span className="text-xs text-muted-foreground text-center flex-1">{day.condition}</span>
-                  </div>
-                  <div className="flex items-center justify-end gap-2 min-w-[80px]">
-                    <span className="font-semibold text-sm text-right">{day.maxTemp}°{day.minTemp}°</span>
-                  </div>
+                <div key={index} className="flex flex-col items-center text-center p-2 rounded-md bg-muted/20 hover:bg-muted/30 transition-colors">
+                  <span className="font-medium text-sm mb-1">{day.day}</span>
+                  <span className="text-xs text-muted-foreground mb-1 leading-tight">{day.condition}</span>
+                  <span className="font-semibold text-sm">{day.maxTemp}°{day.minTemp}°</span>
                 </div>
               ))}
             </div>
