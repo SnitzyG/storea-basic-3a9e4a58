@@ -18,7 +18,7 @@ serve(async (req: Request) => {
   }
 
   try {
-    const apiKey = Deno.env.get("DEFAULT_OPENWEATHER");
+    const apiKey = Deno.env.get("default");
     if (!apiKey) {
       return new Response(
         JSON.stringify({ error: "Missing OPENWEATHER_API_KEY" }),
