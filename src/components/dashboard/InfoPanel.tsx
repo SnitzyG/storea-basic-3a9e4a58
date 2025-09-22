@@ -62,19 +62,23 @@ export const InfoPanel = () => {
     
     if (projectLocation && projectLocation !== 'Melbourne CBD') {
       // Try to extract suburb from common address formats
-      // e.g., "123 Main St, Suburb, State" or "123 Main St, Suburb VIC"
+      // e.g., "123 Main St, Suburb, State" or "123 Main St, Suburb 3941"
       const parts = projectLocation.split(',').map(part => part.trim());
       if (parts.length >= 2) {
         // Take the second part as suburb (after street address)
-        suburb = parts[1];
+        let locationPart = parts[1];
+        // Extract suburb name by removing postcode (4 digits at the end)
+        suburb = locationPart.replace(/\s+\d{4}$/, '').trim();
         // Remove state abbreviations if present
-        suburb = suburb.replace(/\s+(VIC|NSW|QLD|SA|WA|TAS|NT|ACT)(\s+\d{4})?$/i, '').trim();
+        suburb = suburb.replace(/\s+(VIC|NSW|QLD|SA|WA|TAS|NT|ACT)$/i, '').trim();
       } else if (parts.length === 1) {
         // If no comma, try to extract from the end
         const words = projectLocation.split(' ');
         if (words.length > 2) {
-          // Take last 1-2 words as potential suburb
-          suburb = words.slice(-2).join(' ');
+          // Take last 1-2 words as potential suburb, excluding postcode
+          const withoutPostcode = projectLocation.replace(/\s+\d{4}$/, '').trim();
+          const cleanWords = withoutPostcode.split(' ');
+          suburb = cleanWords.slice(-2).join(' ');
         }
       }
     }
