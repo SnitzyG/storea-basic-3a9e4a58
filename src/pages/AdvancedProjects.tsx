@@ -182,54 +182,69 @@ const AdvancedProjects = () => {
                     Create Your First Project
                   </Button>}
               </CardContent>
-            </Card> : <Card>
-              <CardContent className="p-0">
+            </Card> : <div className="space-y-4">
+              <Card className="border-0 shadow-sm bg-gradient-to-br from-card to-card/50">
+                <CardContent className="p-0">
                   <Table>
-                    <TableHeader>
+                    <TableHeader className="bg-gradient-to-r from-muted/50 to-muted/30 border-b-2 border-primary/10">
                       <TableRow>
-                        <TableHead>Project Reference</TableHead>
-                        <TableHead>Project Name</TableHead>
-                        <TableHead>Project ID</TableHead>
-                        <TableHead>Address</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Budget</TableHead>
-                        <TableHead>Start Date</TableHead>
-                        <TableHead>Finish Date</TableHead>
-                        <TableHead>Actions</TableHead>
+                        <TableHead className="text-foreground/80 font-semibold text-sm h-12 px-4">Project Reference</TableHead>
+                        <TableHead className="text-foreground/80 font-semibold text-sm h-12 px-4">Project Name</TableHead>
+                        <TableHead className="text-foreground/80 font-semibold text-sm h-12 px-4">Project ID</TableHead>
+                        <TableHead className="text-foreground/80 font-semibold text-sm h-12 px-4">Address</TableHead>
+                        <TableHead className="text-foreground/80 font-semibold text-sm h-12 px-4">Status</TableHead>
+                        <TableHead className="text-foreground/80 font-semibold text-sm h-12 px-4">Budget</TableHead>
+                        <TableHead className="text-foreground/80 font-semibold text-sm h-12 px-4">Start Date</TableHead>
+                        <TableHead className="text-foreground/80 font-semibold text-sm h-12 px-4">Finish Date</TableHead>
+                        <TableHead className="text-foreground/80 font-semibold text-sm h-12 px-4 w-[50px] text-center">Actions</TableHead>
                       </TableRow>
                     </TableHeader>
                   <TableBody>
                     {projects.map(project => {
                   console.log('Rendering project:', project.name, 'Reference:', project.project_reference_number);
-                  return <TableRow key={project.id}>
-                        <TableCell>{project.project_reference_number || '-'}</TableCell>
-                        <TableCell className="font-medium">{project.name}</TableCell>
-                        <TableCell>
+                  return <TableRow key={project.id} className="hover:bg-muted/30 transition-all duration-200 cursor-pointer border-b border-muted/20">
+                        <TableCell className="text-sm px-4 py-3 text-foreground/90">
+                          <span className="font-mono text-xs text-muted-foreground">{project.project_reference_number || '-'}</span>
+                        </TableCell>
+                        <TableCell className="text-sm px-4 py-3 text-foreground/90">
+                          <div className="space-y-1">
+                            <p className="font-medium text-sm leading-none text-foreground">{project.name}</p>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-sm px-4 py-3 text-foreground/90">
                           {(project as any).project_id ? <div className="flex items-center gap-2">
-                              <div className="flex items-center gap-1 text-xs text-primary font-mono bg-primary/10 px-2 py-1 rounded">
+                              <div className="flex items-center gap-1 text-xs text-primary font-mono bg-primary/10 px-2 py-1 rounded border border-primary/20">
                                 <Hash className="h-3 w-3" />
                                 {(project as any).project_id}
                               </div>
                               <Button variant="ghost" size="sm" onClick={() => copyProjectId((project as any).project_id)} className="h-6 w-6 p-0">
                                 <Copy className="h-3 w-3" />
                               </Button>
-                            </div> : '-'}
+                            </div> : <span className="font-mono text-xs text-muted-foreground">-</span>}
                         </TableCell>
-                        <TableCell>{project.address || '-'}</TableCell>
-                        <TableCell>
+                        <TableCell className="text-sm px-4 py-3 text-foreground/90">
+                          <span className="text-xs text-muted-foreground">{project.address || '-'}</span>
+                        </TableCell>
+                        <TableCell className="text-sm px-4 py-3 text-foreground/90">
                           <StatusSelector project={project} onStatusChange={newStatus => handleStatusChange(project.id, newStatus)} />
                         </TableCell>
-                        <TableCell>
-                          {project.budget ? `$${project.budget.toLocaleString()}` : '-'}
+                        <TableCell className="text-sm px-4 py-3 text-foreground/90">
+                          <span className="text-xs text-muted-foreground">
+                            {project.budget ? `$${project.budget.toLocaleString()}` : '-'}
+                          </span>
                         </TableCell>
-                        <TableCell>
-                          {project.estimated_start_date ? new Date(project.estimated_start_date).toLocaleDateString() : '-'}
+                        <TableCell className="text-sm px-4 py-3 text-foreground/90">
+                          <span className="text-xs text-muted-foreground">
+                            {project.estimated_start_date ? new Date(project.estimated_start_date).toLocaleDateString() : '-'}
+                          </span>
                         </TableCell>
-                        <TableCell>
-                          {project.estimated_finish_date ? new Date(project.estimated_finish_date).toLocaleDateString() : '-'}
+                        <TableCell className="text-sm px-4 py-3 text-foreground/90">
+                          <span className="text-xs text-muted-foreground">
+                            {project.estimated_finish_date ? new Date(project.estimated_finish_date).toLocaleDateString() : '-'}
+                          </span>
                         </TableCell>
-                        <TableCell>
-                          <div className="flex gap-1">
+                        <TableCell className="text-sm px-4 py-3 text-foreground/90 w-[50px] text-center">
+                          <div className="flex gap-1 justify-center">
                             <Button variant="outline" size="sm" onClick={() => handleProjectAction('view', project)}>
                               <Eye className="h-3 w-3" />
                             </Button>
@@ -240,7 +255,8 @@ const AdvancedProjects = () => {
                   </TableBody>
                 </Table>
               </CardContent>
-            </Card>}
+            </Card>
+            </div>}
 
         </TabsContent>
 

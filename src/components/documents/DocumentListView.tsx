@@ -16,6 +16,7 @@ import {
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/components/ui/card';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -120,26 +121,28 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
 
   return (
     <div className="space-y-4">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead className="w-[60px] cursor-pointer hover:bg-muted/50">Type</TableHead>
-            <TableHead className="cursor-pointer hover:bg-muted/50">Document</TableHead>
-            <TableHead className="cursor-pointer hover:bg-muted/50">Number</TableHead>
-            <TableHead className="cursor-pointer hover:bg-muted/50">Category</TableHead>
-            <TableHead className="cursor-pointer hover:bg-muted/50">Status</TableHead>
-            <TableHead className="cursor-pointer hover:bg-muted/50">Size</TableHead>
-            <TableHead className="cursor-pointer hover:bg-muted/50">Rev</TableHead>
-            <TableHead className="cursor-pointer hover:bg-muted/50">Uploaded By</TableHead>
-            <TableHead className="cursor-pointer hover:bg-muted/50">Created</TableHead>
-            <TableHead className="cursor-pointer hover:bg-muted/50">Updated</TableHead>
-            <TableHead>Lock</TableHead>
-            <TableHead className="w-[50px]">Actions</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {documentGroups.map((group) => (
-            <TableRow key={group.id} className="hover:bg-muted/50">
+      <Card className="border-0 shadow-sm bg-gradient-to-br from-card to-card/50">
+        <CardContent className="p-0">
+            <Table>
+              <TableHeader className="bg-gradient-to-r from-muted/50 to-muted/30 border-b-2 border-primary/10">
+                <TableRow>
+                  <TableHead className="text-foreground/80 font-semibold text-sm h-12 px-4 w-[60px]">Type</TableHead>
+                  <TableHead className="text-foreground/80 font-semibold text-sm h-12 px-4">Document</TableHead>
+                  <TableHead className="text-foreground/80 font-semibold text-sm h-12 px-4">Number</TableHead>
+                  <TableHead className="text-foreground/80 font-semibold text-sm h-12 px-4">Category</TableHead>
+                  <TableHead className="text-foreground/80 font-semibold text-sm h-12 px-4">Status</TableHead>
+                  <TableHead className="text-foreground/80 font-semibold text-sm h-12 px-4">Size</TableHead>
+                  <TableHead className="text-foreground/80 font-semibold text-sm h-12 px-4">Rev</TableHead>
+                  <TableHead className="text-foreground/80 font-semibold text-sm h-12 px-4">Uploaded By</TableHead>
+                  <TableHead className="text-foreground/80 font-semibold text-sm h-12 px-4">Created</TableHead>
+                  <TableHead className="text-foreground/80 font-semibold text-sm h-12 px-4">Updated</TableHead>
+                  <TableHead className="text-foreground/80 font-semibold text-sm h-12 px-4">Lock</TableHead>
+                  <TableHead className="text-foreground/80 font-semibold text-sm h-12 px-4 w-[50px] text-center">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {documentGroups.map((group) => (
+                  <TableRow key={group.id} className="hover:bg-muted/30 transition-all duration-200 cursor-pointer border-b border-muted/20">
               <TableCell>
                 <FileTypeIcon 
                   fileName={group.current_revision?.file_name || ''} 
@@ -278,7 +281,11 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
             </TableRow>
           ))}
         </TableBody>
-      </Table>
+            </Table>
+        </CardContent>
+      </Card>
+    </div>
+  );
       
       {documentGroups.length === 0 && (
         <div className="text-center py-12 text-muted-foreground">

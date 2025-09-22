@@ -3,6 +3,7 @@ import { ArrowUpDown, Eye, Download, MoreHorizontal, MessageSquare, CheckSquare,
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/components/ui/card';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -151,48 +152,50 @@ export const RFIListView: React.FC<RFIListViewProps> = ({
 
   return (
     <div className="space-y-4">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            {onSelectionChange && (
-              <TableHead className="w-[40px]">
-                <CheckSquare className="h-4 w-4 text-muted-foreground" />
-              </TableHead>
-            )}
-            <TableHead className="w-[60px]">RFI #</TableHead>
-            <TableHead>
-              <SortButton field="subject">Subject / Title</SortButton>
-            </TableHead>
-            <TableHead>
-              <SortButton field="submitted_by">Submitted By</SortButton>
-            </TableHead>
-            <TableHead>
-              <SortButton field="assigned_to">Assigned To</SortButton>
-            </TableHead>
-            <TableHead>
-              <SortButton field="created_at">Date Submitted</SortButton>
-            </TableHead>
-            <TableHead>
-              <SortButton field="status">Status</SortButton>
-            </TableHead>
-            <TableHead>
-              <SortButton field="due_date">Due Date</SortButton>
-            </TableHead>
-            <TableHead>Priority</TableHead>
-            {showQuickActions && <TableHead>Quick Actions</TableHead>}
-            <TableHead className="w-[50px]">Actions</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {sortedRFIs.map((rfi) => (
-            <TableRow 
-              key={rfi.id} 
-              className={`hover:bg-muted/50 cursor-pointer ${
-                selectedRFI?.id === rfi.id ? 'bg-muted/50' : ''
-              } ${isRFISelected(rfi.id) ? 'bg-accent/20' : ''}`}
-              onClick={() => handleRowClick(rfi)}
-              onDoubleClick={() => onDoubleClick?.(rfi)}
-            >
+      <Card className="border-0 shadow-sm bg-gradient-to-br from-card to-card/50">
+        <CardContent className="p-0">
+          <Table>
+            <TableHeader className="bg-gradient-to-r from-muted/50 to-muted/30 border-b-2 border-primary/10">
+              <TableRow>
+                {onSelectionChange && (
+                  <TableHead className="text-foreground/80 font-semibold text-sm h-12 px-4 w-[40px] text-center">
+                    <CheckSquare className="h-4 w-4 text-muted-foreground" />
+                  </TableHead>
+                )}
+                <TableHead className="text-foreground/80 font-semibold text-sm h-12 px-4 w-[60px]">RFI #</TableHead>
+                <TableHead className="text-foreground/80 font-semibold text-sm h-12 px-4">
+                  <SortButton field="subject">Subject / Title</SortButton>
+                </TableHead>
+                <TableHead className="text-foreground/80 font-semibold text-sm h-12 px-4">
+                  <SortButton field="submitted_by">Submitted By</SortButton>
+                </TableHead>
+                <TableHead className="text-foreground/80 font-semibold text-sm h-12 px-4">
+                  <SortButton field="assigned_to">Assigned To</SortButton>
+                </TableHead>
+                <TableHead className="text-foreground/80 font-semibold text-sm h-12 px-4">
+                  <SortButton field="created_at">Date Submitted</SortButton>
+                </TableHead>
+                <TableHead className="text-foreground/80 font-semibold text-sm h-12 px-4">
+                  <SortButton field="status">Status</SortButton>
+                </TableHead>
+                <TableHead className="text-foreground/80 font-semibold text-sm h-12 px-4">
+                  <SortButton field="due_date">Due Date</SortButton>
+                </TableHead>
+                <TableHead className="text-foreground/80 font-semibold text-sm h-12 px-4">Priority</TableHead>
+                {showQuickActions && <TableHead className="text-foreground/80 font-semibold text-sm h-12 px-4">Quick Actions</TableHead>}
+                <TableHead className="text-foreground/80 font-semibold text-sm h-12 px-4 w-[50px] text-center">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {sortedRFIs.map((rfi) => (
+                <TableRow 
+                  key={rfi.id} 
+                  className={`hover:bg-muted/30 transition-all duration-200 cursor-pointer border-b border-muted/20 ${
+                    selectedRFI?.id === rfi.id ? 'bg-muted/40' : ''
+                  } ${isRFISelected(rfi.id) ? 'bg-accent/20' : ''}`}
+                  onClick={() => handleRowClick(rfi)}
+                  onDoubleClick={() => onDoubleClick?.(rfi)}
+                >
               {onSelectionChange && (
                 <TableCell onClick={(e) => e.stopPropagation()}>
                   <Button
@@ -299,6 +302,19 @@ export const RFIListView: React.FC<RFIListViewProps> = ({
             </TableRow>
           ))}
         </TableBody>
+      </Table>
+    </CardContent>
+  </Card>
+      
+      {sortedRFIs.length === 0 && (
+        <div className="text-center py-12 text-muted-foreground">
+          <MessageSquare className="h-12 w-12 mx-auto mb-2 opacity-50" />
+          <p>No RFIs found</p>
+          <p className="text-sm">Create your first RFI to get started</p>
+        </div>
+      )}
+    </div>
+  );
       </Table>
       
       {sortedRFIs.length === 0 && (
