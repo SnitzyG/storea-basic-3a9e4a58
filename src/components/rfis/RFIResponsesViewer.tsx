@@ -332,72 +332,147 @@ export const RFIResponsesViewer: React.FC<RFIResponsesViewerProps> = ({
     }
   };
 
-  const downloadAllPDFs = () => {
-    const pdf = new jsPDF();
-    let pageHeight = pdf.internal.pageSize.height;
-    let yPosition = 20;
-
-    responses.forEach((response, index) => {
-      if (index > 0) {
-        pdf.addPage();
-        yPosition = 20;
-      }
-
-      const isOriginal = response.type === 'original';
-      const title = isOriginal ? 'Original RFI' : `Response ${index}`;
+  const downloadAllPDFs = async () => {
+    // Generate HTML content for all responses in the same format as individual downloads
+    let allContent = '';
+    
+    for (let index = 0; index < responses.length; index++) {
+      const response = responses[index];
+      const displayIndex = response.type === 'original' ? 0 : index;
+      const htmlContent = await generateResponsePDF(response, displayIndex);
       
-      // Add title
-      pdf.setFontSize(16);
-      pdf.setFont('helvetica', 'bold');
-      pdf.text(title, 20, yPosition);
-      yPosition += 15;
-
-      // Add RFI number
-      pdf.setFontSize(12);
-      pdf.setFont('helvetica', 'normal');
-      pdf.text(`Mail: ${rfi?.rfi_number || `Mail-${rfi?.id.slice(0, 8)}`}`, 20, yPosition);
-      yPosition += 10;
-
-      // Add date
-      const date = new Date(response.response_date || response.created_at);
-      pdf.text(`Date: ${date.toLocaleDateString()}`, 20, yPosition);
-      yPosition += 15;
-
-      // Add content
-      if (isOriginal && rfi?.question) {
-        pdf.setFont('helvetica', 'bold');
-        pdf.text('Question:', 20, yPosition);
-        yPosition += 8;
-        pdf.setFont('helvetica', 'normal');
-        const questionLines = pdf.splitTextToSize(rfi.question, 170);
-        pdf.text(questionLines, 20, yPosition);
-        yPosition += questionLines.length * 5 + 10;
+      // Extract the body content from the HTML (remove html/head tags)
+      const bodyMatch = htmlContent.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
+      const bodyContent = bodyMatch ? bodyMatch[1] : htmlContent;
+      
+      // Add page break between responses (except for the first one)
+      if (index > 0) {
+        allContent += '<div style="page-break-before: always;"></div>';
       }
+      
+      allContent += bodyContent;
+    }
 
-      if (response.response) {
-        pdf.setFont('helvetica', 'bold');
-        pdf.text('Response:', 20, yPosition);
-        yPosition += 8;
-        pdf.setFont('helvetica', 'normal');
-        const responseLines = pdf.splitTextToSize(response.response, 170);
-        pdf.text(responseLines, 20, yPosition);
-        yPosition += responseLines.length * 5 + 10;
-      }
+    // Create complete HTML document with all responses
+    const completeHTML = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>RFI Responses - ${rfi?.rfi_number || rfi?.id}</title>
+          <style>
+            * { margin: 0; padding: 0; box-sizing: border-box; }
+            body { 
+              font-family: Arial, sans-serif;
+              line-height: 1.4;
+              color: #000;
+              max-width: 800px;
+              margin: 0 auto;
+              padding: 20px;
+              background: white;
+            }
+            .company-header {
+              text-align: center;
+              padding: 20px;
+              margin-bottom: 20px;
+              border: 3px solid #000;
+              background: #f0f0f0;
+            }
+            .company-logo {
+              margin-bottom: 15px;
+            }
+            .company-logo img {
+              max-height: 80px;
+              max-width: 300px;
+            }
+            .company-name {
+              font-size: 20px;
+              font-weight: bold;
+              margin-bottom: 10px;
+            }
+            .company-details {
+              font-size: 12px;
+              line-height: 1.5;
+            }
+            .company-details div {
+              margin-bottom: 3px;
+            }
+            .mail-header {
+              border: 2px solid #000;
+              padding: 20px;
+              margin-bottom: 30px;
+              background: #f9f9f9;
+            }
+            .mail-header h1 {
+              text-align: center;
+              font-size: 18px;
+              margin-bottom: 20px;
+              text-decoration: underline;
+            }
+            .mail-info {
+              display: grid;
+              grid-template-columns: 1fr 1fr;
+              gap: 10px;
+              font-size: 12px;
+            }
+            .mail-info div {
+              margin-bottom: 8px;
+            }
+            .mail-info strong {
+              display: inline-block;
+              width: 120px;
+              font-weight: bold;
+            }
+            .section {
+              margin-bottom: 25px;
+              border: 1px solid #ccc;
+              padding: 15px;
+            }
+            .section-header {
+              font-weight: bold;
+              font-size: 14px;
+              margin-bottom: 10px;
+              text-decoration: underline;
+            }
+            .content-text {
+              font-size: 12px;
+              margin-bottom: 10px;
+              white-space: pre-wrap;
+            }
+            .metadata {
+              font-size: 11px;
+              color: #666;
+              margin-top: 10px;
+            }
+            .metadata div {
+              margin-bottom: 3px;
+            }
+            .status-section {
+              border: 2px solid #000;
+              padding: 10px;
+              text-align: center;
+              font-weight: bold;
+              margin-top: 20px;
+            }
+            @media print {
+              body { padding: 10px; }
+            }
+          </style>
+        </head>
+        <body>
+          ${allContent}
+        </body>
+      </html>
+    `;
 
-      // Add attachments info
-      if (response.attachments && response.attachments.length > 0) {
-        pdf.setFont('helvetica', 'bold');
-        pdf.text('Attachments:', 20, yPosition);
-        yPosition += 8;
-        pdf.setFont('helvetica', 'normal');
-        response.attachments.forEach(attachment => {
-          pdf.text(`• ${attachment.name}`, 25, yPosition);
-          yPosition += 6;
-        });
-      }
-    });
-
-    pdf.save(`RFI-${rfi?.rfi_number || rfi?.id}-responses.pdf`);
+    // Open in new window for printing
+    const printWindow = window.open('', '_blank');
+    if (printWindow) {
+      printWindow.document.write(completeHTML);
+      printWindow.document.close();
+      setTimeout(() => {
+        printWindow.print();
+      }, 500);
+    }
   };
 
   const toggleMinimize = (responseId: string) => {
@@ -445,7 +520,7 @@ export const RFIResponsesViewer: React.FC<RFIResponsesViewerProps> = ({
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={downloadAllPDFs}
+                  onClick={async () => await downloadAllPDFs()}
                   title="Download All PDFs"
                 >
                   <Package className="h-4 w-4 mr-2" />
