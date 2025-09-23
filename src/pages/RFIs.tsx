@@ -742,7 +742,7 @@ const RFIs = () => {
             </div>
             
             <div className="text-center py-8">
-              <h3 className="text-lg font-semibold mb-2">RFIs</h3>
+              <h3 className="text-lg font-semibold mb-2">Mail</h3>
               <p className="text-muted-foreground mb-4">
                 No projects available. Create a project first to create an RFI.
               </p>
@@ -757,7 +757,7 @@ const RFIs = () => {
 
   if (loading) {
     return <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">Loading RFIs...</div>
+        <div className="text-center">Loading Mail...</div>
       </div>;
   }
 
@@ -767,7 +767,7 @@ const RFIs = () => {
           <CardContent className="text-center py-8">
             <h3 className="text-lg font-semibold mb-2">No Project Selected</h3>
             <p className="text-muted-foreground mb-4">
-              Please select a project to view RFIs.
+              Please select a project to view Mail.
             </p>
           </CardContent>
         </Card>

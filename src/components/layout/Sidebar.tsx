@@ -34,7 +34,7 @@ export const Sidebar = ({
       path: '/documents'
     }, {
       id: 'rfis',
-      label: 'RFIs',
+      label: 'Mail',
       icon: HelpCircle,
       path: '/rfis'
     }, {
