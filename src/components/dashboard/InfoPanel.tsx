@@ -121,24 +121,24 @@ export const InfoPanel = () => {
           </h4>
           
           {/* Current Weather */}
-          <div className="space-y-3">
+          <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <span className="text-xl font-semibold">{weather.temperature}°C</span>
+              <span className="text-lg font-semibold">{weather.temperature}°C</span>
               <Badge variant="outline" className="text-xs">{weather.condition}</Badge>
             </div>
             
             <div className="grid grid-cols-3 gap-1 text-xs">
-              <div className="flex flex-col items-center gap-1 p-1.5 rounded-lg bg-muted/30 hover:bg-muted/40 transition-colors">
+              <div className="flex flex-col items-center gap-0.5 p-1 rounded bg-muted/30">
                 <Droplets className="h-3 w-3 text-blue-500" />
                 <span className="font-semibold text-xs">{weather.humidity}%</span>
                 <span className="text-muted-foreground text-xs">Humidity</span>
               </div>
-              <div className="flex flex-col items-center gap-1 p-1.5 rounded-lg bg-muted/30 hover:bg-muted/40 transition-colors">
+              <div className="flex flex-col items-center gap-0.5 p-1 rounded bg-muted/30">
                 <Wind className="h-3 w-3 text-green-500" />
                 <span className="font-semibold text-xs">{weather.windSpeed}</span>
                 <span className="text-muted-foreground text-xs">km/h</span>
               </div>
-              <div className="flex flex-col items-center gap-1 p-1.5 rounded-lg bg-muted/30 hover:bg-muted/40 transition-colors">
+              <div className="flex flex-col items-center gap-0.5 p-1 rounded bg-muted/30">
                 <CloudRain className="h-3 w-3 text-indigo-500" />
                 <span className="font-semibold text-xs">{weather.rainfall}mm</span>
                 <span className="text-muted-foreground text-xs">Rain</span>
