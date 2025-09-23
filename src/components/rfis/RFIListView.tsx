@@ -4,17 +4,11 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { RFI } from '@/hooks/useRFIs';
 import { format } from 'date-fns';
 import { RFIQuickActions } from './RFIQuickActions';
 import { getRfiNumberDisplay } from '@/utils/rfiUtils';
-
 interface RFIListViewProps {
   rfis: RFI[];
   onView: (rfi: RFI) => void;
@@ -31,10 +25,8 @@ interface RFIListViewProps {
   selectedRFIIds?: string[];
   onSelectionChange?: (selectedIds: string[]) => void;
 }
-
 type SortField = 'subject' | 'submitted_by' | 'assigned_to' | 'created_at' | 'status' | 'due_date';
 type SortDirection = 'asc' | 'desc';
-
 const statusColors = {
   draft: 'bg-slate-100 text-slate-700 border-slate-300',
   sent: 'bg-blue-50 text-blue-700 border-blue-300',
@@ -42,21 +34,19 @@ const statusColors = {
   outstanding: 'bg-yellow-100 text-yellow-800 border-yellow-200',
   overdue: 'bg-red-100 text-red-800 border-red-200',
   in_review: 'bg-purple-50 text-purple-700 border-purple-300',
-  answered: 'bg-green-100 text-green-800 border-green-200', 
+  answered: 'bg-green-100 text-green-800 border-green-200',
   rejected: 'bg-red-50 text-red-600 border-red-200',
   closed: 'bg-gray-100 text-gray-800 border-gray-200'
 };
-
 const priorityColors = {
   low: 'bg-blue-100 text-blue-800 border-blue-200',
   medium: 'bg-yellow-100 text-yellow-800 border-yellow-200',
   high: 'bg-orange-100 text-orange-800 border-orange-200',
   critical: 'bg-red-100 text-red-800 border-red-200'
 };
-
-export const RFIListView: React.FC<RFIListViewProps> = ({ 
-  rfis, 
-  onView, 
+export const RFIListView: React.FC<RFIListViewProps> = ({
+  rfis,
+  onView,
   onExportPDF,
   onSelectRFI,
   selectedRFI,
@@ -71,7 +61,6 @@ export const RFIListView: React.FC<RFIListViewProps> = ({
 }) => {
   const [sortField, setSortField] = useState<SortField>('created_at');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
-
   const handleSort = (field: SortField) => {
     if (sortField === field) {
       setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
@@ -80,12 +69,10 @@ export const RFIListView: React.FC<RFIListViewProps> = ({
       setSortDirection('asc');
     }
   };
-
   const sortedRFIs = useMemo(() => {
     return [...rfis].sort((a, b) => {
       let aValue: any;
       let bValue: any;
-
       switch (sortField) {
         case 'subject':
           aValue = a.subject || a.question;
@@ -114,7 +101,6 @@ export const RFIListView: React.FC<RFIListViewProps> = ({
         default:
           return 0;
       }
-
       if (sortDirection === 'asc') {
         return aValue > bValue ? 1 : -1;
       } else {
@@ -122,47 +108,39 @@ export const RFIListView: React.FC<RFIListViewProps> = ({
       }
     });
   }, [rfis, sortField, sortDirection]);
-
-  const SortButton: React.FC<{ field: SortField; children: React.ReactNode }> = ({ field, children }) => (
-    <button
-      onClick={() => handleSort(field)}
-      className="flex items-center gap-1 hover:bg-muted/50 p-1 rounded transition-colors"
-    >
+  const SortButton: React.FC<{
+    field: SortField;
+    children: React.ReactNode;
+  }> = ({
+    field,
+    children
+  }) => <button onClick={() => handleSort(field)} className="flex items-center gap-1 hover:bg-muted/50 p-1 rounded transition-colors">
       {children}
       <ArrowUpDown className="h-3 w-3" />
-    </button>
-  );
-
+    </button>;
   const handleRowClick = (rfi: RFI) => {
     if (onSelectRFI) {
       onSelectRFI(rfi);
     }
   };
-
   const handleCheckboxChange = (rfiId: string, checked: boolean) => {
     if (!onSelectionChange) return;
-    
     if (checked) {
       onSelectionChange([...selectedRFIIds, rfiId]);
     } else {
       onSelectionChange(selectedRFIIds.filter(id => id !== rfiId));
     }
   };
-
   const isRFISelected = (rfiId: string) => selectedRFIIds.includes(rfiId);
-
-  return (
-    <div className="space-y-4">
+  return <div className="space-y-4">
       <Card className="border-0 shadow-sm bg-gradient-to-br from-card to-card/50">
         <CardContent className="p-0">
           <Table>
             <TableHeader className="bg-gradient-to-r from-muted/50 to-muted/30 border-b-2 border-primary/10">
               <TableRow>
-                {onSelectionChange && (
-                  <TableHead className="text-foreground/80 font-semibold text-sm h-12 px-4 w-[40px] text-center">
+                {onSelectionChange && <TableHead className="text-foreground/80 font-semibold text-sm h-12 px-4 w-[40px] text-center">
                     <CheckSquare className="h-4 w-4 text-muted-foreground" />
-                  </TableHead>
-                )}
+                  </TableHead>}
                 <TableHead className="text-foreground/80 font-semibold text-sm h-12 px-4 w-[60px]">Mail #</TableHead>
                 <TableHead className="text-foreground/80 font-semibold text-sm h-12 px-4">
                   <SortButton field="subject">Subject / Title</SortButton>
@@ -188,31 +166,12 @@ export const RFIListView: React.FC<RFIListViewProps> = ({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {sortedRFIs.map((rfi) => (
-                <TableRow 
-                  key={rfi.id} 
-                  className={`hover:bg-muted/30 transition-all duration-200 cursor-pointer border-b border-muted/20 ${
-                    selectedRFI?.id === rfi.id ? 'bg-muted/40' : ''
-                  } ${isRFISelected(rfi.id) ? 'bg-accent/20' : ''}`}
-                  onClick={() => handleRowClick(rfi)}
-                  onDoubleClick={() => onDoubleClick?.(rfi)}
-                >
-              {onSelectionChange && (
-                <TableCell onClick={(e) => e.stopPropagation()}>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-6 w-6 p-0"
-                    onClick={() => handleCheckboxChange(rfi.id, !isRFISelected(rfi.id))}
-                  >
-                    {isRFISelected(rfi.id) ? (
-                      <CheckSquare className="h-4 w-4 text-primary" />
-                    ) : (
-                      <Square className="h-4 w-4 text-muted-foreground" />
-                    )}
+              {sortedRFIs.map(rfi => <TableRow key={rfi.id} className={`hover:bg-muted/30 transition-all duration-200 cursor-pointer border-b border-muted/20 ${selectedRFI?.id === rfi.id ? 'bg-muted/40' : ''} ${isRFISelected(rfi.id) ? 'bg-accent/20' : ''}`} onClick={() => handleRowClick(rfi)} onDoubleClick={() => onDoubleClick?.(rfi)}>
+              {onSelectionChange && <TableCell onClick={e => e.stopPropagation()}>
+                  <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={() => handleCheckboxChange(rfi.id, !isRFISelected(rfi.id))}>
+                    {isRFISelected(rfi.id) ? <CheckSquare className="h-4 w-4 text-primary" /> : <Square className="h-4 w-4 text-muted-foreground" />}
                   </Button>
-                </TableCell>
-              )}
+                </TableCell>}
               <TableCell className="font-mono text-xs">
                 {getRfiNumberDisplay(rfi)}
               </TableCell>
@@ -241,79 +200,67 @@ export const RFIListView: React.FC<RFIListViewProps> = ({
                 </Badge>
               </TableCell>
               <TableCell className="text-xs text-muted-foreground">
-                {rfi.due_date || rfi.required_response_by 
-                  ? format(new Date(rfi.due_date || rfi.required_response_by), 'MMM dd, yyyy')
-                  : '-'
-                }
+                {rfi.due_date || rfi.required_response_by ? format(new Date(rfi.due_date || rfi.required_response_by), 'MMM dd, yyyy') : '-'}
               </TableCell>
               <TableCell>
-                <Badge 
-                  variant="outline" 
-                  className={`text-xs ${priorityColors[rfi.priority as keyof typeof priorityColors] || priorityColors.medium}`}
-                >
+                <Badge variant="outline" className={`text-xs ${priorityColors[rfi.priority as keyof typeof priorityColors] || priorityColors.medium}`}>
                   {rfi.priority.toUpperCase()}
                 </Badge>
               </TableCell>
-              {showQuickActions && onUpdateRFI && (
-                <TableCell onClick={(e) => e.stopPropagation()}>
-                  <RFIQuickActions
-                    rfi={rfi}
-                    onUpdateRFI={onUpdateRFI}
-                    projectUsers={projectUsers}
-                    compact={true}
-                  />
-                </TableCell>
-              )}
+              {showQuickActions && onUpdateRFI && <TableCell onClick={e => e.stopPropagation()}>
+                  <RFIQuickActions rfi={rfi} onUpdateRFI={onUpdateRFI} projectUsers={projectUsers} compact={true} />
+                </TableCell>}
               <TableCell>
                 <DropdownMenu>
-                  <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                  <DropdownMenuTrigger asChild onClick={e => e.stopPropagation()}>
                     <Button variant="ghost" size="sm" className="h-7 w-7 p-0">
                       <MoreHorizontal className="h-3 w-3" />
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="bg-background border">
-                    {rfi.status === 'draft' && onSendDraft && (
-                      <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onSendDraft(rfi); }}>
+                    {rfi.status === 'draft' && onSendDraft && <DropdownMenuItem onClick={e => {
+                      e.stopPropagation();
+                      onSendDraft(rfi);
+                    }}>
                         <Send className="h-3 w-3 mr-2" />
                         Send RFI
-                      </DropdownMenuItem>
-                    )}
-                    <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onView(rfi); }}>
+                      </DropdownMenuItem>}
+                    <DropdownMenuItem onClick={e => {
+                      e.stopPropagation();
+                      onView(rfi);
+                    }}>
                       <Eye className="h-3 w-3 mr-2" />
                       View Details
                     </DropdownMenuItem>
                     
-                    <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onExportPDF(rfi); }}>
+                    <DropdownMenuItem onClick={e => {
+                      e.stopPropagation();
+                      onExportPDF(rfi);
+                    }}>
                       <Download className="h-3 w-3 mr-2" />
                       Export PDF
                     </DropdownMenuItem>
                     
-                    {onDeleteRFI && (
-                      <DropdownMenuItem 
-                        onClick={(e) => { e.stopPropagation(); onDeleteRFI(rfi); }}
-                        className="text-destructive focus:text-destructive"
-                      >
+                    {onDeleteRFI && <DropdownMenuItem onClick={e => {
+                      e.stopPropagation();
+                      onDeleteRFI(rfi);
+                    }} className="text-destructive focus:text-destructive">
                         <Trash2 className="h-3 w-3 mr-2" />
                         Delete RFI
-                      </DropdownMenuItem>
-                    )}
+                      </DropdownMenuItem>}
                   </DropdownMenuContent>
                 </DropdownMenu>
               </TableCell>
-            </TableRow>
-          ))}
+            </TableRow>)}
         </TableBody>
       </Table>
     </CardContent>
   </Card>
       
-      {sortedRFIs.length === 0 && (
-        <div className="text-center py-12 text-muted-foreground">
+      {sortedRFIs.length === 0 && <div className="text-center py-12 text-muted-foreground">
           <MessageSquare className="h-12 w-12 mx-auto mb-2 opacity-50" />
-          <p>No RFIs found</p>
-          <p className="text-sm">Create your first RFI to get started</p>
-        </div>
-      )}
-    </div>
-  );
+          <p>No Mail found</p>
+          <p className="text-sm">Create your first Mail to get started</p>
+        </div>}
+    </div>;
 };
