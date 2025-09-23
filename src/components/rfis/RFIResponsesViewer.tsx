@@ -102,6 +102,24 @@ export const RFIResponsesViewer: React.FC<RFIResponsesViewerProps> = ({
       name: rfi?.raised_by_company_name || 'Unknown Company'
     };
 
+    // Get project reference from projects table
+    let projectReference = 'No Reference';
+    try {
+      if (rfi?.project_id) {
+        const { data: project } = await supabase
+          .from('projects')
+          .select('project_id')
+          .eq('id', rfi.project_id)
+          .single();
+        
+        if (project?.project_id) {
+          projectReference = project.project_id;
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching project reference:', error);
+    }
+
     try {
       if (rfi?.raised_by) {
         const { data: profile } = await supabase
@@ -126,9 +144,13 @@ export const RFIResponsesViewer: React.FC<RFIResponsesViewerProps> = ({
     
     // Get project and company information
     const projectName = rfi?.project_name || 'Unknown Project';
-    const projectReference = rfi?.project_id || 'No Reference';
     const rfiDescription = rfi?.question || 'No description available';
-    const currentDate = new Date().toLocaleDateString('en-US', {
+    const createdDate = new Date(response.created_at).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+    const printedDate = new Date().toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
@@ -140,6 +162,16 @@ export const RFIResponsesViewer: React.FC<RFIResponsesViewerProps> = ({
       month: 'long',
       day: 'numeric'
     }) : 'Not specified';
+    
+    // Get status information
+    const currentStatus = rfi?.status ? rfi.status.toUpperCase().replace('_', ' ') : 'PENDING';
+    const previousStatus = 'SUBMITTED'; // You may want to track this in your database
+    
+    // Get assigned personnel - can be multiple people
+    const assignedTo = response.responder_name || 'Not assigned';
+    
+    // Get attachments
+    const attachments = response.attachments || [];
     
     const printContent = `
       <!DOCTYPE html>
@@ -261,17 +293,18 @@ export const RFIResponsesViewer: React.FC<RFIResponsesViewerProps> = ({
             </div>
           </div>
 
-          <!-- Mail Header Information -->
+          <!-- Mail Information -->
           <div class="mail-header">
-            <h1>MAIL HEADER INFORMATION</h1>
+            <h1>MAIL INFORMATION</h1>
             <div class="mail-info">
               <div><strong>Mail #:</strong> ${rfi?.rfi_number || `Mail-${rfi?.id.slice(0, 8)}`}</div>
-              <div><strong>Date:</strong> ${currentDate}</div>
-              <div><strong>To (Name and Title):</strong> ${response.responder_name} - ${response.responder_position}</div>
+              <div><strong>Date:</strong> ${createdDate}</div>
+              <div><strong>To (Name and Title):</strong> ${assignedTo}</div>
               <div><strong>Date Need By:</strong> ${dueDate}</div>
               <div><strong>Company:</strong> ${companyDetails.name}</div>
               <div><strong>Project Name:</strong> ${projectName}</div>
               <div><strong>Project Reference:</strong> ${projectReference}</div>
+              <div><strong>Printed Date:</strong> ${printedDate}</div>
               <div style="grid-column: 1 / -1;"><strong>RFI Description:</strong> ${rfiDescription}</div>
             </div>
           </div>
@@ -310,8 +343,45 @@ export const RFIResponsesViewer: React.FC<RFIResponsesViewerProps> = ({
           </div>
           `}
 
+          <!-- Attachments Section -->
+          ${attachments.length > 0 ? `
+          <div class="section">
+            <div class="section-header">ATTACHMENTS</div>
+            <div class="content-text">
+              ${attachments.map(att => `
+                <div style="margin-bottom: 5px;">
+                  <strong>File:</strong> ${att.name}
+                  ${att.size ? `<span style="color: #666; font-size: 11px;"> (${(att.size / 1024).toFixed(1)} KB)</span>` : ''}
+                </div>
+              `).join('')}
+            </div>
+          </div>
+          ` : ''}
+
+          <!-- Status Section -->
           <div class="status-section">
-            <div>STATUS: ${rfi?.status ? rfi.status.toUpperCase().replace('_', ' ') : 'PENDING'}</div>
+            <div>STATUS: ${previousStatus} → ${currentStatus}</div>
+          </div>
+
+          <!-- Signatures Section -->
+          <div class="section">
+            <div class="section-header">SIGNATURES</div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-top: 20px;">
+              <div>
+                <div style="border-bottom: 1px solid #000; height: 50px; margin-bottom: 10px;"></div>
+                <div style="text-align: center; font-size: 12px;">
+                  <div><strong>Submitted By:</strong> ${response.responder_name}</div>
+                  <div>Date: _____________</div>
+                </div>
+              </div>
+              <div>
+                <div style="border-bottom: 1px solid #000; height: 50px; margin-bottom: 10px;"></div>
+                <div style="text-align: center; font-size: 12px;">
+                  <div><strong>Reviewed By:</strong> _____________</div>
+                  <div>Date: _____________</div>
+                </div>
+              </div>
+            </div>
           </div>
         </body>
       </html>
