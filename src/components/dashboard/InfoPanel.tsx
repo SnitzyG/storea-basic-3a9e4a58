@@ -5,10 +5,11 @@ import { Calendar, Cloud, Clock, Thermometer, Droplets, Wind, CloudRain } from '
 import { format } from 'date-fns';
 import { useProjectSelection } from '@/context/ProjectSelectionContext';
 import { supabase } from '@/integrations/supabase/client';
-
 export const InfoPanel = () => {
   const [currentTime, setCurrentTime] = useState(new Date());
-  const { selectedProject } = useProjectSelection();
+  const {
+    selectedProject
+  } = useProjectSelection();
   const [weather, setWeather] = useState({
     temperature: 22,
     condition: 'Partly Cloudy',
@@ -25,12 +26,10 @@ export const InfoPanel = () => {
       rainfall: number;
     }>
   });
-
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentTime(new Date());
     }, 1000);
-
     return () => clearInterval(timer);
   }, []);
 
@@ -40,7 +39,6 @@ export const InfoPanel = () => {
       const projectLocation = selectedProject?.address || 'Melbourne CBD';
       // Extract suburb from address - improved parsing
       let suburb = 'Melbourne CBD';
-
       if (projectLocation && projectLocation !== 'Melbourne CBD') {
         const parts = projectLocation.split(',').map(part => part.trim());
         if (parts.length >= 2) {
@@ -56,14 +54,22 @@ export const InfoPanel = () => {
           }
         }
       }
-
       try {
-        setWeather(prev => ({ ...prev, loading: true, location: suburb }));
-        const { data, error } = await supabase.functions.invoke('get-weather', {
-          body: { location: suburb, country: 'AU' }
+        setWeather(prev => ({
+          ...prev,
+          loading: true,
+          location: suburb
+        }));
+        const {
+          data,
+          error
+        } = await supabase.functions.invoke('get-weather', {
+          body: {
+            location: suburb,
+            country: 'AU'
+          }
         });
         if (error) throw error;
-
         setWeather({
           temperature: Math.round(data.current.temp),
           condition: data.current.condition,
@@ -82,12 +88,9 @@ export const InfoPanel = () => {
         }));
       }
     };
-
     fetchWeather();
   }, [selectedProject]);
-
-  return (
-    <Card className="h-full flex flex-col">
+  return <Card className="h-full flex flex-col">
       <CardHeader className="pb-2 flex-shrink-0 border-b">
         <CardTitle className="text-base flex items-center gap-2 font-medium">
           <Clock className="h-4 w-4 text-primary" />
@@ -126,31 +129,14 @@ export const InfoPanel = () => {
               <Badge variant="outline" className="text-xs">{weather.condition}</Badge>
             </div>
             
-            <div className="grid grid-cols-3 gap-1">
-              <div className="flex flex-col items-center gap-0.5 p-1 rounded bg-muted/30">
-                <Droplets className="h-3 w-3 text-blue-500" />
-                <span className="font-semibold text-xs">{weather.humidity}%</span>
-                <span className="text-muted-foreground text-xs">Humidity</span>
-              </div>
-              <div className="flex flex-col items-center gap-0.5 p-1 rounded bg-muted/30">
-                <Wind className="h-3 w-3 text-green-500" />
-                <span className="font-semibold text-xs">{weather.windSpeed}</span>
-                <span className="text-muted-foreground text-xs">km/h</span>
-              </div>
-              <div className="flex flex-col items-center gap-0.5 p-1 rounded bg-muted/30">
-                <CloudRain className="h-3 w-3 text-indigo-500" />
-                <span className="font-semibold text-xs">{weather.rainfall}mm</span>
-                <span className="text-muted-foreground text-xs">Rain</span>
-              </div>
-            </div>
+            
           </div>
 
           {/* 5-Day Forecast - Flexible */}
           <div className="flex-1 flex flex-col min-h-0">
             <h5 className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1 flex-shrink-0">5-Day Forecast</h5>
             <div className="flex-1 grid grid-cols-1 auto-rows-fr gap-1 min-h-0">
-              {weather.forecast.slice(0, 5).map((day, index) => (
-                <div key={index} className="flex items-center justify-between px-2 py-1 rounded-md bg-muted/20 hover:bg-muted/30 transition-colors min-h-0">
+              {weather.forecast.slice(0, 5).map((day, index) => <div key={index} className="flex items-center justify-between px-2 py-1 rounded-md bg-muted/20 hover:bg-muted/30 transition-colors min-h-0">
                   <div className="flex items-center gap-1 flex-1 min-w-0">
                     <span className="font-medium text-xs w-6 text-left flex-shrink-0">{day.day}</span>
                     <span className="text-xs text-muted-foreground truncate flex-1">{day.condition}</span>
@@ -158,13 +144,11 @@ export const InfoPanel = () => {
                   <div className="flex items-center justify-end min-w-[44px] flex-shrink-0">
                     <span className="font-semibold text-xs text-right">{day.maxTemp}°/{day.minTemp}°</span>
                   </div>
-                </div>
-              ))}
+                </div>)}
             </div>
           </div>
         </div>
 
       </CardContent>
-    </Card>
-  );
+    </Card>;
 };
