@@ -98,6 +98,7 @@ export const RFIResponsesViewer: React.FC<RFIResponsesViewerProps> = ({
       logo: '',
       address: '',
       phone: '',
+      website: '',
       name: rfi?.raised_by_company_name || 'Unknown Company'
     };
 
@@ -105,7 +106,7 @@ export const RFIResponsesViewer: React.FC<RFIResponsesViewerProps> = ({
       if (rfi?.raised_by) {
         const { data: profile } = await supabase
           .from('profiles')
-          .select('company_logo_url, company_address, phone, company_name')
+          .select('company_logo_url, company_address, phone, company_name, company_website')
           .eq('user_id', rfi.raised_by)
           .single();
         
@@ -114,6 +115,7 @@ export const RFIResponsesViewer: React.FC<RFIResponsesViewerProps> = ({
             logo: profile.company_logo_url || '',
             address: profile.company_address || '',
             phone: profile.phone || '',
+            website: profile.company_website || '',
             name: profile.company_name || rfi?.raised_by_company_name || 'Unknown Company'
           };
         }
@@ -154,6 +156,32 @@ export const RFIResponsesViewer: React.FC<RFIResponsesViewerProps> = ({
               margin: 0 auto;
               padding: 20px;
               background: white;
+            }
+            .company-header {
+              text-align: center;
+              padding: 20px;
+              margin-bottom: 20px;
+              border: 3px solid #000;
+              background: #f0f0f0;
+            }
+            .company-logo {
+              margin-bottom: 15px;
+            }
+            .company-logo img {
+              max-height: 80px;
+              max-width: 300px;
+            }
+            .company-name {
+              font-size: 20px;
+              font-weight: bold;
+              margin-bottom: 10px;
+            }
+            .company-details {
+              font-size: 12px;
+              line-height: 1.5;
+            }
+            .company-details div {
+              margin-bottom: 3px;
             }
             .mail-header {
               border: 2px solid #000;
@@ -218,6 +246,22 @@ export const RFIResponsesViewer: React.FC<RFIResponsesViewerProps> = ({
           </style>
         </head>
         <body>
+          <!-- Company Header Section -->
+          <div class="company-header">
+            ${companyDetails.logo ? `
+            <div class="company-logo">
+              <img src="${companyDetails.logo}" alt="Company Logo" />
+            </div>
+            ` : ''}
+            <div class="company-name">${companyDetails.name}</div>
+            <div class="company-details">
+              ${companyDetails.address ? `<div><strong>Address:</strong> ${companyDetails.address}</div>` : ''}
+              ${companyDetails.phone ? `<div><strong>Phone:</strong> ${companyDetails.phone}</div>` : ''}
+              ${companyDetails.website ? `<div><strong>Website:</strong> ${companyDetails.website}</div>` : ''}
+            </div>
+          </div>
+
+          <!-- Mail Header Information -->
           <div class="mail-header">
             <h1>MAIL HEADER INFORMATION</h1>
             <div class="mail-info">
@@ -230,17 +274,6 @@ export const RFIResponsesViewer: React.FC<RFIResponsesViewerProps> = ({
               <div><strong>Project Reference:</strong> ${projectReference}</div>
               <div style="grid-column: 1 / -1;"><strong>RFI Description:</strong> ${rfiDescription}</div>
             </div>
-            ${companyDetails.logo ? `
-            <div style="margin-top: 15px; text-align: center;">
-              <img src="${companyDetails.logo}" alt="Company Logo" style="max-height: 60px; max-width: 200px;" />
-            </div>
-            ` : ''}
-            ${companyDetails.address || companyDetails.phone ? `
-            <div style="margin-top: 10px; font-size: 11px; text-align: center;">
-              ${companyDetails.address ? `<div><strong>Address:</strong> ${companyDetails.address}</div>` : ''}
-              ${companyDetails.phone ? `<div><strong>Phone:</strong> ${companyDetails.phone}</div>` : ''}
-            </div>
-            ` : ''}
           </div>
 
           ${isOriginal ? `

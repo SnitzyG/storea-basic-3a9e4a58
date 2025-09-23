@@ -26,6 +26,7 @@ export const ManageProfileDialog = ({ children }: ManageProfileDialogProps) => {
   const [companyPosition, setCompanyPosition] = useState('');
   const [companyAddress, setCompanyAddress] = useState('');
   const [companyLogoUrl, setCompanyLogoUrl] = useState('');
+  const [companyWebsite, setCompanyWebsite] = useState('');
   const [linkedCompanyName, setLinkedCompanyName] = useState<string | null>(null);
   const { user, profile } = useAuth();
   const { toast } = useToast();
@@ -54,6 +55,7 @@ export const ManageProfileDialog = ({ children }: ManageProfileDialogProps) => {
       setCompanyPosition(profile.company_position || '');
       setCompanyAddress(profile.company_address || '');
       setCompanyLogoUrl(profile.company_logo_url || '');
+      // setCompanyWebsite(profile.company_website || ''); // Will be enabled after types update
       
       // Fetch linked company name if company_id exists
       if (profile.company_id) {
@@ -110,6 +112,7 @@ export const ManageProfileDialog = ({ children }: ManageProfileDialogProps) => {
           company_position: companyPosition.trim(),
           company_address: companyAddress.trim(),
           company_logo_url: companyLogoUrl,
+          company_website: companyWebsite.trim(),
         })
         .eq('user_id', user.id);
 
@@ -340,15 +343,25 @@ export const ManageProfileDialog = ({ children }: ManageProfileDialogProps) => {
                    placeholder="Enter your position or title"
                  />
                </div>
+                 <div>
+                   <Label htmlFor="company-address">Company Address</Label>
+                   <Input
+                     id="company-address"
+                     value={companyAddress}
+                     onChange={(e) => setCompanyAddress(e.target.value)}
+                     placeholder="Enter company address"
+                  />
+                </div>
+                
                 <div>
-                  <Label htmlFor="company-address">Company Address</Label>
+                  <Label htmlFor="company-website">Company Website</Label>
                   <Input
-                    id="company-address"
-                    value={companyAddress}
-                    onChange={(e) => setCompanyAddress(e.target.value)}
-                    placeholder="Enter company address"
-                 />
-               </div>
+                    id="company-website"
+                    value={companyWebsite}
+                    onChange={(e) => setCompanyWebsite(e.target.value)}
+                    placeholder="https://company.com"
+                  />
+                </div>
 
                {/* Company Logo Upload */}
                <div>
