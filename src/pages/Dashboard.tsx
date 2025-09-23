@@ -89,29 +89,28 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Compact Dashboard Content - Responsive Grid */}
-      <div className="flex-1 p-2 sm:p-3 lg:p-4 overflow-auto">
-        {/* Desktop: 2x2 Grid, Tablet: 2x2, Mobile: 1 column */}
+      {/* Compact Dashboard Content - No Scroll Layout */}
+      <div className="flex-1 p-2 overflow-hidden">
         <div className="h-full max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-2 lg:gap-3 h-full auto-rows-fr">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-2 h-full">
             
-            {/* Recent Activity - Compact height */}
-            <div className="min-h-[280px] lg:min-h-0">
+            {/* Recent Activity - Fixed compact height */}
+            <div className="h-[calc(50vh-4rem)] min-h-[220px]">
               <RecentActivity />
             </div>
 
-            {/* Calendar Widget - Compact height */}
-            <div className="min-h-[280px] lg:min-h-0">
+            {/* Calendar Widget - Fixed compact height */}
+            <div className="h-[calc(50vh-4rem)] min-h-[220px]">
               <CalendarWidget />
             </div>
 
-            {/* To-Do List - Compact height */}
-            <div className="min-h-[280px] lg:min-h-0">
+            {/* To-Do List - Fixed compact height */}
+            <div className="h-[calc(50vh-4rem)] min-h-[220px]">
               <ToDoList />
             </div>
 
-            {/* Info Panel - Compact height */}
-            <div className="min-h-[280px] lg:min-h-0">
+            {/* Info Panel - Fixed compact height */}
+            <div className="h-[calc(50vh-4rem)] min-h-[220px]">
               <InfoPanel />
             </div>
             
