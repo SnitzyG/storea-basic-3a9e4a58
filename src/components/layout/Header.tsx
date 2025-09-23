@@ -3,7 +3,7 @@ import { User } from '@supabase/supabase-js';
 import { Profile } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { CompanyAvatar } from '@/components/ui/company-avatar';
 import { useAuth } from '@/hooks/useAuth';
 import { LogOut, User as UserIcon } from 'lucide-react';
 import { useTheme } from '@/context/ThemeContext';
@@ -77,10 +77,12 @@ export const Header = ({
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-              <Avatar className="h-8 w-8">
-                <AvatarImage src={profile?.avatar_url || undefined} alt={(profile?.name || user.email || 'User')} />
-                <AvatarFallback>{initials}</AvatarFallback>
-              </Avatar>
+              <CompanyAvatar 
+                className="h-8 w-8"
+                companyLogoUrl={profile?.company_logo_url}
+                avatarUrl={profile?.avatar_url}
+                fallback={initials}
+              />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent className="w-56" align="end" forceMount>
