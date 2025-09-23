@@ -194,6 +194,7 @@ export const useRFIs = () => {
     other_reference?: string;
     proposed_solution?: string;
     required_response_by?: string;
+    signature?: string;
   }) => {
     if (!user) return null;
 

@@ -131,7 +131,8 @@ export const SimplifiedRFIComposer: React.FC<SimplifiedRFIComposerProps> = ({
           response: formData.message,
           responder_name: profile?.name || '',
           response_date: isDraft ? undefined : new Date().toISOString(),
-          status: isDraft ? 'draft' : 'answered'
+          status: isDraft ? 'draft' : 'answered',
+          signature: signature || undefined
         });
       } else {
         // Create new RFI first
@@ -156,7 +157,8 @@ export const SimplifiedRFIComposer: React.FC<SimplifiedRFIComposerProps> = ({
             sender_name: profile?.name || '',
             sender_email: user?.email || '',
             subject: formData.subject,
-            required_response_by: isResponseRequired ? requiredResponseDate?.toISOString() : undefined
+            required_response_by: isResponseRequired ? requiredResponseDate?.toISOString() : undefined,
+            signature: signature || undefined
           });
 
         // Update status if it's a draft

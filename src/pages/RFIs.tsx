@@ -833,7 +833,8 @@ const RFIs = () => {
         responder_position: responseData.responderPosition,
         response_date: new Date().toISOString(),
         status: responseData.status as any || 'answered',
-        priority: responseData.priority
+        priority: responseData.priority,
+        signature: responseData.signature || undefined
       });
       setResponseComposerOpen(false);
       setResponseRFI(null);
