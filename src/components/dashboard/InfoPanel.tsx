@@ -95,39 +95,38 @@ export const InfoPanel = () => {
         </CardTitle>
       </CardHeader>
       
-      <CardContent className="flex-1 space-y-3 p-2">
-        {/* Date & Time */}
-        <div className="space-y-2">
+      <CardContent className="flex-1 flex flex-col overflow-hidden p-2">
+        {/* Date & Time - Compact */}
+        <div className="flex-shrink-0 space-y-1 mb-3">
           <h4 className="font-medium text-xs flex items-center gap-1 text-muted-foreground uppercase tracking-wide">
             <Clock className="h-3 w-3" />
             Current Time
           </h4>
-          <div className="space-y-1">
-            <div className="text-lg font-semibold">
+          <div className="space-y-0.5">
+            <div className="text-base font-semibold">
               {format(currentTime, 'h:mm:ss a')}
             </div>
             <div className="text-xs text-muted-foreground">
-              {format(currentTime, 'EEEE, MMMM d, yyyy')}
+              {format(currentTime, 'EEE, MMM d, yyyy')}
             </div>
           </div>
         </div>
 
-        {/* Weather for Current Project */}
-
-        <div className="space-y-3">
-          <h4 className="font-medium text-xs flex items-center gap-1 text-muted-foreground uppercase tracking-wide">
+        {/* Weather Section - Optimized */}
+        <div className="flex-1 flex flex-col min-h-0">
+          <h4 className="font-medium text-xs flex items-center gap-1 text-muted-foreground uppercase tracking-wide mb-2 flex-shrink-0">
             <Cloud className="h-3 w-3" />
             Weather - {weather.location}
           </h4>
           
-          {/* Current Weather */}
-          <div className="space-y-2">
+          {/* Current Weather - Compact */}
+          <div className="flex-shrink-0 space-y-2 mb-3">
             <div className="flex items-center justify-between">
               <span className="text-lg font-semibold">{weather.temperature}°C</span>
               <Badge variant="outline" className="text-xs">{weather.condition}</Badge>
             </div>
             
-            <div className="grid grid-cols-3 gap-1 text-xs">
+            <div className="grid grid-cols-3 gap-1">
               <div className="flex flex-col items-center gap-0.5 p-1 rounded bg-muted/30">
                 <Droplets className="h-3 w-3 text-blue-500" />
                 <span className="font-semibold text-xs">{weather.humidity}%</span>
@@ -146,17 +145,17 @@ export const InfoPanel = () => {
             </div>
           </div>
 
-          {/* 5-Day Forecast */}
-          <div className="space-y-2">
-            <h5 className="text-xs font-medium text-muted-foreground uppercase tracking-wide">5-Day Forecast</h5>
-            <div className="grid grid-cols-2 gap-1">
+          {/* 5-Day Forecast - Flexible */}
+          <div className="flex-1 flex flex-col min-h-0">
+            <h5 className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1 flex-shrink-0">5-Day Forecast</h5>
+            <div className="flex-1 grid grid-cols-1 auto-rows-fr gap-1 min-h-0">
               {weather.forecast.slice(0, 5).map((day, index) => (
-                <div key={index} className="flex items-center justify-between p-1.5 rounded-md bg-muted/20 hover:bg-muted/30 transition-colors">
+                <div key={index} className="flex items-center justify-between px-2 py-1 rounded-md bg-muted/20 hover:bg-muted/30 transition-colors min-h-0">
                   <div className="flex items-center gap-1 flex-1 min-w-0">
                     <span className="font-medium text-xs w-6 text-left flex-shrink-0">{day.day}</span>
                     <span className="text-xs text-muted-foreground truncate flex-1">{day.condition}</span>
                   </div>
-                  <div className="flex items-center justify-end gap-1 min-w-[48px] flex-shrink-0">
+                  <div className="flex items-center justify-end min-w-[44px] flex-shrink-0">
                     <span className="font-semibold text-xs text-right">{day.maxTemp}°/{day.minTemp}°</span>
                   </div>
                 </div>
