@@ -1669,6 +1669,7 @@ export type Database = {
           rfi_type: Database["public"]["Enums"]["rfi_type"]
           sender_email: string | null
           sender_name: string | null
+          signature: string | null
           specification_section: string | null
           status: Database["public"]["Enums"]["rfi_status"]
           subject: string | null
@@ -1702,6 +1703,7 @@ export type Database = {
           rfi_type?: Database["public"]["Enums"]["rfi_type"]
           sender_email?: string | null
           sender_name?: string | null
+          signature?: string | null
           specification_section?: string | null
           status?: Database["public"]["Enums"]["rfi_status"]
           subject?: string | null
@@ -1735,6 +1737,7 @@ export type Database = {
           rfi_type?: Database["public"]["Enums"]["rfi_type"]
           sender_email?: string | null
           sender_name?: string | null
+          signature?: string | null
           specification_section?: string | null
           status?: Database["public"]["Enums"]["rfi_status"]
           subject?: string | null
