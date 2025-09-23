@@ -523,7 +523,7 @@ const RFIs = () => {
           <div class="header">
             <h1>Request for Information</h1>
             <div class="header-info">
-              <div><strong>RFI Number:</strong> ${rfi.rfi_number || `RFI-${rfi.id.slice(0, 8)}`}</div>
+              <div><strong>Mail Number:</strong> ${rfi.rfi_number || `Mail-${rfi.id.slice(0, 8)}`}</div>
               <div><strong>Project:</strong> ${rfi.project_name || 'N/A'}</div>
               <div><strong>Date Created:</strong> ${new Date(rfi.created_at).toLocaleDateString('en-US', {
       year: 'numeric',

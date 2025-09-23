@@ -297,7 +297,7 @@ export const EmailStyleRFIInbox: React.FC<EmailStyleRFIInboxProps> = ({
                     </Badge>
                   </div>
                   <div className="text-sm text-muted-foreground space-y-1">
-                    <div>RFI #{selectedRFI.rfi_number || selectedRFI.id.slice(0, 8)}</div>
+                    <div>Mail #{selectedRFI.rfi_number || selectedRFI.id.slice(0, 8)}</div>
                     <div>Type: {mapCategoryToType(selectedRFI.category)}</div>
                     <div>Created: {format(new Date(selectedRFI.created_at), 'PPP')}</div>
                   </div>

@@ -201,7 +201,7 @@ export const FormalInquiryDialog: React.FC<FormalInquiryDialogProps> = ({
           <div className="w-96 flex flex-col min-h-[600px]">
             {/* RFI Number Preview */}
             <div className="mb-4 p-3 bg-primary/5 rounded-lg border border-primary/20">
-              <Label className="text-sm font-medium">RFI Number</Label>
+              <Label className="text-sm font-medium">Mail Number</Label>
               <div className="text-lg font-mono text-primary mt-1">
                 {generateRFINumber()}
               </div>

@@ -277,7 +277,7 @@ export const EnhancedRFIDashboard: React.FC<EnhancedRFIDashboardProps> = ({
               <TableHeader>
                 <TableRow>
                   <TableHead>
-                    <SortButton field="rfi_number">RFI Number</SortButton>
+                    <SortButton field="rfi_number">Mail Number</SortButton>
                   </TableHead>
                   <TableHead>
                     <SortButton field="created_at">Date</SortButton>

@@ -173,7 +173,7 @@ export const RFIResponsesViewer: React.FC<RFIResponsesViewerProps> = ({
           <div class="header">
             <h1>${title}</h1>
             <div class="header-info">
-              <div><strong>RFI Number:</strong> ${rfi?.rfi_number || `RFI-${rfi?.id.slice(0, 8)}`}</div>
+              <div><strong>Mail Number:</strong> ${rfi?.rfi_number || `Mail-${rfi?.id.slice(0, 8)}`}</div>
               <div><strong>Date:</strong> ${new Date(response.response_date).toLocaleDateString('en-US', {
                 year: 'numeric',
                 month: 'long',
@@ -261,7 +261,7 @@ export const RFIResponsesViewer: React.FC<RFIResponsesViewerProps> = ({
       // Add RFI number
       pdf.setFontSize(12);
       pdf.setFont('helvetica', 'normal');
-      pdf.text(`RFI: ${rfi?.rfi_number || `RFI-${rfi?.id.slice(0, 8)}`}`, 20, yPosition);
+      pdf.text(`Mail: ${rfi?.rfi_number || `Mail-${rfi?.id.slice(0, 8)}`}`, 20, yPosition);
       yPosition += 10;
 
       // Add date

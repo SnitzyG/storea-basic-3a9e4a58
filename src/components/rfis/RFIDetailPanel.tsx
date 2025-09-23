@@ -219,7 +219,7 @@ export const RFIDetailPanel: React.FC<RFIDetailPanelProps> = ({
             <RFIStatusBadge status={rfi.status} />
           </div>
           <p className="text-sm text-muted-foreground">
-            RFI #{rfi.rfi_number || rfi.id.slice(0, 8)} • {rfi.project_name || 'Project'}
+            Mail #{rfi.rfi_number || rfi.id.slice(0, 8)} • {rfi.project_name || 'Project'}
           </p>
         </div>
         {onClose && (

@@ -163,7 +163,7 @@ export const RFIListView: React.FC<RFIListViewProps> = ({
                     <CheckSquare className="h-4 w-4 text-muted-foreground" />
                   </TableHead>
                 )}
-                <TableHead className="text-foreground/80 font-semibold text-sm h-12 px-4 w-[60px]">RFI #</TableHead>
+                <TableHead className="text-foreground/80 font-semibold text-sm h-12 px-4 w-[60px]">Mail #</TableHead>
                 <TableHead className="text-foreground/80 font-semibold text-sm h-12 px-4">
                   <SortButton field="subject">Subject / Title</SortButton>
                 </TableHead>
