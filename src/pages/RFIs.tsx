@@ -15,8 +15,6 @@ import { CategorizedRFIInbox } from '@/components/rfis/CategorizedRFIInbox';
 import { RFIListView } from '@/components/rfis/RFIListView';
 import { RFIDetailPanel } from '@/components/rfis/RFIDetailPanel';
 import { SimplifiedRFIComposer } from '@/components/rfis/SimplifiedRFIComposer';
-
-
 import { RFIMessageComposer } from '@/components/messages/RFIMessageComposer';
 import { RFIInbox, RFIInboxCategory } from '@/components/rfis/RFIInbox';
 import { RFIStatus, RFIStatusFilter } from '@/components/rfis/RFIStatus';
@@ -31,7 +29,6 @@ import { RFIPermissionsValidator } from '@/components/rfis/RFIPermissionsValidat
 import { RFIEnhancementsValidator } from '@/components/rfis/RFIEnhancementsValidator';
 import { useProjectTeam } from '@/hooks/useProjectTeam';
 import { QuickRFIRespondDialog } from '@/components/rfis/QuickRFIRespondDialog';
-
 const RFIs = () => {
   const [simplifiedComposerOpen, setSimplifiedComposerOpen] = useState(false);
   const [messageComposerOpen, setMessageComposerOpen] = useState(false);
@@ -63,12 +60,23 @@ const RFIs = () => {
   const [responsesViewerOpen, setResponsesViewerOpen] = useState(false);
   const [responsesViewerRFI, setResponsesViewerRFI] = useState<RFI | null>(null);
   const [quickRespondDialogOpen, setQuickRespondDialogOpen] = useState(false);
-  const { selectedProject } = useProjectSelection();
-  const { projects } = useProjects();
-  const { profile } = useAuth();
-  const { rfis, loading, updateRFI } = useRFIs();
-  const { teamMembers } = useProjectTeam(selectedProject?.id || '');
-
+  const {
+    selectedProject
+  } = useProjectSelection();
+  const {
+    projects
+  } = useProjects();
+  const {
+    profile
+  } = useAuth();
+  const {
+    rfis,
+    loading,
+    updateRFI
+  } = useRFIs();
+  const {
+    teamMembers
+  } = useProjectTeam(selectedProject?.id || '');
   const location = useLocation();
   const showDebug = process.env.NODE_ENV === 'development' && new URLSearchParams(location.search).get('debug') === 'rfi';
 
@@ -89,33 +97,26 @@ const RFIs = () => {
   // All RFIs for the current project - ensure proper project scoping and user permissions
   const projectRFIs = useMemo(() => {
     if (!profile?.user_id || !selectedProject?.id) return [];
-    return rfis.filter(rfi => 
-      rfi.project_id === selectedProject.id && 
-      (rfi.raised_by === profile.user_id || rfi.assigned_to === profile.user_id)
-    );
+    return rfis.filter(rfi => rfi.project_id === selectedProject.id && (rfi.raised_by === profile.user_id || rfi.assigned_to === profile.user_id));
   }, [rfis, selectedProject?.id, profile?.user_id]);
 
   // Filter RFIs based on selected inbox category
   const filteredRFIs = useMemo(() => {
     const currentUserId = profile?.user_id;
     if (!currentUserId) return [];
-
     switch (selectedInboxCategory) {
       case 'sent':
-        return projectRFIs.filter(rfi => 
-          rfi.raised_by === currentUserId && 
-          rfi.status !== 'draft' // Exclude drafts from sent
+        return projectRFIs.filter(rfi => rfi.raised_by === currentUserId && rfi.status !== 'draft' // Exclude drafts from sent
         );
       case 'received':
-        return projectRFIs.filter(rfi => 
-          rfi.assigned_to === currentUserId && 
-          rfi.status !== 'draft' // Exclude drafts from received
+        return projectRFIs.filter(rfi => rfi.assigned_to === currentUserId && rfi.status !== 'draft' // Exclude drafts from received
         );
       case 'drafts':
         return projectRFIs.filter(rfi => rfi.status === 'draft');
       case 'all':
       default:
-        return projectRFIs.filter(rfi => rfi.status !== 'draft'); // Exclude drafts from all project RFIs
+        return projectRFIs.filter(rfi => rfi.status !== 'draft');
+      // Exclude drafts from all project RFIs
     }
   }, [projectRFIs, selectedInboxCategory, profile?.user_id]);
 
@@ -124,7 +125,7 @@ const RFIs = () => {
     if (selectedStatusFilter === 'all') {
       return filteredRFIs;
     }
-    
+
     // Map new status names to existing RFI statuses
     const statusMapping: Record<import('@/components/rfis/RFIInbox').RFIStatusFilter, string[]> = {
       'all': [],
@@ -137,7 +138,6 @@ const RFIs = () => {
       'closed': ['closed'],
       'void': ['void']
     };
-    
     const mappedStatuses = statusMapping[selectedStatusFilter] || [];
     return filteredRFIs.filter(rfi => mappedStatuses.includes(rfi.status));
   }, [filteredRFIs, selectedStatusFilter]);
@@ -167,13 +167,7 @@ const RFIs = () => {
     // Apply search filter
     if (smartFilters.searchQuery) {
       const query = smartFilters.searchQuery.toLowerCase();
-      result = result.filter(rfi => 
-        rfi.question.toLowerCase().includes(query) ||
-        (rfi.response && rfi.response.toLowerCase().includes(query)) ||
-        (rfi.subject && rfi.subject.toLowerCase().includes(query)) ||
-        (rfi.rfi_number && rfi.rfi_number.toLowerCase().includes(query)) ||
-        (rfi.raised_by_profile?.name && rfi.raised_by_profile.name.toLowerCase().includes(query))
-      );
+      result = result.filter(rfi => rfi.question.toLowerCase().includes(query) || rfi.response && rfi.response.toLowerCase().includes(query) || rfi.subject && rfi.subject.toLowerCase().includes(query) || rfi.rfi_number && rfi.rfi_number.toLowerCase().includes(query) || rfi.raised_by_profile?.name && rfi.raised_by_profile.name.toLowerCase().includes(query));
     }
 
     // Apply discipline filter
@@ -183,10 +177,7 @@ const RFIs = () => {
 
     // Apply subcontractor filter
     if (smartFilters.subcontractorFilter && smartFilters.subcontractorFilter !== 'all') {
-      result = result.filter(rfi => 
-        rfi.raised_by_profile?.name === smartFilters.subcontractorFilter ||
-        rfi.assigned_to_profile?.name === smartFilters.subcontractorFilter
-      );
+      result = result.filter(rfi => rfi.raised_by_profile?.name === smartFilters.subcontractorFilter || rfi.assigned_to_profile?.name === smartFilters.subcontractorFilter);
     }
 
     // Apply priority filter
@@ -201,27 +192,34 @@ const RFIs = () => {
 
     // Apply tag filter
     if (smartFilters.tagFilter && smartFilters.tagFilter !== 'all') {
-      result = result.filter(rfi => 
-        (rfi.question + ' ' + (rfi.response || '')).includes(smartFilters.tagFilter)
-      );
+      result = result.filter(rfi => (rfi.question + ' ' + (rfi.response || '')).includes(smartFilters.tagFilter));
     }
 
     // Apply sorting
     result.sort((a, b) => {
       let aValue: any, bValue: any;
-      
       switch (smartFilters.sortBy) {
         case 'due_date':
           aValue = a.due_date || a.required_response_by || '9999-12-31';
           bValue = b.due_date || b.required_response_by || '9999-12-31';
           break;
         case 'priority':
-          const priorityOrder = { critical: 4, high: 3, medium: 2, low: 1 };
+          const priorityOrder = {
+            critical: 4,
+            high: 3,
+            medium: 2,
+            low: 1
+          };
           aValue = priorityOrder[a.priority];
           bValue = priorityOrder[b.priority];
           break;
         case 'status':
-          const statusOrder = { overdue: 4, outstanding: 3, responded: 2, closed: 1 };
+          const statusOrder = {
+            overdue: 4,
+            outstanding: 3,
+            responded: 2,
+            closed: 1
+          };
           aValue = statusOrder[a.status];
           bValue = statusOrder[b.status];
           break;
@@ -239,14 +237,12 @@ const RFIs = () => {
           bValue = b.created_at;
           break;
       }
-
       if (smartFilters.sortDirection === 'asc') {
         return aValue > bValue ? 1 : -1;
       } else {
         return aValue < bValue ? 1 : -1;
       }
     });
-
     console.log('Final processed RFIs count:', result.length);
     return result;
   }, [priorityFilteredRFIs, smartFilters]);
@@ -261,11 +257,9 @@ const RFIs = () => {
     };
     setSavedViews(prev => [...prev, newView]);
   };
-
   const handleLoadView = (view: SavedView) => {
     setSmartFilters(view.filters);
   };
-
   const handleDeleteView = (viewId: string) => {
     setSavedViews(prev => prev.filter(view => view.id !== viewId));
   };
@@ -290,10 +284,15 @@ const RFIs = () => {
   // Calculate counts for each category
   const inboxCounts = useMemo(() => {
     const currentUserId = profile?.user_id;
-    if (!currentUserId) return { all: 0, sent: 0, received: 0, drafts: 0 };
-
+    if (!currentUserId) return {
+      all: 0,
+      sent: 0,
+      received: 0,
+      drafts: 0
+    };
     return {
-      all: projectRFIs.filter(rfi => rfi.status !== 'draft').length, // Exclude drafts from all count
+      all: projectRFIs.filter(rfi => rfi.status !== 'draft').length,
+      // Exclude drafts from all count
       sent: projectRFIs.filter(rfi => rfi.raised_by === currentUserId && rfi.status !== 'draft').length,
       received: projectRFIs.filter(rfi => rfi.assigned_to === currentUserId && rfi.status !== 'draft').length,
       drafts: projectRFIs.filter(rfi => rfi.status === 'draft').length
@@ -313,7 +312,6 @@ const RFIs = () => {
       'closed': ['closed'],
       'void': ['void']
     };
-
     return {
       all: projectRFIs.length,
       outstanding: projectRFIs.filter(rfi => statusMapping.outstanding.includes(rfi.status)).length,
@@ -347,7 +345,6 @@ const RFIs = () => {
       critical: projectRFIs.filter(rfi => rfi.priority === 'critical').length
     };
   }, [projectRFIs]);
-
   const handleViewRFI = (rfi: RFI) => {
     setSelectedRFI(rfi);
     setDetailsDialogOpen(true);
@@ -358,7 +355,6 @@ const RFIs = () => {
     setResponseRFI(rfi);
     setResponseComposerOpen(true);
   };
-
   const handleReplyToRFI = (rfi: RFI) => {
     setReplyToRFI(rfi);
     setSimplifiedComposerOpen(true);
@@ -380,18 +376,15 @@ const RFIs = () => {
     if (window.confirm(`Are you sure you want to delete RFI "${rfi.subject || rfi.question.substring(0, 50)}"? This action cannot be undone.`)) {
       try {
         console.log('Attempting to delete RFI:', rfi.id);
-        
-        const { data, error } = await supabase
-          .from('rfis')
-          .delete()
-          .eq('id', rfi.id);
-        
+        const {
+          data,
+          error
+        } = await supabase.from('rfis').delete().eq('id', rfi.id);
         if (error) {
           console.error('Delete error:', error);
           alert(`Failed to delete RFI: ${error.message}`);
           return;
         }
-        
         console.log('Successfully deleted RFI:', rfi.id);
         // The UI will update automatically due to the real-time subscription
       } catch (error) {
@@ -406,17 +399,14 @@ const RFIs = () => {
     setResponsesViewerRFI(rfi);
     setResponsesViewerOpen(true);
   };
-
   const handleCloseDetailOverlay = () => {
     setIsDetailOverlayOpen(false);
     setOverlaySelectedRFI(null);
   };
-
   const handleCreateMessageForRFI = (rfi: RFI) => {
     setSelectedRFI(rfi);
     setMessageComposerOpen(true);
   };
-
   const handleExportPDF = (rfi: RFI) => {
     const printContent = `
       <!DOCTYPE html>
@@ -656,7 +646,6 @@ const RFIs = () => {
       }, 250);
     }
   };
-
   if (projects.length === 0) {
     return <div className="min-h-screen flex items-center justify-center bg-background px-4">
         <Card className="w-full max-w-md">
@@ -754,13 +743,11 @@ const RFIs = () => {
         </Card>
       </div>;
   }
-
   if (loading) {
     return <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">Loading Mail...</div>
       </div>;
   }
-
   if (!selectedProject) {
     return <div className="min-h-screen flex items-center justify-center">
         <Card className="w-full max-w-md">
@@ -773,70 +760,33 @@ const RFIs = () => {
         </Card>
       </div>;
   }
-
-
   return <div className="space-y-6">
       {/* Debug validators - only show in development */}
-      {showDebug && (
-        <div className="space-y-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+      {showDebug && <div className="space-y-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
           <h3 className="font-semibold text-yellow-800">Debug Mode - RFI System Validators</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <ProjectScopeValidator 
-              projectId={selectedProject?.id || ''}
-              rfis={rfis}
-              onViolationFound={(violation) => console.error('Project scope violation:', violation)}
-            />
-            <RFIPermissionsValidator 
-              projectId={selectedProject?.id || ''}
-              projectUsers={projectUsers}
-            />
+            <ProjectScopeValidator projectId={selectedProject?.id || ''} rfis={rfis} onViolationFound={violation => console.error('Project scope violation:', violation)} />
+            <RFIPermissionsValidator projectId={selectedProject?.id || ''} projectUsers={projectUsers} />
             <RFIEnhancementsValidator rfis={projectRFIs} />
           </div>
-        </div>
-      )}
+        </div>}
 
       {/* Three-Column Layout */}
       <div className="grid grid-cols-12 gap-4 h-[calc(100vh-200px)]">
         {/* Left Column - RFI Inbox & Status (~20% width) */}
         <div className="col-span-2 space-y-0">
-          <RFIInbox
-            selectedCategory={selectedInboxCategory}
-            onCategoryChange={setSelectedInboxCategory}
-            selectedStatus={selectedStatusFilter}
-            onStatusChange={setSelectedStatusFilter}
-            selectedType={selectedTypeFilter}
-            onTypeChange={setSelectedTypeFilter}
-            selectedPriority={selectedPriorityFilter}
-            onPriorityChange={setSelectedPriorityFilter}
-            counts={inboxCounts}
-            statusCounts={statusCounts}
-            typeCounts={typeCounts}
-            priorityCounts={priorityCounts}
-          />
+          <RFIInbox selectedCategory={selectedInboxCategory} onCategoryChange={setSelectedInboxCategory} selectedStatus={selectedStatusFilter} onStatusChange={setSelectedStatusFilter} selectedType={selectedTypeFilter} onTypeChange={setSelectedTypeFilter} selectedPriority={selectedPriorityFilter} onPriorityChange={setSelectedPriorityFilter} counts={inboxCounts} statusCounts={statusCounts} typeCounts={typeCounts} priorityCounts={priorityCounts} />
         </div>
 
         {/* Center-Right Column - RFI List (Expanded, ~75-80% width) */}
         <div className="col-span-10 relative">
           {/* Backdrop overlay when detail panel is open */}
-          {isDetailOverlayOpen && (
-            <div 
-              className="absolute inset-0 bg-black/20 backdrop-blur-sm z-10 transition-all duration-300"
-              onClick={handleCloseDetailOverlay}
-            />
-          )}
+          {isDetailOverlayOpen && <div className="absolute inset-0 bg-black/20 backdrop-blur-sm z-10 transition-all duration-300" onClick={handleCloseDetailOverlay} />}
           
-          <div className={`h-full border rounded-lg bg-card p-4 overflow-hidden transition-all duration-300 ${
-            isDetailOverlayOpen ? 'brightness-75' : ''
-          }`}>
+          <div className={`h-full border rounded-lg bg-card p-4 overflow-hidden transition-all duration-300 ${isDetailOverlayOpen ? 'brightness-75' : ''}`}>
             <div className="flex items-center justify-end mb-4">
               <div className="flex items-center space-x-2">
-                <Button 
-                  onClick={() => setQuickRespondDialogOpen(true)} 
-                  size="sm" 
-                  className="bg-green-600 hover:bg-green-700 text-white"
-                >
-                  Respond to RFI
-                </Button>
+                <Button onClick={() => setQuickRespondDialogOpen(true)} size="sm" className="bg-green-600 hover:bg-green-700 text-white">Respond to Mail</Button>
                 <Button onClick={() => setSimplifiedComposerOpen(true)} size="sm" className="bg-green-600 hover:bg-green-700 text-white">
                   Create New RFI
                 </Button>
@@ -845,126 +795,62 @@ const RFIs = () => {
 
             {/* Smart Filters */}
             <div className="mb-4">
-              <RFISmartFilters
-                filters={smartFilters}
-                onFiltersChange={setSmartFilters}
-                projectUsers={projectUsers}
-                rfis={projectRFIs}
-                savedViews={savedViews}
-                onSaveView={handleSaveView}
-                onLoadView={handleLoadView}
-                onDeleteView={handleDeleteView}
-              />
+              <RFISmartFilters filters={smartFilters} onFiltersChange={setSmartFilters} projectUsers={projectUsers} rfis={projectRFIs} savedViews={savedViews} onSaveView={handleSaveView} onLoadView={handleLoadView} onDeleteView={handleDeleteView} />
             </div>
 
             {/* Bulk Actions Bar */}
             <div className="mb-4">
-              <RFIBulkActions
-                rfis={processedRFIs}
-                selectedRFIIds={selectedRFIIds}
-                onSelectionChange={setSelectedRFIIds}
-                onBulkUpdate={handleBulkUpdate}
-                projectUsers={projectUsers}
-              />
+              <RFIBulkActions rfis={processedRFIs} selectedRFIIds={selectedRFIIds} onSelectionChange={setSelectedRFIIds} onBulkUpdate={handleBulkUpdate} projectUsers={projectUsers} />
             </div>
 
             <div className="overflow-y-auto h-full">
-              <RFIListView 
-                rfis={processedRFIs}
-                onView={handleViewRFI}
-                onCreateResponse={handleCreateResponse}
-                onExportPDF={handleExportPDF}
-                onSelectRFI={setSelectedRFIForDetail}
-                selectedRFI={selectedRFIForDetail}
-                onDoubleClick={handleDoubleClickRFI}
-                onUpdateRFI={handleUpdateRFI}
-                onSendDraft={handleSendDraft}
-                onDeleteRFI={handleDeleteRFI}
-                projectUsers={projectUsers}
-              />
+              <RFIListView rfis={processedRFIs} onView={handleViewRFI} onCreateResponse={handleCreateResponse} onExportPDF={handleExportPDF} onSelectRFI={setSelectedRFIForDetail} selectedRFI={selectedRFIForDetail} onDoubleClick={handleDoubleClickRFI} onUpdateRFI={handleUpdateRFI} onSendDraft={handleSendDraft} onDeleteRFI={handleDeleteRFI} projectUsers={projectUsers} />
             </div>
           </div>
 
           {/* Slide-over Detail Panel */}
-          {isDetailOverlayOpen && (
-            <div className="absolute top-0 right-0 h-full w-1/2 bg-card border-l border-border shadow-2xl z-20 animate-slide-in-right overflow-hidden">
-              <RFIDetailPanel 
-                rfi={overlaySelectedRFI} 
-                onClose={handleCloseDetailOverlay}
-              />
-            </div>
-          )}
+          {isDetailOverlayOpen && <div className="absolute top-0 right-0 h-full w-1/2 bg-card border-l border-border shadow-2xl z-20 animate-slide-in-right overflow-hidden">
+              <RFIDetailPanel rfi={overlaySelectedRFI} onClose={handleCloseDetailOverlay} />
+            </div>}
         </div>
       </div>
 
       {/* Dialogs */}
-      <SimplifiedRFIComposer
-        open={simplifiedComposerOpen}
-        onOpenChange={(open) => {
-          setSimplifiedComposerOpen(open);
-          if (!open) setReplyToRFI(null);
-        }}
-        projectId={selectedProject?.id || ''}
-        replyToRFI={replyToRFI}
-      />
+      <SimplifiedRFIComposer open={simplifiedComposerOpen} onOpenChange={open => {
+      setSimplifiedComposerOpen(open);
+      if (!open) setReplyToRFI(null);
+    }} projectId={selectedProject?.id || ''} replyToRFI={replyToRFI} />
 
-      <RFIMessageComposer
-        open={messageComposerOpen}
-        onOpenChange={setMessageComposerOpen}
-        projectId={selectedProject?.id || ''}
-        linkedRFI={selectedRFI}
-      />
+      <RFIMessageComposer open={messageComposerOpen} onOpenChange={setMessageComposerOpen} projectId={selectedProject?.id || ''} linkedRFI={selectedRFI} />
 
-      <RFIDetailsDialog
-        open={detailsDialogOpen}
-        onOpenChange={setDetailsDialogOpen}
-        rfi={selectedRFI}
-      />
+      <RFIDetailsDialog open={detailsDialogOpen} onOpenChange={setDetailsDialogOpen} rfi={selectedRFI} />
 
-      {responseRFI && (
-        <RFIResponseComposer
-          rfi={responseRFI}
-          isOpen={responseComposerOpen}
-          onClose={() => {
-            setResponseComposerOpen(false);
-            setResponseRFI(null);
-          }}
-          onSubmit={async (responseData) => {
-            await updateRFI(responseRFI.id, {
-              response: responseData.response,
-              responder_name: responseData.responderName,
-              responder_position: responseData.responderPosition,
-              response_date: new Date().toISOString(),
-              status: (responseData.status as any) || 'answered',
-              priority: responseData.priority
-            });
-            setResponseComposerOpen(false);
-            setResponseRFI(null);
-          }}
-        />
-      )}
+      {responseRFI && <RFIResponseComposer rfi={responseRFI} isOpen={responseComposerOpen} onClose={() => {
+      setResponseComposerOpen(false);
+      setResponseRFI(null);
+    }} onSubmit={async responseData => {
+      await updateRFI(responseRFI.id, {
+        response: responseData.response,
+        responder_name: responseData.responderName,
+        responder_position: responseData.responderPosition,
+        response_date: new Date().toISOString(),
+        status: responseData.status as any || 'answered',
+        priority: responseData.priority
+      });
+      setResponseComposerOpen(false);
+      setResponseRFI(null);
+    }} />}
 
-      <RFIResponsesViewer
-        rfi={responsesViewerRFI}
-        isOpen={responsesViewerOpen}
-        onClose={() => {
-          setResponsesViewerOpen(false);
-          setResponsesViewerRFI(null);
-        }}
-        onCreateResponse={(rfi) => {
-          setResponsesViewerOpen(false);
-          setResponsesViewerRFI(null);
-          handleCreateResponse(rfi);
-        }}
-      />
+      <RFIResponsesViewer rfi={responsesViewerRFI} isOpen={responsesViewerOpen} onClose={() => {
+      setResponsesViewerOpen(false);
+      setResponsesViewerRFI(null);
+    }} onCreateResponse={rfi => {
+      setResponsesViewerOpen(false);
+      setResponsesViewerRFI(null);
+      handleCreateResponse(rfi);
+    }} />
 
-      <QuickRFIRespondDialog
-        open={quickRespondDialogOpen}
-        onOpenChange={setQuickRespondDialogOpen}
-        rfis={projectRFIs}
-        onRespond={handleCreateResponse}
-      />
+      <QuickRFIRespondDialog open={quickRespondDialogOpen} onOpenChange={setQuickRespondDialogOpen} rfis={projectRFIs} onRespond={handleCreateResponse} />
     </div>;
 };
-
 export default RFIs;
