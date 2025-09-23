@@ -95,7 +95,7 @@ export const InfoPanel = () => {
         </CardTitle>
       </CardHeader>
       
-      <CardContent className="flex-1 space-y-4 p-3">
+      <CardContent className="flex-1 space-y-3 p-2">
         {/* Date & Time */}
         <div className="space-y-2">
           <h4 className="font-medium text-xs flex items-center gap-1 text-muted-foreground uppercase tracking-wide">
@@ -128,17 +128,17 @@ export const InfoPanel = () => {
             </div>
             
             <div className="grid grid-cols-3 gap-1 text-xs">
-              <div className="flex flex-col items-center gap-1 p-2 rounded-lg bg-muted/30 hover:bg-muted/40 transition-colors">
+              <div className="flex flex-col items-center gap-1 p-1.5 rounded-lg bg-muted/30 hover:bg-muted/40 transition-colors">
                 <Droplets className="h-3 w-3 text-blue-500" />
                 <span className="font-semibold text-xs">{weather.humidity}%</span>
                 <span className="text-muted-foreground text-xs">Humidity</span>
               </div>
-              <div className="flex flex-col items-center gap-1 p-2 rounded-lg bg-muted/30 hover:bg-muted/40 transition-colors">
+              <div className="flex flex-col items-center gap-1 p-1.5 rounded-lg bg-muted/30 hover:bg-muted/40 transition-colors">
                 <Wind className="h-3 w-3 text-green-500" />
                 <span className="font-semibold text-xs">{weather.windSpeed}</span>
                 <span className="text-muted-foreground text-xs">km/h</span>
               </div>
-              <div className="flex flex-col items-center gap-1 p-2 rounded-lg bg-muted/30 hover:bg-muted/40 transition-colors">
+              <div className="flex flex-col items-center gap-1 p-1.5 rounded-lg bg-muted/30 hover:bg-muted/40 transition-colors">
                 <CloudRain className="h-3 w-3 text-indigo-500" />
                 <span className="font-semibold text-xs">{weather.rainfall}mm</span>
                 <span className="text-muted-foreground text-xs">Rain</span>
@@ -151,12 +151,12 @@ export const InfoPanel = () => {
             <h5 className="text-xs font-medium text-muted-foreground uppercase tracking-wide">5-Day Forecast</h5>
             <div className="space-y-1">
               {weather.forecast.slice(0, 5).map((day, index) => (
-                <div key={index} className="flex items-center justify-between p-2 rounded-md bg-muted/20 hover:bg-muted/30 transition-colors">
+                <div key={index} className="flex items-center justify-between p-1.5 rounded-md bg-muted/20 hover:bg-muted/30 transition-colors">
                   <div className="flex items-center gap-2 flex-1 min-w-0">
                     <span className="font-medium text-xs w-8 text-left flex-shrink-0">{day.day}</span>
                     <span className="text-xs text-muted-foreground truncate flex-1">{day.condition}</span>
                   </div>
-                  <div className="flex items-center justify-end gap-1 min-w-[60px] flex-shrink-0">
+                  <div className="flex items-center justify-end gap-1 min-w-[56px] flex-shrink-0">
                     <span className="font-semibold text-xs text-right">{day.maxTemp}°/{day.minTemp}°</span>
                   </div>
                 </div>

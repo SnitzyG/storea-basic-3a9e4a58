@@ -750,7 +750,7 @@ export const CalendarWidget = () => {
                   const days = eachDayOfInterval({ start: startDate, end: endDate });
                   
                   return (
-                    <div className="grid grid-cols-7 gap-px h-full">
+                    <div className="grid grid-cols-7 grid-rows-6 gap-px h-full">
                       {days.map((date) => {
                         const todosForDate = getTodosForDate(date);
                         const isCurrentMonth = date.getMonth() === currentMonth.getMonth();
@@ -762,7 +762,7 @@ export const CalendarWidget = () => {
                             key={date.toISOString()}
                             onClick={() => setSelectedDate(date)}
                             className={`
-                              aspect-square flex flex-col items-center justify-start pt-0.5 relative
+                              w-full h-full flex flex-col items-center justify-start pt-0.5 relative
                               transition-colors rounded-sm text-xs
                               ${isCurrentMonth ? 'text-foreground' : 'text-muted-foreground opacity-50'}
                               ${isSelected ? 'bg-primary text-primary-foreground' : 'hover:bg-accent hover:text-accent-foreground'}
