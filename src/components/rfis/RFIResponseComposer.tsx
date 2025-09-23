@@ -12,6 +12,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { CalendarDays, User, FileText } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { RFIAttachmentUpload } from './RFIAttachmentUpload';
+import { DigitalSignature } from '@/components/ui/digital-signature';
 
 interface RFIResponseComposerProps {
   rfi: RFI;
@@ -24,6 +25,7 @@ interface RFIResponseComposerProps {
     status?: EnhancedRFIStatus;
     priority?: 'low' | 'medium' | 'high' | 'critical';
     attachments?: File[];
+    signature?: string;
   }) => Promise<void>;
 }
 
@@ -37,6 +39,8 @@ export const RFIResponseComposer = ({ rfi, isOpen, onClose, onSubmit }: RFIRespo
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [saveAsDraft, setSaveAsDraft] = useState(false);
   const [attachments, setAttachments] = useState<File[]>([]);
+  const [signature, setSignature] = useState<string | null>(null);
+  const [signatureRequired, setSignatureRequired] = useState(false);
 
   // Auto-populate responder details from user profile when dialog opens
   useEffect(() => {
@@ -60,6 +64,7 @@ export const RFIResponseComposer = ({ rfi, isOpen, onClose, onSubmit }: RFIRespo
         status: newStatus,
         priority: newPriority,
         attachments: attachments.length > 0 ? attachments : undefined,
+        signature: signature || undefined,
       });
       
       // Reset form
@@ -67,6 +72,8 @@ export const RFIResponseComposer = ({ rfi, isOpen, onClose, onSubmit }: RFIRespo
       setResponderName('');
       setResponderPosition('');
       setAttachments([]);
+      setSignature(null);
+      setSignatureRequired(false);
     } catch (error) {
       console.error('Failed to submit response:', error);
     } finally {
@@ -238,6 +245,31 @@ export const RFIResponseComposer = ({ rfi, isOpen, onClose, onSubmit }: RFIRespo
               <p className="text-xs text-muted-foreground">
                 Provide a clear and comprehensive response addressing the question or request.
               </p>
+            </div>
+
+            {/* Signature Section */}
+            <div className="space-y-4">
+              <div className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  id="response-signature-required"
+                  checked={signatureRequired}
+                  onChange={(e) => setSignatureRequired(e.target.checked)}
+                  className="rounded"
+                />
+                <Label htmlFor="response-signature-required" className="text-sm">
+                  Include digital signature with this response
+                </Label>
+              </div>
+              
+              {signatureRequired && (
+                <DigitalSignature
+                  onSignatureCapture={setSignature}
+                  label="Response Signature"
+                  required={signatureRequired}
+                  disabled={isSubmitting}
+                />
+              )}
             </div>
 
             {/* Attachments */}

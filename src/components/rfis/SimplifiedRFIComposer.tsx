@@ -16,6 +16,7 @@ import { useProjects } from '@/hooks/useProjects';
 import { useAuth } from '@/hooks/useAuth';
 import { RFIAttachmentUpload } from './RFIAttachmentUpload';
 import { DocumentUploadService } from '@/services/DocumentUploadService';
+import { DigitalSignature } from '@/components/ui/digital-signature';
 
 interface SimplifiedRFIComposerProps {
   open: boolean;
@@ -55,6 +56,8 @@ export const SimplifiedRFIComposer: React.FC<SimplifiedRFIComposerProps> = ({
   const [loading, setLoading] = useState(false);
   const [selectedRecipient, setSelectedRecipient] = useState<string>('');
   const [attachmentFiles, setAttachmentFiles] = useState<File[]>([]);
+  const [signature, setSignature] = useState<string | null>(null);
+  const [signatureRequired, setSignatureRequired] = useState(false);
   const documentUploadService = new DocumentUploadService();
 
   // Auto-fill project data when dialog opens
@@ -85,6 +88,8 @@ export const SimplifiedRFIComposer: React.FC<SimplifiedRFIComposerProps> = ({
         setRequiredResponseDate(undefined);
         setSelectedRecipient('');
         setAttachmentFiles([]);
+        setSignature(null);
+        setSignatureRequired(false);
       }
     }
   }, [open, currentProject, profile, user, isReply, replyToRFI]);
@@ -212,6 +217,8 @@ export const SimplifiedRFIComposer: React.FC<SimplifiedRFIComposerProps> = ({
       setRequiredResponseDate(undefined);
       setSelectedRecipient('');
       setAttachmentFiles([]);
+      setSignature(null);
+      setSignatureRequired(false);
       onOpenChange(false);
     } catch (error) {
       console.error('Error saving RFI:', error);
@@ -413,6 +420,31 @@ export const SimplifiedRFIComposer: React.FC<SimplifiedRFIComposerProps> = ({
               onChange={e => setFormData(prev => ({ ...prev, notes: e.target.value }))}
               className="min-h-[80px]" 
             />
+          </div>
+
+          {/* Signature Section */}
+          <div className="space-y-4">
+            <div className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                id="signature-required"
+                checked={signatureRequired}
+                onChange={(e) => setSignatureRequired(e.target.checked)}
+                className="rounded"
+              />
+              <Label htmlFor="signature-required" className="text-sm">
+                Request digital signature for this {isReply ? 'response' : 'RFI'}
+              </Label>
+            </div>
+            
+            {signatureRequired && (
+              <DigitalSignature
+                onSignatureCapture={setSignature}
+                label={isReply ? "Response Signature" : "RFI Signature"}
+                required={signatureRequired}
+                disabled={loading}
+              />
+            )}
           </div>
 
           {/* Attachments - only for new RFIs */}

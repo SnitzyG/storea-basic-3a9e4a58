@@ -48,6 +48,7 @@ export interface RFI {
   };
   raised_by_company_name?: string;
   assigned_to_company_name?: string;
+  signature?: string;
 }
 
 export interface RFIActivity {

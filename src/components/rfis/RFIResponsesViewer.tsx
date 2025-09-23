@@ -21,6 +21,7 @@ interface RFIResponse {
     url: string;
     size?: number;
   }>;
+  signature?: string;
 }
 
 interface RFIResponsesViewerProps {
@@ -75,9 +76,10 @@ export const RFIResponsesViewer: React.FC<RFIResponsesViewerProps> = ({
           response: rfi.response,
           responder_name: rfi.responder_name || 'Unknown Responder',
           responder_position: rfi.responder_position || 'Team Member',
-          response_date: rfi.response_date || rfi.updated_at,
-          created_at: rfi.response_date || rfi.updated_at,
-          type: 'response'
+        response_date: rfi.response_date || rfi.updated_at,
+        created_at: rfi.response_date || rfi.updated_at,
+        type: 'response',
+        signature: rfi.signature || undefined
         });
       }
       
@@ -368,10 +370,16 @@ export const RFIResponsesViewer: React.FC<RFIResponsesViewerProps> = ({
             <div class="section-header">SIGNATURES</div>
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-top: 20px;">
               <div>
-                <div style="border-bottom: 1px solid #000; height: 50px; margin-bottom: 10px;"></div>
+                ${response.signature ? 
+                  `<div style="border: 1px solid #ddd; padding: 10px; margin-bottom: 10px; text-align: center;">
+                     <img src="${response.signature}" alt="Digital Signature" style="max-height: 60px; max-width: 200px;"/>
+                   </div>` :
+                  `<div style="border-bottom: 1px solid #000; height: 50px; margin-bottom: 10px;"></div>`
+                }
                 <div style="text-align: center; font-size: 12px;">
                   <div><strong>Submitted By:</strong> ${response.responder_name}</div>
-                  <div>Date: _____________</div>
+                  <div>Date: ${response.response_date ? new Date(response.response_date).toLocaleDateString() : '_____________'}</div>
+                  ${response.signature ? '<div style="color: #666; font-style: italic;">Digitally Signed</div>' : ''}
                 </div>
               </div>
               <div>
