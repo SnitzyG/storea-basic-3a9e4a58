@@ -92,7 +92,24 @@ export const RFIResponsesViewer: React.FC<RFIResponsesViewerProps> = ({
   const generateResponsePDF = (response: RFIResponse, index: number) => {
     const isOriginal = response.type === 'original';
     const title = isOriginal ? 'Original RFI' : `Response ${index}`;
-    const headerColor = isOriginal ? '#1e40af' : '#059669';
+    
+    // Get project and company information
+    const projectName = rfi?.project_name || 'Unknown Project';
+    const projectReference = rfi?.project_id || 'No Reference';
+    const rfiDescription = rfi?.question || 'No description available';
+    const companyName = rfi?.raised_by_company_name || 'Unknown Company';
+    const currentDate = new Date().toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+    const dueDate = rfi?.due_date ? new Date(rfi.due_date).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    }) : 'Not specified';
     
     const printContent = `
       <!DOCTYPE html>
@@ -102,123 +119,128 @@ export const RFIResponsesViewer: React.FC<RFIResponsesViewerProps> = ({
           <style>
             * { margin: 0; padding: 0; box-sizing: border-box; }
             body { 
-              font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-              line-height: 1.6;
-              color: #333;
+              font-family: Arial, sans-serif;
+              line-height: 1.4;
+              color: #000;
               max-width: 800px;
               margin: 0 auto;
-              padding: 40px 20px;
+              padding: 20px;
               background: white;
             }
-            .header { 
-              background: linear-gradient(135deg, ${headerColor}, ${headerColor === '#1e40af' ? '#3b82f6' : '#10b981'});
-              color: white;
-              padding: 30px;
-              border-radius: 8px;
+            .mail-header {
+              border: 2px solid #000;
+              padding: 20px;
               margin-bottom: 30px;
-              box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+              background: #f9f9f9;
             }
-            .header h1 { 
-              font-size: 28px;
-              margin-bottom: 15px;
-              font-weight: 600;
+            .mail-header h1 {
+              text-align: center;
+              font-size: 18px;
+              margin-bottom: 20px;
+              text-decoration: underline;
             }
-            .header-info {
+            .mail-info {
               display: grid;
-              grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-              gap: 15px;
-              margin-top: 20px;
+              grid-template-columns: 1fr 1fr;
+              gap: 10px;
+              font-size: 12px;
             }
-            .field { 
-              margin: 20px 0;
-              padding: 15px;
-              border-left: 4px solid ${headerColor};
-              background: ${isOriginal ? '#f8fafc' : '#f0fdf4'};
-              border-radius: 0 8px 8px 0;
-            }
-            .label { 
-              font-weight: 600;
-              color: #1e293b;
-              font-size: 14px;
-              text-transform: uppercase;
-              letter-spacing: 0.5px;
+            .mail-info div {
               margin-bottom: 8px;
             }
-            .content { 
-              font-size: 16px;
-              line-height: 1.7;
-              color: #334155;
+            .mail-info strong {
+              display: inline-block;
+              width: 120px;
+              font-weight: bold;
+            }
+            .section {
+              margin-bottom: 25px;
+              border: 1px solid #ccc;
+              padding: 15px;
+            }
+            .section-header {
+              font-weight: bold;
+              font-size: 14px;
+              margin-bottom: 10px;
+              text-decoration: underline;
+            }
+            .content-text {
+              font-size: 12px;
+              margin-bottom: 10px;
               white-space: pre-wrap;
             }
-            .question-section, .response-section {
-              background: ${isOriginal ? '#f8fafc' : '#f0fdf4'};
-              border: 2px solid ${isOriginal ? '#e2e8f0' : '#bbf7d0'};
-              border-radius: 8px;
-              padding: 20px;
-              margin: 20px 0;
+            .metadata {
+              font-size: 11px;
+              color: #666;
+              margin-top: 10px;
             }
-            .divider {
-              height: 2px;
-              background: linear-gradient(90deg, ${headerColor}, #e2e8f0);
-              margin: 30px 0;
-              border-radius: 1px;
+            .metadata div {
+              margin-bottom: 3px;
+            }
+            .status-section {
+              border: 2px solid #000;
+              padding: 10px;
+              text-align: center;
+              font-weight: bold;
+              margin-top: 20px;
             }
             @media print {
-              body { padding: 20px; }
-              .header { background: ${headerColor} !important; }
+              body { padding: 10px; }
             }
           </style>
         </head>
         <body>
-          <div class="header">
-            <h1>${title}</h1>
-            <div class="header-info">
-              <div><strong>Mail Number:</strong> ${rfi?.rfi_number || `Mail-${rfi?.id.slice(0, 8)}`}</div>
-              <div><strong>Date:</strong> ${new Date(response.response_date).toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric'
-              })}</div>
-              <div><strong>${isOriginal ? 'Raised By' : 'Responder'}:</strong> ${response.responder_name}</div>
-              <div><strong>Position:</strong> ${response.responder_position}</div>
+          <div class="mail-header">
+            <h1>MAIL HEADER INFORMATION</h1>
+            <div class="mail-info">
+              <div><strong>Mail #:</strong> ${rfi?.rfi_number || `Mail-${rfi?.id.slice(0, 8)}`}</div>
+              <div><strong>Date:</strong> ${currentDate}</div>
+              <div><strong>To (Name and Title):</strong> ${response.responder_name} - ${response.responder_position}</div>
+              <div><strong>Date Need By:</strong> ${dueDate}</div>
+              <div><strong>Company:</strong> ${companyName}</div>
+              <div><strong>Project Name:</strong> ${projectName}</div>
+              <div><strong>Project Reference:</strong> ${projectReference}</div>
+              <div style="grid-column: 1 / -1;"><strong>RFI Description:</strong> ${rfiDescription}</div>
             </div>
           </div>
 
-          <div class="${isOriginal ? 'question' : 'response'}-section">
-            <div class="label">${isOriginal ? 'Question' : 'Response'}</div>
-            <div class="content">${response.response}</div>
+          ${isOriginal ? `
+          <div class="section">
+            <div class="section-header">QUESTION</div>
+            <div class="content-text">${rfi?.question || 'No question available'}</div>
+            <div class="metadata">
+              <div><strong>Submitted By:</strong> ${response.responder_name}</div>
+              <div><strong>Submission Date:</strong> ${new Date(response.response_date || response.created_at).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+              })}</div>
+              <div><strong>Priority:</strong> ${rfi?.priority ? rfi.priority.charAt(0).toUpperCase() + rfi.priority.slice(1) : 'Standard'}</div>
+            </div>
           </div>
+          ` : `
+          <div class="section">
+            <div class="section-header">RESPONSE</div>
+            <div class="content-text">${response.response}</div>
+            <div class="metadata">
+              <div><strong>Responded By:</strong> ${response.responder_name}</div>
+              <div><strong>Responded Date:</strong> ${new Date(response.response_date || response.created_at).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+              })}</div>
+              <div><strong>Priority:</strong> ${rfi?.priority ? rfi.priority.charAt(0).toUpperCase() + rfi.priority.slice(1) : 'Standard'}</div>
+            </div>
+          </div>
+          `}
 
-          ${!isOriginal && rfi?.question ? `
-          <div class="divider"></div>
-          <div class="field">
-            <div class="label">Original Question</div>
-            <div class="content">${rfi.question}</div>
+          <div class="status-section">
+            <div>STATUS: ${rfi?.status ? rfi.status.toUpperCase().replace('_', ' ') : 'PENDING'}</div>
           </div>
-          ` : ''}
-
-          <div class="field">
-            <div class="label">${isOriginal ? 'Submitted By' : 'Responded By'}</div>
-            <div class="content">${response.responder_name} (${response.responder_position})</div>
-          </div>
-
-          <div class="field">
-            <div class="label">${isOriginal ? 'Submission Date' : 'Response Date'}</div>
-            <div class="content">${new Date(response.response_date).toLocaleDateString('en-US', {
-              year: 'numeric',
-              month: 'long',
-              day: 'numeric',
-              hour: '2-digit',
-              minute: '2-digit'
-            })}</div>
-          </div>
-
-          ${rfi?.priority ? `
-          <div class="field">
-            <div class="label">Priority</div>
-            <div class="content">${rfi.priority.charAt(0).toUpperCase() + rfi.priority.slice(1)}</div>
-          </div>
-          ` : ''}
         </body>
       </html>
     `;
