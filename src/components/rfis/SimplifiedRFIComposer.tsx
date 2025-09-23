@@ -236,13 +236,13 @@ export const SimplifiedRFIComposer: React.FC<SimplifiedRFIComposerProps> = ({
             <>
               {/* RFI Type */}
               <div>
-                <Label htmlFor="rfi-type">RFI Type</Label>
+                <Label htmlFor="rfi-type">Mail Type</Label>
                 <Select 
                   value={formData.rfi_type} 
                   onValueChange={(value: RFITypeLabel) => setFormData(prev => ({ ...prev, rfi_type: value }))}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Select RFI type" />
+                    <SelectValue placeholder="Select mail type" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="General Correspondence">General Correspondence</SelectItem>

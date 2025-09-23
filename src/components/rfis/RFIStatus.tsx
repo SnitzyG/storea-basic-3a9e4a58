@@ -111,7 +111,7 @@ export const RFIStatus = ({
       id: 'all' as const,
       label: 'All Types',
       icon: Archive,
-      description: 'All RFI types'
+      description: 'All mail types'
     },
     {
       id: 'General Correspondence' as const,
@@ -205,7 +205,7 @@ export const RFIStatus = ({
       {onTypeChange && (
         <div className="mb-6">
           <h3 className="text-xs font-medium text-muted-foreground/70 mb-4 uppercase tracking-wide">
-            RFI Type
+            Mail Type
           </h3>
           <nav className="space-y-1">
             {rfiTypes.map(({ id, label, icon: Icon, description }) => (
