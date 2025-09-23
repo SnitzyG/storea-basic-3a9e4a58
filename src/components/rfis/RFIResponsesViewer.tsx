@@ -108,12 +108,12 @@ export const RFIResponsesViewer: React.FC<RFIResponsesViewerProps> = ({
       if (rfi?.project_id) {
         const { data: project } = await supabase
           .from('projects')
-          .select('project_id')
+          .select('project_reference_number')
           .eq('id', rfi.project_id)
           .single();
         
-        if (project?.project_id) {
-          projectReference = project.project_id;
+        if (project?.project_reference_number) {
+          projectReference = project.project_reference_number;
         }
       }
     } catch (error) {
