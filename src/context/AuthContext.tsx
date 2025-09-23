@@ -14,6 +14,7 @@ export interface Profile {
   company_name?: string;
   company_position?: string;
   company_address?: string;
+  company_logo_url?: string;
 }
 
 interface AuthContextType {

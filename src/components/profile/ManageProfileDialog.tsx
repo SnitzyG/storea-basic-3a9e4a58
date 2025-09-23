@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { User, Lock, Mail, Building2 } from 'lucide-react';
+import { User, Lock, Mail, Building2, Upload, X } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -17,12 +17,15 @@ interface ManageProfileDialogProps {
 export const ManageProfileDialog = ({ children }: ManageProfileDialogProps) => {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [companyLoading, setCompanyLoading] = useState(false);
+  const [logoUploading, setLogoUploading] = useState(false);
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [resetPasswordEmail, setResetPasswordEmail] = useState('');
   const [companyName, setCompanyName] = useState('');
   const [companyPosition, setCompanyPosition] = useState('');
   const [companyAddress, setCompanyAddress] = useState('');
+  const [companyLogoUrl, setCompanyLogoUrl] = useState('');
   const [linkedCompanyName, setLinkedCompanyName] = useState<string | null>(null);
   const { user, profile } = useAuth();
   const { toast } = useToast();
@@ -50,6 +53,7 @@ export const ManageProfileDialog = ({ children }: ManageProfileDialogProps) => {
       setCompanyName(profile.company_name || '');
       setCompanyPosition(profile.company_position || '');
       setCompanyAddress(profile.company_address || '');
+      setCompanyLogoUrl(profile.company_logo_url || '');
       
       // Fetch linked company name if company_id exists
       if (profile.company_id) {
@@ -73,9 +77,6 @@ export const ManageProfileDialog = ({ children }: ManageProfileDialogProps) => {
         .update({
           name: name.trim(),
           phone: phone.trim(),
-          company_name: companyName.trim(),
-          company_position: companyPosition.trim(),
-          company_address: companyAddress.trim(),
         })
         .eq('user_id', user.id);
 
@@ -95,6 +96,107 @@ export const ManageProfileDialog = ({ children }: ManageProfileDialogProps) => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const updateCompanyInfo = async () => {
+    if (!user) return;
+    
+    setCompanyLoading(true);
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          company_name: companyName.trim(),
+          company_position: companyPosition.trim(),
+          company_address: companyAddress.trim(),
+          company_logo_url: companyLogoUrl,
+        })
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Company information updated",
+        description: "Your company information has been updated successfully.",
+      });
+    } catch (error) {
+      console.error('Error updating company info:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update company information. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setCompanyLoading(false);
+    }
+  };
+
+  const handleLogoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !user) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: "Invalid file type",
+        description: "Please select an image file.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate file size (max 2MB)
+    if (file.size > 2 * 1024 * 1024) {
+      toast({
+        title: "File too large",
+        description: "Please select an image smaller than 2MB.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setLogoUploading(true);
+    try {
+      // Create unique filename
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user.id}/company-logo-${Date.now()}.${fileExt}`;
+
+      // Upload to storage
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(fileName, file, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(fileName);
+
+      setCompanyLogoUrl(publicUrl);
+
+      toast({
+        title: "Logo uploaded",
+        description: "Company logo uploaded successfully. Click 'Save Company Information' to save.",
+      });
+    } catch (error) {
+      console.error('Error uploading logo:', error);
+      toast({
+        title: "Error",
+        description: "Failed to upload logo. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setLogoUploading(false);
+    }
+  };
+
+  const removeLogo = () => {
+    setCompanyLogoUrl('');
+    toast({
+      title: "Logo removed",
+      description: "Company logo removed. Click 'Save Company Information' to save.",
+    });
   };
 
   const resetPassword = async () => {
@@ -238,17 +340,75 @@ export const ManageProfileDialog = ({ children }: ManageProfileDialogProps) => {
                    placeholder="Enter your position or title"
                  />
                </div>
+                <div>
+                  <Label htmlFor="company-address">Company Address</Label>
+                  <Input
+                    id="company-address"
+                    value={companyAddress}
+                    onChange={(e) => setCompanyAddress(e.target.value)}
+                    placeholder="Enter company address"
+                 />
+               </div>
+
+               {/* Company Logo Upload */}
                <div>
-                 <Label htmlFor="company-address">Company Address</Label>
-                 <Input
-                   id="company-address"
-                   value={companyAddress}
-                   onChange={(e) => setCompanyAddress(e.target.value)}
-                   placeholder="Enter company address"
-                />
-              </div>
-            </CardContent>
-          </Card>
+                 <Label>Company Logo</Label>
+                 <div className="space-y-3">
+                   {companyLogoUrl && (
+                     <div className="flex items-center gap-3 p-3 border rounded-lg">
+                       <img 
+                         src={companyLogoUrl} 
+                         alt="Company logo" 
+                         className="w-12 h-12 object-cover rounded"
+                       />
+                       <div className="flex-1">
+                         <p className="text-sm font-medium">Current logo</p>
+                         <p className="text-xs text-muted-foreground">Logo will appear behind profile initials</p>
+                       </div>
+                       <Button
+                         variant="outline"
+                         size="sm"
+                         onClick={removeLogo}
+                         disabled={logoUploading}
+                       >
+                         <X className="h-4 w-4" />
+                       </Button>
+                     </div>
+                   )}
+                   <div className="flex items-center gap-2">
+                     <Input
+                       type="file"
+                       accept="image/*"
+                       onChange={handleLogoUpload}
+                       disabled={logoUploading}
+                       className="hidden"
+                       id="logo-upload"
+                     />
+                     <Button
+                       variant="outline"
+                       onClick={() => document.getElementById('logo-upload')?.click()}
+                       disabled={logoUploading}
+                       className="flex-1"
+                     >
+                       <Upload className="h-4 w-4 mr-2" />
+                       {logoUploading ? 'Uploading...' : 'Upload Logo'}
+                     </Button>
+                   </div>
+                   <p className="text-xs text-muted-foreground">
+                     Upload a company logo (max 2MB). Supported formats: JPG, PNG, GIF.
+                   </p>
+                 </div>
+               </div>
+
+               <Button 
+                 onClick={updateCompanyInfo} 
+                 disabled={companyLoading}
+                 className="w-full"
+               >
+                 {companyLoading ? 'Saving...' : 'Save Company Information'}
+               </Button>
+             </CardContent>
+           </Card>
 
           <Separator />
 
