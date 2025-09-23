@@ -89,29 +89,29 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Redesigned Dashboard Content - Responsive Grid */}
-      <div className="flex-1 p-3 sm:p-4 lg:p-6 overflow-auto">
+      {/* Compact Dashboard Content - Responsive Grid */}
+      <div className="flex-1 p-2 sm:p-3 lg:p-4 overflow-auto">
         {/* Desktop: 2x2 Grid, Tablet: 2x2, Mobile: 1 column */}
         <div className="h-full max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6 h-full auto-rows-fr">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-2 lg:gap-3 h-full auto-rows-fr">
             
-            {/* Recent Activity - Full height on mobile, half on desktop */}
-            <div className="min-h-[400px] lg:min-h-0">
+            {/* Recent Activity - Compact height */}
+            <div className="min-h-[280px] lg:min-h-0">
               <RecentActivity />
             </div>
 
-            {/* Calendar Widget - Full height on mobile, half on desktop */}
-            <div className="min-h-[400px] lg:min-h-0">
+            {/* Calendar Widget - Compact height */}
+            <div className="min-h-[280px] lg:min-h-0">
               <CalendarWidget />
             </div>
 
-            {/* To-Do List - Full height on mobile, half on desktop */}
-            <div className="min-h-[400px] lg:min-h-0">
+            {/* To-Do List - Compact height */}
+            <div className="min-h-[280px] lg:min-h-0">
               <ToDoList />
             </div>
 
-            {/* Info Panel - Full height on mobile, half on desktop */}
-            <div className="min-h-[400px] lg:min-h-0">
+            {/* Info Panel - Compact height */}
+            <div className="min-h-[280px] lg:min-h-0">
               <InfoPanel />
             </div>
             
