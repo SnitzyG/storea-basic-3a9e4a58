@@ -252,21 +252,21 @@ export const RFIResponseComposer = ({ rfi, isOpen, onClose, onSubmit }: RFIRespo
               <div className="flex items-center space-x-2">
                 <input
                   type="checkbox"
-                  id="response-signature-required"
+                  id="add-my-signature"
                   checked={signatureRequired}
                   onChange={(e) => setSignatureRequired(e.target.checked)}
                   className="rounded"
                 />
-                <Label htmlFor="response-signature-required" className="text-sm">
-                  Include digital signature with this response
+                <Label htmlFor="add-my-signature" className="text-sm">
+                  Add my signature to this response
                 </Label>
               </div>
               
               {signatureRequired && (
                 <DigitalSignature
                   onSignatureCapture={setSignature}
-                  label="Response Signature"
-                  required={signatureRequired}
+                  label="My Signature"
+                  required={false}
                   disabled={isSubmitting}
                 />
               )}
