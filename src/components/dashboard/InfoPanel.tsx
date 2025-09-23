@@ -137,8 +137,8 @@ export const InfoPanel = () => {
             <h5 className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1 flex-shrink-0">5-Day Forecast</h5>
             <div className="flex-1 grid grid-cols-1 auto-rows-fr gap-1 min-h-0">
               {weather.forecast.slice(0, 5).map((day, index) => <div key={index} className="flex items-center justify-between px-2 py-1 rounded-md bg-muted/20 hover:bg-muted/30 transition-colors min-h-0">
-                  <div className="flex items-center gap-1 flex-1 min-w-0">
-                    <span className="font-medium text-xs w-6 text-left flex-shrink-0">{day.day}</span>
+                  <div className="flex items-center gap-2 flex-1 min-w-0">
+                    <span className="font-medium text-xs w-8 text-left flex-shrink-0">{day.day}</span>
                     <span className="text-xs text-muted-foreground truncate flex-1">{day.condition}</span>
                   </div>
                   <div className="flex items-center justify-end min-w-[44px] flex-shrink-0">
