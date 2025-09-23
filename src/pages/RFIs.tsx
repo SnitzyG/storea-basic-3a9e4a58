@@ -787,9 +787,7 @@ const RFIs = () => {
             <div className="flex items-center justify-end mb-4">
               <div className="flex items-center space-x-2">
                 <Button onClick={() => setQuickRespondDialogOpen(true)} size="sm" className="bg-green-600 hover:bg-green-700 text-white">Respond to Mail</Button>
-                <Button onClick={() => setSimplifiedComposerOpen(true)} size="sm" className="bg-green-600 hover:bg-green-700 text-white">
-                  Create New RFI
-                </Button>
+                <Button onClick={() => setSimplifiedComposerOpen(true)} size="sm" className="bg-green-600 hover:bg-green-700 text-white">Create New Mail</Button>
               </div>
             </div>
 
