@@ -393,17 +393,17 @@ export const CalendarWidget = () => {
 
   return (
     <Card className="h-full flex flex-col">
-      <CardHeader className="pb-4 flex-shrink-0 border-b">
+      <CardHeader className="pb-2 flex-shrink-0 border-b">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-lg flex items-center gap-2 font-medium">
-            <CalendarDays className="h-5 w-5 text-primary" />
+          <CardTitle className="text-base flex items-center gap-2 font-medium">
+            <CalendarDays className="h-4 w-4 text-primary" />
             Calendar
           </CardTitle>
           <div className="flex items-center gap-1">
             <Dialog open={isExportDialogOpen} onOpenChange={setIsExportDialogOpen}>
               <DialogTrigger asChild>
-                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                  <Download className="h-4 w-4" />
+                <Button variant="ghost" size="sm" className="h-7 w-7 p-0">
+                  <Download className="h-3 w-3" />
                 </Button>
               </DialogTrigger>
               <DialogContent className="max-w-sm">
@@ -440,8 +440,8 @@ export const CalendarWidget = () => {
             
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
               <DialogTrigger asChild>
-                <Button variant="outline" size="sm" className="gap-2">
-                  <Plus className="h-4 w-4" />
+                <Button variant="outline" size="sm" className="gap-1 text-xs px-2 py-1 h-7">
+                  <Plus className="h-3 w-3" />
                   Add Event
                 </Button>
               </DialogTrigger>
@@ -699,28 +699,28 @@ export const CalendarWidget = () => {
         </div>
       </CardHeader>
 
-      <CardContent className="flex-1 p-4 overflow-hidden">
+      <CardContent className="flex-1 p-3 overflow-hidden">
         <div className="flex flex-col h-full">
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <Button 
                 variant="outline" 
                 size="sm" 
                 onClick={() => navigateMonth('prev')}
-                className="h-8 w-8 p-0"
+                className="h-7 w-7 p-0"
               >
-                <ChevronLeft className="h-4 w-4" />
+                <ChevronLeft className="h-3 w-3" />
               </Button>
-              <h3 className="text-base font-medium">
+              <h3 className="text-sm font-medium">
                 {format(currentMonth, 'MMMM yyyy')}
               </h3>
               <Button 
                 variant="outline" 
                 size="sm" 
                 onClick={() => navigateMonth('next')}
-                className="h-8 w-8 p-0"
+                className="h-7 w-7 p-0"
               >
-                <ChevronRight className="h-4 w-4" />
+                <ChevronRight className="h-3 w-3" />
               </Button>
             </div>
           </div>
@@ -728,16 +728,16 @@ export const CalendarWidget = () => {
           <div className="flex-1 overflow-hidden">
             <div className="h-full flex flex-col border rounded-lg">
               {/* Days of week header */}
-              <div className="grid grid-cols-7 gap-px bg-border p-2 rounded-t-lg">
+              <div className="grid grid-cols-7 gap-px bg-border p-1 rounded-t-lg">
                 {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
-                  <div key={day} className="h-8 flex items-center justify-center text-sm font-medium text-muted-foreground bg-background">
+                  <div key={day} className="h-6 flex items-center justify-center text-xs font-medium text-muted-foreground bg-background">
                     {day}
                   </div>
                 ))}
               </div>
               
               {/* Calendar dates grid */}
-              <div className="flex-1 p-2 bg-background rounded-b-lg">
+              <div className="flex-1 p-1 bg-background rounded-b-lg">
                 {(() => {
                   const start = startOfMonth(currentMonth);
                   const end = endOfMonth(currentMonth);
@@ -762,16 +762,16 @@ export const CalendarWidget = () => {
                             key={date.toISOString()}
                             onClick={() => setSelectedDate(date)}
                             className={`
-                              aspect-square flex flex-col items-center justify-start pt-1 relative
-                              transition-colors rounded-sm text-sm
+                              aspect-square flex flex-col items-center justify-start pt-0.5 relative
+                              transition-colors rounded-sm text-xs
                               ${isCurrentMonth ? 'text-foreground' : 'text-muted-foreground opacity-50'}
                               ${isSelected ? 'bg-primary text-primary-foreground' : 'hover:bg-accent hover:text-accent-foreground'}
                               ${isToday && !isSelected ? 'bg-accent text-accent-foreground font-semibold' : ''}
                             `}
                           >
-                            <span>{date.getDate()}</span>
+                            <span className="text-xs">{date.getDate()}</span>
                             {todosForDate.length > 0 && (
-                              <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2 flex gap-0.5">
+                              <div className="absolute bottom-0.5 left-1/2 transform -translate-x-1/2 flex gap-0.5">
                                 {todosForDate.slice(0, 3).map((_, index) => (
                                   <div 
                                     key={index} 

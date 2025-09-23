@@ -88,25 +88,25 @@ export const InfoPanel = () => {
 
   return (
     <Card className="h-full flex flex-col">
-      <CardHeader className="pb-3 flex-shrink-0 border-b">
+      <CardHeader className="pb-2 flex-shrink-0 border-b">
         <CardTitle className="text-base flex items-center gap-2 font-medium">
           <Clock className="h-4 w-4 text-primary" />
           Info Panel
         </CardTitle>
       </CardHeader>
       
-      <CardContent className="flex-1 space-y-6 p-4">
+      <CardContent className="flex-1 space-y-4 p-3">
         {/* Date & Time */}
-        <div className="space-y-3">
+        <div className="space-y-2">
           <h4 className="font-medium text-xs flex items-center gap-1 text-muted-foreground uppercase tracking-wide">
             <Clock className="h-3 w-3" />
             Current Time
           </h4>
-          <div className="space-y-2">
-            <div className="text-xl font-semibold">
+          <div className="space-y-1">
+            <div className="text-lg font-semibold">
               {format(currentTime, 'h:mm:ss a')}
             </div>
-            <div className="text-sm text-muted-foreground">
+            <div className="text-xs text-muted-foreground">
               {format(currentTime, 'EEEE, MMMM d, yyyy')}
             </div>
           </div>
@@ -114,50 +114,50 @@ export const InfoPanel = () => {
 
         {/* Weather for Current Project */}
 
-        <div className="space-y-4">
+        <div className="space-y-3">
           <h4 className="font-medium text-xs flex items-center gap-1 text-muted-foreground uppercase tracking-wide">
             <Cloud className="h-3 w-3" />
             Weather - {weather.location}
           </h4>
           
           {/* Current Weather */}
-          <div className="space-y-4">
+          <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <span className="text-2xl font-semibold">{weather.temperature}°C</span>
+              <span className="text-xl font-semibold">{weather.temperature}°C</span>
               <Badge variant="outline" className="text-xs">{weather.condition}</Badge>
             </div>
             
-            <div className="grid grid-cols-3 gap-2 text-xs">
-              <div className="flex flex-col items-center gap-1 p-3 rounded-lg bg-muted/30 hover:bg-muted/40 transition-colors">
-                <Droplets className="h-4 w-4 text-blue-500" />
-                <span className="font-semibold text-sm">{weather.humidity}%</span>
+            <div className="grid grid-cols-3 gap-1 text-xs">
+              <div className="flex flex-col items-center gap-1 p-2 rounded-lg bg-muted/30 hover:bg-muted/40 transition-colors">
+                <Droplets className="h-3 w-3 text-blue-500" />
+                <span className="font-semibold text-xs">{weather.humidity}%</span>
                 <span className="text-muted-foreground text-xs">Humidity</span>
               </div>
-              <div className="flex flex-col items-center gap-1 p-3 rounded-lg bg-muted/30 hover:bg-muted/40 transition-colors">
-                <Wind className="h-4 w-4 text-green-500" />
-                <span className="font-semibold text-sm">{weather.windSpeed}</span>
+              <div className="flex flex-col items-center gap-1 p-2 rounded-lg bg-muted/30 hover:bg-muted/40 transition-colors">
+                <Wind className="h-3 w-3 text-green-500" />
+                <span className="font-semibold text-xs">{weather.windSpeed}</span>
                 <span className="text-muted-foreground text-xs">km/h</span>
               </div>
-              <div className="flex flex-col items-center gap-1 p-3 rounded-lg bg-muted/30 hover:bg-muted/40 transition-colors">
-                <CloudRain className="h-4 w-4 text-indigo-500" />
-                <span className="font-semibold text-sm">{weather.rainfall}mm</span>
+              <div className="flex flex-col items-center gap-1 p-2 rounded-lg bg-muted/30 hover:bg-muted/40 transition-colors">
+                <CloudRain className="h-3 w-3 text-indigo-500" />
+                <span className="font-semibold text-xs">{weather.rainfall}mm</span>
                 <span className="text-muted-foreground text-xs">Rain</span>
               </div>
             </div>
           </div>
 
-          {/* 7-Day Forecast */}
-          <div className="space-y-3">
+          {/* 5-Day Forecast */}
+          <div className="space-y-2">
             <h5 className="text-xs font-medium text-muted-foreground uppercase tracking-wide">5-Day Forecast</h5>
             <div className="space-y-1">
               {weather.forecast.slice(0, 5).map((day, index) => (
                 <div key={index} className="flex items-center justify-between p-2 rounded-md bg-muted/20 hover:bg-muted/30 transition-colors">
-                  <div className="flex items-center gap-3 flex-1">
-                    <span className="font-medium text-sm w-12 text-left">{day.day}</span>
-                    <span className="text-xs text-muted-foreground text-center flex-1">{day.condition}</span>
+                  <div className="flex items-center gap-2 flex-1 min-w-0">
+                    <span className="font-medium text-xs w-8 text-left flex-shrink-0">{day.day}</span>
+                    <span className="text-xs text-muted-foreground truncate flex-1">{day.condition}</span>
                   </div>
-                  <div className="flex items-center justify-end gap-2 min-w-[80px]">
-                    <span className="font-semibold text-sm text-right">{day.maxTemp}°/{day.minTemp}°</span>
+                  <div className="flex items-center justify-end gap-1 min-w-[60px] flex-shrink-0">
+                    <span className="font-semibold text-xs text-right">{day.maxTemp}°/{day.minTemp}°</span>
                   </div>
                 </div>
               ))}
