@@ -89,15 +89,43 @@ export const RFIResponsesViewer: React.FC<RFIResponsesViewerProps> = ({
     }
   };
 
-  const generateResponsePDF = (response: RFIResponse, index: number) => {
+  const generateResponsePDF = async (response: RFIResponse, index: number) => {
     const isOriginal = response.type === 'original';
     const title = isOriginal ? 'Original RFI' : `Response ${index}`;
+    
+    // Fetch company details from profile
+    let companyDetails = {
+      logo: '',
+      address: '',
+      phone: '',
+      name: rfi?.raised_by_company_name || 'Unknown Company'
+    };
+
+    try {
+      if (rfi?.raised_by) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('company_logo_url, company_address, phone, company_name')
+          .eq('user_id', rfi.raised_by)
+          .single();
+        
+        if (profile) {
+          companyDetails = {
+            logo: profile.company_logo_url || '',
+            address: profile.company_address || '',
+            phone: profile.phone || '',
+            name: profile.company_name || rfi?.raised_by_company_name || 'Unknown Company'
+          };
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching company details:', error);
+    }
     
     // Get project and company information
     const projectName = rfi?.project_name || 'Unknown Project';
     const projectReference = rfi?.project_id || 'No Reference';
     const rfiDescription = rfi?.question || 'No description available';
-    const companyName = rfi?.raised_by_company_name || 'Unknown Company';
     const currentDate = new Date().toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
@@ -197,11 +225,22 @@ export const RFIResponsesViewer: React.FC<RFIResponsesViewerProps> = ({
               <div><strong>Date:</strong> ${currentDate}</div>
               <div><strong>To (Name and Title):</strong> ${response.responder_name} - ${response.responder_position}</div>
               <div><strong>Date Need By:</strong> ${dueDate}</div>
-              <div><strong>Company:</strong> ${companyName}</div>
+              <div><strong>Company:</strong> ${companyDetails.name}</div>
               <div><strong>Project Name:</strong> ${projectName}</div>
               <div><strong>Project Reference:</strong> ${projectReference}</div>
               <div style="grid-column: 1 / -1;"><strong>RFI Description:</strong> ${rfiDescription}</div>
             </div>
+            ${companyDetails.logo ? `
+            <div style="margin-top: 15px; text-align: center;">
+              <img src="${companyDetails.logo}" alt="Company Logo" style="max-height: 60px; max-width: 200px;" />
+            </div>
+            ` : ''}
+            ${companyDetails.address || companyDetails.phone ? `
+            <div style="margin-top: 10px; font-size: 11px; text-align: center;">
+              ${companyDetails.address ? `<div><strong>Address:</strong> ${companyDetails.address}</div>` : ''}
+              ${companyDetails.phone ? `<div><strong>Phone:</strong> ${companyDetails.phone}</div>` : ''}
+            </div>
+            ` : ''}
           </div>
 
           ${isOriginal ? `
@@ -248,8 +287,8 @@ export const RFIResponsesViewer: React.FC<RFIResponsesViewerProps> = ({
     return printContent;
   };
 
-  const downloadResponsePDF = (response: RFIResponse, index: number) => {
-    const printContent = generateResponsePDF(response, index);
+  const downloadResponsePDF = async (response: RFIResponse, index: number) => {
+    const printContent = await generateResponsePDF(response, index);
     const printWindow = window.open('', '_blank');
     if (printWindow) {
       printWindow.document.write(printContent);
@@ -440,7 +479,7 @@ export const RFIResponsesViewer: React.FC<RFIResponsesViewerProps> = ({
                             <Button
                               variant="outline"
                               size="sm"
-                              onClick={() => downloadResponsePDF(response, displayIndex)}
+                              onClick={async () => await downloadResponsePDF(response, displayIndex)}
                             >
                               <Download className="h-4 w-4 mr-2" />
                               Download
