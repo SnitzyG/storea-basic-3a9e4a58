@@ -127,6 +127,8 @@ export const AdvancedProjectWizard = ({
   const {
     toast
   } = useToast();
+  const [editingBudget, setEditingBudget] = useState(false);
+  const [budgetInput, setBudgetInput] = useState('');
   const [formData, setFormData] = useState({
     // Step 1: Basic Information
     project_reference_number: projectToEdit?.project_reference_number || '',
@@ -193,6 +195,24 @@ export const AdvancedProjectWizard = ({
       const clamped = Math.max(50000, Math.min(num, 5000000));
       handleInputChange('budget', clamped);
     }
+  };
+
+  const startEditingBudget = () => {
+    setBudgetInput(formData.budget?.toString() || '');
+    setEditingBudget(true);
+  };
+
+  const saveBudgetEdit = () => {
+    const num = parseFloat(budgetInput.replace(/[^0-9.]/g, ''));
+    if (!isNaN(num) && num >= 50000 && num <= 5000000) {
+      handleInputChange('budget', num);
+    }
+    setEditingBudget(false);
+  };
+
+  const cancelBudgetEdit = () => {
+    setEditingBudget(false);
+    setBudgetInput('');
   };
   const formatBudgetLabel = (value: number) => {
     if (value < 100000) return "Under $100K";
@@ -401,7 +421,35 @@ export const AdvancedProjectWizard = ({
                   <Label htmlFor="budget">Project Budget</Label>
                   <div className="space-y-3">
                     <div className="flex justify-between items-center">
-                      <div className="text-xl font-bold">${formData.budget?.toLocaleString()}</div>
+                      {editingBudget ? (
+                        <div className="flex items-center gap-2 flex-1">
+                          <span className="text-xl font-bold">$</span>
+                          <Input
+                            type="text"
+                            inputMode="numeric"
+                            value={budgetInput}
+                            onChange={(e) => setBudgetInput(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') saveBudgetEdit();
+                              if (e.key === 'Escape') cancelBudgetEdit();
+                            }}
+                            onBlur={saveBudgetEdit}
+                            className="text-xl font-bold w-48"
+                            autoFocus
+                            placeholder="Enter amount"
+                          />
+                          <Button size="sm" variant="ghost" onClick={saveBudgetEdit}>✓</Button>
+                          <Button size="sm" variant="ghost" onClick={cancelBudgetEdit}>✕</Button>
+                        </div>
+                      ) : (
+                        <div 
+                          className="text-xl font-bold cursor-pointer hover:bg-muted/50 px-2 py-1 rounded transition-colors"
+                          onClick={startEditingBudget}
+                          title="Click to edit exact amount"
+                        >
+                          ${formData.budget?.toLocaleString()}
+                        </div>
+                      )}
                       <div className="text-sm text-muted-foreground">{formatBudgetLabel(formData.budget || 100000)}</div>
                     </div>
                     
@@ -418,20 +466,8 @@ export const AdvancedProjectWizard = ({
                       <span>Under $100K</span>
                       <span>$5M+</span>
                     </div>
-
-                    {/* Custom budget input */}
-                    <div className="relative mt-2">
-                      <span className="absolute left-3 top-0 bottom-0 flex items-center text-muted-foreground pointer-events-none">$</span>
-                      <Input
-                        type="text"
-                        inputMode="numeric"
-                        aria-label="Enter custom budget amount"
-                        value={formData.budget?.toString() || ''}
-                        onChange={(e) => handleBudgetInputChange(e.target.value)}
-                        className="pl-8"
-                      />
-                      <p className="text-xs text-muted-foreground mt-1">Type an exact amount (50,000 – 5,000,000).</p>
-                    </div>
+                    
+                    <p className="text-xs text-muted-foreground">Use the slider or click the amount above to set an exact budget.</p>
                   </div>
                 </div>
 
