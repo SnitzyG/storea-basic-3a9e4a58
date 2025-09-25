@@ -27,6 +27,8 @@ interface Collaborator {
 
 export const CreateProjectDialog = ({ children }: CreateProjectDialogProps) => {
   const [open, setOpen] = useState(false);
+  const [budgetType, setBudgetType] = useState<'predefined' | 'custom'>('predefined');
+  const [customBudget, setCustomBudget] = useState('');
   const [formData, setFormData] = useState({
     project_reference_number: '',
     name: '',
@@ -61,14 +63,30 @@ export const CreateProjectDialog = ({ children }: CreateProjectDialogProps) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    // Get the current budget value based on type
+    const currentBudget = budgetType === 'custom' ? `$${customBudget}` : formData.budget;
+
     // Validation for required fields
-    if (!formData.estimated_start_date || !formData.estimated_finish_date || !formData.homeowner_name || !formData.homeowner_phone || !formData.homeowner_email || !formData.project_type || !formData.budget) {
+    if (!formData.estimated_start_date || !formData.estimated_finish_date || !formData.homeowner_name || !formData.homeowner_phone || !formData.homeowner_email || !formData.project_type || !currentBudget) {
       toast({
         title: "Missing Required Fields",
         description: "Please fill in all required fields including project type, budget, dates, homeowner name, phone number, and email.",
         variant: "destructive"
       });
       return;
+    }
+
+    // Validate custom budget if custom type is selected
+    if (budgetType === 'custom') {
+      const budgetNum = parseFloat(customBudget.replace(/[^0-9.]/g, ''));
+      if (isNaN(budgetNum) || budgetNum <= 0) {
+        toast({
+          title: "Invalid Budget",
+          description: "Please enter a valid positive number for the budget.",
+          variant: "destructive"
+        });
+        return;
+      }
     }
 
     // Validate phone number format
@@ -100,7 +118,7 @@ export const CreateProjectDialog = ({ children }: CreateProjectDialogProps) => {
         project_type: formData.project_type,
         project_reference_number: formData.project_reference_number || undefined,
         address: `${formData.street_number} ${formData.street_name}, ${formData.suburb} ${formData.postcode}`.trim(),
-        budget: formData.budget,
+        budget: currentBudget,
         description: formData.description || undefined,
         estimated_start_date: formData.estimated_start_date.toISOString().split('T')[0],
         estimated_finish_date: formData.estimated_finish_date.toISOString().split('T')[0],
@@ -126,6 +144,8 @@ export const CreateProjectDialog = ({ children }: CreateProjectDialogProps) => {
         homeowner_phone: '',
         homeowner_email: ''
       });
+      setBudgetType('predefined');
+      setCustomBudget('');
       setCollaborators([]);
       setNewCollaborator({ email: '', name: '', role: 'contractor' });
       setOpen(false);
@@ -156,6 +176,19 @@ export const CreateProjectDialog = ({ children }: CreateProjectDialogProps) => {
 
   const removeCollaborator = (index: number) => {
     setCollaborators(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const handleCustomBudgetChange = (value: string) => {
+    // Allow only numbers, dots, and commas
+    const sanitized = value.replace(/[^0-9.,]/g, '');
+    setCustomBudget(sanitized);
+  };
+
+  const formatBudgetDisplay = (value: string) => {
+    // Format number with commas for display
+    const num = parseFloat(value.replace(/,/g, ''));
+    if (isNaN(num)) return value;
+    return num.toLocaleString();
   };
 
   return (
@@ -238,26 +271,73 @@ export const CreateProjectDialog = ({ children }: CreateProjectDialogProps) => {
               />
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-3">
               <Label htmlFor="budget">Budget *</Label>
-              <Select value={formData.budget} onValueChange={(value) => handleInputChange('budget', value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select budget range" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="< $100,000">&lt; $100,000</SelectItem>
-                  <SelectItem value="$100,000 – $200,000">$100,000 – $200,000</SelectItem>
-                  <SelectItem value="$200,000 – $300,000">$200,000 – $300,000</SelectItem>
-                  <SelectItem value="$300,000 – $400,000">$300,000 – $400,000</SelectItem>
-                  <SelectItem value="$400,000 – $500,000">$400,000 – $500,000</SelectItem>
-                  <SelectItem value="$500,000 – $750,000">$500,000 – $750,000</SelectItem>
-                  <SelectItem value="$750,000 – $1,000,000">$750,000 – $1,000,000</SelectItem>
-                  <SelectItem value="$1,000,000 – $1,500,000">$1,000,000 – $1,500,000</SelectItem>
-                  <SelectItem value="$1,500,000 – $2,000,000">$1,500,000 – $2,000,000</SelectItem>
-                  <SelectItem value="$2,000,000 – $2,500,000">$2,000,000 – $2,500,000</SelectItem>
-                  <SelectItem value="$2,500,000+">$2,500,000+</SelectItem>
-                </SelectContent>
-              </Select>
+              
+              {/* Budget Type Toggle */}
+              <div className="flex gap-2 p-1 bg-muted rounded-lg">
+                <Button
+                  type="button"
+                  variant={budgetType === 'predefined' ? 'default' : 'ghost'}
+                  size="sm"
+                  className="flex-1"
+                  onClick={() => setBudgetType('predefined')}
+                >
+                  Ranges
+                </Button>
+                <Button
+                  type="button"
+                  variant={budgetType === 'custom' ? 'default' : 'ghost'}
+                  size="sm"
+                  className="flex-1"
+                  onClick={() => setBudgetType('custom')}
+                >
+                  Custom Amount
+                </Button>
+              </div>
+
+              {/* Predefined Ranges */}
+              {budgetType === 'predefined' && (
+                <Select value={formData.budget} onValueChange={(value) => handleInputChange('budget', value)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select budget range" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="< $100,000">&lt; $100,000</SelectItem>
+                    <SelectItem value="$100,000 – $200,000">$100,000 – $200,000</SelectItem>
+                    <SelectItem value="$200,000 – $300,000">$200,000 – $300,000</SelectItem>
+                    <SelectItem value="$300,000 – $400,000">$300,000 – $400,000</SelectItem>
+                    <SelectItem value="$400,000 – $500,000">$400,000 – $500,000</SelectItem>
+                    <SelectItem value="$500,000 – $750,000">$500,000 – $750,000</SelectItem>
+                    <SelectItem value="$750,000 – $1,000,000">$750,000 – $1,000,000</SelectItem>
+                    <SelectItem value="$1,000,000 – $1,500,000">$1,000,000 – $1,500,000</SelectItem>
+                    <SelectItem value="$1,500,000 – $2,000,000">$1,500,000 – $2,000,000</SelectItem>
+                    <SelectItem value="$2,000,000 – $2,500,000">$2,000,000 – $2,500,000</SelectItem>
+                    <SelectItem value="$2,500,000+">$2,500,000+</SelectItem>
+                  </SelectContent>
+                </Select>
+              )}
+
+              {/* Custom Amount Input */}
+              {budgetType === 'custom' && (
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground">
+                    $
+                  </span>
+                  <Input
+                    type="text"
+                    placeholder="Enter budget amount"
+                    value={customBudget}
+                    onChange={(e) => handleCustomBudgetChange(e.target.value)}
+                    className="pl-8"
+                  />
+                  {customBudget && (
+                    <div className="text-xs text-muted-foreground mt-1">
+                      ${formatBudgetDisplay(customBudget)}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
             
             {/* Project Address */}
