@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -6,12 +6,19 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Checkbox } from '@/components/ui/checkbox';
 import { useActivity } from '@/hooks/useActivity';
 import { useTodos } from '@/hooks/useTodos';
+import { useCalendarEvents } from '@/hooks/useCalendarEvents';
 import { useToast } from '@/hooks/use-toast';
 import { useProjectSelection } from '@/context/ProjectSelectionContext';
-import { formatDistanceToNow, addDays } from 'date-fns';
+import { formatDistanceToNow, addDays, addHours, format } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
+import { cn } from '@/lib/utils';
 import { 
   FileText, 
   MessageSquare, 
@@ -24,9 +31,13 @@ import {
   Calendar,
   CheckSquare,
   MoreHorizontal,
-  X
+  X,
+  Bell,
+  CalendarDays
 } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 
 const activityIcons = {
   project: FolderOpen,
@@ -59,6 +70,26 @@ const entityTypeColors = {
 export const RecentActivity = () => {
   const { activities, loading, dismissActivity, refetch } = useActivity();
   const { user } = useAuth();
+  const [isTaskDialogOpen, setIsTaskDialogOpen] = useState(false);
+  const [isCalendarDialogOpen, setIsCalendarDialogOpen] = useState(false);
+  const [selectedActivity, setSelectedActivity] = useState<any>(null);
+  
+  // Task dialog state
+  const [taskTitle, setTaskTitle] = useState('');
+  const [taskPriority, setTaskPriority] = useState<'low' | 'medium' | 'high'>('medium');
+  const [taskDueDate, setTaskDueDate] = useState<Date | undefined>(new Date());
+  const [taskReminder, setTaskReminder] = useState(false);
+  const [taskReminderHours, setTaskReminderHours] = useState(1);
+
+  // Calendar dialog state
+  const [eventTitle, setEventTitle] = useState('');
+  const [eventDate, setEventDate] = useState<Date | undefined>(new Date());
+  const [eventTime, setEventTime] = useState('09:00');
+  const [eventDuration, setEventDuration] = useState(60); // minutes
+  const [eventPriority, setEventPriority] = useState<'low' | 'medium' | 'high'>('medium');
+  const [eventReminder, setEventReminder] = useState(false);
+  const [eventReminderMinutes, setEventReminderMinutes] = useState(15);
+  const [isMeeting, setIsMeeting] = useState(false);
 
   // Set up real-time updates for dashboard refresh
   useEffect(() => {
@@ -103,9 +134,12 @@ export const RecentActivity = () => {
       supabase.removeChannel(membershipChannel);
     };
   }, [user?.id, refetch]);
+  
   const navigate = useNavigate();
   const { toast } = useToast();
   const { addTodo } = useTodos();
+  const { createEvent } = useCalendarEvents();
+  const { selectedProject } = useProjectSelection();
 
   const handleActivityClick = (activity: any) => {
     // Navigate to relevant tab based on entity type
@@ -130,44 +164,120 @@ export const RecentActivity = () => {
     }
   };
 
-  const handleAddToCalendar = async (activity: any) => {
+  const openTaskDialog = (activity: any) => {
+    setSelectedActivity(activity);
+    setTaskTitle(`Task: ${activity.description}`);
+    setTaskPriority('medium');
+    setTaskDueDate(new Date());
+    setTaskReminder(false);
+    setTaskReminderHours(1);
+    setIsTaskDialogOpen(true);
+  };
+
+  const openCalendarDialog = (activity: any) => {
+    setSelectedActivity(activity);
+    setEventTitle(`Follow up: ${activity.description}`);
+    setEventDate(addDays(new Date(), 1)); // Default to tomorrow
+    setEventTime('09:00');
+    setEventDuration(60);
+    setEventPriority('medium');
+    setEventReminder(false);
+    setEventReminderMinutes(15);
+    setIsMeeting(false);
+    setIsCalendarDialogOpen(true);
+  };
+
+  const handleCreateTask = async () => {
+    if (!taskTitle.trim() || !selectedActivity) return;
+
     try {
-      const eventDate = addDays(new Date(), 1); // Default to tomorrow
-      await addTodo(
-        `Follow up: ${activity.description}`,
-        'medium',
-        eventDate.toISOString()
-      );
+      const dueDate = taskDueDate?.toISOString();
+      await addTodo(taskTitle, taskPriority, dueDate);
+      
+      // TODO: Implement reminder functionality if taskReminder is true
+      if (taskReminder) {
+        // This would require a notification system or reminder service
+        console.log(`Set reminder ${taskReminderHours} hours before task due date`);
+      }
+      
       toast({
-        title: "Added to Calendar",
-        description: "Activity added as a calendar event for tomorrow",
+        title: "Task Created",
+        description: `"${taskTitle}" added to your task list`,
       });
+      
+      setIsTaskDialogOpen(false);
+      resetTaskForm();
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to add to calendar",
+        description: "Failed to create task",
         variant: "destructive",
       });
     }
   };
 
-  const handleAddToTodo = async (activity: any) => {
+  const handleCreateCalendarEvent = async () => {
+    if (!eventTitle.trim() || !eventDate || !selectedActivity) return;
+
     try {
-      await addTodo(
-        `Task: ${activity.description}`,
-        'medium'
-      );
-      toast({
-        title: "Added to To-Do",
-        description: "Activity added to your to-do list",
+      const [hours, minutes] = eventTime.split(':').map(Number);
+      const startDateTime = new Date(eventDate);
+      startDateTime.setHours(hours, minutes, 0, 0);
+      
+      const endDateTime = new Date(startDateTime);
+      endDateTime.setMinutes(endDateTime.getMinutes() + eventDuration);
+
+      await createEvent({
+        project_id: selectedActivity.project_id || selectedProject?.id,
+        title: eventTitle,
+        description: `Related to: ${selectedActivity.description}`,
+        start_datetime: startDateTime.toISOString(),
+        end_datetime: endDateTime.toISOString(),
+        priority: eventPriority,
+        is_meeting: isMeeting,
+        status: 'scheduled',
       });
+
+      // TODO: Implement reminder functionality if eventReminder is true
+      if (eventReminder) {
+        console.log(`Set reminder ${eventReminderMinutes} minutes before event`);
+      }
+
+      toast({
+        title: "Event Created",
+        description: `"${eventTitle}" added to your calendar`,
+      });
+      
+      setIsCalendarDialogOpen(false);
+      resetCalendarForm();
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to add to to-do list",
+        description: "Failed to create calendar event",
         variant: "destructive",
       });
     }
+  };
+
+  const resetTaskForm = () => {
+    setSelectedActivity(null);
+    setTaskTitle('');
+    setTaskPriority('medium');
+    setTaskDueDate(new Date());
+    setTaskReminder(false);
+    setTaskReminderHours(1);
+  };
+
+  const resetCalendarForm = () => {
+    setSelectedActivity(null);
+    setEventTitle('');
+    setEventDate(new Date());
+    setEventTime('09:00');
+    setEventDuration(60);
+    setEventPriority('medium');
+    setEventReminder(false);
+    setEventReminderMinutes(15);
+    setIsMeeting(false);
   };
 
   if (loading) {
@@ -294,13 +404,13 @@ export const RecentActivity = () => {
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end" className="w-48">
-                              <DropdownMenuItem onClick={() => handleAddToCalendar(activity)}>
+                              <DropdownMenuItem onClick={() => openCalendarDialog(activity)}>
                                 <Calendar className="h-4 w-4 mr-2" />
                                 Add to Calendar
                               </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => handleAddToTodo(activity)}>
+                              <DropdownMenuItem onClick={() => openTaskDialog(activity)}>
                                 <CheckSquare className="h-4 w-4 mr-2" />
-                                Add to To-Do
+                                Add to Tasks
                               </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
@@ -322,6 +432,244 @@ export const RecentActivity = () => {
           )}
         </ScrollArea>
       </CardContent>
+
+      {/* Task Creation Dialog */}
+      <Dialog open={isTaskDialogOpen} onOpenChange={setIsTaskDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <CheckSquare className="h-5 w-5" />
+              Create Task from Activity
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 pt-4">
+            <div className="space-y-2">
+              <Label htmlFor="task-title">Task Title</Label>
+              <Input
+                id="task-title"
+                value={taskTitle}
+                onChange={(e) => setTaskTitle(e.target.value)}
+                placeholder="Enter task title..."
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="task-priority">Priority</Label>
+              <Select value={taskPriority} onValueChange={(value: 'low' | 'medium' | 'high') => setTaskPriority(value)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="low">Low</SelectItem>
+                  <SelectItem value="medium">Medium</SelectItem>
+                  <SelectItem value="high">High</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Due Date</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "w-full justify-start text-left font-normal",
+                      !taskDueDate && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarDays className="mr-2 h-4 w-4" />
+                    {taskDueDate ? format(taskDueDate, "PPP") : <span>Pick a date</span>}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <CalendarComponent
+                    mode="single"
+                    selected={taskDueDate}
+                    onSelect={setTaskDueDate}
+                    initialFocus
+                    className={cn("p-3 pointer-events-auto")}
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="task-reminder"
+                checked={taskReminder}
+                onCheckedChange={(checked) => setTaskReminder(checked as boolean)}
+              />
+              <Label htmlFor="task-reminder" className="text-sm">Set reminder</Label>
+            </div>
+
+            {taskReminder && (
+              <div className="space-y-2 ml-6">
+                <Label>Remind me (hours before due date)</Label>
+                <Select value={taskReminderHours.toString()} onValueChange={(value) => setTaskReminderHours(parseInt(value))}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="1">1 hour</SelectItem>
+                    <SelectItem value="2">2 hours</SelectItem>
+                    <SelectItem value="4">4 hours</SelectItem>
+                    <SelectItem value="8">8 hours</SelectItem>
+                    <SelectItem value="24">1 day</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            <div className="flex gap-2 pt-2">
+              <Button onClick={handleCreateTask} className="flex-1" disabled={!taskTitle.trim()}>
+                <CheckSquare className="h-4 w-4 mr-2" />
+                Create Task
+              </Button>
+              <Button variant="outline" onClick={() => setIsTaskDialogOpen(false)}>
+                Cancel
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Calendar Event Creation Dialog */}
+      <Dialog open={isCalendarDialogOpen} onOpenChange={setIsCalendarDialogOpen}>
+        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Calendar className="h-5 w-5" />
+              Create Calendar Event from Activity
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 pt-4">
+            <div className="space-y-2">
+              <Label htmlFor="event-title">Event Title</Label>
+              <Input
+                id="event-title"
+                value={eventTitle}
+                onChange={(e) => setEventTitle(e.target.value)}
+                placeholder="Enter event title..."
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Event Date</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "w-full justify-start text-left font-normal",
+                      !eventDate && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarDays className="mr-2 h-4 w-4" />
+                    {eventDate ? format(eventDate, "PPP") : <span>Pick a date</span>}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <CalendarComponent
+                    mode="single"
+                    selected={eventDate}
+                    onSelect={setEventDate}
+                    initialFocus
+                    className={cn("p-3 pointer-events-auto")}
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2">
+              <div className="space-y-2">
+                <Label htmlFor="event-time">Start Time</Label>
+                <Input
+                  id="event-time"
+                  type="time"
+                  value={eventTime}
+                  onChange={(e) => setEventTime(e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="event-duration">Duration (min)</Label>
+                <Select value={eventDuration.toString()} onValueChange={(value) => setEventDuration(parseInt(value))}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="15">15 min</SelectItem>
+                    <SelectItem value="30">30 min</SelectItem>
+                    <SelectItem value="60">1 hour</SelectItem>
+                    <SelectItem value="90">1.5 hours</SelectItem>
+                    <SelectItem value="120">2 hours</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="event-priority">Priority</Label>
+              <Select value={eventPriority} onValueChange={(value: 'low' | 'medium' | 'high') => setEventPriority(value)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="low">Low</SelectItem>
+                  <SelectItem value="medium">Medium</SelectItem>
+                  <SelectItem value="high">High</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="is-meeting"
+                checked={isMeeting}
+                onCheckedChange={(checked) => setIsMeeting(checked as boolean)}
+              />
+              <Label htmlFor="is-meeting" className="text-sm">This is a meeting</Label>
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="event-reminder"
+                checked={eventReminder}
+                onCheckedChange={(checked) => setEventReminder(checked as boolean)}
+              />
+              <Label htmlFor="event-reminder" className="text-sm">Set reminder</Label>
+            </div>
+
+            {eventReminder && (
+              <div className="space-y-2 ml-6">
+                <Label>Remind me (minutes before event)</Label>
+                <Select value={eventReminderMinutes.toString()} onValueChange={(value) => setEventReminderMinutes(parseInt(value))}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="5">5 minutes</SelectItem>
+                    <SelectItem value="15">15 minutes</SelectItem>
+                    <SelectItem value="30">30 minutes</SelectItem>
+                    <SelectItem value="60">1 hour</SelectItem>
+                    <SelectItem value="120">2 hours</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            <div className="flex gap-2 pt-2">
+              <Button onClick={handleCreateCalendarEvent} className="flex-1" disabled={!eventTitle.trim()}>
+                <Calendar className="h-4 w-4 mr-2" />
+                Create Event
+              </Button>
+              <Button variant="outline" onClick={() => setIsCalendarDialogOpen(false)}>
+                Cancel
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 };
