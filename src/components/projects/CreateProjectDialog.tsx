@@ -275,21 +275,21 @@ export const CreateProjectDialog = ({ children }: CreateProjectDialogProps) => {
               <Label htmlFor="budget">Budget *</Label>
               
               {/* Budget Type Toggle */}
-              <div className="flex gap-2 p-1 bg-muted rounded-lg">
+              <div className="flex gap-1 p-1 bg-muted/50 border rounded-lg">
                 <Button
                   type="button"
-                  variant={budgetType === 'predefined' ? 'default' : 'ghost'}
+                  variant={budgetType === 'predefined' ? 'default' : 'outline'}
                   size="sm"
-                  className="flex-1"
+                  className="flex-1 h-9"
                   onClick={() => setBudgetType('predefined')}
                 >
-                  Ranges
+                  Predefined Ranges
                 </Button>
                 <Button
                   type="button"
-                  variant={budgetType === 'custom' ? 'default' : 'ghost'}
+                  variant={budgetType === 'custom' ? 'default' : 'outline'}
                   size="sm"
-                  className="flex-1"
+                  className="flex-1 h-9"
                   onClick={() => setBudgetType('custom')}
                 >
                   Custom Amount
