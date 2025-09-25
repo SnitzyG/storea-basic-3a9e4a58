@@ -369,14 +369,9 @@ export const AdvancedProjectWizard = ({
                       <SelectValue placeholder="Select project type" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="detached_home">Detached Home</SelectItem>
-                      <SelectItem value="duplex">Duplex</SelectItem>
-                      <SelectItem value="townhouse">Townhouse</SelectItem>
-                      <SelectItem value="apartment">Apartment</SelectItem>
-                      <SelectItem value="villa">Villa</SelectItem>
+                      <SelectItem value="new_build">New Build</SelectItem>
+                      <SelectItem value="alterations_addition">Alterations & Addition</SelectItem>
                       <SelectItem value="renovation">Renovation</SelectItem>
-                      <SelectItem value="extension">Extension</SelectItem>
-                      <SelectItem value="commercial">Commercial</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
