@@ -159,13 +159,6 @@ export const useSecureAuth = () => {
         requiresCaptcha: false,
         captchaVerified: false
       }));
-      
-      // Send security notification (in a real app, this would be an email)
-      toast({
-        title: "Security Notice",
-        description: "Successful login detected. If this wasn't you, please contact support.",
-        duration: 5000
-      });
     }
     
     return result;
