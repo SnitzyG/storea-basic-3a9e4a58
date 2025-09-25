@@ -313,9 +313,12 @@ export const useAdvancedProjects = () => {
 
   const updateProject = async (id: string, updates: Partial<AdvancedProject>) => {
     try {
+      // Filter out fields that don't exist in the database table
+      const { priority, project_type, square_footage, number_of_floors, completion_percentage, weather_delays, custom_fields, ...dbUpdates } = updates;
+      
       const { error } = await supabase
         .from('projects')
-        .update({ ...updates, updated_at: new Date().toISOString() })
+        .update({ ...dbUpdates, updated_at: new Date().toISOString() })
         .eq('id', id);
 
       if (error) throw error;
