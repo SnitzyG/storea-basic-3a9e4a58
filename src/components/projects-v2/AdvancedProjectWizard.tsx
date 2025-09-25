@@ -353,20 +353,20 @@ export const AdvancedProjectWizard = ({
 
                 <div>
                   <Label htmlFor="name">Project Name *</Label>
-                  <Input id="name" value={formData.name} onChange={e => handleInputChange('name', e.target.value)} placeholder="enter project name" className="mt-1" />
+                  <Input id="name" value={formData.name} onChange={e => handleInputChange('name', e.target.value)} placeholder="Enter project name" className="mt-1" />
                 </div>
 
 
                 <div>
                   <Label htmlFor="description">Description</Label>
-                  <Textarea id="description" value={formData.description} onChange={e => handleInputChange('description', e.target.value)} placeholder="enter project description" rows={3} className="mt-1" />
+                  <Textarea id="description" value={formData.description} onChange={e => handleInputChange('description', e.target.value)} placeholder="Enter project description" rows={3} className="mt-1" />
                 </div>
 
                 <div>
                   <Label htmlFor="project_type">Project Type</Label>
                   <Select value={formData.project_type} onValueChange={value => handleInputChange('project_type', value)}>
                     <SelectTrigger className="mt-1">
-                      <SelectValue placeholder="choose project type" />
+                      <SelectValue placeholder="Choose project type" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="new_build">New Build</SelectItem>
