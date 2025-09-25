@@ -207,6 +207,37 @@ const Auth = () => {
       clearTimeout(clickTimeout);
     };
   }, []);
+
+  // Handle password changes for strength checking
+  const handlePasswordChange = async (newPassword: string) => {
+    setPassword(newPassword);
+    if (newPassword.length > 0) {
+      await checkPasswordStrength(newPassword);
+    }
+  };
+
+  // Handle CAPTCHA verification
+  const handleCaptchaVerify = (success: boolean) => {
+    verifyCaptcha(success);
+    setShowCaptcha(false);
+    
+    if (success) {
+      // Retry login after successful CAPTCHA
+      handleSignIn({ preventDefault: () => {} } as React.FormEvent);
+    }
+  };
+
+  // Reset security state when switching tabs
+  const handleTabChange = () => {
+    resetSecurityState();
+    setPassword('');
+    setConfirmPassword('');
+    setEmail('');
+    setName('');
+    setCompany('');
+    setRole('');
+  };
+
   const roleOptions = [{
     value: 'builder',
     label: 'Builder'
@@ -507,8 +538,7 @@ const Auth = () => {
                    <Button 
                      type="submit" 
                      className="w-full"
-                     disabled={isSubmitting || !passwordStrength?.isValid}
-                     disabled={isSubmitting || !role || (role !== 'homeowner' && !company.trim())}
+                     disabled={isSubmitting || !passwordStrength?.isValid || !role || (role !== 'homeowner' && !company.trim())}
                    >
                      {isSubmitting ? 'Creating account...' : 'Create Account'}
                    </Button>
