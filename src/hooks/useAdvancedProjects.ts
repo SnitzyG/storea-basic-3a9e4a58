@@ -30,6 +30,7 @@ export interface AdvancedProject {
   completion_percentage?: number;
   weather_delays?: number;
   architectural_stage?: string;
+  architectural_fees?: number;
   custom_fields?: Record<string, any>;
 }
 

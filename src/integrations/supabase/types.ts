@@ -1366,6 +1366,7 @@ export type Database = {
         Row: {
           additional_homeowners: Json | null
           address: string | null
+          architectural_fees: number | null
           architectural_stage: string | null
           budget: number | null
           company_id: string | null
@@ -1389,6 +1390,7 @@ export type Database = {
         Insert: {
           additional_homeowners?: Json | null
           address?: string | null
+          architectural_fees?: number | null
           architectural_stage?: string | null
           budget?: number | null
           company_id?: string | null
@@ -1412,6 +1414,7 @@ export type Database = {
         Update: {
           additional_homeowners?: Json | null
           address?: string | null
+          architectural_fees?: number | null
           architectural_stage?: string | null
           budget?: number | null
           company_id?: string | null
