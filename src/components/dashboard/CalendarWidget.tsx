@@ -11,8 +11,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
+import { Switch } from '@/components/ui/switch';
 import { CalendarDays, Plus, Clock, CheckCircle2, ChevronLeft, ChevronRight, Download, Users, Paperclip, Edit, Trash2, X, FileText } from 'lucide-react';
-import { format, isSameDay, startOfMonth, endOfMonth, eachDayOfInterval, startOfWeek, endOfWeek, addWeeks, subWeeks } from 'date-fns';
+import { format, isSameDay, startOfMonth, endOfMonth, eachDayOfInterval, startOfWeek, endOfWeek, addWeeks, subWeeks, getWeek, startOfYear } from 'date-fns';
 import { useTodos } from '@/hooks/useTodos';
 import { useToast } from '@/hooks/use-toast';
 import { useDocuments } from '@/hooks/useDocuments';
@@ -26,6 +27,8 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 export const CalendarWidget = () => {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [viewMode, setViewMode] = useState<'month' | 'week'>('month');
+  const [currentWeek, setCurrentWeek] = useState(new Date());
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
   const [isDayDetailsOpen, setIsDayDetailsOpen] = useState(false);
@@ -64,6 +67,27 @@ export const CalendarWidget = () => {
       newMonth.setMonth(currentMonth.getMonth() + 1);
     }
     setCurrentMonth(newMonth);
+  };
+
+  const navigateWeek = (direction: 'prev' | 'next') => {
+    const newWeek = new Date(currentWeek);
+    if (direction === 'prev') {
+      newWeek.setDate(currentWeek.getDate() - 7);
+    } else {
+      newWeek.setDate(currentWeek.getDate() + 7);
+    }
+    setCurrentWeek(newWeek);
+  };
+
+  const getWeekLabel = (date: Date) => {
+    const weekStart = startOfWeek(date);
+    const weekEnd = endOfWeek(date);
+    const weekNumber = getWeek(date);
+    
+    return {
+      weekNumber,
+      dateRange: `${format(weekStart, 'MMM d')} – ${format(weekEnd, 'MMM d, yyyy')}`
+    };
   };
 
   const handleDayDoubleClick = (date: Date) => {
@@ -395,10 +419,25 @@ export const CalendarWidget = () => {
     <Card className="h-full flex flex-col">
       <CardHeader className="pb-2 flex-shrink-0 border-b">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-base flex items-center gap-2 font-medium">
-            <CalendarDays className="h-4 w-4 text-primary" />
-            Calendar
-          </CardTitle>
+          <div className="flex items-center gap-3">
+            <CardTitle className="text-base flex items-center gap-2 font-medium">
+              <CalendarDays className="h-4 w-4 text-primary" />
+              Calendar
+            </CardTitle>
+            <div className="flex items-center gap-2">
+              <Label htmlFor="view-mode" className="text-xs text-muted-foreground">
+                Week
+              </Label>
+              <Switch
+                id="view-mode"
+                checked={viewMode === 'month'}
+                onCheckedChange={(checked) => setViewMode(checked ? 'month' : 'week')}
+              />
+              <Label htmlFor="view-mode" className="text-xs text-muted-foreground">
+                Month
+              </Label>
+            </div>
+          </div>
           <div className="flex items-center gap-1">
             <Dialog open={isExportDialogOpen} onOpenChange={setIsExportDialogOpen}>
               <DialogTrigger asChild>
@@ -706,18 +745,31 @@ export const CalendarWidget = () => {
               <Button 
                 variant="outline" 
                 size="sm" 
-                onClick={() => navigateMonth('prev')}
+                onClick={() => viewMode === 'month' ? navigateMonth('prev') : navigateWeek('prev')}
                 className="h-7 w-7 p-0"
               >
                 <ChevronLeft className="h-3 w-3" />
               </Button>
-              <h3 className="text-sm font-medium">
-                {format(currentMonth, 'MMMM yyyy')}
-              </h3>
+              <div className="text-center">
+                {viewMode === 'month' ? (
+                  <h3 className="text-sm font-medium">
+                    {format(currentMonth, 'MMMM yyyy')}
+                  </h3>
+                ) : (
+                  <div className="text-sm">
+                    <div className="font-medium">
+                      Week {getWeekLabel(currentWeek).weekNumber}
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      {getWeekLabel(currentWeek).dateRange}
+                    </div>
+                  </div>
+                )}
+              </div>
               <Button 
                 variant="outline" 
                 size="sm" 
-                onClick={() => navigateMonth('next')}
+                onClick={() => viewMode === 'month' ? navigateMonth('next') : navigateWeek('next')}
                 className="h-7 w-7 p-0"
               >
                 <ChevronRight className="h-3 w-3" />
@@ -738,57 +790,117 @@ export const CalendarWidget = () => {
               
               {/* Calendar dates grid */}
               <div className="flex-1 p-1 bg-background rounded-b-lg">
-                {(() => {
-                  const start = startOfMonth(currentMonth);
-                  const end = endOfMonth(currentMonth);
-                  const startDate = new Date(start);
-                  startDate.setDate(startDate.getDate() - startDate.getDay()); // Start from Sunday
-                  
-                  const endDate = new Date(end);
-                  endDate.setDate(endDate.getDate() + (6 - endDate.getDay())); // End on Saturday
-                  
-                  const days = eachDayOfInterval({ start: startDate, end: endDate });
-                  
-                  return (
-                    <div className="grid grid-cols-7 grid-rows-6 gap-px h-full">
-                      {days.map((date) => {
-                        const todosForDate = getTodosForDate(date);
-                        const isCurrentMonth = date.getMonth() === currentMonth.getMonth();
-                        const isSelected = selectedDate && isSameDay(date, selectedDate);
-                        const isToday = isSameDay(date, new Date());
-                        
-                        return (
-                          <button
-                            key={date.toISOString()}
-                            onClick={() => setSelectedDate(date)}
-                            className={`
-                              w-full h-full flex flex-col items-center justify-start pt-0.5 relative
-                              transition-colors rounded-sm text-xs
-                              ${isCurrentMonth ? 'text-foreground' : 'text-muted-foreground opacity-50'}
-                              ${isSelected ? 'bg-primary text-primary-foreground' : 'hover:bg-accent hover:text-accent-foreground'}
-                              ${isToday && !isSelected ? 'bg-accent text-accent-foreground font-semibold' : ''}
-                            `}
-                          >
-                            <span className="text-xs">{date.getDate()}</span>
-                            {todosForDate.length > 0 && (
-                              <div className="absolute bottom-0.5 left-1/2 transform -translate-x-1/2 flex gap-0.5">
-                                {todosForDate.slice(0, 3).map((_, index) => (
+                {viewMode === 'month' ? (
+                  (() => {
+                    const start = startOfMonth(currentMonth);
+                    const end = endOfMonth(currentMonth);
+                    const startDate = new Date(start);
+                    startDate.setDate(startDate.getDate() - startDate.getDay()); // Start from Sunday
+                    
+                    const endDate = new Date(end);
+                    endDate.setDate(endDate.getDate() + (6 - endDate.getDay())); // End on Saturday
+                    
+                    const days = eachDayOfInterval({ start: startDate, end: endDate });
+                    
+                    return (
+                      <div className="grid grid-cols-7 grid-rows-6 gap-px h-full">
+                        {days.map((date) => {
+                          const todosForDate = getTodosForDate(date);
+                          const isCurrentMonth = date.getMonth() === currentMonth.getMonth();
+                          const isSelected = selectedDate && isSameDay(date, selectedDate);
+                          const isToday = isSameDay(date, new Date());
+                          
+                          return (
+                            <button
+                              key={date.toISOString()}
+                              onClick={() => setSelectedDate(date)}
+                              className={`
+                                w-full h-full flex flex-col items-center justify-start pt-0.5 relative
+                                transition-colors rounded-sm text-xs
+                                ${isCurrentMonth ? 'text-foreground' : 'text-muted-foreground opacity-50'}
+                                ${isSelected ? 'bg-primary text-primary-foreground' : 'hover:bg-accent hover:text-accent-foreground'}
+                                ${isToday && !isSelected ? 'bg-accent text-accent-foreground font-semibold' : ''}
+                              `}
+                            >
+                              <span className="text-xs">{date.getDate()}</span>
+                              {todosForDate.length > 0 && (
+                                <div className="absolute bottom-0.5 left-1/2 transform -translate-x-1/2 flex gap-0.5">
+                                  {todosForDate.slice(0, 3).map((_, index) => (
+                                    <div 
+                                      key={index} 
+                                      className={`w-1.5 h-1.5 rounded-full ${isSelected ? 'bg-primary-foreground' : 'bg-primary'}`}
+                                    />
+                                  ))}
+                                  {todosForDate.length > 3 && (
+                                    <div className={`w-1.5 h-1.5 rounded-full opacity-60 ${isSelected ? 'bg-primary-foreground' : 'bg-primary'}`} />
+                                  )}
+                                </div>
+                              )}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    );
+                  })()
+                ) : (
+                  (() => {
+                    const weekStart = startOfWeek(currentWeek);
+                    const weekEnd = endOfWeek(currentWeek);
+                    const days = eachDayOfInterval({ start: weekStart, end: weekEnd });
+                    
+                    return (
+                      <div className="grid grid-cols-7 gap-px h-full">
+                        {days.map((date) => {
+                          const todosForDate = getTodosForDate(date);
+                          const isSelected = selectedDate && isSameDay(date, selectedDate);
+                          const isToday = isSameDay(date, new Date());
+                          
+                          return (
+                            <button
+                              key={date.toISOString()}
+                              onClick={() => setSelectedDate(date)}
+                              className={`
+                                w-full h-full flex flex-col p-2 relative
+                                transition-colors rounded-sm border
+                                ${isSelected ? 'bg-primary text-primary-foreground border-primary' : 'hover:bg-accent hover:text-accent-foreground border-border'}
+                                ${isToday && !isSelected ? 'bg-accent text-accent-foreground font-semibold border-accent' : ''}
+                              `}
+                            >
+                              <div className="flex items-center justify-between w-full mb-1">
+                                <span className="text-sm font-medium">{format(date, 'EEE')}</span>
+                                <span className="text-lg font-bold">{date.getDate()}</span>
+                              </div>
+                              <div className="flex-1 overflow-y-auto">
+                                {todosForDate.slice(0, 3).map((todo, index) => (
                                   <div 
-                                    key={index} 
-                                    className={`w-1.5 h-1.5 rounded-full ${isSelected ? 'bg-primary-foreground' : 'bg-primary'}`}
-                                  />
+                                    key={index}
+                                    className={`text-xs p-1 mb-1 rounded truncate ${
+                                      isSelected 
+                                        ? 'bg-primary-foreground/20 text-primary-foreground' 
+                                        : todo.priority === 'high' 
+                                          ? 'bg-destructive/10 text-destructive' 
+                                          : todo.priority === 'medium'
+                                            ? 'bg-yellow-500/10 text-yellow-700 dark:text-yellow-400'
+                                            : 'bg-green-500/10 text-green-700 dark:text-green-400'
+                                    }`}
+                                  >
+                                    {todo.content.split(' - ')[0].substring(0, 20)}
+                                    {todo.content.length > 20 && '...'}
+                                  </div>
                                 ))}
                                 {todosForDate.length > 3 && (
-                                  <div className={`w-1.5 h-1.5 rounded-full opacity-60 ${isSelected ? 'bg-primary-foreground' : 'bg-primary'}`} />
+                                  <div className={`text-xs opacity-60 ${isSelected ? 'text-primary-foreground' : 'text-muted-foreground'}`}>
+                                    +{todosForDate.length - 3} more
+                                  </div>
                                 )}
                               </div>
-                            )}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  );
-                })()}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    );
+                  })()
+                )}
               </div>
             </div>
           </div>
