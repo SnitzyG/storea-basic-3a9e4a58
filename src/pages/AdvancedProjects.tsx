@@ -11,7 +11,6 @@ import { useAdvancedProjects, AdvancedProject } from '@/hooks/useAdvancedProject
 import { AdvancedProjectWizard } from '@/components/projects-v2/AdvancedProjectWizard';
 import { ProjectDetailsDialog } from '@/components/projects-v2/ProjectDetailsDialog';
 import { ProjectJoinSection } from '@/components/projects/ProjectJoinSection';
-
 import { useAuth } from '@/hooks/useAuth';
 
 const ArchitecturalStageSelector = ({
@@ -62,6 +61,7 @@ const ArchitecturalStageSelector = ({
     </Select>
   );
 };
+
 const StatusSelector = ({
   project,
   onStatusChange
@@ -82,13 +82,16 @@ const StatusSelector = ({
     value: 'cancelled',
     label: 'Cancelled'
   }];
+
   const statusColors = {
     active: 'bg-green-100 text-green-800',
     on_hold: 'bg-yellow-100 text-yellow-800',
     completed: 'bg-gray-100 text-gray-800',
     cancelled: 'bg-red-100 text-red-800'
   };
-  return <Select value={project.status} onValueChange={onStatusChange}>
+
+  return (
+    <Select value={project.status} onValueChange={onStatusChange}>
       <SelectTrigger className="w-auto min-w-[120px]">
         <SelectValue>
           <Badge className={statusColors[project.status]}>
@@ -97,14 +100,18 @@ const StatusSelector = ({
         </SelectValue>
       </SelectTrigger>
       <SelectContent>
-        {statusOptions.map(option => <SelectItem key={option.value} value={option.value}>
+        {statusOptions.map(option => (
+          <SelectItem key={option.value} value={option.value}>
             <Badge className={statusColors[option.value]}>
               {option.label.toUpperCase()}
             </Badge>
-          </SelectItem>)}
+          </SelectItem>
+        ))}
       </SelectContent>
-    </Select>;
+    </Select>
+  );
 };
+
 const AdvancedProjects = () => {
   const {
     projects,
@@ -114,19 +121,17 @@ const AdvancedProjects = () => {
     deleteProject,
     updateProject
   } = useAdvancedProjects();
-  const {
-    profile
-  } = useAuth();
-  const {
-    toast
-  } = useToast();
+  const { profile } = useAuth();
+  const { toast } = useToast();
   const [wizardOpen, setWizardOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState<AdvancedProject | null>(null);
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
   const [projectToView, setProjectToView] = useState<AdvancedProject | null>(null);
+  
   // CRITICAL: Only architects can create projects
   const isArchitect = profile?.role === 'architect';
   const canCreateProjects = isArchitect;
+
   const statusColors = {
     active: 'bg-green-100 text-green-800',
     on_hold: 'bg-yellow-100 text-yellow-800',
@@ -134,14 +139,6 @@ const AdvancedProjects = () => {
     cancelled: 'bg-red-100 text-red-800'
   };
 
-  const handleArchitecturalStageChange = async (projectId: string, newStage: string) => {
-    try {
-      await updateProject(projectId, {
-        architectural_stage: newStage
-      });
-    } catch (error) {
-      console.error('Error updating architectural stage:', error);
-    }
   const copyProjectId = async (projectId: string) => {
     try {
       await navigator.clipboard.writeText(projectId);
@@ -157,6 +154,7 @@ const AdvancedProjects = () => {
       });
     }
   };
+
   const handleProjectAction = async (action: string, project: AdvancedProject) => {
     switch (action) {
       case 'view':
@@ -168,9 +166,11 @@ const AdvancedProjects = () => {
         break;
     }
   };
+
   const handleDeleteProject = async (projectId: string) => {
     await deleteProject(projectId);
   };
+
   const handleStatusChange = async (projectId: string, newStatus: 'active' | 'on_hold' | 'completed' | 'cancelled') => {
     try {
       await updateProject(projectId, {
@@ -180,6 +180,17 @@ const AdvancedProjects = () => {
       console.error('Error updating project status:', error);
     }
   };
+
+  const handleArchitecturalStageChange = async (projectId: string, newStage: string) => {
+    try {
+      await updateProject(projectId, {
+        architectural_stage: newStage
+      });
+    } catch (error) {
+      console.error('Error updating architectural stage:', error);
+    }
+  };
+
   const handleUpdateBudget = async (projectId: string, budget: number) => {
     try {
       await updateProject(projectId, {
@@ -189,24 +200,28 @@ const AdvancedProjects = () => {
       console.error('Error updating project budget:', error);
     }
   };
+
   if (loading) {
-    return <div className="flex items-center justify-center min-h-[400px]">
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center">
           <div className="text-lg">Loading advanced projects...</div>
         </div>
-      </div>;
+      </div>
+    );
   }
-  return <div className="space-y-6 mx-[25px]">
+
+  return (
+    <div className="space-y-6 mx-[25px]">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <div>
-          
-          
-        </div>
-        {canCreateProjects && <Button onClick={() => setWizardOpen(true)} className="bg-primary hover:bg-primary/90">
+        <div></div>
+        {canCreateProjects && (
+          <Button onClick={() => setWizardOpen(true)} className="bg-primary hover:bg-primary/90">
             <Plus className="h-4 w-4 mr-2" />
             New Project
-          </Button>}
+          </Button>
+        )}
       </div>
 
       {/* Main Content Tabs */}
@@ -224,19 +239,24 @@ const AdvancedProjects = () => {
 
         <TabsContent value="projects" className="space-y-6">
           {/* Projects List View */}
-          {projects.length === 0 ? <Card>
+          {projects.length === 0 ? (
+            <Card>
               <CardContent className="text-center py-12">
                 <BarChart3 className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                 <h3 className="text-lg font-medium mb-2">No projects found</h3>
                 <p className="text-muted-foreground mb-4">
                   {canCreateProjects ? "Create your first project to get started." : "You haven't been assigned to any projects yet. Contact your architect to be added to a project."}
                 </p>
-                {canCreateProjects && <Button onClick={() => setWizardOpen(true)} className="bg-primary hover:bg-primary/90">
+                {canCreateProjects && (
+                  <Button onClick={() => setWizardOpen(true)} className="bg-primary hover:bg-primary/90">
                     <Plus className="h-4 w-4 mr-2" />
                     Create Your First Project
-                  </Button>}
+                  </Button>
+                )}
               </CardContent>
-            </Card> : <div className="space-y-4">
+            </Card>
+          ) : (
+            <div className="space-y-4">
               <Card className="border-0 shadow-sm bg-gradient-to-br from-card to-card/50">
                 <CardContent className="p-0">
                   <Table>
@@ -256,73 +276,79 @@ const AdvancedProjects = () => {
                         <TableHead className="text-foreground/80 font-semibold text-sm h-12 px-4 w-[50px] text-center">Actions</TableHead>
                       </TableRow>
                     </TableHeader>
-                  <TableBody>
-                    {projects.map(project => {
-                  console.log('Rendering project:', project.name, 'Reference:', project.project_reference_number);
-                  return <TableRow key={project.id} className="hover:bg-muted/30 transition-all duration-200 cursor-pointer border-b border-muted/20">
-                        <TableCell className="text-sm px-4 py-3 text-foreground/90">
-                          <span className="font-mono text-xs text-muted-foreground">{project.project_reference_number || '-'}</span>
-                        </TableCell>
-                        <TableCell className="text-sm px-4 py-3 text-foreground/90">
-                          <div className="space-y-1">
-                            <p className="font-medium text-sm leading-none text-foreground">{project.name}</p>
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-sm px-4 py-3 text-foreground/90">
-                          {(project as any).project_id ? <div className="flex items-center gap-2">
-                              <div className="flex items-center gap-1 text-xs text-primary font-mono bg-primary/10 px-2 py-1 rounded border border-primary/20">
-                                <Hash className="h-3 w-3" />
-                                {(project as any).project_id}
+                    <TableBody>
+                      {projects.map(project => {
+                        console.log('Rendering project:', project.name, 'Reference:', project.project_reference_number);
+                        return (
+                          <TableRow key={project.id} className="hover:bg-muted/30 transition-all duration-200 cursor-pointer border-b border-muted/20">
+                            <TableCell className="text-sm px-4 py-3 text-foreground/90">
+                              <span className="font-mono text-xs text-muted-foreground">{project.project_reference_number || '-'}</span>
+                            </TableCell>
+                            <TableCell className="text-sm px-4 py-3 text-foreground/90">
+                              <div className="space-y-1">
+                                <p className="font-medium text-sm leading-none text-foreground">{project.name}</p>
                               </div>
-                              <Button variant="ghost" size="sm" onClick={() => copyProjectId((project as any).project_id)} className="h-6 w-6 p-0">
-                                <Copy className="h-3 w-3" />
-                              </Button>
-                            </div> : <span className="font-mono text-xs text-muted-foreground">-</span>}
-                        </TableCell>
-                        <TableCell className="text-sm px-4 py-3 text-foreground/90">
-                          <span className="text-xs text-muted-foreground">{project.address || '-'}</span>
-                        </TableCell>
-                        <TableCell className="text-sm px-4 py-3 text-foreground/90">
-                          <StatusSelector project={project} onStatusChange={newStatus => handleStatusChange(project.id, newStatus)} />
-                        </TableCell>
-                        {isArchitect && (
-                          <TableCell className="text-sm px-4 py-3 text-foreground/90">
-                            <ArchitecturalStageSelector 
-                              project={project} 
-                              onStageChange={newStage => handleArchitecturalStageChange(project.id, newStage)} 
-                            />
-                          </TableCell>
-                        )}
-                        <TableCell className="text-sm px-4 py-3 text-foreground/90">
-                          <span className="text-xs text-muted-foreground">
-                            {project.budget ? `$${project.budget.toLocaleString()}` : '-'}
-                          </span>
-                        </TableCell>
-                        <TableCell className="text-sm px-4 py-3 text-foreground/90">
-                          <span className="text-xs text-muted-foreground">
-                            {project.estimated_start_date ? new Date(project.estimated_start_date).toLocaleDateString() : '-'}
-                          </span>
-                        </TableCell>
-                        <TableCell className="text-sm px-4 py-3 text-foreground/90">
-                          <span className="text-xs text-muted-foreground">
-                            {project.estimated_finish_date ? new Date(project.estimated_finish_date).toLocaleDateString() : '-'}
-                          </span>
-                        </TableCell>
-                        <TableCell className="text-sm px-4 py-3 text-foreground/90 w-[50px] text-center">
-                          <div className="flex gap-1 justify-center">
-                            <Button variant="outline" size="sm" onClick={() => handleProjectAction('view', project)}>
-                              <Eye className="h-3 w-3" />
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>;
-                })}
-                  </TableBody>
-                </Table>
-              </CardContent>
-            </Card>
-            </div>}
-
+                            </TableCell>
+                            <TableCell className="text-sm px-4 py-3 text-foreground/90">
+                              {(project as any).project_id ? (
+                                <div className="flex items-center gap-2">
+                                  <div className="flex items-center gap-1 text-xs text-primary font-mono bg-primary/10 px-2 py-1 rounded border border-primary/20">
+                                    <Hash className="h-3 w-3" />
+                                    {(project as any).project_id}
+                                  </div>
+                                  <Button variant="ghost" size="sm" onClick={() => copyProjectId((project as any).project_id)} className="h-6 w-6 p-0">
+                                    <Copy className="h-3 w-3" />
+                                  </Button>
+                                </div>
+                              ) : (
+                                <span className="font-mono text-xs text-muted-foreground">-</span>
+                              )}
+                            </TableCell>
+                            <TableCell className="text-sm px-4 py-3 text-foreground/90">
+                              <span className="text-xs text-muted-foreground">{project.address || '-'}</span>
+                            </TableCell>
+                            <TableCell className="text-sm px-4 py-3 text-foreground/90">
+                              <StatusSelector project={project} onStatusChange={newStatus => handleStatusChange(project.id, newStatus)} />
+                            </TableCell>
+                            {isArchitect && (
+                              <TableCell className="text-sm px-4 py-3 text-foreground/90">
+                                <ArchitecturalStageSelector 
+                                  project={project} 
+                                  onStageChange={newStage => handleArchitecturalStageChange(project.id, newStage)} 
+                                />
+                              </TableCell>
+                            )}
+                            <TableCell className="text-sm px-4 py-3 text-foreground/90">
+                              <span className="text-xs text-muted-foreground">
+                                {project.budget ? `$${project.budget.toLocaleString()}` : '-'}
+                              </span>
+                            </TableCell>
+                            <TableCell className="text-sm px-4 py-3 text-foreground/90">
+                              <span className="text-xs text-muted-foreground">
+                                {project.estimated_start_date ? new Date(project.estimated_start_date).toLocaleDateString() : '-'}
+                              </span>
+                            </TableCell>
+                            <TableCell className="text-sm px-4 py-3 text-foreground/90">
+                              <span className="text-xs text-muted-foreground">
+                                {project.estimated_finish_date ? new Date(project.estimated_finish_date).toLocaleDateString() : '-'}
+                              </span>
+                            </TableCell>
+                            <TableCell className="text-sm px-4 py-3 text-foreground/90 w-[50px] text-center">
+                              <div className="flex gap-1 justify-center">
+                                <Button variant="outline" size="sm" onClick={() => handleProjectAction('view', project)}>
+                                  <Eye className="h-3 w-3" />
+                                </Button>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+            </div>
+          )}
         </TabsContent>
 
         <TabsContent value="join" className="space-y-6">
@@ -331,16 +357,30 @@ const AdvancedProjects = () => {
       </Tabs>
 
       {/* Project Wizard - Only accessible to architects */}
-      {canCreateProjects && <AdvancedProjectWizard open={wizardOpen} onOpenChange={open => {
-      setWizardOpen(open);
-      if (!open) setSelectedProject(null);
-    }} projectToEdit={selectedProject} />}
+      {canCreateProjects && (
+        <AdvancedProjectWizard 
+          open={wizardOpen} 
+          onOpenChange={open => {
+            setWizardOpen(open);
+            if (!open) setSelectedProject(null);
+          }} 
+          projectToEdit={selectedProject} 
+        />
+      )}
 
       {/* Project Details Dialog */}
-      <ProjectDetailsDialog project={projectToView} open={detailsDialogOpen} onOpenChange={open => {
-      setDetailsDialogOpen(open);
-      if (!open) setProjectToView(null);
-    }} onDelete={handleDeleteProject} onUpdateBudget={handleUpdateBudget} />
-    </div>;
+      <ProjectDetailsDialog 
+        project={projectToView} 
+        open={detailsDialogOpen} 
+        onOpenChange={open => {
+          setDetailsDialogOpen(open);
+          if (!open) setProjectToView(null);
+        }} 
+        onDelete={handleDeleteProject} 
+        onUpdateBudget={handleUpdateBudget} 
+      />
+    </div>
+  );
 };
+
 export default AdvancedProjects;
