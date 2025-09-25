@@ -29,6 +29,7 @@ export interface AdvancedProject {
   number_of_floors?: number;
   completion_percentage?: number;
   weather_delays?: number;
+  architectural_stage?: string;
   custom_fields?: Record<string, any>;
 }
 

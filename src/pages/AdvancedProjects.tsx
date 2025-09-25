@@ -13,6 +13,55 @@ import { ProjectDetailsDialog } from '@/components/projects-v2/ProjectDetailsDia
 import { ProjectJoinSection } from '@/components/projects/ProjectJoinSection';
 
 import { useAuth } from '@/hooks/useAuth';
+
+const ArchitecturalStageSelector = ({
+  project,
+  onStageChange
+}: {
+  project: AdvancedProject;
+  onStageChange: (stage: string) => void;
+}) => {
+  const stageOptions = [
+    { value: 'Concept', label: 'Concept' },
+    { value: 'Schematic Design', label: 'Schematic Design' },
+    { value: 'Design Development', label: 'Design Development' },
+    { value: 'Tender', label: 'Tender' },
+    { value: 'Construction Documentation', label: 'Construction Documentation' },
+    { value: 'Contract Admin', label: 'Contract Admin' },
+    { value: 'Site Services', label: 'Site Services' }
+  ];
+
+  const stageColors = {
+    'Concept': 'bg-purple-100 text-purple-800',
+    'Schematic Design': 'bg-blue-100 text-blue-800',
+    'Design Development': 'bg-indigo-100 text-indigo-800',
+    'Tender': 'bg-orange-100 text-orange-800',
+    'Construction Documentation': 'bg-green-100 text-green-800',
+    'Contract Admin': 'bg-yellow-100 text-yellow-800',
+    'Site Services': 'bg-gray-100 text-gray-800'
+  };
+
+  return (
+    <Select value={project.architectural_stage || 'Concept'} onValueChange={onStageChange}>
+      <SelectTrigger className="w-auto min-w-[140px]">
+        <SelectValue>
+          <Badge className={stageColors[project.architectural_stage as keyof typeof stageColors] || stageColors['Concept']}>
+            {(project.architectural_stage || 'Concept').toUpperCase()}
+          </Badge>
+        </SelectValue>
+      </SelectTrigger>
+      <SelectContent>
+        {stageOptions.map(option => (
+          <SelectItem key={option.value} value={option.value}>
+            <Badge className={stageColors[option.value as keyof typeof stageColors]}>
+              {option.label.toUpperCase()}
+            </Badge>
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  );
+};
 const StatusSelector = ({
   project,
   onStatusChange
@@ -84,6 +133,15 @@ const AdvancedProjects = () => {
     completed: 'bg-gray-100 text-gray-800',
     cancelled: 'bg-red-100 text-red-800'
   };
+
+  const handleArchitecturalStageChange = async (projectId: string, newStage: string) => {
+    try {
+      await updateProject(projectId, {
+        architectural_stage: newStage
+      });
+    } catch (error) {
+      console.error('Error updating architectural stage:', error);
+    }
   const copyProjectId = async (projectId: string) => {
     try {
       await navigator.clipboard.writeText(projectId);
@@ -189,6 +247,9 @@ const AdvancedProjects = () => {
                         <TableHead className="text-foreground/80 font-semibold text-sm h-12 px-4">Project ID</TableHead>
                         <TableHead className="text-foreground/80 font-semibold text-sm h-12 px-4">Address</TableHead>
                         <TableHead className="text-foreground/80 font-semibold text-sm h-12 px-4">Status</TableHead>
+                        {isArchitect && (
+                          <TableHead className="text-foreground/80 font-semibold text-sm h-12 px-4">Architectural Stage</TableHead>
+                        )}
                         <TableHead className="text-foreground/80 font-semibold text-sm h-12 px-4">Budget</TableHead>
                         <TableHead className="text-foreground/80 font-semibold text-sm h-12 px-4">Start Date</TableHead>
                         <TableHead className="text-foreground/80 font-semibold text-sm h-12 px-4">Finish Date</TableHead>
@@ -224,6 +285,14 @@ const AdvancedProjects = () => {
                         <TableCell className="text-sm px-4 py-3 text-foreground/90">
                           <StatusSelector project={project} onStatusChange={newStatus => handleStatusChange(project.id, newStatus)} />
                         </TableCell>
+                        {isArchitect && (
+                          <TableCell className="text-sm px-4 py-3 text-foreground/90">
+                            <ArchitecturalStageSelector 
+                              project={project} 
+                              onStageChange={newStage => handleArchitecturalStageChange(project.id, newStage)} 
+                            />
+                          </TableCell>
+                        )}
                         <TableCell className="text-sm px-4 py-3 text-foreground/90">
                           <span className="text-xs text-muted-foreground">
                             {project.budget ? `$${project.budget.toLocaleString()}` : '-'}
