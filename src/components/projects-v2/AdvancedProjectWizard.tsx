@@ -184,6 +184,16 @@ export const AdvancedProjectWizard = ({
     handleInputChange('budget', value[0]);
   };
 
+  const handleBudgetInputChange = (value: string) => {
+    // Allow only numeric characters and decimal point
+    const sanitized = value.replace(/[^0-9.]/g, '');
+    const num = parseFloat(sanitized);
+    if (!isNaN(num) && num > 0) {
+      // Keep in sync with slider range
+      const clamped = Math.max(50000, Math.min(num, 5000000));
+      handleInputChange('budget', clamped);
+    }
+  };
   const formatBudgetLabel = (value: number) => {
     if (value < 100000) return "Under $100K";
     if (value >= 5000000) return "$5M+";
@@ -407,6 +417,20 @@ export const AdvancedProjectWizard = ({
                     <div className="flex justify-between text-xs text-muted-foreground">
                       <span>Under $100K</span>
                       <span>$5M+</span>
+                    </div>
+
+                    {/* Custom budget input */}
+                    <div className="relative mt-2">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
+                      <Input
+                        type="text"
+                        inputMode="numeric"
+                        aria-label="Enter custom budget amount"
+                        value={formData.budget?.toString() || ''}
+                        onChange={(e) => handleBudgetInputChange(e.target.value)}
+                        className="pl-7"
+                      />
+                      <p className="text-xs text-muted-foreground mt-1">Type an exact amount (50,000 – 5,000,000).</p>
                     </div>
                   </div>
                 </div>
