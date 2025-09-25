@@ -421,7 +421,7 @@ export const AdvancedProjectWizard = ({
 
                     {/* Custom budget input */}
                     <div className="relative mt-2">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none">$</span>
+                      <span className="absolute left-3 top-0 bottom-0 flex items-center text-muted-foreground pointer-events-none">$</span>
                       <Input
                         type="text"
                         inputMode="numeric"
