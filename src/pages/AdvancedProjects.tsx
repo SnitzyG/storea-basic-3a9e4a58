@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, BarChart3, Eye, Archive, Hash, UserPlus, Copy } from 'lucide-react';
+import { Plus, BarChart3, Eye, Archive, Hash, UserPlus, Copy, Edit } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAdvancedProjects, AdvancedProject } from '@/hooks/useAdvancedProjects';
 import { AdvancedProjectWizard } from '@/components/projects-v2/AdvancedProjectWizard';
@@ -160,6 +160,10 @@ const AdvancedProjects = () => {
       case 'view':
         setProjectToView(project);
         setDetailsDialogOpen(true);
+        break;
+      case 'edit':
+        setSelectedProject(project);
+        setWizardOpen(true);
         break;
       case 'archive':
         await archiveProject(project.id);
@@ -338,6 +342,11 @@ const AdvancedProjects = () => {
                                 <Button variant="outline" size="sm" onClick={() => handleProjectAction('view', project)}>
                                   <Eye className="h-3 w-3" />
                                 </Button>
+                                {canCreateProjects && (
+                                  <Button variant="outline" size="sm" onClick={() => handleProjectAction('edit', project)}>
+                                    <Edit className="h-3 w-3" />
+                                  </Button>
+                                )}
                               </div>
                             </TableCell>
                           </TableRow>
