@@ -366,7 +366,7 @@ export const AdvancedProjectWizard = ({
                   <Label htmlFor="project_type">Project Type</Label>
                   <Select value={formData.project_type} onValueChange={value => handleInputChange('project_type', value)}>
                     <SelectTrigger className="mt-1">
-                      <SelectValue placeholder="Select project type" />
+                      <SelectValue placeholder="Choose project type" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="new_build">New Build</SelectItem>
