@@ -254,7 +254,7 @@ export const useAdvancedProjects = () => {
           homeowner_phone: projectCreateData.homeowner_phone,
           homeowner_email: projectCreateData.homeowner_email,
           created_by: (await supabase.auth.getUser()).data.user?.id,
-          status: projectCreateData.status || 'planning',
+          status: projectCreateData.status || 'active',
           timeline: projectCreateData.timeline || {}
         }])
         .select()
