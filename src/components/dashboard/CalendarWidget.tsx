@@ -416,87 +416,283 @@ export const CalendarWidget = () => {
   const selectedDateTodos = selectedDate ? getTodosForDate(selectedDate) : [];
 
   return (
-    <Card className="h-full flex flex-col">
-      <CardHeader className="pb-2 flex-shrink-0 border-b">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <CardTitle className="text-base flex items-center gap-2 font-medium">
-              <CalendarDays className="h-4 w-4 text-primary" />
-              Calendar
-            </CardTitle>
-            <div className="flex items-center gap-2">
-              <Label htmlFor="view-mode" className="text-xs text-muted-foreground">
-                Week
-              </Label>
-              <Switch
-                id="view-mode"
-                checked={viewMode === 'month'}
-                onCheckedChange={(checked) => setViewMode(checked ? 'month' : 'week')}
-              />
-              <Label htmlFor="view-mode" className="text-xs text-muted-foreground">
-                Month
-              </Label>
+    <>
+      <Card className="h-full flex flex-col">
+        <CardHeader className="pb-2 flex-shrink-0 border-b">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <CardTitle className="text-base flex items-center gap-2 font-medium">
+                <CalendarDays className="h-4 w-4 text-primary" />
+                Calendar
+              </CardTitle>
+              <div className="flex items-center gap-2">
+                <Label htmlFor="view-mode" className="text-xs text-muted-foreground">
+                  Week
+                </Label>
+                <Switch
+                  id="view-mode"
+                  checked={viewMode === 'month'}
+                  onCheckedChange={(checked) => setViewMode(checked ? 'month' : 'week')}
+                />
+                <Label htmlFor="view-mode" className="text-xs text-muted-foreground">
+                  Month
+                </Label>
+              </div>
             </div>
-          </div>
-          <div className="flex items-center gap-1">
-            <Dialog open={isExportDialogOpen} onOpenChange={setIsExportDialogOpen}>
-              <DialogTrigger asChild>
-                <Button variant="ghost" size="sm" className="h-7 w-7 p-0">
-                  <Download className="h-3 w-3" />
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-sm">
-                <DialogHeader>
-                  <DialogTitle>Export Calendar</DialogTitle>
-                </DialogHeader>
-                <div className="space-y-4">
-                  <div>
-                    <Label>Export Period</Label>
-                    <Select value={exportFormat} onValueChange={(value: 'day' | 'week' | 'fortnight' | 'month') => setExportFormat(value)}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="day">Day</SelectItem>
-                        <SelectItem value="week">Week</SelectItem>
-                        <SelectItem value="fortnight">Fortnight</SelectItem>
-                        <SelectItem value="month">Month</SelectItem>
-                      </SelectContent>
-                    </Select>
+            <div className="flex items-center gap-1">
+              <Dialog open={isExportDialogOpen} onOpenChange={setIsExportDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button variant="ghost" size="sm" className="h-7 w-7 p-0">
+                    <Download className="h-3 w-3" />
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-sm">
+                  <DialogHeader>
+                    <DialogTitle>Export Calendar</DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    <div>
+                      <Label>Export Period</Label>
+                      <Select value={exportFormat} onValueChange={(value: 'day' | 'week' | 'fortnight' | 'month') => setExportFormat(value)}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="day">Day</SelectItem>
+                          <SelectItem value="week">Week</SelectItem>
+                          <SelectItem value="fortnight">Fortnight</SelectItem>
+                          <SelectItem value="month">Month</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button onClick={handleExport} className="flex-1">
+                        <FileText className="h-4 w-4 mr-2" />
+                        Export PDF
+                      </Button>
+                      <Button variant="outline" onClick={() => setIsExportDialogOpen(false)}>
+                        Cancel
+                      </Button>
+                    </div>
                   </div>
-                  <div className="flex gap-2">
-                    <Button onClick={handleExport} className="flex-1">
-                      <FileText className="h-4 w-4 mr-2" />
-                      Export PDF
-                    </Button>
-                    <Button variant="outline" onClick={() => setIsExportDialogOpen(false)}>
-                      Cancel
-                    </Button>
-                  </div>
-                </div>
-              </DialogContent>
-            </Dialog>
-            
-            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-              <DialogTrigger asChild>
-                <Button variant="outline" size="sm" className="gap-1 text-xs px-2 py-1 h-7">
-                  <Plus className="h-3 w-3" />
-                  Add Event
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
-                <DialogHeader>
-                  <DialogTitle className="flex items-center gap-2">
-                    <CalendarDays className="h-5 w-5" />
-                    Create New Event
-                  </DialogTitle>
-                </DialogHeader>
-                <ScrollArea className="max-h-[70vh] pr-4">
+                </DialogContent>
+              </Dialog>
+              
+              <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button variant="outline" size="sm" className="gap-1 text-xs px-2 py-1 h-7">
+                    <Plus className="h-3 w-3" />
+                    Add Event
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+                  <DialogHeader>
+                    <DialogTitle className="flex items-center gap-2">
+                      <CalendarDays className="h-5 w-5" />
+                      Create New Event
+                    </DialogTitle>
+                  </DialogHeader>
+                  <ScrollArea className="max-h-[70vh] pr-4">
+                    <div className="space-y-4 pt-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="event-title">Event Title</Label>
+                        <Input
+                          id="event-title"
+                          value={newEventTitle}
+                          onChange={(e) => setNewEventTitle(e.target.value)}
+                          placeholder="Enter event title..."
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="event-description">Description</Label>
+                        <Textarea
+                          id="event-description"
+                          value={newEventDescription}
+                          onChange={(e) => setNewEventDescription(e.target.value)}
+                          placeholder="Add event description (optional)"
+                          rows={3}
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="event-time">Time</Label>
+                        <Input
+                          id="event-time"
+                          type="time"
+                          value={newEventTime}
+                          onChange={(e) => setNewEventTime(e.target.value)}
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="event-priority">Priority</Label>
+                        <Select value={newEventPriority} onValueChange={(value: 'low' | 'medium' | 'high') => setNewEventPriority(value)}>
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="low">Low Priority</SelectItem>
+                            <SelectItem value="medium">Medium Priority</SelectItem>
+                            <SelectItem value="high">High Priority</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          id="is-meeting"
+                          checked={isMeeting}
+                          onCheckedChange={(checked) => setIsMeeting(checked as boolean)}
+                        />
+                        <Label htmlFor="is-meeting">This is a meeting</Label>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="event-date">Event Date</Label>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant="outline"
+                              className={cn(
+                                "w-full justify-start text-left font-normal",
+                                !eventDate && "text-muted-foreground"
+                              )}
+                            >
+                              <CalendarDays className="mr-2 h-4 w-4" />
+                              {eventDate ? format(eventDate, "PPP") : <span>Pick a date</span>}
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0" align="start">
+                            <Calendar
+                              mode="single"
+                              selected={eventDate}
+                              onSelect={setEventDate}
+                              initialFocus
+                              className={cn("p-3 pointer-events-auto")}
+                            />
+                          </PopoverContent>
+                        </Popover>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label>Related Information</Label>
+                        <div className="space-y-2">
+                          <Select
+                            value={relatedType === '' ? 'none' : relatedType}
+                            onValueChange={(value: 'document' | 'rfi' | 'message' | 'none') =>
+                              setRelatedType(value === 'none' ? '' : (value as 'document' | 'rfi' | 'message'))
+                            }
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select type..." />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="none">None</SelectItem>
+                              <SelectItem value="document">Document</SelectItem>
+                              <SelectItem value="rfi">RFI</SelectItem>
+                              <SelectItem value="message">Message</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          
+                          {relatedType === 'document' && (
+                            <Select
+                              value={attachedDocument === '' ? 'none' : attachedDocument}
+                              onValueChange={(v) => setAttachedDocument(v === 'none' ? '' : v)}
+                            >
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select a document..." />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="none">No document</SelectItem>
+                                {documents.length > 0 ? (
+                                  documents.map((doc) => (
+                                    <SelectItem key={doc.id} value={doc.id}>
+                                      <div className="flex items-center gap-2">
+                                        <Paperclip className="h-4 w-4" />
+                                        {doc.name || 'Untitled Document'}
+                                      </div>
+                                    </SelectItem>
+                                  ))
+                                ) : (
+                                  <SelectItem value="no-documents" disabled>No documents available</SelectItem>
+                                )}
+                              </SelectContent>
+                            </Select>
+                          )}
+
+                          {relatedType === 'rfi' && (
+                            <Select
+                              value={attachedRFI === '' ? 'none' : attachedRFI}
+                              onValueChange={(v) => setAttachedRFI(v === 'none' ? '' : v)}
+                            >
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select an RFI..." />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="none">No RFI</SelectItem>
+                                {rfis.map((rfi) => (
+                                  <SelectItem key={rfi.id} value={rfi.id}>
+                                    {rfi.rfi_number || rfi.subject || 'Untitled RFI'}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          )}
+
+                          {relatedType === 'message' && (
+                            <Select
+                              value={attachedMessage === '' ? 'none' : attachedMessage}
+                              onValueChange={(v) => setAttachedMessage(v === 'none' ? '' : v)}
+                            >
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select a message..." />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="none">No message</SelectItem>
+                                {messages.length > 0 ? (
+                                  messages.map((message) => (
+                                    <SelectItem key={message.id} value={message.id}>
+                                      {(message.content?.substring(0, 50) || 'Empty message') + (message.content && message.content.length > 50 ? '...' : '')}
+                                    </SelectItem>
+                                  ))
+                                ) : (
+                                  <SelectItem value="no-messages" disabled>No messages available</SelectItem>
+                                )}
+                              </SelectContent>
+                            </Select>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="flex gap-2 pt-2">
+                        <Button onClick={handleCreateEvent} className="flex-1 gap-2" disabled={!newEventTitle.trim() || !eventDate}>
+                          <Plus className="h-4 w-4" />
+                          Create {isMeeting ? 'Meeting' : 'Event'}
+                        </Button>
+                        <Button variant="outline" onClick={resetForm}>
+                          Cancel
+                        </Button>
+                      </div>
+                    </div>
+                  </ScrollArea>
+                </DialogContent>
+              </Dialog>
+
+              {/* Edit Event Dialog */}
+              <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+                <DialogContent className="max-w-md">
+                  <DialogHeader>
+                    <DialogTitle className="flex items-center gap-2">
+                      <Edit className="h-5 w-5" />
+                      Edit Event
+                    </DialogTitle>
+                  </DialogHeader>
                   <div className="space-y-4 pt-4">
                     <div className="space-y-2">
-                      <Label htmlFor="event-title">Event Title</Label>
+                      <Label htmlFor="edit-event-title">Event Title</Label>
                       <Input
-                        id="event-title"
+                        id="edit-event-title"
                         value={newEventTitle}
                         onChange={(e) => setNewEventTitle(e.target.value)}
                         placeholder="Enter event title..."
@@ -504,9 +700,9 @@ export const CalendarWidget = () => {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="event-description">Description</Label>
+                      <Label htmlFor="edit-event-description">Description</Label>
                       <Textarea
-                        id="event-description"
+                        id="edit-event-description"
                         value={newEventDescription}
                         onChange={(e) => setNewEventDescription(e.target.value)}
                         placeholder="Add event description (optional)"
@@ -515,17 +711,7 @@ export const CalendarWidget = () => {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="event-time">Time</Label>
-                      <Input
-                        id="event-time"
-                        type="time"
-                        value={newEventTime}
-                        onChange={(e) => setNewEventTime(e.target.value)}
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="event-priority">Priority</Label>
+                      <Label htmlFor="edit-event-priority">Priority</Label>
                       <Select value={newEventPriority} onValueChange={(value: 'low' | 'medium' | 'high') => setNewEventPriority(value)}>
                         <SelectTrigger>
                           <SelectValue />
@@ -538,302 +724,338 @@ export const CalendarWidget = () => {
                       </Select>
                     </div>
 
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        id="is-meeting"
-                        checked={isMeeting}
-                        onCheckedChange={(checked) => setIsMeeting(checked as boolean)}
-                      />
-                      <Label htmlFor="is-meeting">This is a meeting</Label>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="event-date">Event Date</Label>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <Button
-                            variant="outline"
-                            className={cn(
-                              "w-full justify-start text-left font-normal",
-                              !eventDate && "text-muted-foreground"
-                            )}
-                          >
-                            <CalendarDays className="mr-2 h-4 w-4" />
-                            {eventDate ? format(eventDate, "PPP") : <span>Pick a date</span>}
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                          <Calendar
-                            mode="single"
-                            selected={eventDate}
-                            onSelect={setEventDate}
-                            initialFocus
-                            className={cn("p-3 pointer-events-auto")}
-                          />
-                        </PopoverContent>
-                      </Popover>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label>Related Information</Label>
-                      <div className="space-y-2">
-                        <Select
-                          value={relatedType === '' ? 'none' : relatedType}
-                          onValueChange={(value: 'document' | 'rfi' | 'message' | 'none') =>
-                            setRelatedType(value === 'none' ? '' : (value as 'document' | 'rfi' | 'message'))
-                          }
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select type..." />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="none">None</SelectItem>
-                            <SelectItem value="document">Document</SelectItem>
-                            <SelectItem value="rfi">RFI</SelectItem>
-                            <SelectItem value="message">Message</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        
-                        {relatedType === 'document' && (
-                          <Select
-                            value={attachedDocument === '' ? 'none' : attachedDocument}
-                            onValueChange={(v) => setAttachedDocument(v === 'none' ? '' : v)}
-                          >
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select a document..." />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="none">No document</SelectItem>
-                              {documents.length > 0 ? (
-                                documents.map((doc) => (
-                                  <SelectItem key={doc.id} value={doc.id}>
-                                    <div className="flex items-center gap-2">
-                                      <Paperclip className="h-4 w-4" />
-                                      {doc.name || 'Untitled Document'}
-                                    </div>
-                                  </SelectItem>
-                                ))
-                              ) : (
-                                <SelectItem value="no-documents" disabled>No documents available</SelectItem>
-                              )}
-                            </SelectContent>
-                          </Select>
-                        )}
-
-                        {relatedType === 'rfi' && (
-                          <Select
-                            value={attachedRFI === '' ? 'none' : attachedRFI}
-                            onValueChange={(v) => setAttachedRFI(v === 'none' ? '' : v)}
-                          >
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select an RFI..." />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="none">No RFI</SelectItem>
-                              {rfis.map((rfi) => (
-                                <SelectItem key={rfi.id} value={rfi.id}>
-                                  {rfi.rfi_number || rfi.subject || 'Untitled RFI'}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        )}
-
-                        {relatedType === 'message' && (
-                          <Select
-                            value={attachedMessage === '' ? 'none' : attachedMessage}
-                            onValueChange={(v) => setAttachedMessage(v === 'none' ? '' : v)}
-                          >
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select a message..." />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="none">No message</SelectItem>
-                              {messages.length > 0 ? (
-                                messages.map((message) => (
-                                  <SelectItem key={message.id} value={message.id}>
-                                    {(message.content?.substring(0, 50) || 'Empty message') + (message.content && message.content.length > 50 ? '...' : '')}
-                                  </SelectItem>
-                                ))
-                              ) : (
-                                <SelectItem value="no-messages" disabled>No messages available</SelectItem>
-                              )}
-                            </SelectContent>
-                          </Select>
-                        )}
-                      </div>
-                    </div>
-
                     <div className="flex gap-2 pt-2">
-                      <Button onClick={handleCreateEvent} className="flex-1 gap-2" disabled={!newEventTitle.trim() || !eventDate}>
-                        <Plus className="h-4 w-4" />
-                        Create {isMeeting ? 'Meeting' : 'Event'}
+                      <Button onClick={handleUpdateEvent} className="flex-1" disabled={!newEventTitle.trim()}>
+                        Update Event
                       </Button>
-                      <Button variant="outline" onClick={resetForm}>
+                      <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
                         Cancel
                       </Button>
                     </div>
                   </div>
-                </ScrollArea>
-              </DialogContent>
-            </Dialog>
+                </DialogContent>
+              </Dialog>
+            </div>
+          </div>
+        </CardHeader>
 
-            {/* Edit Event Dialog */}
-            <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-              <DialogContent className="max-w-md">
-                <DialogHeader>
-                  <DialogTitle className="flex items-center gap-2">
-                    <Edit className="h-5 w-5" />
-                    Edit Event
-                  </DialogTitle>
-                </DialogHeader>
-                <div className="space-y-4 pt-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="edit-event-title">Event Title</Label>
-                    <Input
-                      id="edit-event-title"
-                      value={newEventTitle}
-                      onChange={(e) => setNewEventTitle(e.target.value)}
-                      placeholder="Enter event title..."
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="edit-event-description">Description</Label>
-                    <Textarea
-                      id="edit-event-description"
-                      value={newEventDescription}
-                      onChange={(e) => setNewEventDescription(e.target.value)}
-                      placeholder="Add event description (optional)"
-                      rows={3}
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="edit-event-priority">Priority</Label>
-                    <Select value={newEventPriority} onValueChange={(value: 'low' | 'medium' | 'high') => setNewEventPriority(value)}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="low">Low Priority</SelectItem>
-                        <SelectItem value="medium">Medium Priority</SelectItem>
-                        <SelectItem value="high">High Priority</SelectItem>
-                      </SelectContent>
-                    </Select>
-            {/* Day Details Dialog */}
-            <Dialog open={isDayDetailsOpen} onOpenChange={setIsDayDetailsOpen}>
-              <DialogContent className="max-w-2xl max-h-[80vh]">
-                <DialogHeader>
-                  <DialogTitle className="flex items-center gap-2">
-                    <CalendarDays className="h-5 w-5" />
-                    Events for {selectedDate && format(selectedDate, 'EEEE, MMMM d, yyyy')}
-                  </DialogTitle>
-                </DialogHeader>
-                <ScrollArea className="max-h-[60vh] pr-4">
-                  <div className="space-y-4 pt-4">
-                    {selectedDate && selectedDateTodos.length > 0 ? (
-                      <>
-                        <div className="flex items-center justify-between">
-                          <Badge variant="secondary" className="text-sm">
-                            {selectedDateTodos.length} event{selectedDateTodos.length !== 1 ? 's' : ''}
-                          </Badge>
-                        </div>
-                        <div className="space-y-3">
-                          {selectedDateTodos.map((todo) => {
-                            const isMeeting = todo.content.includes('Meeting:');
-                            const eventTime = todo.due_date ? format(new Date(todo.due_date), 'h:mm a') : 'All Day';
+        <CardContent className="flex-1 p-3 overflow-hidden">
+          <div className="flex flex-col h-full">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => viewMode === 'month' ? navigateMonth('prev') : navigateWeek('prev')}
+                  className="h-7 w-7 p-0"
+                >
+                  <ChevronLeft className="h-3 w-3" />
+                </Button>
+                <div className="text-center">
+                  {viewMode === 'month' ? (
+                    <h3 className="text-sm font-medium">
+                      {format(currentMonth, 'MMMM yyyy')}
+                    </h3>
+                  ) : (
+                    <div className="text-sm">
+                      <div className="font-medium">
+                        Week {getWeekLabel(currentWeek).weekNumber}
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        {getWeekLabel(currentWeek).dateRange}
+                      </div>
+                    </div>
+                  )}
+                </div>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => viewMode === 'month' ? navigateMonth('next') : navigateWeek('next')}
+                  className="h-7 w-7 p-0"
+                >
+                  <ChevronRight className="h-3 w-3" />
+                </Button>
+              </div>
+            </div>
+            
+            <div className="flex-1 overflow-hidden">
+              <div className="h-full flex flex-col border rounded-lg">
+                {/* Days of week header */}
+                <div className="grid grid-cols-7 gap-px bg-border p-1 rounded-t-lg">
+                  {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
+                    <div key={day} className="h-6 flex items-center justify-center text-xs font-medium text-muted-foreground bg-background">
+                      {day}
+                    </div>
+                  ))}
+                </div>
+                
+                {/* Calendar dates grid */}
+                <div className="flex-1 p-1 bg-background rounded-b-lg">
+                  {viewMode === 'month' ? (
+                    (() => {
+                      const start = startOfMonth(currentMonth);
+                      const end = endOfMonth(currentMonth);
+                      const startDate = new Date(start);
+                      startDate.setDate(startDate.getDate() - startDate.getDay()); // Start from Sunday
+                      
+                      const endDate = new Date(end);
+                      endDate.setDate(endDate.getDate() + (6 - endDate.getDay())); // End on Saturday
+                      
+                      const days = eachDayOfInterval({ start: startDate, end: endDate });
+                      
+                      return (
+                        <div className="grid grid-cols-7 grid-rows-6 gap-px h-full">
+                          {days.map((date) => {
+                            const todosForDate = getTodosForDate(date);
+                            const isCurrentMonth = date.getMonth() === currentMonth.getMonth();
+                            const isSelected = selectedDate && isSameDay(date, selectedDate);
+                            const isToday = isSameDay(date, new Date());
                             
                             return (
-                              <div key={todo.id} className="p-4 border rounded-lg space-y-2">
-                                <div className="flex items-start justify-between">
-                                  <div className="flex items-center gap-3 flex-1">
-                                    <div className={`w-3 h-3 rounded-full flex-shrink-0 ${
-                                      todo.priority === 'high' ? 'bg-destructive' :
-                                      todo.priority === 'medium' ? 'bg-yellow-500' : 
-                                      'bg-green-500'
-                                    }`} />
-                                    <div className="flex-1">
-                                      <div className="flex items-center gap-2">
-                                        <h4 className="font-medium text-sm">
-                                          {isMeeting ? '🤝' : '📌'} {todo.content.split(' - ')[0].replace('Meeting: ', '')}
-                                        </h4>
-                                        {todo.completed && <CheckCircle2 className="h-4 w-4 text-green-600" />}
-                                      </div>
-                                      {todo.content.includes(' - ') && (
-                                        <p className="text-sm text-muted-foreground mt-1">
-                                          {todo.content.split(' - ').slice(1).join(' - ')}
-                                        </p>
-                                      )}
-                                      <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
-                                        <span className="flex items-center gap-1">
-                                          <Clock className="h-3 w-3" />
-                                          {eventTime}
-                                        </span>
-                                        <span className="capitalize">
-                                          {todo.priority} priority
-                                        </span>
-                                        {isMeeting && (
-                                          <span className="flex items-center gap-1">
-                                            <Users className="h-3 w-3" />
-                                            Meeting
-                                          </span>
-                                        )}
-                                      </div>
-                                    </div>
+                              <button
+                                key={date.toISOString()}
+                                onClick={() => setSelectedDate(date)}
+                                onDoubleClick={() => handleDayDoubleClick(date)}
+                                className={`
+                                  w-full h-full flex flex-col items-center justify-start pt-0.5 relative
+                                  transition-colors rounded-sm text-xs
+                                  ${isCurrentMonth ? 'text-foreground' : 'text-muted-foreground opacity-50'}
+                                  ${isSelected ? 'bg-primary text-primary-foreground' : 'hover:bg-accent hover:text-accent-foreground'}
+                                  ${isToday && !isSelected ? 'bg-accent text-accent-foreground font-semibold' : ''}
+                                `}
+                              >
+                                <span className="text-xs">{date.getDate()}</span>
+                                {todosForDate.length > 0 && (
+                                  <div className="absolute bottom-0.5 left-1/2 transform -translate-x-1/2 flex gap-0.5">
+                                    {todosForDate.slice(0, 3).map((_, index) => (
+                                      <div 
+                                        key={index} 
+                                        className={`w-1.5 h-1.5 rounded-full ${isSelected ? 'bg-primary-foreground' : 'bg-primary'}`}
+                                      />
+                                    ))}
+                                    {todosForDate.length > 3 && (
+                                      <div className={`w-1.5 h-1.5 rounded-full opacity-60 ${isSelected ? 'bg-primary-foreground' : 'bg-primary'}`} />
+                                    )}
                                   </div>
-                                  <div className="flex items-center gap-1">
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      className="h-8 w-8 p-0"
-                                      onClick={() => {
-                                        setIsDayDetailsOpen(false);
-                                        handleEditEvent(todo);
-                                      }}
-                                    >
-                                      <Edit className="h-3 w-3" />
-                                    </Button>
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      className="h-8 w-8 p-0 text-destructive"
-                                      onClick={() => handleDeleteEvent(todo.id)}
-                                    >
-                                      <Trash2 className="h-3 w-3" />
-                                    </Button>
-                                  </div>
-                                </div>
-                              </div>
+                                )}
+                              </button>
                             );
                           })}
                         </div>
-                      </>
-                    ) : (
-                      <div className="text-center py-8">
-                        <CalendarDays className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                        <h3 className="text-lg font-medium mb-2">No events scheduled</h3>
-                        <p className="text-muted-foreground mb-4">
-                          No events, tasks, or deadlines for {selectedDate && format(selectedDate, 'MMMM d, yyyy')}
-                        </p>
-                        <Button 
-                          onClick={() => {
-                            setIsDayDetailsOpen(false);
-                            setEventDate(selectedDate);
-                            setIsDialogOpen(true);
-                          }}
-                          className="gap-2"
-                        >
-                          <Plus className="h-4 w-4" />
-                          Add Event
-                        </Button>
+                      );
+                    })()
+                  ) : (
+                    (() => {
+                      const weekStart = startOfWeek(currentWeek);
+                      const weekEnd = endOfWeek(currentWeek);
+                      const days = eachDayOfInterval({ start: weekStart, end: weekEnd });
+                      
+                      return (
+                        <div className="grid grid-cols-7 gap-px h-full">
+                          {days.map((date) => {
+                            const todosForDate = getTodosForDate(date);
+                            const isSelected = selectedDate && isSameDay(date, selectedDate);
+                            const isToday = isSameDay(date, new Date());
+                            
+                            return (
+                              <button
+                                key={date.toISOString()}
+                                onClick={() => setSelectedDate(date)}
+                                onDoubleClick={() => handleDayDoubleClick(date)}
+                                className={`
+                                  w-full h-full flex flex-col p-2 relative
+                                  transition-colors rounded-sm border
+                                  ${isSelected ? 'bg-primary text-primary-foreground border-primary' : 'hover:bg-accent hover:text-accent-foreground border-border'}
+                                  ${isToday && !isSelected ? 'bg-accent text-accent-foreground font-semibold border-accent' : ''}
+                                `}
+                              >
+                                <div className="flex items-center justify-between w-full mb-1">
+                                  <span className="text-sm font-medium">{format(date, 'EEE')}</span>
+                                  <span className="text-lg font-bold">{date.getDate()}</span>
+                                </div>
+                                <div className="flex-1 overflow-y-auto">
+                                  {todosForDate.slice(0, 3).map((todo, index) => (
+                                    <div 
+                                      key={index}
+                                      className={`text-xs p-1 mb-1 rounded truncate ${
+                                        isSelected 
+                                          ? 'bg-primary-foreground/20 text-primary-foreground' 
+                                          : todo.priority === 'high' 
+                                            ? 'bg-destructive/10 text-destructive' 
+                                            : todo.priority === 'medium'
+                                              ? 'bg-yellow-500/10 text-yellow-700 dark:text-yellow-400'
+                                              : 'bg-green-500/10 text-green-700 dark:text-green-400'
+                                      }`}
+                                    >
+                                      {todo.content.split(' - ')[0].substring(0, 20)}
+                                      {todo.content.length > 20 && '...'}
+                                    </div>
+                                  ))}
+                                  {todosForDate.length > 3 && (
+                                    <div className={`text-xs opacity-60 ${isSelected ? 'text-primary-foreground' : 'text-muted-foreground'}`}>
+                                      +{todosForDate.length - 3} more
+                                    </div>
+                                  )}
+                                </div>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      );
+                    })()
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Events List for Selected Date */}
+            {selectedDate && selectedDateTodos.length > 0 && (
+              <div className="mt-4 p-3 bg-muted/30 rounded-lg border">
+                <div className="flex items-center justify-between mb-2">
+                  <h4 className="text-sm font-medium">
+                    Events for {format(selectedDate, 'MMM d, yyyy')}
+                  </h4>
+                  <Badge variant="secondary" className="text-xs">
+                    {selectedDateTodos.length} event{selectedDateTodos.length !== 1 ? 's' : ''}
+                  </Badge>
+                </div>
+                <ScrollArea className="max-h-32">
+                  <div className="space-y-2">
+                    {selectedDateTodos.map((todo) => (
+                      <div key={todo.id} className="flex items-center justify-between p-2 bg-background rounded border text-sm">
+                        <div className="flex items-center gap-2">
+                          <div className={`w-2 h-2 rounded-full ${
+                            todo.priority === 'high' ? 'bg-destructive' :
+                            todo.priority === 'medium' ? 'bg-yellow-500' : 
+                            'bg-green-500'
+                          }`} />
+                          <span className="font-medium text-sm">{todo.content.split(' - ')[0]}</span>
+                          {todo.completed && <CheckCircle2 className="h-3 w-3 text-green-600" />}
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-6 w-6 p-0"
+                            onClick={() => handleEditEvent(todo)}
+                          >
+                            <Edit className="h-3 w-3" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-6 w-6 p-0 text-destructive"
+                            onClick={() => handleDeleteEvent(todo.id)}
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        </div>
                       </div>
-                    )}
+                    ))}
                   </div>
                 </ScrollArea>
-                <div className="flex justify-between pt-4 border-t">
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Day Details Dialog */}
+      <Dialog open={isDayDetailsOpen} onOpenChange={setIsDayDetailsOpen}>
+        <DialogContent className="max-w-2xl max-h-[80vh]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <CalendarDays className="h-5 w-5" />
+              Events for {selectedDate && format(selectedDate, 'EEEE, MMMM d, yyyy')}
+            </DialogTitle>
+          </DialogHeader>
+          <ScrollArea className="max-h-[60vh] pr-4">
+            <div className="space-y-4 pt-4">
+              {selectedDate && selectedDateTodos.length > 0 ? (
+                <>
+                  <div className="flex items-center justify-between">
+                    <Badge variant="secondary" className="text-sm">
+                      {selectedDateTodos.length} event{selectedDateTodos.length !== 1 ? 's' : ''}
+                    </Badge>
+                  </div>
+                  <div className="space-y-3">
+                    {selectedDateTodos.map((todo) => {
+                      const isMeeting = todo.content.includes('Meeting:');
+                      const eventTime = todo.due_date ? format(new Date(todo.due_date), 'h:mm a') : 'All Day';
+                      
+                      return (
+                        <div key={todo.id} className="p-4 border rounded-lg space-y-2">
+                          <div className="flex items-start justify-between">
+                            <div className="flex items-center gap-3 flex-1">
+                              <div className={`w-3 h-3 rounded-full flex-shrink-0 ${
+                                todo.priority === 'high' ? 'bg-destructive' :
+                                todo.priority === 'medium' ? 'bg-yellow-500' : 
+                                'bg-green-500'
+                              }`} />
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2">
+                                  <h4 className="font-medium text-sm">
+                                    {isMeeting ? '🤝' : '📌'} {todo.content.split(' - ')[0].replace('Meeting: ', '')}
+                                  </h4>
+                                  {todo.completed && <CheckCircle2 className="h-4 w-4 text-green-600" />}
+                                </div>
+                                {todo.content.includes(' - ') && (
+                                  <p className="text-sm text-muted-foreground mt-1">
+                                    {todo.content.split(' - ').slice(1).join(' - ')}
+                                  </p>
+                                )}
+                                <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
+                                  <span className="flex items-center gap-1">
+                                    <Clock className="h-3 w-3" />
+                                    {eventTime}
+                                  </span>
+                                  <span className="capitalize">
+                                    {todo.priority} priority
+                                  </span>
+                                  {isMeeting && (
+                                    <span className="flex items-center gap-1">
+                                      <Users className="h-3 w-3" />
+                                      Meeting
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-8 w-8 p-0"
+                                onClick={() => {
+                                  setIsDayDetailsOpen(false);
+                                  handleEditEvent(todo);
+                                }}
+                              >
+                                <Edit className="h-3 w-3" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-8 w-8 p-0 text-destructive"
+                                onClick={() => handleDeleteEvent(todo.id)}
+                              >
+                                <Trash2 className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </>
+              ) : (
+                <div className="text-center py-8">
+                  <CalendarDays className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                  <h3 className="text-lg font-medium mb-2">No events scheduled</h3>
+                  <p className="text-muted-foreground mb-4">
+                    No events, tasks, or deadlines for {selectedDate && format(selectedDate, 'MMMM d, yyyy')}
+                  </p>
                   <Button 
-                    variant="outline"
                     onClick={() => {
                       setIsDayDetailsOpen(false);
                       setEventDate(selectedDate);
@@ -844,248 +1066,29 @@ export const CalendarWidget = () => {
                     <Plus className="h-4 w-4" />
                     Add Event
                   </Button>
-                  <Button variant="outline" onClick={() => setIsDayDetailsOpen(false)}>
-                    Close
-                  </Button>
                 </div>
-              </DialogContent>
-            </Dialog>
-          </div>
-
-                  <div className="flex gap-2 pt-2">
-                    <Button onClick={handleUpdateEvent} className="flex-1" disabled={!newEventTitle.trim()}>
-                      Update Event
-                    </Button>
-                    <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
-                      Cancel
-                    </Button>
-                  </div>
-                </div>
-              </DialogContent>
-            </Dialog>
-          </div>
-        </div>
-      </CardHeader>
-
-      <CardContent className="flex-1 p-3 overflow-hidden">
-        <div className="flex flex-col h-full">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2">
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={() => viewMode === 'month' ? navigateMonth('prev') : navigateWeek('prev')}
-                className="h-7 w-7 p-0"
-              >
-                <ChevronLeft className="h-3 w-3" />
-              </Button>
-              <div className="text-center">
-                {viewMode === 'month' ? (
-                  <h3 className="text-sm font-medium">
-                    {format(currentMonth, 'MMMM yyyy')}
-                  </h3>
-                ) : (
-                  <div className="text-sm">
-                    <div className="font-medium">
-                      Week {getWeekLabel(currentWeek).weekNumber}
-                    </div>
-                    <div className="text-xs text-muted-foreground">
-                      {getWeekLabel(currentWeek).dateRange}
-                    </div>
-                  </div>
-                )}
-              </div>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={() => viewMode === 'month' ? navigateMonth('next') : navigateWeek('next')}
-                className="h-7 w-7 p-0"
-              >
-                <ChevronRight className="h-3 w-3" />
-              </Button>
+              )}
             </div>
+          </ScrollArea>
+          <div className="flex justify-between pt-4 border-t">
+            <Button 
+              variant="outline"
+              onClick={() => {
+                setIsDayDetailsOpen(false);
+                setEventDate(selectedDate);
+                setIsDialogOpen(true);
+              }}
+              className="gap-2"
+            >
+              <Plus className="h-4 w-4" />
+              Add Event
+            </Button>
+            <Button variant="outline" onClick={() => setIsDayDetailsOpen(false)}>
+              Close
+            </Button>
           </div>
-          
-          <div className="flex-1 overflow-hidden">
-            <div className="h-full flex flex-col border rounded-lg">
-              {/* Days of week header */}
-              <div className="grid grid-cols-7 gap-px bg-border p-1 rounded-t-lg">
-                {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
-                  <div key={day} className="h-6 flex items-center justify-center text-xs font-medium text-muted-foreground bg-background">
-                    {day}
-                  </div>
-                ))}
-              </div>
-              
-              {/* Calendar dates grid */}
-              <div className="flex-1 p-1 bg-background rounded-b-lg">
-                {viewMode === 'month' ? (
-                  (() => {
-                    const start = startOfMonth(currentMonth);
-                    const end = endOfMonth(currentMonth);
-                    const startDate = new Date(start);
-                    startDate.setDate(startDate.getDate() - startDate.getDay()); // Start from Sunday
-                    
-                    const endDate = new Date(end);
-                    endDate.setDate(endDate.getDate() + (6 - endDate.getDay())); // End on Saturday
-                    
-                    const days = eachDayOfInterval({ start: startDate, end: endDate });
-                    
-                    return (
-                      <div className="grid grid-cols-7 grid-rows-6 gap-px h-full">
-                        {days.map((date) => {
-                          const todosForDate = getTodosForDate(date);
-                          const isCurrentMonth = date.getMonth() === currentMonth.getMonth();
-                          const isSelected = selectedDate && isSameDay(date, selectedDate);
-                          const isToday = isSameDay(date, new Date());
-                          
-                          return (
-                            <button
-                              key={date.toISOString()}
-                              onClick={() => setSelectedDate(date)}
-                              onDoubleClick={() => handleDayDoubleClick(date)}
-                              className={`
-                                w-full h-full flex flex-col items-center justify-start pt-0.5 relative
-                                transition-colors rounded-sm text-xs
-                                ${isCurrentMonth ? 'text-foreground' : 'text-muted-foreground opacity-50'}
-                                ${isSelected ? 'bg-primary text-primary-foreground' : 'hover:bg-accent hover:text-accent-foreground'}
-                                ${isToday && !isSelected ? 'bg-accent text-accent-foreground font-semibold' : ''}
-                              `}
-                            >
-                              <span className="text-xs">{date.getDate()}</span>
-                              {todosForDate.length > 0 && (
-                                <div className="absolute bottom-0.5 left-1/2 transform -translate-x-1/2 flex gap-0.5">
-                                  {todosForDate.slice(0, 3).map((_, index) => (
-                                    <div 
-                                      key={index} 
-                                      className={`w-1.5 h-1.5 rounded-full ${isSelected ? 'bg-primary-foreground' : 'bg-primary'}`}
-                                    />
-                                  ))}
-                                  {todosForDate.length > 3 && (
-                                    <div className={`w-1.5 h-1.5 rounded-full opacity-60 ${isSelected ? 'bg-primary-foreground' : 'bg-primary'}`} />
-                                  )}
-                                </div>
-                              )}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    );
-                  })()
-                ) : (
-                  (() => {
-                    const weekStart = startOfWeek(currentWeek);
-                    const weekEnd = endOfWeek(currentWeek);
-                    const days = eachDayOfInterval({ start: weekStart, end: weekEnd });
-                    
-                    return (
-                      <div className="grid grid-cols-7 gap-px h-full">
-                        {days.map((date) => {
-                          const todosForDate = getTodosForDate(date);
-                          const isSelected = selectedDate && isSameDay(date, selectedDate);
-                          const isToday = isSameDay(date, new Date());
-                          
-                          return (
-                            <button
-                              key={date.toISOString()}
-                              onClick={() => setSelectedDate(date)}
-                              onDoubleClick={() => handleDayDoubleClick(date)}
-                              className={`
-                                w-full h-full flex flex-col p-2 relative
-                                transition-colors rounded-sm border
-                                ${isSelected ? 'bg-primary text-primary-foreground border-primary' : 'hover:bg-accent hover:text-accent-foreground border-border'}
-                                ${isToday && !isSelected ? 'bg-accent text-accent-foreground font-semibold border-accent' : ''}
-                              `}
-                            >
-                              <div className="flex items-center justify-between w-full mb-1">
-                                <span className="text-sm font-medium">{format(date, 'EEE')}</span>
-                                <span className="text-lg font-bold">{date.getDate()}</span>
-                              </div>
-                              <div className="flex-1 overflow-y-auto">
-                                {todosForDate.slice(0, 3).map((todo, index) => (
-                                  <div 
-                                    key={index}
-                                    className={`text-xs p-1 mb-1 rounded truncate ${
-                                      isSelected 
-                                        ? 'bg-primary-foreground/20 text-primary-foreground' 
-                                        : todo.priority === 'high' 
-                                          ? 'bg-destructive/10 text-destructive' 
-                                          : todo.priority === 'medium'
-                                            ? 'bg-yellow-500/10 text-yellow-700 dark:text-yellow-400'
-                                            : 'bg-green-500/10 text-green-700 dark:text-green-400'
-                                    }`}
-                                  >
-                                    {todo.content.split(' - ')[0].substring(0, 20)}
-                                    {todo.content.length > 20 && '...'}
-                                  </div>
-                                ))}
-                                {todosForDate.length > 3 && (
-                                  <div className={`text-xs opacity-60 ${isSelected ? 'text-primary-foreground' : 'text-muted-foreground'}`}>
-                                    +{todosForDate.length - 3} more
-                                  </div>
-                                )}
-                              </div>
-                            </button>
-                          );
-                        })}
-                      </div>
-                    );
-                  })()
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Events List for Selected Date */}
-          {selectedDate && selectedDateTodos.length > 0 && (
-            <div className="mt-4 p-3 bg-muted/30 rounded-lg border">
-              <div className="flex items-center justify-between mb-2">
-                <h4 className="text-sm font-medium">
-                  Events for {format(selectedDate, 'MMM d, yyyy')}
-                </h4>
-                <Badge variant="secondary" className="text-xs">
-                  {selectedDateTodos.length} event{selectedDateTodos.length !== 1 ? 's' : ''}
-                </Badge>
-              </div>
-              <ScrollArea className="max-h-32">
-                <div className="space-y-2">
-                  {selectedDateTodos.map((todo) => (
-                    <div key={todo.id} className="flex items-center justify-between p-2 bg-background rounded border text-sm">
-                      <div className="flex items-center gap-2">
-                        <div className={`w-2 h-2 rounded-full ${
-                          todo.priority === 'high' ? 'bg-destructive' :
-                          todo.priority === 'medium' ? 'bg-yellow-500' : 
-                          'bg-green-500'
-                        }`} />
-                        <span className="font-medium text-sm">{todo.content.split(' - ')[0]}</span>
-                        {todo.completed && <CheckCircle2 className="h-3 w-3 text-green-600" />}
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-6 w-6 p-0"
-                          onClick={() => handleEditEvent(todo)}
-                        >
-                          <Edit className="h-3 w-3" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-6 w-6 p-0 text-destructive"
-                          onClick={() => handleDeleteEvent(todo.id)}
-                        >
-                          <Trash2 className="h-3 w-3" />
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </ScrollArea>
-            </div>
-          )}
-        </div>
-      </CardContent>
-    </Card>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 };
