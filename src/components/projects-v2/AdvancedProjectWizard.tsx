@@ -540,7 +540,7 @@ export const AdvancedProjectWizard = ({
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2 text-base">
                     <User className="h-4 w-4" />
-                    {formData.homeowners.length === 0 ? 'Add Homeowner/Client' : 'Add Another Homeowner'}
+                    {formData.homeowners.length === 0 ? 'Add Client' : 'Add Another Client'}
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -568,7 +568,7 @@ export const AdvancedProjectWizard = ({
 
                   <Button type="button" onClick={addHomeowner} disabled={!newHomeowner.name.trim()} className="w-full">
                     <Plus className="h-4 w-4 mr-2" />
-                    Add Homeowner
+                    Add Client
                   </Button>
                 </CardContent>
               </Card>
