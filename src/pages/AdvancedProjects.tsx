@@ -18,12 +18,9 @@ const StatusSelector = ({
   onStatusChange
 }: {
   project: AdvancedProject;
-  onStatusChange: (status: 'planning' | 'active' | 'on_hold' | 'completed' | 'cancelled') => void;
+  onStatusChange: (status: 'active' | 'on_hold' | 'completed' | 'cancelled') => void;
 }) => {
   const statusOptions = [{
-    value: 'planning',
-    label: 'Planning'
-  }, {
     value: 'active',
     label: 'Active'
   }, {
@@ -37,7 +34,6 @@ const StatusSelector = ({
     label: 'Cancelled'
   }];
   const statusColors = {
-    planning: 'bg-blue-100 text-blue-800',
     active: 'bg-green-100 text-green-800',
     on_hold: 'bg-yellow-100 text-yellow-800',
     completed: 'bg-gray-100 text-gray-800',
@@ -117,7 +113,7 @@ const AdvancedProjects = () => {
   const handleDeleteProject = async (projectId: string) => {
     await deleteProject(projectId);
   };
-  const handleStatusChange = async (projectId: string, newStatus: 'planning' | 'active' | 'on_hold' | 'completed' | 'cancelled') => {
+  const handleStatusChange = async (projectId: string, newStatus: 'active' | 'on_hold' | 'completed' | 'cancelled') => {
     try {
       await updateProject(projectId, {
         status: newStatus
