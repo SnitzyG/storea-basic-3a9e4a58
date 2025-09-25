@@ -421,14 +421,14 @@ export const AdvancedProjectWizard = ({
 
                     {/* Custom budget input */}
                     <div className="relative mt-2">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none">$</span>
                       <Input
                         type="text"
                         inputMode="numeric"
                         aria-label="Enter custom budget amount"
                         value={formData.budget?.toString() || ''}
                         onChange={(e) => handleBudgetInputChange(e.target.value)}
-                        className="pl-7"
+                        className="pl-8"
                       />
                       <p className="text-xs text-muted-foreground mt-1">Type an exact amount (50,000 – 5,000,000).</p>
                     </div>
