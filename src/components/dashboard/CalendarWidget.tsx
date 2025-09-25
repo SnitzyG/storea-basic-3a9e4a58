@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
-import { ModernCalendar } from '@/components/ui/modern-calendar';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -809,18 +808,133 @@ export const CalendarWidget = () => {
             </div>
             
             <div className="flex-1 overflow-hidden">
-              <ModernCalendar
-                selectedDate={selectedDate}
-                onDateSelect={(date) => {
-                  setSelectedDate(date);
-                  // Auto-open day details if there are todos for this date
-                  const todosForDate = getTodosForDate(date);
-                  if (todosForDate.length > 0) {
-                    setIsDayDetailsOpen(true);
-                  }
-                }}
-                className="h-full"
-              />
+              <div className="h-full flex flex-col border rounded-lg">
+                {/* Days of week header */}
+                <div className="grid grid-cols-7 gap-px bg-border p-1 rounded-t-lg">
+                  {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
+                    <div key={day} className="h-6 flex items-center justify-center text-xs font-medium text-muted-foreground bg-background">
+                      {day}
+                    </div>
+                  ))}
+                </div>
+                
+                {/* Calendar dates grid */}
+                <div className="flex-1 p-1 bg-background rounded-b-lg">
+                  {viewMode === 'month' ? (
+                    (() => {
+                      const start = startOfMonth(currentMonth);
+                      const end = endOfMonth(currentMonth);
+                      const startDate = new Date(start);
+                      startDate.setDate(startDate.getDate() - startDate.getDay()); // Start from Sunday
+                      
+                      const endDate = new Date(end);
+                      endDate.setDate(endDate.getDate() + (6 - endDate.getDay())); // End on Saturday
+                      
+                      const days = eachDayOfInterval({ start: startDate, end: endDate });
+                      
+                      return (
+                        <div className="grid grid-cols-7 grid-rows-6 gap-px h-full">
+                          {days.map((date) => {
+                            const todosForDate = getTodosForDate(date);
+                            const isCurrentMonth = date.getMonth() === currentMonth.getMonth();
+                            const isSelected = selectedDate && isSameDay(date, selectedDate);
+                            const isToday = isSameDay(date, new Date());
+                            
+                            return (
+                              <button
+                                key={date.toISOString()}
+                                onClick={() => setSelectedDate(date)}
+                                onDoubleClick={() => handleDayDoubleClick(date)}
+                                className={`
+                                  w-full h-full flex flex-col items-center justify-start pt-0.5 relative
+                                  transition-colors rounded-sm text-xs
+                                  ${isCurrentMonth ? 'text-foreground' : 'text-muted-foreground opacity-50'}
+                                  ${isSelected ? 'bg-primary text-primary-foreground' : 'hover:bg-accent hover:text-accent-foreground'}
+                                  ${isToday && !isSelected ? 'bg-accent text-accent-foreground font-semibold' : ''}
+                                `}
+                              >
+                                <span className="text-xs">{date.getDate()}</span>
+                                {todosForDate.length > 0 && (
+                                  <div className="absolute bottom-0.5 left-1/2 transform -translate-x-1/2 flex gap-0.5">
+                                    {todosForDate.slice(0, 3).map((_, index) => (
+                                      <div 
+                                        key={index} 
+                                        className={`w-1.5 h-1.5 rounded-full ${isSelected ? 'bg-primary-foreground' : 'bg-primary'}`}
+                                      />
+                                    ))}
+                                    {todosForDate.length > 3 && (
+                                      <div className={`w-1.5 h-1.5 rounded-full opacity-60 ${isSelected ? 'bg-primary-foreground' : 'bg-primary'}`} />
+                                    )}
+                                  </div>
+                                )}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      );
+                    })()
+                  ) : (
+                    (() => {
+                      const weekStart = startOfWeek(currentWeek);
+                      const weekEnd = endOfWeek(currentWeek);
+                      const days = eachDayOfInterval({ start: weekStart, end: weekEnd });
+                      
+                      return (
+                        <div className="grid grid-cols-7 gap-px h-full">
+                          {days.map((date) => {
+                            const todosForDate = getTodosForDate(date);
+                            const isSelected = selectedDate && isSameDay(date, selectedDate);
+                            const isToday = isSameDay(date, new Date());
+                            
+                            return (
+                              <button
+                                key={date.toISOString()}
+                                onClick={() => setSelectedDate(date)}
+                                onDoubleClick={() => handleDayDoubleClick(date)}
+                                className={`
+                                  w-full h-full flex flex-col p-2 relative
+                                  transition-colors rounded-sm border
+                                  ${isSelected ? 'bg-primary text-primary-foreground border-primary' : 'hover:bg-accent hover:text-accent-foreground border-border'}
+                                  ${isToday && !isSelected ? 'bg-accent text-accent-foreground font-semibold border-accent' : ''}
+                                `}
+                              >
+                                <div className="flex items-center justify-between w-full mb-1">
+                                  <span className="text-sm font-medium">{format(date, 'EEE')}</span>
+                                  <span className="text-lg font-bold">{date.getDate()}</span>
+                                </div>
+                                <div className="flex-1 overflow-y-auto">
+                                  {todosForDate.slice(0, 3).map((todo, index) => (
+                                    <div 
+                                      key={index}
+                                      className={`text-xs p-1 mb-1 rounded truncate ${
+                                        isSelected 
+                                          ? 'bg-primary-foreground/20 text-primary-foreground' 
+                                          : todo.priority === 'high' 
+                                            ? 'bg-destructive/10 text-destructive' 
+                                            : todo.priority === 'medium'
+                                              ? 'bg-yellow-500/10 text-yellow-700 dark:text-yellow-400'
+                                              : 'bg-green-500/10 text-green-700 dark:text-green-400'
+                                      }`}
+                                    >
+                                      {todo.content.split(' - ')[0].substring(0, 20)}
+                                      {todo.content.length > 20 && '...'}
+                                    </div>
+                                  ))}
+                                  {todosForDate.length > 3 && (
+                                    <div className={`text-xs opacity-60 ${isSelected ? 'text-primary-foreground' : 'text-muted-foreground'}`}>
+                                      +{todosForDate.length - 3} more
+                                    </div>
+                                  )}
+                                </div>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      );
+                    })()
+                  )}
+                </div>
+              </div>
             </div>
 
             {/* Events List for Selected Date */}
