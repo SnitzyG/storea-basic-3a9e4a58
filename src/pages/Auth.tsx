@@ -6,16 +6,26 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useAuth } from '@/hooks/useAuth';
+import { useSecureAuth } from '@/hooks/useSecureAuth';
+import { PasswordStrengthIndicator } from '@/components/security/PasswordStrengthIndicator';
+import { CaptchaChallenge } from '@/components/security/CaptchaChallenge';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 const Auth = () => {
   const {
     user,
-    signIn,
-    signUp,
-    loading
-  } = useAuth();
+    loading,
+    passwordStrength,
+    isBlocked,
+    remainingLockoutTime,
+    requiresCaptcha,
+    captchaVerified,
+    checkPasswordStrength,
+    secureSignIn,
+    secureSignUp,
+    verifyCaptcha,
+    resetSecurityState
+  } = useSecureAuth();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
@@ -29,6 +39,8 @@ const Auth = () => {
   const [showWipeButton, setShowWipeButton] = useState(false);
   const [resetEmail, setResetEmail] = useState('');
   const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [showCaptcha, setShowCaptcha] = useState(false);
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
 
   // Removed early return to keep hooks order consistent and avoid hook mismatch errors during loading state
 
@@ -64,18 +76,45 @@ const Auth = () => {
   // This prevents double navigation
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (isBlocked) {
+      toast.error(`Account is locked. Please try again in ${Math.ceil(remainingLockoutTime / 60)} minutes.`);
+      return;
+    }
+    
+    if (requiresCaptcha && !captchaVerified) {
+      setShowCaptcha(true);
+      return;
+    }
+    
     setIsSubmitting(true);
-    await signIn(email, password);
+    const result = await secureSignIn({ 
+      email, 
+      password, 
+      captchaVerified: requiresCaptcha ? captchaVerified : true 
+    });
+    
+    if (result.error?.message === "CAPTCHA required") {
+      setShowCaptcha(true);
+    }
+    
     setIsSubmitting(false);
   };
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
+    
     if (password !== confirmPassword) {
       toast.error('Passwords do not match');
       return;
     }
+    
+    if (!passwordStrength?.isValid) {
+      toast.error('Please ensure your password meets all security requirements');
+      return;
+    }
+    
     setIsSubmitting(true);
-    await signUp(email, password, name, role, company);
+    await secureSignUp({ email, password, name, role, company });
     setIsSubmitting(false);
   };
 
@@ -289,7 +328,7 @@ const Auth = () => {
             <CardDescription>Sign in to your account or create a new one</CardDescription>
           </CardHeader>
           <CardContent>
-            <Tabs defaultValue="signin" className="w-full">
+            <Tabs defaultValue="signin" className="w-full" onValueChange={handleTabChange}>
               <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="signin">Sign In</TabsTrigger>
                 <TabsTrigger value="signup">Sign Up</TabsTrigger>
@@ -298,15 +337,58 @@ const Auth = () => {
               <TabsContent value="signin" className="min-h-[400px]">
                 {!showForgotPassword ? (
                   <form onSubmit={handleSignIn} className="space-y-4">
+                    {isBlocked && (
+                      <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-lg">
+                        <p className="text-sm text-destructive">
+                          🔒 Account temporarily locked due to too many failed attempts. 
+                          Try again in {Math.ceil(remainingLockoutTime / 60)} minutes.
+                        </p>
+                      </div>
+                    )}
+                    
                     <div className="space-y-2">
                       <Label htmlFor="signin-email">Email</Label>
-                      <Input id="signin-email" type="email" placeholder="Enter your email" value={email} onChange={e => setEmail(e.target.value)} required />
+                      <Input 
+                        id="signin-email" 
+                        type="email" 
+                        placeholder="Enter your email" 
+                        value={email} 
+                        onChange={e => setEmail(e.target.value)} 
+                        required 
+                        disabled={isBlocked}
+                      />
                     </div>
+                    
                     <div className="space-y-2">
                       <Label htmlFor="signin-password">Password</Label>
-                      <Input id="signin-password" type="password" placeholder="Enter your password" value={password} onChange={e => setPassword(e.target.value)} required />
+                      <div className="relative">
+                        <Input 
+                          id="signin-password" 
+                          type={isPasswordVisible ? "text" : "password"}
+                          placeholder="Enter your password" 
+                          value={password} 
+                          onChange={e => setPassword(e.target.value)} 
+                          required 
+                          disabled={isBlocked}
+                        />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="absolute right-2 top-1/2 -translate-y-1/2 h-auto p-1"
+                          onClick={() => setIsPasswordVisible(!isPasswordVisible)}
+                          disabled={isBlocked}
+                        >
+                          {isPasswordVisible ? '🙈' : '👁️'}
+                        </Button>
+                      </div>
                     </div>
-                    <Button type="submit" className="w-full" disabled={isSubmitting}>
+                    
+                    <Button 
+                      type="submit" 
+                      className="w-full" 
+                      disabled={isSubmitting || isBlocked}
+                    >
                       {isSubmitting ? 'Signing in...' : 'Sign In'}
                     </Button>
                     <Button 
@@ -358,11 +440,43 @@ const Auth = () => {
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="signup-password">Password</Label>
-                    <Input id="signup-password" type="password" placeholder="Create a password" value={password} onChange={e => setPassword(e.target.value)} required />
+                    <div className="relative">
+                      <Input 
+                        id="signup-password" 
+                        type={isPasswordVisible ? "text" : "password"}
+                        placeholder="Create a password" 
+                        value={password} 
+                        onChange={e => handlePasswordChange(e.target.value)} 
+                        required 
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="absolute right-2 top-1/2 -translate-y-1/2 h-auto p-1"
+                        onClick={() => setIsPasswordVisible(!isPasswordVisible)}
+                      >
+                        {isPasswordVisible ? '🙈' : '👁️'}
+                      </Button>
+                    </div>
+                    {passwordStrength && (
+                      <PasswordStrengthIndicator result={passwordStrength} />
+                    )}
                   </div>
+                  
                   <div className="space-y-2">
                     <Label htmlFor="confirm-password">Confirm Password</Label>
-                    <Input id="confirm-password" type="password" placeholder="Confirm your password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} required />
+                    <Input 
+                      id="confirm-password" 
+                      type={isPasswordVisible ? "text" : "password"}
+                      placeholder="Confirm your password" 
+                      value={confirmPassword} 
+                      onChange={e => setConfirmPassword(e.target.value)} 
+                      required 
+                    />
+                    {confirmPassword && password !== confirmPassword && (
+                      <p className="text-sm text-destructive">Passwords do not match</p>
+                    )}
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="role">Your Role</Label>
@@ -392,7 +506,8 @@ const Auth = () => {
                   )}
                    <Button 
                      type="submit" 
-                     className="w-full" 
+                     className="w-full"
+                     disabled={isSubmitting || !passwordStrength?.isValid}
                      disabled={isSubmitting || !role || (role !== 'homeowner' && !company.trim())}
                    >
                      {isSubmitting ? 'Creating account...' : 'Create Account'}

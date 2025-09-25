@@ -5,3 +5,6 @@ verify_jwt = false
 
 [functions.send-tender-invitation]
 verify_jwt = true
+
+[functions.security-notifications]
+verify_jwt = false
