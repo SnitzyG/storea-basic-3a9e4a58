@@ -721,7 +721,136 @@ export const CalendarWidget = () => {
                         <SelectItem value="high">High Priority</SelectItem>
                       </SelectContent>
                     </Select>
+            {/* Day Details Dialog */}
+            <Dialog open={isDayDetailsOpen} onOpenChange={setIsDayDetailsOpen}>
+              <DialogContent className="max-w-2xl max-h-[80vh]">
+                <DialogHeader>
+                  <DialogTitle className="flex items-center gap-2">
+                    <CalendarDays className="h-5 w-5" />
+                    Events for {selectedDate && format(selectedDate, 'EEEE, MMMM d, yyyy')}
+                  </DialogTitle>
+                </DialogHeader>
+                <ScrollArea className="max-h-[60vh] pr-4">
+                  <div className="space-y-4 pt-4">
+                    {selectedDate && selectedDateTodos.length > 0 ? (
+                      <>
+                        <div className="flex items-center justify-between">
+                          <Badge variant="secondary" className="text-sm">
+                            {selectedDateTodos.length} event{selectedDateTodos.length !== 1 ? 's' : ''}
+                          </Badge>
+                        </div>
+                        <div className="space-y-3">
+                          {selectedDateTodos.map((todo) => {
+                            const isMeeting = todo.content.includes('Meeting:');
+                            const eventTime = todo.due_date ? format(new Date(todo.due_date), 'h:mm a') : 'All Day';
+                            
+                            return (
+                              <div key={todo.id} className="p-4 border rounded-lg space-y-2">
+                                <div className="flex items-start justify-between">
+                                  <div className="flex items-center gap-3 flex-1">
+                                    <div className={`w-3 h-3 rounded-full flex-shrink-0 ${
+                                      todo.priority === 'high' ? 'bg-destructive' :
+                                      todo.priority === 'medium' ? 'bg-yellow-500' : 
+                                      'bg-green-500'
+                                    }`} />
+                                    <div className="flex-1">
+                                      <div className="flex items-center gap-2">
+                                        <h4 className="font-medium text-sm">
+                                          {isMeeting ? '🤝' : '📌'} {todo.content.split(' - ')[0].replace('Meeting: ', '')}
+                                        </h4>
+                                        {todo.completed && <CheckCircle2 className="h-4 w-4 text-green-600" />}
+                                      </div>
+                                      {todo.content.includes(' - ') && (
+                                        <p className="text-sm text-muted-foreground mt-1">
+                                          {todo.content.split(' - ').slice(1).join(' - ')}
+                                        </p>
+                                      )}
+                                      <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
+                                        <span className="flex items-center gap-1">
+                                          <Clock className="h-3 w-3" />
+                                          {eventTime}
+                                        </span>
+                                        <span className="capitalize">
+                                          {todo.priority} priority
+                                        </span>
+                                        {isMeeting && (
+                                          <span className="flex items-center gap-1">
+                                            <Users className="h-3 w-3" />
+                                            Meeting
+                                          </span>
+                                        )}
+                                      </div>
+                                    </div>
+                                  </div>
+                                  <div className="flex items-center gap-1">
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      className="h-8 w-8 p-0"
+                                      onClick={() => {
+                                        setIsDayDetailsOpen(false);
+                                        handleEditEvent(todo);
+                                      }}
+                                    >
+                                      <Edit className="h-3 w-3" />
+                                    </Button>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      className="h-8 w-8 p-0 text-destructive"
+                                      onClick={() => handleDeleteEvent(todo.id)}
+                                    >
+                                      <Trash2 className="h-3 w-3" />
+                                    </Button>
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </>
+                    ) : (
+                      <div className="text-center py-8">
+                        <CalendarDays className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                        <h3 className="text-lg font-medium mb-2">No events scheduled</h3>
+                        <p className="text-muted-foreground mb-4">
+                          No events, tasks, or deadlines for {selectedDate && format(selectedDate, 'MMMM d, yyyy')}
+                        </p>
+                        <Button 
+                          onClick={() => {
+                            setIsDayDetailsOpen(false);
+                            setEventDate(selectedDate);
+                            setIsDialogOpen(true);
+                          }}
+                          className="gap-2"
+                        >
+                          <Plus className="h-4 w-4" />
+                          Add Event
+                        </Button>
+                      </div>
+                    )}
                   </div>
+                </ScrollArea>
+                <div className="flex justify-between pt-4 border-t">
+                  <Button 
+                    variant="outline"
+                    onClick={() => {
+                      setIsDayDetailsOpen(false);
+                      setEventDate(selectedDate);
+                      setIsDialogOpen(true);
+                    }}
+                    className="gap-2"
+                  >
+                    <Plus className="h-4 w-4" />
+                    Add Event
+                  </Button>
+                  <Button variant="outline" onClick={() => setIsDayDetailsOpen(false)}>
+                    Close
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
+          </div>
 
                   <div className="flex gap-2 pt-2">
                     <Button onClick={handleUpdateEvent} className="flex-1" disabled={!newEventTitle.trim()}>
@@ -814,6 +943,7 @@ export const CalendarWidget = () => {
                             <button
                               key={date.toISOString()}
                               onClick={() => setSelectedDate(date)}
+                              onDoubleClick={() => handleDayDoubleClick(date)}
                               className={`
                                 w-full h-full flex flex-col items-center justify-start pt-0.5 relative
                                 transition-colors rounded-sm text-xs
@@ -859,6 +989,7 @@ export const CalendarWidget = () => {
                             <button
                               key={date.toISOString()}
                               onClick={() => setSelectedDate(date)}
+                              onDoubleClick={() => handleDayDoubleClick(date)}
                               className={`
                                 w-full h-full flex flex-col p-2 relative
                                 transition-colors rounded-sm border
