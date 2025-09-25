@@ -181,11 +181,9 @@ export const AdvancedProjectWizard = ({
       [field]: value
     }));
   };
-
   const handleBudgetChange = (value: number[]) => {
     handleInputChange('budget', value[0]);
   };
-
   const handleBudgetInputChange = (value: string) => {
     // Allow only numeric characters and decimal point
     const sanitized = value.replace(/[^0-9.]/g, '');
@@ -196,12 +194,10 @@ export const AdvancedProjectWizard = ({
       handleInputChange('budget', clamped);
     }
   };
-
   const startEditingBudget = () => {
     setBudgetInput(formData.budget?.toString() || '');
     setEditingBudget(true);
   };
-
   const saveBudgetEdit = () => {
     const num = parseFloat(budgetInput.replace(/[^0-9.]/g, ''));
     if (!isNaN(num) && num >= 50000 && num <= 5000000) {
@@ -209,7 +205,6 @@ export const AdvancedProjectWizard = ({
     }
     setEditingBudget(false);
   };
-
   const cancelBudgetEdit = () => {
     setEditingBudget(false);
     setBudgetInput('');
@@ -227,7 +222,7 @@ export const AdvancedProjectWizard = ({
         // Handle weeks
         const weeks = months * 4; // Convert months to weeks
         finishDate = new Date(formData.estimated_start_date);
-        finishDate.setDate(finishDate.getDate() + (weeks * 7));
+        finishDate.setDate(finishDate.getDate() + weeks * 7);
       } else {
         // Handle months
         finishDate = addMonths(formData.estimated_start_date, months);
@@ -416,46 +411,21 @@ export const AdvancedProjectWizard = ({
                   <Label htmlFor="budget">Project Budget</Label>
                   <div className="space-y-3">
                     <div className="flex justify-between items-center">
-                      {editingBudget ? (
-                        <div className="flex items-center gap-2 flex-1">
+                      {editingBudget ? <div className="flex items-center gap-2 flex-1">
                           <span className="text-xl font-bold">$</span>
-                          <Input
-                            type="text"
-                            inputMode="numeric"
-                            value={budgetInput}
-                            onChange={(e) => setBudgetInput(e.target.value)}
-                            onKeyDown={(e) => {
-                              if (e.key === 'Enter') saveBudgetEdit();
-                              if (e.key === 'Escape') cancelBudgetEdit();
-                            }}
-                            onBlur={saveBudgetEdit}
-                            className="text-xl font-bold w-48"
-                            autoFocus
-                            placeholder="Enter amount"
-                          />
+                          <Input type="text" inputMode="numeric" value={budgetInput} onChange={e => setBudgetInput(e.target.value)} onKeyDown={e => {
+                        if (e.key === 'Enter') saveBudgetEdit();
+                        if (e.key === 'Escape') cancelBudgetEdit();
+                      }} onBlur={saveBudgetEdit} className="text-xl font-bold w-48" autoFocus placeholder="Enter amount" />
                           <Button size="sm" variant="ghost" onClick={saveBudgetEdit}>✓</Button>
                           <Button size="sm" variant="ghost" onClick={cancelBudgetEdit}>✕</Button>
-                        </div>
-                      ) : (
-                        <div 
-                          className="text-xl font-bold cursor-pointer hover:bg-muted/50 px-2 py-1 rounded transition-colors"
-                          onClick={startEditingBudget}
-                          title="Click to edit exact amount"
-                        >
+                        </div> : <div className="text-xl font-bold cursor-pointer hover:bg-muted/50 px-2 py-1 rounded transition-colors" onClick={startEditingBudget} title="Click to edit exact amount">
                           ${formData.budget?.toLocaleString()}
-                        </div>
-                      )}
+                        </div>}
                       <div className="text-sm text-muted-foreground">{formatBudgetLabel(formData.budget || 100000)}</div>
                     </div>
                     
-                    <Slider
-                      value={[formData.budget || 100000]}
-                      onValueChange={handleBudgetChange}
-                      max={5000000}
-                      min={50000}
-                      step={25000}
-                      className="w-full"
-                    />
+                    <Slider value={[formData.budget || 100000]} onValueChange={handleBudgetChange} max={5000000} min={50000} step={25000} className="w-full" />
                     
                     <div className="flex justify-between text-xs text-muted-foreground">
                       <span>Under $100K</span>
@@ -471,10 +441,7 @@ export const AdvancedProjectWizard = ({
                     <Label htmlFor="square_footage">Square Metres </Label>
                     <Input id="square_footage" type="number" value={formData.square_footage} onChange={e => handleInputChange('square_footage', e.target.value)} placeholder="Sq Metres" className="mt-1" />
                   </div>
-                  <div>
-                    <Label htmlFor="number_of_floors">Number of Floors</Label>
-                    <Input id="number_of_floors" type="number" value={formData.number_of_floors} onChange={e => handleInputChange('number_of_floors', e.target.value)} placeholder="Floors" className="mt-1" />
-                  </div>
+                  
                 </div>
                 </div>
 
@@ -490,16 +457,10 @@ export const AdvancedProjectWizard = ({
                       <Label className="text-sm font-medium">
                         Start Date *
                       </Label>
-                      <Input
-                        type="date"
-                        value={formData.estimated_start_date ? format(formData.estimated_start_date, 'yyyy-MM-dd') : ''}
-                        onChange={(e) => {
-                          const date = e.target.value ? new Date(e.target.value) : undefined;
-                          handleInputChange('estimated_start_date', date);
-                        }}
-                        className="h-11"
-                        placeholder="YYYY-MM-DD"
-                      />
+                      <Input type="date" value={formData.estimated_start_date ? format(formData.estimated_start_date, 'yyyy-MM-dd') : ''} onChange={e => {
+                    const date = e.target.value ? new Date(e.target.value) : undefined;
+                    handleInputChange('estimated_start_date', date);
+                  }} className="h-11" placeholder="YYYY-MM-DD" />
                     </div>
 
                     {/* Estimated Finish Date */}
@@ -507,87 +468,43 @@ export const AdvancedProjectWizard = ({
                       <Label className="text-sm font-medium">
                         Estimated Finish Date *
                       </Label>
-                      <Input
-                        type="date"
-                        value={formData.estimated_finish_date ? format(formData.estimated_finish_date, 'yyyy-MM-dd') : ''}
-                        onChange={(e) => {
-                          const date = e.target.value ? new Date(e.target.value) : undefined;
-                          handleInputChange('estimated_finish_date', date);
-                        }}
-                        className="h-11"
-                        placeholder="YYYY-MM-DD"
-                      />
+                      <Input type="date" value={formData.estimated_finish_date ? format(formData.estimated_finish_date, 'yyyy-MM-dd') : ''} onChange={e => {
+                    const date = e.target.value ? new Date(e.target.value) : undefined;
+                    handleInputChange('estimated_finish_date', date);
+                  }} className="h-11" placeholder="YYYY-MM-DD" />
                     </div>
                   </div>
 
                   {/* Quick Duration Buttons */}
-                  {formData.estimated_start_date && (
-                    <div className="space-y-3">
+                  {formData.estimated_start_date && <div className="space-y-3">
                       <Label className="text-sm font-medium">Quick Duration Setup</Label>
                       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
-                        <Button 
-                          type="button" 
-                          variant="outline" 
-                          size="sm" 
-                          onClick={() => setProjectDuration(0.25)} 
-                          className="flex items-center justify-center gap-1 h-9"
-                        >
+                        <Button type="button" variant="outline" size="sm" onClick={() => setProjectDuration(0.25)} className="flex items-center justify-center gap-1 h-9">
                           <Clock className="h-3 w-3" />
                           1 Week
                         </Button>
-                        <Button 
-                          type="button" 
-                          variant="outline" 
-                          size="sm" 
-                          onClick={() => setProjectDuration(0.5)} 
-                          className="flex items-center justify-center gap-1 h-9"
-                        >
+                        <Button type="button" variant="outline" size="sm" onClick={() => setProjectDuration(0.5)} className="flex items-center justify-center gap-1 h-9">
                           <Clock className="h-3 w-3" />
                           2 Weeks
                         </Button>
-                        <Button 
-                          type="button" 
-                          variant="outline" 
-                          size="sm" 
-                          onClick={() => setProjectDuration(1)} 
-                          className="flex items-center justify-center gap-1 h-9"
-                        >
+                        <Button type="button" variant="outline" size="sm" onClick={() => setProjectDuration(1)} className="flex items-center justify-center gap-1 h-9">
                           <Clock className="h-3 w-3" />
                           1 Month
                         </Button>
-                        <Button 
-                          type="button" 
-                          variant="outline" 
-                          size="sm" 
-                          onClick={() => setProjectDuration(3)} 
-                          className="flex items-center justify-center gap-1 h-9"
-                        >
+                        <Button type="button" variant="outline" size="sm" onClick={() => setProjectDuration(3)} className="flex items-center justify-center gap-1 h-9">
                           <Clock className="h-3 w-3" />
                           3 Months
                         </Button>
-                        <Button 
-                          type="button" 
-                          variant="outline" 
-                          size="sm" 
-                          onClick={() => setProjectDuration(6)} 
-                          className="flex items-center justify-center gap-1 h-9"
-                        >
+                        <Button type="button" variant="outline" size="sm" onClick={() => setProjectDuration(6)} className="flex items-center justify-center gap-1 h-9">
                           <Clock className="h-3 w-3" />
                           6 Months
                         </Button>
-                        <Button 
-                          type="button" 
-                          variant="outline" 
-                          size="sm" 
-                          onClick={() => setProjectDuration(12)} 
-                          className="flex items-center justify-center gap-1 h-9"
-                        >
+                        <Button type="button" variant="outline" size="sm" onClick={() => setProjectDuration(12)} className="flex items-center justify-center gap-1 h-9">
                           <Clock className="h-3 w-3" />
                           1 Year
                         </Button>
                       </div>
-                    </div>
-                  )}
+                    </div>}
                 </div>
             </div>
           </div>;
