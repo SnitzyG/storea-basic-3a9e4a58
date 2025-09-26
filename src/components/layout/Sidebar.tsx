@@ -78,14 +78,14 @@ export const Sidebar = ({
       <div className="p-6 border-b border-sidebar-border">
         <div className="flex items-center justify-center">
           {showCompanyLogo ? (
-            <div className="relative w-full h-20 rounded-lg bg-gradient-to-br from-primary/10 via-accent/10 to-secondary/10 border border-primary/20 flex flex-col items-center justify-center p-4">
+            <div className="relative w-full h-24 rounded-lg bg-gradient-to-br from-primary/10 via-accent/10 to-secondary/10 border border-primary/20 flex flex-col items-center justify-center p-4">
               <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5 rounded-lg animate-pulse"></div>
               
               <div className="relative z-10 flex flex-col items-center w-full">
                 <img 
                   src={profile.company_logo_url} 
                   alt={profile.company_name || "Company Logo"} 
-                  className="h-12 w-auto max-w-full object-contain drop-shadow-sm"
+                  className="h-18 w-auto max-w-full object-contain drop-shadow-sm"
                 />
                 {profile.company_name && (
                   <p className="text-sm font-medium text-foreground mt-2 text-center truncate w-full">
