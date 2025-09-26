@@ -228,6 +228,14 @@ export const ProjectMap: React.FC<ProjectMapProps> = ({ projects, onGeocodeCompl
           style={{ zIndex: 1 }}
         />
         
+        {/* Custom subtle attribution */}
+        <div className="px-4 py-2 bg-muted/30 border-t text-xs text-muted-foreground flex justify-between items-center">
+          <span>Map data © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer" className="hover:underline">OpenStreetMap contributors</a></span>
+          <span className="text-xs opacity-60">
+            {projectsWithAddresses.filter(p => p.latitude && p.longitude).length} location{projectsWithAddresses.filter(p => p.latitude && p.longitude).length !== 1 ? 's' : ''} shown
+          </span>
+        </div>
+        
         {geocodingErrors.length > 0 && (
           <div className="p-4 bg-yellow-50 border-t">
             <h4 className="text-sm font-medium text-yellow-800 mb-2">
