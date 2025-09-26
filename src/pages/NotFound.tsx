@@ -1,41 +1,53 @@
 import { useEffect } from 'react';
-import { useLocation, Link } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Home, ArrowLeft } from 'lucide-react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { Building2 } from 'lucide-react';
 
 const NotFound = () => {
   const location = useLocation();
+  const navigate = useNavigate();
 
   useEffect(() => {
     console.log('404 - Page not found:', location.pathname);
-  }, [location.pathname]);
+    
+    // Automatically redirect to dashboard after 3 seconds
+    const redirectTimer = setTimeout(() => {
+      navigate('/dashboard', { replace: true });
+    }, 3000);
+
+    return () => clearTimeout(redirectTimer);
+  }, [location.pathname, navigate]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <CardTitle className="text-6xl font-bold text-primary mb-4">404</CardTitle>
-          <p className="text-xl text-muted-foreground">Page Not Found</p>
-        </CardHeader>
-        <CardContent className="text-center space-y-4">
-          <p className="text-muted-foreground">
-            The page you're looking for doesn't exist or has been moved.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-2 justify-center">
-            <Button asChild variant="default">
-              <Link to="/dashboard">
-                <Home className="h-4 w-4 mr-2" />
-                Go to Dashboard
-              </Link>
-            </Button>
-            <Button variant="outline" onClick={() => window.history.back()}>
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Go Back
-            </Button>
+      <div className="text-center space-y-6 animate-fade-in">
+        {/* Logo with pulse animation */}
+        <div className="flex justify-center">
+          <div className="relative">
+            <div className="animate-pulse">
+              <Building2 className="h-16 w-16 text-primary mx-auto" />
+            </div>
+            {/* Subtle ring animation around logo */}
+            <div className="absolute inset-0 rounded-full border-2 border-primary/20 animate-ping"></div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+        
+        {/* Error message */}
+        <div className="space-y-2">
+          <h1 className="text-2xl font-bold text-foreground">
+            Oh no! Something went wrong.
+          </h1>
+          <p className="text-muted-foreground">
+            Redirecting to your dashboard...
+          </p>
+        </div>
+        
+        {/* Loading dots animation */}
+        <div className="flex justify-center space-x-1">
+          <div className="w-2 h-2 bg-primary rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+          <div className="w-2 h-2 bg-primary rounded-full animate-bounce [animation-delay:-0.15s]"></div>
+          <div className="w-2 h-2 bg-primary rounded-full animate-bounce"></div>
+        </div>
+      </div>
     </div>
   );
 };
