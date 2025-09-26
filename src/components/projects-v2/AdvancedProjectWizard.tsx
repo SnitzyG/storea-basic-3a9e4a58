@@ -116,31 +116,81 @@ export const AdvancedProjectWizard = ({
   const [budgetInput, setBudgetInput] = useState('');
   const [formData, setFormData] = useState({
     // Step 1: Basic Information
-    project_reference_number: projectToEdit?.project_reference_number || '',
-    name: projectToEdit?.name || '',
-    description: projectToEdit?.description || '',
-    project_category: projectToEdit?.project_type || 'new_construction',
-    project_type: projectToEdit?.project_type || '',
-    priority: projectToEdit?.priority || 'medium',
+    project_reference_number: '',
+    name: '',
+    description: '',
+    project_category: 'new_construction',
+    project_type: '',
+    priority: 'medium' as 'low' | 'medium' | 'high' | 'urgent',
     street_number: '',
     street_name: '',
     suburb: '',
     postcode: '',
     // Step 2: Project Details
-    budget: projectToEdit?.budget || 100000,
-    square_footage: projectToEdit?.square_footage?.toString() || '',
-    number_of_floors: projectToEdit?.number_of_floors?.toString() || '',
-    estimated_start_date: projectToEdit?.estimated_start_date ? new Date(projectToEdit.estimated_start_date) : undefined as Date | undefined,
-    estimated_finish_date: projectToEdit?.estimated_finish_date ? new Date(projectToEdit.estimated_finish_date) : undefined as Date | undefined,
+    budget: 100000,
+    square_footage: '',
+    number_of_floors: '',
+    estimated_start_date: undefined as Date | undefined,
+    estimated_finish_date: undefined as Date | undefined,
     // Step 3: Architectural Fees (Architect only)
-    architectural_fees: projectToEdit?.architectural_fees || undefined,
+    architectural_fees: undefined,
     // Step 4: Client Information (Step 3 for non-architects)
-    homeowners: projectToEdit?.homeowner_name ? [{
-      name: projectToEdit.homeowner_name,
-      email: projectToEdit.homeowner_email || '',
-      phone: projectToEdit.homeowner_phone || ''
-    }] : [] as HomeownerData[]
+    homeowners: [] as HomeownerData[]
   });
+
+  // Reset and populate form data when dialog opens or projectToEdit changes
+  useEffect(() => {
+    if (open) {
+      if (projectToEdit) {
+        // Editing mode - populate with existing project data
+        setFormData({
+          project_reference_number: projectToEdit.project_reference_number || '',
+          name: projectToEdit.name || '',
+          description: projectToEdit.description || '',
+          project_category: projectToEdit.project_type || 'new_construction',
+          project_type: projectToEdit.project_type || '',
+          priority: projectToEdit.priority || 'medium' as 'low' | 'medium' | 'high' | 'urgent',
+          street_number: '',
+          street_name: '',
+          suburb: '',
+          postcode: '',
+          budget: projectToEdit.budget || 100000,
+          square_footage: projectToEdit.square_footage?.toString() || '',
+          number_of_floors: projectToEdit.number_of_floors?.toString() || '',
+          estimated_start_date: projectToEdit.estimated_start_date ? new Date(projectToEdit.estimated_start_date) : undefined,
+          estimated_finish_date: projectToEdit.estimated_finish_date ? new Date(projectToEdit.estimated_finish_date) : undefined,
+          architectural_fees: projectToEdit.architectural_fees || undefined,
+          homeowners: projectToEdit.homeowner_name ? [{
+            name: projectToEdit.homeowner_name,
+            email: projectToEdit.homeowner_email || '',
+            phone: projectToEdit.homeowner_phone || ''
+          }] : []
+        });
+      } else {
+        // Create mode - reset to default values
+        setFormData({
+          project_reference_number: '',
+          name: '',
+          description: '',
+          project_category: 'new_construction',
+          project_type: '',
+          priority: 'medium' as 'low' | 'medium' | 'high' | 'urgent',
+          street_number: '',
+          street_name: '',
+          suburb: '',
+          postcode: '',
+          budget: 100000,
+          square_footage: '',
+          number_of_floors: '',
+          estimated_start_date: undefined,
+          estimated_finish_date: undefined,
+          architectural_fees: undefined,
+          homeowners: []
+        });
+      }
+      setCurrentStep(1);
+    }
+  }, [open, projectToEdit]);
   const [newHomeowner, setNewHomeowner] = useState<HomeownerData>({
     name: '',
     email: '',
@@ -163,7 +213,7 @@ export const AdvancedProjectWizard = ({
 
   // Parse existing address into structured fields when editing
   useEffect(() => {
-    if (projectToEdit?.address) {
+    if (projectToEdit?.address && open) {
       const addressParts = projectToEdit.address.split(',');
       if (addressParts.length >= 2) {
         const streetParts = addressParts[0].trim().split(' ');
@@ -181,7 +231,7 @@ export const AdvancedProjectWizard = ({
         }));
       }
     }
-  }, [projectToEdit?.address]);
+  }, [projectToEdit?.address, open]);
   const totalSteps = isArchitect ? 4 : 3;
   const progressPercentage = currentStep / totalSteps * 100;
   const handleInputChange = (field: string, value: any) => {
