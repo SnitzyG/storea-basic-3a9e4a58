@@ -112,11 +112,12 @@ export const ProjectMap: React.FC<ProjectMapProps> = ({ projects, onGeocodeCompl
       doubleClickZoom: true,
       boxZoom: true,
       keyboard: true,
+      attributionControl: false, // This removes the attribution control
     });
 
     // Add OpenStreetMap tiles
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+      attribution: '', // Empty attribution to remove it
       maxZoom: 19,
     }).addTo(map.current);
 
