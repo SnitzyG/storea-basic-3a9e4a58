@@ -305,123 +305,125 @@ export const ManageProfileDialog = ({ children }: ManageProfileDialogProps) => {
 
           <Separator />
 
-          {/* Company Information */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm font-medium flex items-center gap-2">
-                <Building2 className="h-4 w-4" />
-                Company Information
-              </CardTitle>
-             </CardHeader>
-             <CardContent className="space-y-4">
-               {/* Show linked company from signup */}
-               {linkedCompanyName && (
-                 <div className="p-3 bg-muted/50 rounded-lg border">
-                   <Label className="text-sm font-medium">Linked Company (from signup)</Label>
-                   <p className="text-sm text-foreground mt-1">{linkedCompanyName}</p>
-                   <p className="text-xs text-muted-foreground mt-1">
-                     This company was automatically linked when you signed up
-                   </p>
-                 </div>
-               )}
-               
-               <div>
-                 <Label htmlFor="company-name">Additional Company Details</Label>
-                 <Input
-                   id="company-name"
-                   value={companyName}
-                   onChange={(e) => setCompanyName(e.target.value)}
-                   placeholder="Additional company information"
-                 />
-               </div>
-               <div>
-                 <Label htmlFor="company-position">Position/Title</Label>
-                 <Input
-                   id="company-position"
-                   value={companyPosition}
-                   onChange={(e) => setCompanyPosition(e.target.value)}
-                   placeholder="Enter your position or title"
-                 />
-               </div>
+          {/* Company Information - Hide for homeowners */}
+          {profile?.role !== 'homeowner' && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-sm font-medium flex items-center gap-2">
+                  <Building2 className="h-4 w-4" />
+                  Company Information
+                </CardTitle>
+               </CardHeader>
+               <CardContent className="space-y-4">
+                 {/* Show linked company from signup */}
+                 {linkedCompanyName && (
+                   <div className="p-3 bg-muted/50 rounded-lg border">
+                     <Label className="text-sm font-medium">Linked Company (from signup)</Label>
+                     <p className="text-sm text-foreground mt-1">{linkedCompanyName}</p>
+                     <p className="text-xs text-muted-foreground mt-1">
+                       This company was automatically linked when you signed up
+                     </p>
+                   </div>
+                 )}
+                 
                  <div>
-                   <Label htmlFor="company-address">Company Address</Label>
+                   <Label htmlFor="company-name">Additional Company Details</Label>
                    <Input
-                     id="company-address"
-                     value={companyAddress}
-                     onChange={(e) => setCompanyAddress(e.target.value)}
-                     placeholder="Enter company address"
-                  />
-                </div>
-                
-                <div>
-                  <Label htmlFor="company-website">Company Website</Label>
-                  <Input
-                    id="company-website"
-                    value={companyWebsite}
-                    onChange={(e) => setCompanyWebsite(e.target.value)}
-                    placeholder="https://company.com"
-                  />
-                </div>
+                     id="company-name"
+                     value={companyName}
+                     onChange={(e) => setCompanyName(e.target.value)}
+                     placeholder="Additional company information"
+                   />
+                 </div>
+                 <div>
+                   <Label htmlFor="company-position">Position/Title</Label>
+                   <Input
+                     id="company-position"
+                     value={companyPosition}
+                     onChange={(e) => setCompanyPosition(e.target.value)}
+                     placeholder="Enter your position or title"
+                   />
+                 </div>
+                   <div>
+                     <Label htmlFor="company-address">Company Address</Label>
+                     <Input
+                       id="company-address"
+                       value={companyAddress}
+                       onChange={(e) => setCompanyAddress(e.target.value)}
+                       placeholder="Enter company address"
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="company-website">Company Website</Label>
+                    <Input
+                      id="company-website"
+                      value={companyWebsite}
+                      onChange={(e) => setCompanyWebsite(e.target.value)}
+                      placeholder="https://company.com"
+                    />
+                  </div>
 
-               {/* Company Logo Upload */}
-               <div>
-                 <Label>Company Logo</Label>
-                 <div className="space-y-3">
-                   {companyLogoUrl && (
-                     <div className="flex items-center gap-3 p-3 border rounded-lg">
-                       <img 
-                         src={companyLogoUrl} 
-                         alt="Company logo" 
-                         className="w-12 h-12 object-cover rounded"
-                       />
-                       <div className="flex-1">
-                         <p className="text-sm font-medium">Current logo</p>
-                         <p className="text-xs text-muted-foreground">Logo will appear behind profile initials</p>
+                 {/* Company Logo Upload */}
+                 <div>
+                   <Label>Company Logo</Label>
+                   <div className="space-y-3">
+                     {companyLogoUrl && (
+                       <div className="flex items-center gap-3 p-3 border rounded-lg">
+                         <img 
+                           src={companyLogoUrl} 
+                           alt="Company logo" 
+                           className="w-12 h-12 object-cover rounded"
+                         />
+                         <div className="flex-1">
+                           <p className="text-sm font-medium">Current logo</p>
+                           <p className="text-xs text-muted-foreground">Logo will appear behind profile initials</p>
+                         </div>
+                         <Button
+                           variant="outline"
+                           size="sm"
+                           onClick={removeLogo}
+                           disabled={logoUploading}
+                         >
+                           <X className="h-4 w-4" />
+                         </Button>
                        </div>
+                     )}
+                     <div className="flex items-center gap-2">
+                       <Input
+                         type="file"
+                         accept="image/*"
+                         onChange={handleLogoUpload}
+                         disabled={logoUploading}
+                         className="hidden"
+                         id="logo-upload"
+                       />
                        <Button
                          variant="outline"
-                         size="sm"
-                         onClick={removeLogo}
+                         onClick={() => document.getElementById('logo-upload')?.click()}
                          disabled={logoUploading}
+                         className="flex-1"
                        >
-                         <X className="h-4 w-4" />
+                         <Upload className="h-4 w-4 mr-2" />
+                         {logoUploading ? 'Uploading...' : 'Upload Logo'}
                        </Button>
                      </div>
-                   )}
-                   <div className="flex items-center gap-2">
-                     <Input
-                       type="file"
-                       accept="image/*"
-                       onChange={handleLogoUpload}
-                       disabled={logoUploading}
-                       className="hidden"
-                       id="logo-upload"
-                     />
-                     <Button
-                       variant="outline"
-                       onClick={() => document.getElementById('logo-upload')?.click()}
-                       disabled={logoUploading}
-                       className="flex-1"
-                     >
-                       <Upload className="h-4 w-4 mr-2" />
-                       {logoUploading ? 'Uploading...' : 'Upload Logo'}
-                     </Button>
+                     <p className="text-xs text-muted-foreground">
+                       Upload a company logo (max 2MB). Supported formats: JPG, PNG, GIF.
+                     </p>
                    </div>
-                   <p className="text-xs text-muted-foreground">
-                     Upload a company logo (max 2MB). Supported formats: JPG, PNG, GIF.
-                   </p>
                  </div>
-               </div>
 
-               <Button 
-                 onClick={updateCompanyInfo} 
-                 disabled={companyLoading}
-                 className="w-full"
-               >
-                 {companyLoading ? 'Saving...' : 'Save Company Information'}
-               </Button>
-             </CardContent>
-           </Card>
+                 <Button 
+                   onClick={updateCompanyInfo} 
+                   disabled={companyLoading}
+                   className="w-full"
+                 >
+                   {companyLoading ? 'Saving...' : 'Save Company Information'}
+                 </Button>
+               </CardContent>
+             </Card>
+           )}
 
           <Separator />
 
