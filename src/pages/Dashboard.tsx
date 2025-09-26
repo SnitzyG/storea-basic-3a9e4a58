@@ -20,9 +20,10 @@ const Dashboard = () => {
   const { theme, toggleTheme } = useTheme();
   const { profile } = useAuth();
   const { projects } = useProjects();
-  const { projects: advancedProjects, updateProjectCoordinates } = useAdvancedProjects();
   const { selectedProject } = useProjectSelection();
   const navigate = useNavigate();
+
+  const { updateProjectCoordinates } = useAdvancedProjects();
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -109,7 +110,7 @@ const Dashboard = () => {
             {/* Project Map - Fixed compact height */}
             <div className="h-[calc(50vh-4rem)] min-h-[220px]">
               <ProjectMap 
-                projects={advancedProjects} 
+                projects={projects} 
                 onGeocodeComplete={updateProjectCoordinates}
               />
             </div>

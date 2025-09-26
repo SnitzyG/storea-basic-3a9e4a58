@@ -505,7 +505,7 @@ export const CalendarWidget = () => {
         
         <CardContent className="flex-1 overflow-hidden p-4">
           <Tabs defaultValue="calendar" className="h-full flex flex-col">
-            <TabsList className="grid w-full grid-cols-2">
+            <TabsList className="grid w-full grid-cols-2 mb-4">
               <TabsTrigger value="calendar" className="flex items-center gap-2">
                 <CalendarDays className="h-4 w-4" />
                 Calendar
@@ -519,8 +519,8 @@ export const CalendarWidget = () => {
               </TabsTrigger>
             </TabsList>
             
-            <TabsContent value="calendar" className="flex-1 mt-4">
-              <div className="h-full">
+            <TabsContent value="calendar" className="flex-1 mt-0">
+              <div className="h-full flex flex-col">
                 <div className="flex items-center gap-2 mb-4">
                   <Label htmlFor="view-mode" className="text-xs text-muted-foreground">
                     Week
@@ -559,13 +559,13 @@ export const CalendarWidget = () => {
                       </Button>
                     </div>
                     
-                    <div className="flex-1">
+                    <div className="flex-1 overflow-hidden">
                       <ModernCalendar
                         mode="single"
                         selected={selectedDate}
                         onSelect={setSelectedDate}
                         initialFocus
-                        className="w-full"
+                        className="w-full h-full"
                       />
                     </div>
                   </div>
@@ -598,7 +598,7 @@ export const CalendarWidget = () => {
                       </Button>
                     </div>
                     
-                    <div className="flex-1 grid grid-cols-7 gap-1 text-xs">
+                    <div className="flex-1 grid grid-cols-7 gap-1 text-xs overflow-hidden">
                       {/* Day headers */}
                       {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
                         <div key={day} className="p-2 text-center font-medium text-muted-foreground border-b">
@@ -642,8 +642,8 @@ export const CalendarWidget = () => {
               </div>
             </TabsContent>
             
-            <TabsContent value="tasks" className="flex-1 mt-4">
-              <div className="h-full flex flex-col space-y-4">
+            <TabsContent value="tasks" className="flex-1 mt-0">
+              <div className="h-full flex flex-col space-y-4 overflow-hidden">
                 {/* Quick add section */}
                 <div className="flex gap-2">
                   <div className="flex-1">
@@ -809,8 +809,9 @@ export const CalendarWidget = () => {
                 </Dialog>
 
                 {/* Tasks display */}
-                <ScrollArea className="flex-1">
-                  <div className="space-y-4">
+                <div className="flex-1 overflow-hidden">
+                  <ScrollArea className="h-full">
+                    <div className="space-y-4 pr-2">
                     {loading ? (
                       <p className="text-muted-foreground text-center">Loading tasks...</p>
                     ) : (
@@ -904,8 +905,9 @@ export const CalendarWidget = () => {
                         )}
                       </>
                     )}
-                  </div>
-                </ScrollArea>
+                    </div>
+                  </ScrollArea>
+                </div>
               </div>
             </TabsContent>
           </Tabs>

@@ -4,7 +4,17 @@ import 'leaflet/dist/leaflet.css';
 import { MapPin, ExternalLink } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { AdvancedProject } from '@/hooks/useAdvancedProjects';
+
+interface Project {
+  id: string;
+  name: string;
+  address?: string;
+  latitude?: number;
+  longitude?: number;
+  status: string;
+  budget?: number;
+  project_reference_number?: string;
+}
 
 // Fix for default markers in Leaflet
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -54,7 +64,7 @@ const createStatusIcon = (status: string) => {
 };
 
 interface ProjectMapProps {
-  projects: AdvancedProject[];
+  projects: Project[];
   onGeocodeComplete?: (projectId: string, lat: number, lng: number) => void;
 }
 
