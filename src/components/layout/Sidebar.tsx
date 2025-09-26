@@ -10,13 +10,15 @@ interface SidebarProps {
     company_name?: string;
   };
 }
-
 export const Sidebar = ({
   userRole,
   profile
 }: SidebarProps) => {
   const location = useLocation();
-  const { counts, markTabAsRead } = useTabNotifications();
+  const {
+    counts,
+    markTabAsRead
+  } = useTabNotifications();
   const getVisibleTabs = (role: string) => {
     const allTabs = [{
       id: 'dashboard',
@@ -73,7 +75,6 @@ export const Sidebar = ({
   };
   const visibleTabs = getVisibleTabs(userRole);
   const showCompanyLogo = userRole !== 'homeowner' && profile?.company_logo_url;
-  
   return <div className="w-64 bg-sidebar-background border-r border-sidebar-border flex flex-col">
       <div className="p-6 border-b border-sidebar-border">
         <div className="flex items-center justify-between space-x-3">
@@ -90,20 +91,12 @@ export const Sidebar = ({
           </div>
           
           {/* Company logo - shown for non-homeowners */}
-          {showCompanyLogo && (
-            <div className="flex flex-col items-end flex-shrink-0 min-w-0">
-              <img 
-                src={profile.company_logo_url} 
-                alt={profile.company_name || "Company Logo"} 
-                className="h-12 w-auto max-w-[80px] object-contain"
-              />
-              {profile.company_name && (
-                <p className="text-xs text-muted-foreground mt-1 text-right truncate max-w-[80px]">
+          {showCompanyLogo && <div className="flex flex-col items-end flex-shrink-0 min-w-0">
+              
+              {profile.company_name && <p className="text-xs text-muted-foreground mt-1 text-right truncate max-w-[80px]">
                   {profile.company_name}
-                </p>
-              )}
-            </div>
-          )}
+                </p>}
+            </div>}
         </div>
       </div>
 
@@ -113,12 +106,8 @@ export const Sidebar = ({
           const Icon = tab.icon;
           const isActive = location.pathname.startsWith(tab.path);
           const isDisabled = ['tenders', 'financials'].includes(tab.id);
-          
           if (isDisabled) {
-            return <div 
-              key={tab.id} 
-              className="flex items-center justify-between px-4 py-3 rounded-lg text-sm font-medium text-muted-foreground cursor-not-allowed opacity-50"
-            >
+            return <div key={tab.id} className="flex items-center justify-between px-4 py-3 rounded-lg text-sm font-medium text-muted-foreground cursor-not-allowed opacity-50">
               <div className="flex items-center gap-3">
                 <Icon className="h-5 w-5" />
                 {tab.label}
@@ -126,12 +115,7 @@ export const Sidebar = ({
               <span className="text-xs text-muted-foreground">Coming Soon</span>
             </div>;
           }
-          
-          return <Link 
-            key={tab.id} 
-            to={tab.path} 
-            className={cn("flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors", isActive ? "bg-sidebar-accent text-sidebar-accent-foreground" : "text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground dark:text-white")}
-          >
+          return <Link key={tab.id} to={tab.path} className={cn("flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors", isActive ? "bg-sidebar-accent text-sidebar-accent-foreground" : "text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground dark:text-white")}>
                 <Icon className="h-5 w-5" />
                 {tab.label}
               </Link>;
