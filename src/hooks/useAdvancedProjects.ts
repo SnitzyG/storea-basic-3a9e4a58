@@ -6,6 +6,9 @@ export interface AdvancedProject {
   id: string;
   name: string;
   address?: string;
+  latitude?: number;
+  longitude?: number;
+  geocoded_at?: string;
   description?: string;
   status: 'planning' | 'active' | 'on_hold' | 'completed' | 'cancelled';
   budget?: number;
@@ -128,7 +131,7 @@ export const useAdvancedProjects = () => {
         .eq('user_id', userData.user.id)
         .single();
 
-      let query = supabase.from('projects').select('*, project_id');
+      let query = supabase.from('projects').select('*, project_id, latitude, longitude, geocoded_at');
 
       // Apply filters based on user role
       if (profile?.role === 'homeowner') {
@@ -335,6 +338,26 @@ export const useAdvancedProjects = () => {
         variant: "destructive"
       });
       throw error;
+    }
+  };
+
+  const updateProjectCoordinates = async (projectId: string, lat: number, lng: number) => {
+    try {
+      const { error } = await supabase
+        .from('projects')
+        .update({
+          latitude: lat,
+          longitude: lng,
+          geocoded_at: new Date().toISOString()
+        })
+        .eq('id', projectId);
+
+      if (error) throw error;
+
+      // Refetch projects to update the state
+      await fetchProjects();
+    } catch (error: any) {
+      console.error('Error updating project coordinates:', error);
     }
   };
 
@@ -628,6 +651,7 @@ export const useAdvancedProjects = () => {
     sortConfig,
     createProject,
     updateProject,
+    updateProjectCoordinates,
     archiveProject,
     deleteProject,
     cloneProject,

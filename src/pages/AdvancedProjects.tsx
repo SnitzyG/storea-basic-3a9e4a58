@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -11,6 +11,7 @@ import { useAdvancedProjects, AdvancedProject } from '@/hooks/useAdvancedProject
 import { AdvancedProjectWizard } from '@/components/projects-v2/AdvancedProjectWizard';
 import { ProjectDetailsDialog } from '@/components/projects-v2/ProjectDetailsDialog';
 import { ProjectJoinSection } from '@/components/projects/ProjectJoinSection';
+import { ProjectMap } from '@/components/ui/project-map';
 import { useAuth } from '@/hooks/useAuth';
 
 const ArchitecturalStageSelector = ({
@@ -119,7 +120,8 @@ const AdvancedProjects = () => {
     archiveProject,
     cloneProject,
     deleteProject,
-    updateProject
+    updateProject,
+    updateProjectCoordinates
   } = useAdvancedProjects();
   const { profile } = useAuth();
   const { toast } = useToast();
@@ -204,6 +206,21 @@ const AdvancedProjects = () => {
       console.error('Error updating project budget:', error);
     }
   };
+
+  // Handle opening project details from map
+  useEffect(() => {
+    const handleOpenProjectDetails = (event: CustomEvent) => {
+      const projectId = event.detail;
+      const project = projects.find(p => p.id === projectId);
+      if (project) {
+        setProjectToView(project);
+        setDetailsDialogOpen(true);
+      }
+    };
+
+    window.addEventListener('openProjectDetails', handleOpenProjectDetails as EventListener);
+    return () => window.removeEventListener('openProjectDetails', handleOpenProjectDetails as EventListener);
+  }, [projects]);
 
   if (loading) {
     return (
@@ -356,6 +373,12 @@ const AdvancedProjects = () => {
                   </Table>
                 </CardContent>
               </Card>
+              
+              {/* Project Map */}
+              <ProjectMap 
+                projects={projects} 
+                onGeocodeComplete={updateProjectCoordinates} 
+              />
             </div>
           )}
         </TabsContent>
