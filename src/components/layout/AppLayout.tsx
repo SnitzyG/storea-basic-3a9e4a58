@@ -1,9 +1,10 @@
 import { useAuth } from '@/hooks/useAuth';
 import { useProjectLinking } from '@/hooks/useProjectLinking';
 import { Navigate } from 'react-router-dom';
-import { Sidebar } from './Sidebar';
+import { AppSidebar } from './AppSidebar';
 import { Header } from './Header';
 import { ProjectSelectionProvider } from '@/context/ProjectSelectionContext';
+import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 interface AppLayoutProps {
   children: React.ReactNode;
 }
@@ -52,16 +53,18 @@ export const AppLayout = ({
   const userRole = profile?.role ?? 'contractor';
 
   return (
-    <ProjectSelectionProvider>
-      <div className="min-h-screen bg-background flex">
-        <Sidebar userRole={userRole} />
-        <div className="flex-1 flex flex-col min-h-screen">
-          <Header user={user} profile={profile} />
-          <main className="flex-1 overflow-hidden mx-0 py-[10px]">
-            {children}
-          </main>
+    <SidebarProvider>
+      <ProjectSelectionProvider>
+        <div className="min-h-screen bg-background flex w-full">
+          <AppSidebar userRole={userRole} />
+          <div className="flex-1 flex flex-col min-h-screen">
+            <Header user={user} profile={profile} />
+            <main className="flex-1 overflow-hidden mx-0 py-[10px]">
+              {children}
+            </main>
+          </div>
         </div>
-      </div>
-    </ProjectSelectionProvider>
+      </ProjectSelectionProvider>
+    </SidebarProvider>
   );
 };
