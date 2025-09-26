@@ -14,6 +14,45 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
 });
 
+// Create custom colored markers for different project statuses
+const createStatusIcon = (status: string) => {
+  const colors = {
+    active: '#10B981', // Green
+    planning: '#3B82F6', // Blue  
+    on_hold: '#F59E0B', // Orange
+    completed: '#6B7280', // Gray
+    cancelled: '#EF4444' // Red
+  };
+  
+  const color = colors[status as keyof typeof colors] || colors.active;
+  
+  return L.divIcon({
+    className: 'custom-marker',
+    html: `
+      <div style="
+        background-color: ${color};
+        width: 25px;
+        height: 25px;
+        border-radius: 50% 50% 50% 0;
+        border: 3px solid white;
+        transform: rotate(-45deg);
+        box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+      ">
+        <div style="
+          width: 8px;
+          height: 8px;
+          background-color: white;
+          border-radius: 50%;
+          margin: 6px 0 0 6px;
+        "></div>
+      </div>
+    `,
+    iconSize: [25, 25],
+    iconAnchor: [12, 24],
+    popupAnchor: [0, -24]
+  });
+};
+
 interface ProjectMapProps {
   projects: AdvancedProject[];
   onGeocodeComplete?: (projectId: string, lat: number, lng: number) => void;
@@ -146,21 +185,33 @@ export const ProjectMap: React.FC<ProjectMapProps> = ({ projects, onGeocodeCompl
 
     const bounds = L.latLngBounds([]);
 
-    // Add markers for each project
+    // Add markers for each project with status-based colors
     validProjects.forEach((project) => {
       if (!map.current || !project.latitude || !project.longitude) return;
 
-      const marker = L.marker([project.latitude, project.longitude])
-        .addTo(map.current);
+      const marker = L.marker([project.latitude, project.longitude], {
+        icon: createStatusIcon(project.status)
+      }).addTo(map.current);
 
-      // Custom popup content
+      // Custom popup content with project reference
       const popupContent = `
-        <div class="p-3 min-w-[200px]">
-          <h3 class="font-semibold text-sm mb-2 text-foreground">${project.name}</h3>
-          <p class="text-xs text-muted-foreground mb-2">${project.address}</p>
+        <div class="p-3 min-w-[220px]">
+          <div class="mb-2">
+            <h3 class="font-semibold text-sm mb-1 text-foreground">${project.name}</h3>
+            ${project.project_reference_number ? 
+              `<p class="text-xs text-muted-foreground font-mono bg-muted/50 px-2 py-1 rounded">${project.project_reference_number}</p>` : 
+              ''
+            }
+          </div>
+          <p class="text-xs text-muted-foreground mb-3">${project.address}</p>
           <div class="flex items-center gap-2 text-xs text-muted-foreground mb-3">
             <span class="inline-flex items-center gap-1">
-              <span class="w-2 h-2 rounded-full bg-green-500"></span>
+              <span class="w-2 h-2 rounded-full" style="background-color: ${
+                project.status === 'active' ? '#10B981' :
+                project.status === 'planning' ? '#3B82F6' :
+                project.status === 'on_hold' ? '#F59E0B' :
+                project.status === 'completed' ? '#6B7280' : '#EF4444'
+              }"></span>
               ${project.status.replace('_', ' ').toUpperCase()}
             </span>
             ${project.budget ? `<span>$${project.budget.toLocaleString()}</span>` : ''}
@@ -178,7 +229,7 @@ export const ProjectMap: React.FC<ProjectMapProps> = ({ projects, onGeocodeCompl
       `;
 
       marker.bindPopup(popupContent, {
-        maxWidth: 250,
+        maxWidth: 280,
         className: 'custom-popup'
       });
 
