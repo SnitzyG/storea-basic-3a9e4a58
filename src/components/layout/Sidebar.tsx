@@ -77,7 +77,7 @@ export const Sidebar = ({
   const showCompanyLogo = userRole !== 'homeowner' && profile?.company_logo_url;
   return <div className="w-64 bg-sidebar-background border-r border-sidebar-border flex flex-col">
       <div className="p-6 border-b border-sidebar-border">
-        <div className="flex items-center justify-between space-x-3">
+        <div className="flex items-center justify-center space-x-3">
           {/* STOREALite text - always shown */}
           <div className="flex-shrink-0">
             <h1 className="text-xl font-bold tracking-wider">
