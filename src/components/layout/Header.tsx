@@ -65,15 +65,6 @@ export const Header = ({
   return (
     <header className="h-16 border-b border-border bg-card px-6 flex items-center justify-between">
       <div className="flex items-center gap-4">
-        {/* STOREALite logo moved from sidebar */}
-        <h1 className="text-xl font-bold tracking-wider">
-          <span className="bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent font-black">
-            STOREA
-          </span>
-          <span className="bg-gradient-to-r from-accent to-accent/70 bg-clip-text text-transparent font-light ml-1">
-            Lite
-          </span>
-        </h1>
         <ProjectSelector />
       </div>
 
@@ -85,21 +76,13 @@ export const Header = ({
         </Button>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="relative h-10 w-10 rounded-full">
-              {profile?.company_logo_url ? (
-                <img 
-                  src={profile.company_logo_url} 
-                  alt="Company Logo" 
-                  className="h-10 w-10 rounded-full object-cover"
-                />
-              ) : (
-                <CompanyAvatar 
-                  className="h-10 w-10"
-                  companyLogoUrl={profile?.company_logo_url}
-                  avatarUrl={profile?.avatar_url}
-                  fallback={initials}
-                />
-              )}
+            <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+              <CompanyAvatar 
+                className="h-8 w-8"
+                companyLogoUrl={profile?.company_logo_url}
+                avatarUrl={profile?.avatar_url}
+                fallback={initials}
+              />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent className="w-56" align="end" forceMount>
