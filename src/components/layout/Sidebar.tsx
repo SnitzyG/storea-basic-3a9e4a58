@@ -76,32 +76,34 @@ export const Sidebar = ({
   
   return <div className="w-64 bg-sidebar-background border-r border-sidebar-border flex flex-col">
       <div className="p-6 border-b border-sidebar-border">
-        <div className="flex items-center justify-between space-x-3">
-          {/* STOREALite text - always shown */}
-          <div className="flex-shrink-0">
-            <h1 className="text-xl font-bold tracking-wider">
-              <span className="bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent font-black">
-                STOREA
-              </span>
-              <span className="bg-gradient-to-r from-accent to-accent/70 bg-clip-text text-transparent font-light ml-1">
-                Lite
-              </span>
-            </h1>
-          </div>
-          
-          {/* Company logo - shown for non-homeowners */}
-          {showCompanyLogo && (
-            <div className="flex flex-col items-end flex-shrink-0 min-w-0">
-              <img 
-                src={profile.company_logo_url} 
-                alt={profile.company_name || "Company Logo"} 
-                className="h-12 w-auto max-w-[80px] object-contain"
-              />
-              {profile.company_name && (
-                <p className="text-xs text-muted-foreground mt-1 text-right truncate max-w-[80px]">
-                  {profile.company_name}
-                </p>
-              )}
+        <div className="flex items-center justify-center">
+          {showCompanyLogo ? (
+            <div className="relative w-full h-20 rounded-lg bg-gradient-to-br from-primary/10 via-accent/10 to-secondary/10 border border-primary/20 flex flex-col items-center justify-center p-4">
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5 rounded-lg animate-pulse"></div>
+              
+              <div className="relative z-10 flex flex-col items-center w-full">
+                <img 
+                  src={profile.company_logo_url} 
+                  alt={profile.company_name || "Company Logo"} 
+                  className="h-12 w-auto max-w-full object-contain drop-shadow-sm"
+                />
+                {profile.company_name && (
+                  <p className="text-sm font-medium text-foreground mt-2 text-center truncate w-full">
+                    {profile.company_name}
+                  </p>
+                )}
+              </div>
+            </div>
+          ) : (
+            <div>
+              <h1 className="text-xl font-bold tracking-wider text-center">
+                <span className="bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent font-black">
+                  STOREA
+                </span>
+                <span className="bg-gradient-to-r from-accent to-accent/70 bg-clip-text text-transparent font-light ml-1">
+                  Lite
+                </span>
+              </h1>
             </div>
           )}
         </div>
@@ -138,5 +140,21 @@ export const Sidebar = ({
         })}
         </div>
       </nav>
+
+      {/* STOREALite text at bottom for company users */}
+      {showCompanyLogo && (
+        <div className="p-4 border-t border-sidebar-border">
+          <div className="flex items-center justify-center">
+            <h2 className="text-lg font-bold tracking-wider">
+              <span className="bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent font-black">
+                STOREA
+              </span>
+              <span className="bg-gradient-to-r from-accent to-accent/70 bg-clip-text text-transparent font-light ml-1">
+                Lite
+              </span>
+            </h2>
+          </div>
+        </div>
+      )}
     </div>;
 };
