@@ -3,7 +3,6 @@ import { useLocation, Link } from 'react-router-dom';
 import { BarChart3, FolderOpen, FileStack, MessageSquare, HelpCircle, Briefcase, TestTube, DollarSign } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { useTabNotifications } from '@/hooks/useTabNotifications';
-import { useLogoColors } from '@/hooks/useLogoColors';
 interface SidebarProps {
   userRole: 'architect' | 'builder' | 'homeowner' | 'contractor';
   profile?: {
@@ -18,8 +17,6 @@ export const Sidebar = ({
 }: SidebarProps) => {
   const location = useLocation();
   const { counts, markTabAsRead } = useTabNotifications();
-  const { colors, loading } = useLogoColors(profile?.company_logo_url);
-  
   const getVisibleTabs = (role: string) => {
     const allTabs = [{
       id: 'dashboard',
@@ -77,38 +74,18 @@ export const Sidebar = ({
   const visibleTabs = getVisibleTabs(userRole);
   const showCompanyLogo = userRole !== 'homeowner' && profile?.company_logo_url;
   
-  // Create dynamic styles based on extracted colors
-  const dynamicStyles = colors ? {
-    background: `linear-gradient(135deg, ${colors.primary}10, ${colors.secondary}10, ${colors.accent}10)`,
-    borderColor: `${colors.primary}20`,
-    animatedBackground: `linear-gradient(135deg, ${colors.primary}05, transparent, ${colors.accent}05)`
-  } : {
-    background: 'linear-gradient(135deg, hsl(var(--primary)/0.1), hsl(var(--accent)/0.1), hsl(var(--secondary)/0.1))',
-    borderColor: 'hsl(var(--primary)/0.2)',
-    animatedBackground: 'linear-gradient(135deg, hsl(var(--primary)/0.05), transparent, hsl(var(--accent)/0.05))'
-  };
-  
   return <div className="w-64 bg-sidebar-background border-r border-sidebar-border flex flex-col">
       <div className="p-6 border-b border-sidebar-border">
         <div className="flex items-center justify-center">
           {showCompanyLogo ? (
-            <div 
-              className="relative w-full h-24 rounded-lg border flex flex-col items-center justify-center p-4"
-              style={{ 
-                background: dynamicStyles.background, 
-                borderColor: dynamicStyles.borderColor 
-              }}
-            >
-              <div 
-                className="absolute inset-0 rounded-lg animate-pulse"
-                style={{ background: dynamicStyles.animatedBackground }}
-              ></div>
+            <div className="relative w-full h-24 rounded-lg bg-gradient-to-br from-primary/10 via-accent/10 to-secondary/10 border border-primary/20 flex flex-col items-center justify-center p-4">
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5 rounded-lg animate-pulse"></div>
               
               <div className="relative z-10 flex flex-col items-center w-full">
                 <img 
                   src={profile.company_logo_url} 
                   alt={profile.company_name || "Company Logo"} 
-                  className="h-16 w-auto max-w-full object-contain drop-shadow-sm"
+                  className="h-18 w-auto max-w-full object-contain drop-shadow-sm"
                 />
                 {profile.company_name && (
                   <p className="text-sm font-medium text-foreground mt-2 text-center truncate w-full">
