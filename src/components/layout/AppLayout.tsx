@@ -54,7 +54,7 @@ export const AppLayout = ({
   return (
     <ProjectSelectionProvider>
       <div className="min-h-screen bg-background flex">
-        <Sidebar userRole={userRole} />
+        <Sidebar userRole={userRole} profile={profile} />
         <div className="flex-1 flex flex-col min-h-screen">
           <Header user={user} profile={profile} />
           <main className="flex-1 overflow-hidden mx-0 py-[10px]">
