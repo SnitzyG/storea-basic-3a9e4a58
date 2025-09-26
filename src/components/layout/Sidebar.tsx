@@ -73,34 +73,35 @@ export const Sidebar = ({
   };
   const visibleTabs = getVisibleTabs(userRole);
   const showCompanyLogo = userRole !== 'homeowner' && profile?.company_logo_url;
-  const showStorealiteAtTop = userRole === 'homeowner' || !profile?.company_logo_url;
   
   return <div className="w-64 bg-sidebar-background border-r border-sidebar-border flex flex-col">
       <div className="p-6 border-b border-sidebar-border">
-        <div className="flex items-center gap-2 mx-0 px-[50px]">
-          {showCompanyLogo ? (
+        <div className="flex flex-col items-center space-y-4">
+          {/* STOREALite text - always shown */}
+          <div>
+            <h1 className="text-2xl font-bold tracking-wider text-center">
+              <span className="bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent font-black">
+                STOREA
+              </span>
+              <span className="bg-gradient-to-r from-accent to-accent/70 bg-clip-text text-transparent font-light ml-1">
+                Lite
+              </span>
+            </h1>
+          </div>
+          
+          {/* Company logo - shown for non-homeowners */}
+          {showCompanyLogo && (
             <div className="flex flex-col items-center w-full">
               <img 
                 src={profile.company_logo_url} 
                 alt={profile.company_name || "Company Logo"} 
-                className="h-12 w-auto max-w-full object-contain"
+                className="h-16 w-auto max-w-full object-contain"
               />
               {profile.company_name && (
                 <p className="text-sm text-muted-foreground mt-2 text-center truncate w-full">
                   {profile.company_name}
                 </p>
               )}
-            </div>
-          ) : showStorealiteAtTop && (
-            <div>
-              <h1 className="text-xl font-bold tracking-wider">
-                <span className="bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent font-black">
-                  STOREA
-                </span>
-                <span className="bg-gradient-to-r from-accent to-accent/70 bg-clip-text text-transparent font-light ml-1">
-                  Lite
-                </span>
-              </h1>
             </div>
           )}
         </div>
@@ -137,21 +138,5 @@ export const Sidebar = ({
         })}
         </div>
       </nav>
-
-      {/* STOREALite text at bottom for company users */}
-      {showCompanyLogo && (
-        <div className="p-4 border-t border-sidebar-border">
-          <div className="flex items-center justify-center">
-            <h2 className="text-sm font-bold tracking-wider">
-              <span className="bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent font-black">
-                STOREA
-              </span>
-              <span className="bg-gradient-to-r from-accent to-accent/70 bg-clip-text text-transparent font-light ml-1">
-                Lite
-              </span>
-            </h2>
-          </div>
-        </div>
-      )}
     </div>;
 };
