@@ -4,17 +4,7 @@ import 'leaflet/dist/leaflet.css';
 import { MapPin, ExternalLink } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-
-interface Project {
-  id: string;
-  name: string;
-  address?: string;
-  latitude?: number;
-  longitude?: number;
-  status: string;
-  budget?: number;
-  project_reference_number?: string;
-}
+import { AdvancedProject } from '@/hooks/useAdvancedProjects';
 
 // Fix for default markers in Leaflet
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -64,7 +54,7 @@ const createStatusIcon = (status: string) => {
 };
 
 interface ProjectMapProps {
-  projects: Project[];
+  projects: AdvancedProject[];
   onGeocodeComplete?: (projectId: string, lat: number, lng: number) => void;
 }
 
@@ -200,17 +190,10 @@ export const ProjectMap: React.FC<ProjectMapProps> = ({ projects, onGeocodeCompl
       if (!map.current || !project.latitude || !project.longitude) return;
 
       const marker = L.marker([project.latitude, project.longitude], {
-        icon: createStatusIcon((project.status || 'active') as string)
+        icon: createStatusIcon(project.status)
       }).addTo(map.current);
 
       // Custom popup content with project reference
-      const statusLabel = (project.status || 'active').toString().replace('_', ' ').toUpperCase();
-      const statusColor =
-        (project.status === 'active' ? '#10B981' :
-         project.status === 'planning' ? '#3B82F6' :
-         project.status === 'on_hold' ? '#F59E0B' :
-         project.status === 'completed' ? '#6B7280' : '#EF4444');
-
       const popupContent = `
         <div class="p-3 min-w-[220px]">
           <div class="mb-2">
@@ -220,13 +203,18 @@ export const ProjectMap: React.FC<ProjectMapProps> = ({ projects, onGeocodeCompl
               ''
             }
           </div>
-          <p class="text-xs text-muted-foreground mb-3">${project.address || ''}</p>
+          <p class="text-xs text-muted-foreground mb-3">${project.address}</p>
           <div class="flex items-center gap-2 text-xs text-muted-foreground mb-3">
             <span class="inline-flex items-center gap-1">
-              <span class="w-2 h-2 rounded-full" style="background-color: ${statusColor}"></span>
-              ${statusLabel}
+              <span class="w-2 h-2 rounded-full" style="background-color: ${
+                project.status === 'active' ? '#10B981' :
+                project.status === 'planning' ? '#3B82F6' :
+                project.status === 'on_hold' ? '#F59E0B' :
+                project.status === 'completed' ? '#6B7280' : '#EF4444'
+              }"></span>
+              ${project.status.replace('_', ' ').toUpperCase()}
             </span>
-            ${project.budget ? `<span>$${Number(project.budget).toLocaleString()}</span>` : ''}
+            ${project.budget ? `<span>$${project.budget.toLocaleString()}</span>` : ''}
           </div>
           <button 
             onclick="window.dispatchEvent(new CustomEvent('openProjectDetails', { detail: '${project.id}' }))"
@@ -287,7 +275,7 @@ export const ProjectMap: React.FC<ProjectMapProps> = ({ projects, onGeocodeCompl
       <CardContent className="p-0">
         <div 
           ref={mapContainer} 
-          className="w-full h-full min-h-[300px] rounded-b-lg"
+          className="w-full h-[400px] rounded-b-lg"
           style={{ zIndex: 1 }}
         />
         

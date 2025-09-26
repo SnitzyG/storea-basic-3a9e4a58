@@ -10,6 +10,7 @@ import { useTheme } from '@/context/ThemeContext';
 import { NotificationCenter } from '@/components/notifications/NotificationCenter';
 import { ProjectSelector } from './ProjectSelector';
 import { ManageProfileDialog } from '@/components/profile/ManageProfileDialog';
+import { SidebarTrigger } from '@/components/ui/sidebar';
 import { supabase } from '@/integrations/supabase/client';
 
 interface HeaderProps {
@@ -65,6 +66,7 @@ export const Header = ({
   return (
     <header className="h-16 border-b border-border bg-card px-6 flex items-center justify-between">
       <div className="flex items-center gap-4">
+        <SidebarTrigger className="h-8 w-8" />
         <ProjectSelector />
       </div>
 
