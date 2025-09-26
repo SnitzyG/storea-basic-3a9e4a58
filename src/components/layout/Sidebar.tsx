@@ -76,10 +76,10 @@ export const Sidebar = ({
   
   return <div className="w-64 bg-sidebar-background border-r border-sidebar-border flex flex-col">
       <div className="p-6 border-b border-sidebar-border">
-        <div className="flex flex-col items-center space-y-4">
+        <div className="flex items-center justify-between space-x-3">
           {/* STOREALite text - always shown */}
-          <div>
-            <h1 className="text-2xl font-bold tracking-wider text-center">
+          <div className="flex-shrink-0">
+            <h1 className="text-xl font-bold tracking-wider">
               <span className="bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent font-black">
                 STOREA
               </span>
@@ -91,14 +91,14 @@ export const Sidebar = ({
           
           {/* Company logo - shown for non-homeowners */}
           {showCompanyLogo && (
-            <div className="flex flex-col items-center w-full">
+            <div className="flex flex-col items-end flex-shrink-0 min-w-0">
               <img 
                 src={profile.company_logo_url} 
                 alt={profile.company_name || "Company Logo"} 
-                className="h-16 w-auto max-w-full object-contain"
+                className="h-12 w-auto max-w-[80px] object-contain"
               />
               {profile.company_name && (
-                <p className="text-sm text-muted-foreground mt-2 text-center truncate w-full">
+                <p className="text-xs text-muted-foreground mt-1 text-right truncate max-w-[80px]">
                   {profile.company_name}
                 </p>
               )}
