@@ -503,7 +503,7 @@ export const CalendarWidget = () => {
           </div>
         </CardHeader>
         
-        <CardContent className="flex-1 overflow-hidden p-4">
+        <CardContent className="flex-1 overflow-auto p-4 min-h-0">
           <Tabs defaultValue="calendar" className="h-full flex flex-col">
             <TabsList className="grid w-full grid-cols-2 mb-4">
               <TabsTrigger value="calendar" className="flex items-center gap-2">
@@ -559,7 +559,7 @@ export const CalendarWidget = () => {
                       </Button>
                     </div>
                     
-                    <div className="flex-1 overflow-hidden">
+                    <div className="flex-1 min-h-0">
                       <ModernCalendar
                         mode="single"
                         selected={selectedDate}
@@ -598,7 +598,7 @@ export const CalendarWidget = () => {
                       </Button>
                     </div>
                     
-                    <div className="flex-1 grid grid-cols-7 gap-1 text-xs overflow-hidden">
+                    <div className="flex-1 min-h-0 overflow-auto grid grid-cols-7 gap-1 text-xs">
                       {/* Day headers */}
                       {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
                         <div key={day} className="p-2 text-center font-medium text-muted-foreground border-b">
