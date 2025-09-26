@@ -12,7 +12,8 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
-import { CalendarDays, Plus, Clock, CheckCircle2, ChevronLeft, ChevronRight, Download, Users, Paperclip, Edit, Trash2, X, FileText } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { CalendarDays, Plus, Clock, CheckCircle2, ChevronLeft, ChevronRight, Download, Users, Paperclip, Edit, Trash2, X, FileText, CheckSquare } from 'lucide-react';
 import { format, isSameDay, startOfMonth, endOfMonth, eachDayOfInterval, startOfWeek, endOfWeek, addWeeks, subWeeks, getWeek, startOfYear } from 'date-fns';
 import { useTodos } from '@/hooks/useTodos';
 import { useToast } from '@/hooks/use-toast';
@@ -45,8 +46,17 @@ export const CalendarWidget = () => {
   const [eventDate, setEventDate] = useState<Date | undefined>(new Date());
   const [editingEvent, setEditingEvent] = useState<any>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  
+  // To-do list specific states
+  const [newTodo, setNewTodo] = useState('');
+  const [todoDialogOpen, setTodoDialogOpen] = useState(false);
+  const [attachToCalendar, setAttachToCalendar] = useState(false);
+  const [dueDate, setDueDate] = useState('');
+  const [todoRelatedInfo, setTodoRelatedInfo] = useState('');
+  const [todoRelatedType, setTodoRelatedType] = useState<'document' | 'rfi' | 'message' | ''>('');
+  
   const { selectedProject } = useProjectSelection();
-  const { todos, addTodo, updateTodo, deleteTodo } = useTodos(selectedProject?.id);
+  const { todos, addTodo, updateTodo, deleteTodo, toggleTodo, loading } = useTodos(selectedProject?.id);
   const { documents } = useDocuments(selectedProject?.id);
   const { rfis } = useRFIs();
   const { messages } = useMessages();
@@ -108,7 +118,7 @@ export const CalendarWidget = () => {
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(24);
     doc.setFont('helvetica', 'bold');
-    doc.text('📅 Calendar Events Report', pageWidth / 2, 25, { align: 'center' });
+    doc.text('📅 Calendar & Tasks Report', pageWidth / 2, 25, { align: 'center' });
     
     // Add project details if available
     doc.setFontSize(12);
@@ -145,101 +155,16 @@ export const CalendarWidget = () => {
     doc.setFillColor(248, 250, 252);
     doc.roundedRect(15, yPosition, pageWidth - 30, 25, 2, 2, 'FD');
     
-    const meetingCount = eventsInRange.filter(todo => todo.content.includes('Meeting:')).length;
-    const eventCount = eventsInRange.length - meetingCount;
+    const pendingCount = eventsInRange.filter(todo => !todo.completed).length;
+    const completedCount = eventsInRange.filter(todo => todo.completed).length;
     
     doc.setFontSize(12);
     doc.setFont('helvetica', 'bold');
     doc.text('Summary:', 20, yPosition + 8);
     doc.setFont('helvetica', 'normal');
-    doc.text(`Total Events: ${eventsInRange.length} | Meetings: ${meetingCount} | Other Events: ${eventCount}`, 20, yPosition + 18);
+    doc.text(`Total Tasks: ${eventsInRange.length} | Pending: ${pendingCount} | Completed: ${completedCount}`, 20, yPosition + 18);
     
     yPosition += 40;
-    
-    // Group events by date
-    const eventsByDate = new Map();
-    eventsInRange.forEach(todo => {
-      const dateKey = format(new Date(todo.due_date!), 'yyyy-MM-dd');
-      if (!eventsByDate.has(dateKey)) {
-        eventsByDate.set(dateKey, []);
-      }
-      eventsByDate.get(dateKey).push(todo);
-    });
-    
-    // Sort dates
-    const sortedDates = Array.from(eventsByDate.keys()).sort();
-    
-    if (sortedDates.length > 0) {
-      doc.setFontSize(16);
-      doc.setFont('helvetica', 'bold');
-      doc.setTextColor(139, 69, 19);
-      doc.text('📋 Events by Date', 20, yPosition);
-      yPosition += 20;
-      
-      sortedDates.forEach(dateKey => {
-        const dayEvents = eventsByDate.get(dateKey);
-        
-        if (yPosition > pageHeight - 60) {
-          doc.addPage();
-          yPosition = 30;
-        }
-        
-        // Date header
-        doc.setDrawColor(139, 69, 19);
-        doc.setFillColor(245, 245, 220);
-        doc.roundedRect(15, yPosition - 8, pageWidth - 30, 18, 2, 2, 'FD');
-        
-        doc.setTextColor(139, 69, 19);
-        doc.setFontSize(14);
-        doc.setFont('helvetica', 'bold');
-        const dateObj = new Date(dateKey);
-        doc.text(`📅 ${format(dateObj, 'EEEE, MMMM d, yyyy')}`, 20, yPosition + 2);
-        yPosition += 25;
-        
-        dayEvents.forEach((todo, index) => {
-          if (yPosition > pageHeight - 40) {
-            doc.addPage();
-            yPosition = 30;
-          }
-          
-          // Event box
-          const isMeeting = todo.content.includes('Meeting:');
-          doc.setDrawColor(isMeeting ? 34 : 59, isMeeting ? 197 : 130, isMeeting ? 94 : 246);
-          doc.setFillColor(isMeeting ? 240 : 239, isMeeting ? 253 : 246, isMeeting ? 244 : 255);
-          doc.roundedRect(20, yPosition - 5, pageWidth - 40, 25, 1, 1, 'FD');
-          
-          // Event icon and title
-          doc.setTextColor(0, 0, 0);
-          doc.setFontSize(12);
-          doc.setFont('helvetica', 'bold');
-          const eventIcon = isMeeting ? '🤝' : '📌';
-          const eventTime = todo.due_date ? format(new Date(todo.due_date), 'h:mm a') : 'All Day';
-          doc.text(`${eventIcon} ${eventTime}`, 25, yPosition + 5);
-          
-          // Event content
-          doc.setFontSize(11);
-          doc.setFont('helvetica', 'normal');
-          const contentLines = doc.splitTextToSize(todo.content, pageWidth - 70);
-          doc.text(contentLines, 25, yPosition + 12);
-          
-          // Priority indicator
-          if (todo.priority && todo.priority !== 'medium') {
-            doc.setFontSize(9);
-            doc.setFont('helvetica', 'bold');
-            const priorityColor = todo.priority === 'high' ? '🔴' : '🟡';
-            doc.text(`${priorityColor} ${todo.priority.toUpperCase()} PRIORITY`, 25, yPosition + 20);
-          }
-          
-          yPosition += 35;
-        });
-        
-        yPosition += 10;
-      });
-    } else {
-      doc.setFontSize(14);
-      doc.setTextColor(100, 100, 100);
-      doc.text('📅 No events found in this date range', pageWidth / 2, yPosition, { align: 'center' });
-    }
     
     // Footer
     doc.setFontSize(8);
@@ -247,14 +172,14 @@ export const CalendarWidget = () => {
     doc.text('Generated by STOREAlite', pageWidth / 2, pageHeight - 10, { align: 'center' });
     
     const filename = selectedProject 
-      ? `${selectedProject.name}-calendar-${exportFormat}-${format(new Date(), 'yyyy-MM-dd')}.pdf`
-      : `calendar-${exportFormat}-${format(new Date(), 'yyyy-MM-dd')}.pdf`;
+      ? `${selectedProject.name}-calendar-tasks-${exportFormat}-${format(new Date(), 'yyyy-MM-dd')}.pdf`
+      : `calendar-tasks-${exportFormat}-${format(new Date(), 'yyyy-MM-dd')}.pdf`;
     
     doc.save(filename);
     
     toast({
       title: "Success",
-      description: `Calendar exported as PDF for ${exportFormat}`,
+      description: `Calendar & Tasks exported as PDF for ${exportFormat}`,
     });
     setIsExportDialogOpen(false);
   };
@@ -359,55 +284,82 @@ export const CalendarWidget = () => {
     setIsDialogOpen(false);
   };
 
-  const handleEditEvent = (todo: any) => {
-    setEditingEvent(todo);
-    setNewEventTitle(todo.content.replace(/^Meeting: |^Task: /, '').split(' - ')[0]);
-    setNewEventDescription(todo.content.includes(' - ') ? todo.content.split(' - ')[1] : '');
-    setNewEventPriority(todo.priority || 'medium');
-    setIsEditDialogOpen(true);
-  };
+  // Helper functions for to-do list
+  const handleAddTodo = async () => {
+    if (newTodo.trim()) {
+      try {
+        let todoContent = newTodo.trim();
+        
+        if (todoRelatedInfo && todoRelatedType) {
+          todoContent += ` [${todoRelatedType.toUpperCase()}: ${todoRelatedInfo}]`;
+        }
 
-  const handleUpdateEvent = async () => {
-    if (!editingEvent || !newEventTitle.trim()) return;
-
-    try {
-      await updateTodo(editingEvent.id, {
-        content: `${newEventTitle}${newEventDescription ? ` - ${newEventDescription}` : ''}`,
-        priority: newEventPriority
-      });
-      
-      setIsEditDialogOpen(false);
-      setEditingEvent(null);
-      resetForm();
-      
-      toast({
-        title: "Event updated",
-        description: "Event has been successfully updated",
-      });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to update event",
-        variant: "destructive",
-      });
+        const dueDateTime = attachToCalendar && dueDate ? new Date(dueDate).toISOString() : undefined;
+        
+        await addTodo(todoContent, newEventPriority, dueDateTime);
+        
+        // Reset form
+        setNewTodo('');
+        setNewEventPriority('medium');
+        setAttachToCalendar(false);
+        setDueDate('');
+        setTodoRelatedInfo('');
+        setTodoRelatedType('');
+        setTodoDialogOpen(false);
+        
+        toast({
+          title: "Success",
+          description: "Task added successfully!",
+        });
+      } catch (error) {
+        console.error('Error adding todo:', error);
+        toast({
+          title: "Error",
+          description: "Failed to add task.",
+          variant: "destructive",
+        });
+      }
     }
   };
 
-  const handleDeleteEvent = async (todoId: string) => {
-    try {
-      await deleteTodo(todoId);
-      toast({
-        title: "Event deleted",
-        description: "Event has been successfully removed",
-      });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to delete event",
-        variant: "destructive",
-      });
+  const handleQuickAdd = async () => {
+    if (newTodo.trim()) {
+      try {
+        await addTodo(newTodo.trim(), newEventPriority);
+        setNewTodo('');
+        setNewEventPriority('medium');
+        toast({
+          title: "Success",
+          description: "Task added successfully!",
+        });
+      } catch (error) {
+        console.error('Error adding todo:', error);
+        toast({
+          title: "Error",
+          description: "Failed to add task.",
+          variant: "destructive",
+        });
+      }
     }
   };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleQuickAdd();
+    }
+  };
+
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
+      case 'high': return 'destructive';
+      case 'medium': return 'default';
+      case 'low': return 'secondary';
+      default: return 'default';
+    }
+  };
+
+  const pendingTodos = todos.filter(todo => !todo.completed);
+  const completedTodos = todos.filter(todo => todo.completed);
 
   const handleExport = () => {
     generatePDF();
@@ -423,21 +375,8 @@ export const CalendarWidget = () => {
             <div className="flex items-center gap-3">
               <CardTitle className="text-base flex items-center gap-2 font-medium">
                 <CalendarDays className="h-4 w-4 text-primary" />
-                Calendar
+                Calendar & Tasks
               </CardTitle>
-              <div className="flex items-center gap-2">
-                <Label htmlFor="view-mode" className="text-xs text-muted-foreground">
-                  Week
-                </Label>
-                <Switch
-                  id="view-mode"
-                  checked={viewMode === 'month'}
-                  onCheckedChange={(checked) => setViewMode(checked ? 'month' : 'week')}
-                />
-                <Label htmlFor="view-mode" className="text-xs text-muted-foreground">
-                  Month
-                </Label>
-              </div>
             </div>
             <div className="flex items-center gap-1">
               <Dialog open={isExportDialogOpen} onOpenChange={setIsExportDialogOpen}>
@@ -448,7 +387,7 @@ export const CalendarWidget = () => {
                 </DialogTrigger>
                 <DialogContent className="max-w-sm">
                   <DialogHeader>
-                    <DialogTitle>Export Calendar</DialogTitle>
+                    <DialogTitle>Export Calendar & Tasks</DialogTitle>
                   </DialogHeader>
                   <div className="space-y-4">
                     <div>
@@ -532,9 +471,9 @@ export const CalendarWidget = () => {
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="low">Low Priority</SelectItem>
-                            <SelectItem value="medium">Medium Priority</SelectItem>
-                            <SelectItem value="high">High Priority</SelectItem>
+                            <SelectItem value="low">Low</SelectItem>
+                            <SelectItem value="medium">Medium</SelectItem>
+                            <SelectItem value="high">High</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
@@ -548,127 +487,9 @@ export const CalendarWidget = () => {
                         <Label htmlFor="is-meeting">This is a meeting</Label>
                       </div>
 
-                      <div className="space-y-2">
-                        <Label htmlFor="event-date">Event Date</Label>
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <Button
-                              variant="outline"
-                              className={cn(
-                                "w-full justify-start text-left font-normal",
-                                !eventDate && "text-muted-foreground"
-                              )}
-                            >
-                              <CalendarDays className="mr-2 h-4 w-4" />
-                              {eventDate ? format(eventDate, "PPP") : <span>Pick a date</span>}
-                            </Button>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0" align="start">
-                            <ModernCalendar
-                              mode="single"
-                              selected={eventDate}
-                              onSelect={setEventDate}
-                              initialFocus
-                              className="p-0"
-                            />
-                          </PopoverContent>
-                        </Popover>
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label>Related Information</Label>
-                        <div className="space-y-2">
-                          <Select
-                            value={relatedType === '' ? 'none' : relatedType}
-                            onValueChange={(value: 'document' | 'rfi' | 'message' | 'none') =>
-                              setRelatedType(value === 'none' ? '' : (value as 'document' | 'rfi' | 'message'))
-                            }
-                          >
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select type..." />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="none">None</SelectItem>
-                              <SelectItem value="document">Document</SelectItem>
-                              <SelectItem value="rfi">RFI</SelectItem>
-                              <SelectItem value="message">Message</SelectItem>
-                            </SelectContent>
-                          </Select>
-                          
-                          {relatedType === 'document' && (
-                            <Select
-                              value={attachedDocument === '' ? 'none' : attachedDocument}
-                              onValueChange={(v) => setAttachedDocument(v === 'none' ? '' : v)}
-                            >
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select a document..." />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="none">No document</SelectItem>
-                                {documents.length > 0 ? (
-                                  documents.map((doc) => (
-                                    <SelectItem key={doc.id} value={doc.id}>
-                                      <div className="flex items-center gap-2">
-                                        <Paperclip className="h-4 w-4" />
-                                        {doc.name || 'Untitled Document'}
-                                      </div>
-                                    </SelectItem>
-                                  ))
-                                ) : (
-                                  <SelectItem value="no-documents" disabled>No documents available</SelectItem>
-                                )}
-                              </SelectContent>
-                            </Select>
-                          )}
-
-                          {relatedType === 'rfi' && (
-                            <Select
-                              value={attachedRFI === '' ? 'none' : attachedRFI}
-                              onValueChange={(v) => setAttachedRFI(v === 'none' ? '' : v)}
-                            >
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select an RFI..." />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="none">No RFI</SelectItem>
-                                {rfis.map((rfi) => (
-                                  <SelectItem key={rfi.id} value={rfi.id}>
-                                    {rfi.rfi_number || rfi.subject || 'Untitled RFI'}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          )}
-
-                          {relatedType === 'message' && (
-                            <Select
-                              value={attachedMessage === '' ? 'none' : attachedMessage}
-                              onValueChange={(v) => setAttachedMessage(v === 'none' ? '' : v)}
-                            >
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select a message..." />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="none">No message</SelectItem>
-                                {messages.length > 0 ? (
-                                  messages.map((message) => (
-                                    <SelectItem key={message.id} value={message.id}>
-                                      {(message.content?.substring(0, 50) || 'Empty message') + (message.content && message.content.length > 50 ? '...' : '')}
-                                    </SelectItem>
-                                  ))
-                                ) : (
-                                  <SelectItem value="no-messages" disabled>No messages available</SelectItem>
-                                )}
-                              </SelectContent>
-                            </Select>
-                          )}
-                        </div>
-                      </div>
-
-                      <div className="flex gap-2 pt-2">
-                        <Button onClick={handleCreateEvent} className="flex-1 gap-2" disabled={!newEventTitle.trim() || !eventDate}>
-                          <Plus className="h-4 w-4" />
-                          Create {isMeeting ? 'Meeting' : 'Event'}
+                      <div className="flex gap-2 pt-4">
+                        <Button onClick={handleCreateEvent} className="flex-1">
+                          Create Event
                         </Button>
                         <Button variant="outline" onClick={resetForm}>
                           Cancel
@@ -678,417 +499,418 @@ export const CalendarWidget = () => {
                   </ScrollArea>
                 </DialogContent>
               </Dialog>
-
-              {/* Edit Event Dialog */}
-              <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-                <DialogContent className="max-w-md">
-                  <DialogHeader>
-                    <DialogTitle className="flex items-center gap-2">
-                      <Edit className="h-5 w-5" />
-                      Edit Event
-                    </DialogTitle>
-                  </DialogHeader>
-                  <div className="space-y-4 pt-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="edit-event-title">Event Title</Label>
-                      <Input
-                        id="edit-event-title"
-                        value={newEventTitle}
-                        onChange={(e) => setNewEventTitle(e.target.value)}
-                        placeholder="Enter event title..."
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="edit-event-description">Description</Label>
-                      <Textarea
-                        id="edit-event-description"
-                        value={newEventDescription}
-                        onChange={(e) => setNewEventDescription(e.target.value)}
-                        placeholder="Add event description (optional)"
-                        rows={3}
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="edit-event-priority">Priority</Label>
-                      <Select value={newEventPriority} onValueChange={(value: 'low' | 'medium' | 'high') => setNewEventPriority(value)}>
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="low">Low Priority</SelectItem>
-                          <SelectItem value="medium">Medium Priority</SelectItem>
-                          <SelectItem value="high">High Priority</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div className="flex gap-2 pt-2">
-                      <Button onClick={handleUpdateEvent} className="flex-1" disabled={!newEventTitle.trim()}>
-                        Update Event
-                      </Button>
-                      <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
-                        Cancel
-                      </Button>
-                    </div>
-                  </div>
-                </DialogContent>
-              </Dialog>
             </div>
           </div>
         </CardHeader>
-
-        <CardContent className="flex-1 p-3 overflow-hidden">
-          <div className="flex flex-col h-full">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={() => viewMode === 'month' ? navigateMonth('prev') : navigateWeek('prev')}
-                  className="h-7 w-7 p-0"
-                >
-                  <ChevronLeft className="h-3 w-3" />
-                </Button>
-                <div className="text-center">
-                  {viewMode === 'month' ? (
-                    <h3 className="text-sm font-medium">
-                      {format(currentMonth, 'MMMM yyyy')}
-                    </h3>
-                  ) : (
-                    <div className="text-sm">
-                      <div className="font-medium">
-                        Week {getWeekLabel(currentWeek).weekNumber}
-                      </div>
-                      <div className="text-xs text-muted-foreground">
-                        {getWeekLabel(currentWeek).dateRange}
-                      </div>
-                    </div>
-                  )}
-                </div>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={() => viewMode === 'month' ? navigateMonth('next') : navigateWeek('next')}
-                  className="h-7 w-7 p-0"
-                >
-                  <ChevronRight className="h-3 w-3" />
-                </Button>
-              </div>
-            </div>
+        
+        <CardContent className="flex-1 overflow-hidden p-4">
+          <Tabs defaultValue="calendar" className="h-full flex flex-col">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="calendar" className="flex items-center gap-2">
+                <CalendarDays className="h-4 w-4" />
+                Calendar
+              </TabsTrigger>
+              <TabsTrigger value="tasks" className="flex items-center gap-2">
+                <CheckSquare className="h-4 w-4" />
+                Tasks
+                <Badge variant="secondary" className="ml-1">
+                  {pendingTodos.length}
+                </Badge>
+              </TabsTrigger>
+            </TabsList>
             
-            <div className="flex-1 overflow-hidden">
-              <div className="h-full flex flex-col border rounded-lg">
-                {/* Days of week header */}
-                <div className="grid grid-cols-7 gap-px bg-border p-1 rounded-t-lg">
-                  {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
-                    <div key={day} className="h-6 flex items-center justify-center text-xs font-medium text-muted-foreground bg-background">
-                      {day}
-                    </div>
-                  ))}
+            <TabsContent value="calendar" className="flex-1 mt-4">
+              <div className="h-full">
+                <div className="flex items-center gap-2 mb-4">
+                  <Label htmlFor="view-mode" className="text-xs text-muted-foreground">
+                    Week
+                  </Label>
+                  <Switch
+                    id="view-mode"
+                    checked={viewMode === 'month'}
+                    onCheckedChange={(checked) => setViewMode(checked ? 'month' : 'week')}
+                  />
+                  <Label htmlFor="view-mode" className="text-xs text-muted-foreground">
+                    Month
+                  </Label>
                 </div>
                 
-                {/* Calendar dates grid */}
-                <div className="flex-1 p-1 bg-background rounded-b-lg">
-                  {viewMode === 'month' ? (
-                    (() => {
-                      const start = startOfMonth(currentMonth);
-                      const end = endOfMonth(currentMonth);
-                      const startDate = new Date(start);
-                      startDate.setDate(startDate.getDate() - startDate.getDay()); // Start from Sunday
-                      
-                      const endDate = new Date(end);
-                      endDate.setDate(endDate.getDate() + (6 - endDate.getDay())); // End on Saturday
-                      
-                      const days = eachDayOfInterval({ start: startDate, end: endDate });
-                      
-                      return (
-                        <div className="grid grid-cols-7 grid-rows-6 gap-px h-full">
-                          {days.map((date) => {
-                            const todosForDate = getTodosForDate(date);
-                            const isCurrentMonth = date.getMonth() === currentMonth.getMonth();
-                            const isSelected = selectedDate && isSameDay(date, selectedDate);
-                            const isToday = isSameDay(date, new Date());
-                            
-                            return (
-                              <button
-                                key={date.toISOString()}
-                                onClick={() => setSelectedDate(date)}
-                                onDoubleClick={() => handleDayDoubleClick(date)}
-                                className={`
-                                  w-full h-full flex flex-col items-center justify-start pt-0.5 relative
-                                  transition-colors rounded-sm text-xs
-                                  ${isCurrentMonth ? 'text-foreground' : 'text-muted-foreground opacity-50'}
-                                  ${isSelected ? 'bg-primary text-primary-foreground' : 'hover:bg-accent hover:text-accent-foreground'}
-                                  ${isToday && !isSelected ? 'bg-accent text-accent-foreground font-semibold' : ''}
-                                `}
-                              >
-                                <span className="text-xs">{date.getDate()}</span>
-                                {todosForDate.length > 0 && (
-                                  <div className="absolute bottom-0.5 left-1/2 transform -translate-x-1/2 flex gap-0.5">
-                                    {todosForDate.slice(0, 3).map((_, index) => (
-                                      <div 
-                                        key={index} 
-                                        className={`w-1.5 h-1.5 rounded-full ${isSelected ? 'bg-primary-foreground' : 'bg-primary'}`}
-                                      />
-                                    ))}
-                                    {todosForDate.length > 3 && (
-                                      <div className={`w-1.5 h-1.5 rounded-full opacity-60 ${isSelected ? 'bg-primary-foreground' : 'bg-primary'}`} />
-                                    )}
-                                  </div>
-                                )}
-                              </button>
-                            );
-                          })}
+                {viewMode === 'month' ? (
+                  <div className="flex flex-col h-full gap-4">
+                    <div className="flex items-center justify-between">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => navigateMonth('prev')}
+                        className="p-1 h-8 w-8"
+                      >
+                        <ChevronLeft className="h-4 w-4" />
+                      </Button>
+                      <h3 className="text-sm font-medium">
+                        {format(currentMonth, 'MMMM yyyy')}
+                      </h3>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => navigateMonth('next')}
+                        className="p-1 h-8 w-8"
+                      >
+                        <ChevronRight className="h-4 w-4" />
+                      </Button>
+                    </div>
+                    
+                    <div className="flex-1">
+                      <ModernCalendar
+                        mode="single"
+                        selected={selectedDate}
+                        onSelect={setSelectedDate}
+                        initialFocus
+                        className="w-full"
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex flex-col h-full gap-4">
+                    <div className="flex items-center justify-between">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => navigateWeek('prev')}
+                        className="p-1 h-8 w-8"
+                      >
+                        <ChevronLeft className="h-4 w-4" />
+                      </Button>
+                      <div className="text-center">
+                        <h3 className="text-sm font-medium">
+                          Week {getWeekLabel(currentWeek).weekNumber}
+                        </h3>
+                        <p className="text-xs text-muted-foreground">
+                          {getWeekLabel(currentWeek).dateRange}
+                        </p>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => navigateWeek('next')}
+                        className="p-1 h-8 w-8"
+                      >
+                        <ChevronRight className="h-4 w-4" />
+                      </Button>
+                    </div>
+                    
+                    <div className="flex-1 grid grid-cols-7 gap-1 text-xs">
+                      {/* Day headers */}
+                      {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
+                        <div key={day} className="p-2 text-center font-medium text-muted-foreground border-b">
+                          {day}
                         </div>
-                      );
-                    })()
-                  ) : (
-                    (() => {
-                      const weekStart = startOfWeek(currentWeek);
-                      const weekEnd = endOfWeek(currentWeek);
-                      const days = eachDayOfInterval({ start: weekStart, end: weekEnd });
+                      ))}
                       
-                      return (
-                        <div className="grid grid-cols-7 gap-px h-full">
-                          {days.map((date) => {
-                            const todosForDate = getTodosForDate(date);
-                            const isSelected = selectedDate && isSameDay(date, selectedDate);
-                            const isToday = isSameDay(date, new Date());
-                            
-                            return (
-                              <button
-                                key={date.toISOString()}
-                                onClick={() => setSelectedDate(date)}
-                                onDoubleClick={() => handleDayDoubleClick(date)}
-                                className={`
-                                  w-full h-full flex flex-col p-2 relative
-                                  transition-colors rounded-sm border
-                                  ${isSelected ? 'bg-primary text-primary-foreground border-primary' : 'hover:bg-accent hover:text-accent-foreground border-border'}
-                                  ${isToday && !isSelected ? 'bg-accent text-accent-foreground font-semibold border-accent' : ''}
-                                `}
-                              >
-                                <div className="flex items-center justify-between w-full mb-1">
-                                  <span className="text-sm font-medium">{format(date, 'EEE')}</span>
-                                  <span className="text-lg font-bold">{date.getDate()}</span>
-                                </div>
-                                <div className="flex-1 overflow-y-auto">
-                                  {todosForDate.slice(0, 3).map((todo, index) => (
-                                    <div 
-                                      key={index}
-                                      className={`text-xs p-1 mb-1 rounded truncate ${
-                                        isSelected 
-                                          ? 'bg-primary-foreground/20 text-primary-foreground' 
-                                          : todo.priority === 'high' 
-                                            ? 'bg-destructive/10 text-destructive' 
-                                            : todo.priority === 'medium'
-                                              ? 'bg-yellow-500/10 text-yellow-700 dark:text-yellow-400'
-                                              : 'bg-green-500/10 text-green-700 dark:text-green-400'
-                                      }`}
-                                    >
-                                      {todo.content.split(' - ')[0].substring(0, 20)}
-                                      {todo.content.length > 20 && '...'}
-                                    </div>
-                                  ))}
-                                  {todosForDate.length > 3 && (
-                                    <div className={`text-xs opacity-60 ${isSelected ? 'text-primary-foreground' : 'text-muted-foreground'}`}>
-                                      +{todosForDate.length - 3} more
-                                    </div>
-                                  )}
-                                </div>
-                              </button>
-                            );
-                          })}
-                        </div>
-                      );
-                    })()
-                  )}
-                </div>
+                      {/* Week days */}
+                      {eachDayOfInterval({
+                        start: startOfWeek(currentWeek),
+                        end: endOfWeek(currentWeek)
+                      }).map((date) => {
+                        const dayTodos = getTodosForDate(date);
+                        const isToday = isSameDay(date, new Date());
+                        const isSelected = selectedDate && isSameDay(date, selectedDate);
+                        
+                        return (
+                          <div
+                            key={date.toISOString()}
+                            className={cn(
+                              "p-2 border rounded-sm cursor-pointer hover:bg-muted/50 transition-colors",
+                              isToday && "bg-primary text-primary-foreground",
+                              isSelected && !isToday && "bg-muted border-primary",
+                              dayTodos.length > 0 && "border-l-4 border-l-blue-500"
+                            )}
+                            onClick={() => setSelectedDate(date)}
+                            onDoubleClick={() => handleDayDoubleClick(date)}
+                          >
+                            <div className="font-medium">{format(date, 'd')}</div>
+                            {dayTodos.length > 0 && (
+                              <div className="text-[10px] text-muted-foreground">
+                                {dayTodos.length} event{dayTodos.length !== 1 ? 's' : ''}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
               </div>
-            </div>
-
-            {/* Events List for Selected Date */}
-            {selectedDate && selectedDateTodos.length > 0 && (
-              <div className="mt-4 p-3 bg-muted/30 rounded-lg border">
-                <div className="flex items-center justify-between mb-2">
-                  <h4 className="text-sm font-medium">
-                    Events for {format(selectedDate, 'MMM d, yyyy')}
-                  </h4>
-                  <Badge variant="secondary" className="text-xs">
-                    {selectedDateTodos.length} event{selectedDateTodos.length !== 1 ? 's' : ''}
-                  </Badge>
+            </TabsContent>
+            
+            <TabsContent value="tasks" className="flex-1 mt-4">
+              <div className="h-full flex flex-col space-y-4">
+                {/* Quick add section */}
+                <div className="flex gap-2">
+                  <div className="flex-1">
+                    <Input
+                      placeholder="Quick add task..."
+                      value={newTodo}
+                      onChange={(e) => setNewTodo(e.target.value)}
+                      onKeyPress={handleKeyPress}
+                    />
+                  </div>
+                  <Select value={newEventPriority} onValueChange={(value: 'low' | 'medium' | 'high') => setNewEventPriority(value)}>
+                    <SelectTrigger className="w-20">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="low">Low</SelectItem>
+                      <SelectItem value="medium">Med</SelectItem>
+                      <SelectItem value="high">High</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Button onClick={handleQuickAdd} size="sm">
+                    <Plus className="h-4 w-4" />
+                  </Button>
                 </div>
-                <ScrollArea className="max-h-32">
-                  <div className="space-y-2">
-                    {selectedDateTodos.map((todo) => (
-                      <div key={todo.id} className="flex items-center justify-between p-2 bg-background rounded border text-sm">
-                        <div className="flex items-center gap-2">
-                          <div className={`w-2 h-2 rounded-full ${
-                            todo.priority === 'high' ? 'bg-destructive' :
-                            todo.priority === 'medium' ? 'bg-yellow-500' : 
-                            'bg-green-500'
-                          }`} />
-                          <span className="font-medium text-sm">{todo.content.split(' - ')[0]}</span>
-                          {todo.completed && <CheckCircle2 className="h-3 w-3 text-green-600" />}
+
+                {/* Advanced add dialog */}
+                <Dialog open={todoDialogOpen} onOpenChange={setTodoDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button variant="outline" size="sm" className="w-full gap-2">
+                      <Plus className="h-4 w-4" />
+                      Add Detailed Task
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+                    <DialogHeader>
+                      <DialogTitle className="flex items-center gap-2">
+                        <CheckSquare className="h-5 w-5" />
+                        Create Detailed Task
+                      </DialogTitle>
+                    </DialogHeader>
+                    <ScrollArea className="max-h-[70vh] pr-4">
+                      <div className="space-y-4 pt-4">
+                        <div>
+                          <Label htmlFor="task-content">Task</Label>
+                          <Textarea
+                            id="task-content"
+                            value={newTodo}
+                            onChange={(e) => setNewTodo(e.target.value)}
+                            placeholder="Enter task description"
+                            rows={3}
+                          />
                         </div>
-                        <div className="flex items-center gap-1">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-6 w-6 p-0"
-                            onClick={() => handleEditEvent(todo)}
-                          >
-                            <Edit className="h-3 w-3" />
+
+                        <div>
+                          <Label htmlFor="task-priority">Priority</Label>
+                          <Select value={newEventPriority} onValueChange={(value: 'low' | 'medium' | 'high') => setNewEventPriority(value)}>
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="low">Low</SelectItem>
+                              <SelectItem value="medium">Medium</SelectItem>
+                              <SelectItem value="high">High</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        <div className="flex items-center space-x-2">
+                          <Checkbox
+                            id="attach-calendar"
+                            checked={attachToCalendar}
+                            onCheckedChange={(checked) => setAttachToCalendar(checked as boolean)}
+                          />
+                          <Label htmlFor="attach-calendar">Attach to Calendar</Label>
+                        </div>
+
+                        {attachToCalendar && (
+                          <div>
+                            <Label htmlFor="due-date">Due Date & Time</Label>
+                            <Input
+                              id="due-date"
+                              type="datetime-local"
+                              value={dueDate}
+                              onChange={(e) => setDueDate(e.target.value)}
+                            />
+                          </div>
+                        )}
+
+                        <div>
+                          <Label>Related Information (Optional)</Label>
+                          <Select value={todoRelatedType} onValueChange={(value: 'document' | 'rfi' | 'message' | '') => setTodoRelatedType(value)}>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select type" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="">None</SelectItem>
+                              <SelectItem value="document">Document</SelectItem>
+                              <SelectItem value="rfi">RFI</SelectItem>
+                              <SelectItem value="message">Message</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        {todoRelatedType && (
+                          <div>
+                            <Label>Related Item</Label>
+                            {todoRelatedType === 'document' && (
+                              <Select value={todoRelatedInfo} onValueChange={setTodoRelatedInfo}>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select document" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {documents.map((doc) => (
+                                    <SelectItem key={doc.id} value={doc.name}>
+                                      {doc.name}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            )}
+                            {todoRelatedType === 'rfi' && (
+                              <Select value={todoRelatedInfo} onValueChange={setTodoRelatedInfo}>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select RFI" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {rfis.map((rfi) => (
+                                    <SelectItem key={rfi.id} value={rfi.rfi_number || rfi.subject || 'Untitled'}>
+                                      {rfi.rfi_number || rfi.subject || 'Untitled'}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            )}
+                            {todoRelatedType === 'message' && (
+                              <Select value={todoRelatedInfo} onValueChange={setTodoRelatedInfo}>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select message" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {messages.map((message) => (
+                                    <SelectItem key={message.id} value={message.content.substring(0, 50)}>
+                                      {message.content.substring(0, 50)}...
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            )}
+                          </div>
+                        )}
+
+                        <div className="flex gap-2 pt-4">
+                          <Button onClick={handleAddTodo} className="flex-1">
+                            Add Task
                           </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-6 w-6 p-0 text-destructive"
-                            onClick={() => handleDeleteEvent(todo.id)}
-                          >
-                            <Trash2 className="h-3 w-3" />
+                          <Button variant="outline" onClick={() => setTodoDialogOpen(false)}>
+                            Cancel
                           </Button>
                         </div>
                       </div>
-                    ))}
+                    </ScrollArea>
+                  </DialogContent>
+                </Dialog>
+
+                {/* Tasks display */}
+                <ScrollArea className="flex-1">
+                  <div className="space-y-4">
+                    {loading ? (
+                      <p className="text-muted-foreground text-center">Loading tasks...</p>
+                    ) : (
+                      <>
+                        {/* Pending tasks */}
+                        {pendingTodos.length > 0 && (
+                          <div>
+                            <h4 className="text-sm font-medium text-muted-foreground mb-3">
+                              Pending Tasks ({pendingTodos.length})
+                            </h4>
+                            <div className="space-y-2">
+                              {pendingTodos.map((todo) => (
+                                <div key={todo.id} className="flex items-start gap-3 p-3 border rounded-lg hover:bg-muted/50 transition-colors">
+                                  <Checkbox
+                                    checked={todo.completed}
+                                    onCheckedChange={() => toggleTodo(todo.id)}
+                                    className="mt-0.5"
+                                  />
+                                  <div className="flex-1 min-w-0">
+                                    <p className="text-sm">{todo.content}</p>
+                                    <div className="flex items-center gap-2 mt-1">
+                                      <Badge variant={getPriorityColor(todo.priority)} className="text-xs">
+                                        {todo.priority}
+                                      </Badge>
+                                      {todo.due_date && (
+                                        <span className="text-xs text-muted-foreground">
+                                          Due: {format(new Date(todo.due_date), 'MMM d, yyyy h:mm a')}
+                                        </span>
+                                      )}
+                                    </div>
+                                  </div>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => deleteTodo(todo.id)}
+                                    className="text-destructive hover:text-destructive"
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Completed tasks */}
+                        {completedTodos.length > 0 && (
+                          <div>
+                            <Separator />
+                            <h4 className="text-sm font-medium text-muted-foreground mb-3 mt-4">
+                              Completed Tasks ({completedTodos.length})
+                            </h4>
+                            <div className="space-y-2">
+                              {completedTodos.map((todo) => (
+                                <div key={todo.id} className="flex items-start gap-3 p-3 border rounded-lg bg-muted/30">
+                                  <Checkbox
+                                    checked={todo.completed}
+                                    onCheckedChange={() => toggleTodo(todo.id)}
+                                    className="mt-0.5"
+                                  />
+                                  <div className="flex-1 min-w-0">
+                                    <p className="text-sm text-muted-foreground line-through">{todo.content}</p>
+                                    {todo.due_date && (
+                                      <span className="text-xs text-muted-foreground">
+                                        Completed: {format(new Date(todo.due_date), 'MMM d, yyyy')}
+                                      </span>
+                                    )}
+                                  </div>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => deleteTodo(todo.id)}
+                                    className="text-destructive hover:text-destructive"
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {todos.length === 0 && (
+                          <div className="text-center py-8">
+                            <CheckSquare className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                            <h3 className="text-lg font-medium mb-2">No tasks yet</h3>
+                            <p className="text-muted-foreground text-sm">
+                              Add your first task to get started!
+                            </p>
+                          </div>
+                        )}
+                      </>
+                    )}
                   </div>
                 </ScrollArea>
               </div>
-            )}
-          </div>
+            </TabsContent>
+          </Tabs>
         </CardContent>
       </Card>
-
-      {/* Day Details Dialog */}
-      <Dialog open={isDayDetailsOpen} onOpenChange={setIsDayDetailsOpen}>
-        <DialogContent className="max-w-2xl max-h-[80vh]">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <CalendarDays className="h-5 w-5" />
-              Events for {selectedDate && format(selectedDate, 'EEEE, MMMM d, yyyy')}
-            </DialogTitle>
-          </DialogHeader>
-          <ScrollArea className="max-h-[60vh] pr-4">
-            <div className="space-y-4 pt-4">
-              {selectedDate && selectedDateTodos.length > 0 ? (
-                <>
-                  <div className="flex items-center justify-between">
-                    <Badge variant="secondary" className="text-sm">
-                      {selectedDateTodos.length} event{selectedDateTodos.length !== 1 ? 's' : ''}
-                    </Badge>
-                  </div>
-                  <div className="space-y-3">
-                    {selectedDateTodos.map((todo) => {
-                      const isMeeting = todo.content.includes('Meeting:');
-                      const eventTime = todo.due_date ? format(new Date(todo.due_date), 'h:mm a') : 'All Day';
-                      
-                      return (
-                        <div key={todo.id} className="p-4 border rounded-lg space-y-2">
-                          <div className="flex items-start justify-between">
-                            <div className="flex items-center gap-3 flex-1">
-                              <div className={`w-3 h-3 rounded-full flex-shrink-0 ${
-                                todo.priority === 'high' ? 'bg-destructive' :
-                                todo.priority === 'medium' ? 'bg-yellow-500' : 
-                                'bg-green-500'
-                              }`} />
-                              <div className="flex-1">
-                                <div className="flex items-center gap-2">
-                                  <h4 className="font-medium text-sm">
-                                    {isMeeting ? '🤝' : '📌'} {todo.content.split(' - ')[0].replace('Meeting: ', '')}
-                                  </h4>
-                                  {todo.completed && <CheckCircle2 className="h-4 w-4 text-green-600" />}
-                                </div>
-                                {todo.content.includes(' - ') && (
-                                  <p className="text-sm text-muted-foreground mt-1">
-                                    {todo.content.split(' - ').slice(1).join(' - ')}
-                                  </p>
-                                )}
-                                <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
-                                  <span className="flex items-center gap-1">
-                                    <Clock className="h-3 w-3" />
-                                    {eventTime}
-                                  </span>
-                                  <span className="capitalize">
-                                    {todo.priority} priority
-                                  </span>
-                                  {isMeeting && (
-                                    <span className="flex items-center gap-1">
-                                      <Users className="h-3 w-3" />
-                                      Meeting
-                                    </span>
-                                  )}
-                                </div>
-                              </div>
-                            </div>
-                            <div className="flex items-center gap-1">
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-8 w-8 p-0"
-                                onClick={() => {
-                                  setIsDayDetailsOpen(false);
-                                  handleEditEvent(todo);
-                                }}
-                              >
-                                <Edit className="h-3 w-3" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-8 w-8 p-0 text-destructive"
-                                onClick={() => handleDeleteEvent(todo.id)}
-                              >
-                                <Trash2 className="h-3 w-3" />
-                              </Button>
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </>
-              ) : (
-                <div className="text-center py-8">
-                  <CalendarDays className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                  <h3 className="text-lg font-medium mb-2">No events scheduled</h3>
-                  <p className="text-muted-foreground mb-4">
-                    No events, tasks, or deadlines for {selectedDate && format(selectedDate, 'MMMM d, yyyy')}
-                  </p>
-                  <Button 
-                    onClick={() => {
-                      setIsDayDetailsOpen(false);
-                      setEventDate(selectedDate);
-                      setIsDialogOpen(true);
-                    }}
-                    className="gap-2"
-                  >
-                    <Plus className="h-4 w-4" />
-                    Add Event
-                  </Button>
-                </div>
-              )}
-            </div>
-          </ScrollArea>
-          <div className="flex justify-between pt-4 border-t">
-            <Button 
-              variant="outline"
-              onClick={() => {
-                setIsDayDetailsOpen(false);
-                setEventDate(selectedDate);
-                setIsDialogOpen(true);
-              }}
-              className="gap-2"
-            >
-              <Plus className="h-4 w-4" />
-              Add Event
-            </Button>
-            <Button variant="outline" onClick={() => setIsDayDetailsOpen(false)}>
-              Close
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
     </>
   );
 };

@@ -5,20 +5,22 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { Search, MessageSquare, FileText, Upload, FolderOpen } from 'lucide-react';
 import { RecentActivity } from '@/components/dashboard/RecentActivity';
-import { ToDoList } from '@/components/dashboard/ToDoList';
 import { InfoPanel } from '@/components/dashboard/InfoPanel';
 import { CalendarWidget } from '@/components/dashboard/CalendarWidget';
+import { ProjectMap } from '@/components/ui/project-map';
 import { NotificationCenter } from '@/components/notifications/NotificationCenter';
 import { GlobalSearch } from '@/components/search/GlobalSearch';
 import { useTheme } from '@/context/ThemeContext';
 import { useAuth } from '@/hooks/useAuth';
 import { useProjects } from '@/hooks/useProjects';
+import { useAdvancedProjects } from '@/hooks/useAdvancedProjects';
 import { useProjectSelection } from '@/context/ProjectSelectionContext';
 const Dashboard = () => {
   const [searchOpen, setSearchOpen] = useState(false);
   const { theme, toggleTheme } = useTheme();
   const { profile } = useAuth();
   const { projects } = useProjects();
+  const { projects: advancedProjects, updateProjectCoordinates } = useAdvancedProjects();
   const { selectedProject } = useProjectSelection();
   const navigate = useNavigate();
 
@@ -99,14 +101,17 @@ const Dashboard = () => {
               <RecentActivity />
             </div>
 
-            {/* Calendar Widget - Fixed compact height */}
+            {/* Calendar & Tasks Widget - Fixed compact height */}
             <div className="h-[calc(50vh-4rem)] min-h-[220px]">
               <CalendarWidget />
             </div>
 
-            {/* To-Do List - Fixed compact height */}
+            {/* Project Map - Fixed compact height */}
             <div className="h-[calc(50vh-4rem)] min-h-[220px]">
-              <ToDoList />
+              <ProjectMap 
+                projects={advancedProjects} 
+                onGeocodeComplete={updateProjectCoordinates}
+              />
             </div>
 
             {/* Info Panel - Fixed compact height */}
