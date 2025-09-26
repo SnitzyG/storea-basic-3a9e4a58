@@ -192,7 +192,7 @@ const Tenders = () => {
             <div className="text-center py-8">
               <h3 className="text-lg font-semibold mb-2">Tenders</h3>
               <p className="text-muted-foreground mb-4">
-                No projects available. Create a project first to create a Tender.
+                No projects available. Create a project or join a project first to create a Tender.
               </p>
               <Button asChild>
                 <Link to="/projects">Go to Projects</Link>
@@ -216,7 +216,7 @@ const Tenders = () => {
           </CardHeader>
           <CardContent className="text-center py-8">
             <p className="text-muted-foreground mb-4">
-              No projects available. Create a project first to create a Tender.
+              No projects available. Create a project or join a project first to create a Tender.
             </p>
             <Button asChild>
               <Link to="/projects">Go to Projects</Link>

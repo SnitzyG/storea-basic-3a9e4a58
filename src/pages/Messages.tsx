@@ -324,7 +324,7 @@ const Messages = () => {
             <div className="text-center py-8">
               <h3 className="text-lg font-semibold mb-2">Messages</h3>
               <p className="text-muted-foreground mb-4">
-                No projects available. Create a project first to create a message.
+                No projects available. Create a project or join a project first to create a message.
               </p>
               <Button asChild>
                 <Link to="/projects">Go to Projects</Link>

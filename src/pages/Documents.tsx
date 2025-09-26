@@ -268,7 +268,7 @@ const Documents = () => {
             <div className="text-center py-8">
               <h3 className="text-lg font-semibold mb-2">Documents</h3>
               <p className="text-muted-foreground mb-4">
-                No projects available. Create a project first to upload documents.
+                No projects available. Create a project or join a project first to upload documents.
               </p>
               <Button asChild>
                 <Link to="/projects">Go to Projects</Link>
@@ -313,7 +313,7 @@ const Documents = () => {
               fetchDocumentGroups(); // Refresh list after upload
             }} /> : <div className="text-center py-8">
                   <p className="text-muted-foreground">
-                    No projects available. Create a project first to upload documents.
+                    No projects available. Create a project or join a project first to upload documents.
                   </p>
                 </div>}
             </DialogContent>

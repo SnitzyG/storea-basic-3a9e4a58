@@ -733,7 +733,7 @@ const RFIs = () => {
             <div className="text-center py-8">
               <h3 className="text-lg font-semibold mb-2">Mail</h3>
               <p className="text-muted-foreground mb-4">
-                No projects available. Create a project first to create an RFI.
+                No projects available. Create a project or join a project first to create an RFI.
               </p>
               <Button asChild>
                 <Link to="/projects">Go to Projects</Link>
