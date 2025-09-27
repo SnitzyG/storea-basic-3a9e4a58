@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Calendar } from '@/components/ui/calendar';
+import { ModernCalendar } from '@/components/ui/modern-calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Plus, Calendar as CalendarIcon, X, UserPlus } from 'lucide-react';
@@ -412,13 +412,13 @@ export const CreateProjectDialog = ({ children }: CreateProjectDialogProps) => {
                       )}
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0">
-                    <Calendar
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <ModernCalendar
                       mode="single"
                       selected={formData.estimated_start_date}
                       onSelect={(date) => handleInputChange('estimated_start_date', date)}
                       initialFocus
-                      className="pointer-events-auto"
+                      className="p-0"
                     />
                   </PopoverContent>
                 </Popover>
@@ -443,16 +443,13 @@ export const CreateProjectDialog = ({ children }: CreateProjectDialogProps) => {
                       )}
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0">
-                    <Calendar
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <ModernCalendar
                       mode="single"
                       selected={formData.estimated_finish_date}
                       onSelect={(date) => handleInputChange('estimated_finish_date', date)}
-                      disabled={(date) =>
-                        formData.estimated_start_date ? date < formData.estimated_start_date : false
-                      }
                       initialFocus
-                      className="pointer-events-auto"
+                      className="p-0"
                     />
                   </PopoverContent>
                 </Popover>
