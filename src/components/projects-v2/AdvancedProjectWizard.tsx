@@ -531,36 +531,6 @@ export const AdvancedProjectWizard = ({
                   </div>
                 </div>
 
-                {/* Quick Duration Buttons */}
-                {formData.estimated_start_date && <div className="space-y-3">
-                    <Label className="text-sm font-medium">Quick Duration Setup</Label>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
-                      <Button type="button" variant="outline" size="sm" onClick={() => setProjectDuration(0.25)} className="flex items-center justify-center gap-1 h-9">
-                        <Clock className="h-3 w-3" />
-                        1 Week
-                      </Button>
-                      <Button type="button" variant="outline" size="sm" onClick={() => setProjectDuration(0.5)} className="flex items-center justify-center gap-1 h-9">
-                        <Clock className="h-3 w-3" />
-                        2 Weeks
-                      </Button>
-                      <Button type="button" variant="outline" size="sm" onClick={() => setProjectDuration(1)} className="flex items-center justify-center gap-1 h-9">
-                        <Clock className="h-3 w-3" />
-                        1 Month
-                      </Button>
-                      <Button type="button" variant="outline" size="sm" onClick={() => setProjectDuration(3)} className="flex items-center justify-center gap-1 h-9">
-                        <Clock className="h-3 w-3" />
-                        3 Months
-                      </Button>
-                      <Button type="button" variant="outline" size="sm" onClick={() => setProjectDuration(6)} className="flex items-center justify-center gap-1 h-9">
-                        <Clock className="h-3 w-3" />
-                        6 Months
-                      </Button>
-                      <Button type="button" variant="outline" size="sm" onClick={() => setProjectDuration(12)} className="flex items-center justify-center gap-1 h-9">
-                        <Clock className="h-3 w-3" />
-                        1 Year
-                      </Button>
-                    </div>
-                  </div>}
               </div>
             </div>
           </div>;
