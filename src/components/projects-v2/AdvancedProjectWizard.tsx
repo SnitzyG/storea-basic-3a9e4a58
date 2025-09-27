@@ -321,7 +321,7 @@ export const AdvancedProjectWizard = ({
   const validateCurrentStep = () => {
     switch (currentStep) {
       case 1:
-        return formData.name.trim() !== '';
+        return true; // Project name is now optional
       case 2:
         return formData.estimated_start_date && formData.estimated_finish_date;
       case 3:
@@ -346,8 +346,9 @@ export const AdvancedProjectWizard = ({
     }
     setLoading(true);
     try {
+      const projectAddress = `${formData.street_number} ${formData.street_name}, ${formData.suburb} ${formData.postcode}`.trim();
       const projectData = {
-        name: formData.name,
+        name: formData.name.trim() || projectAddress || 'Untitled Project',
         project_reference_number: formData.project_reference_number || undefined,
         description: formData.description || undefined,
         project_type: formData.project_type as any,
@@ -411,8 +412,8 @@ export const AdvancedProjectWizard = ({
                 </div>
 
                 <div>
-                  <Label htmlFor="name">Project Name *</Label>
-                  <Input id="name" value={formData.name} onChange={e => handleInputChange('name', e.target.value)} placeholder="Enter project name" className="mt-1" />
+                  <Label htmlFor="name">Project Name</Label>
+                  <Input id="name" value={formData.name} onChange={e => handleInputChange('name', e.target.value)} placeholder="Enter project name (optional - will use address if empty)" className="mt-1" />
                 </div>
 
                 <div>
