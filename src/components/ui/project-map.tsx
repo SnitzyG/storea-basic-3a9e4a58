@@ -8,6 +8,7 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { AdvancedProject } from '@/hooks/useAdvancedProjects';
 import { supabase } from '@/integrations/supabase/client';
+import { fetchExternalTradespeople, ExternalTradesperson } from '@/services/TradespeopleService';
 
 // Fix for default markers in Leaflet
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -102,9 +103,14 @@ interface Tradesperson {
   company_name?: string;
   company_address?: string;
   phone?: string;
-  user_id: string;
+  user_id?: string;
   latitude?: number;
   longitude?: number;
+  source?: 'internal' | 'external';
+  rating?: number;
+  reviews_count?: number;
+  website?: string;
+  distance_km?: number;
 }
 
 interface ProjectMapProps {
@@ -119,7 +125,9 @@ export const ProjectMap: React.FC<ProjectMapProps> = ({ projects, onGeocodeCompl
   const [geocodingErrors, setGeocodingErrors] = useState<string[]>([]);
   const [showTradespeople, setShowTradespeople] = useState(true);
   const [tradespeople, setTradespeople] = useState<Tradesperson[]>([]);
+  const [externalTradespeople, setExternalTradespeople] = useState<ExternalTradesperson[]>([]);
   const [tradespeopleLoading, setTradespeopleLoading] = useState(false);
+  const [showExternalTradespeople, setShowExternalTradespeople] = useState(true);
 
   // Geocoding function using Nominatim (free OSM service)
   const geocodeAddress = async (address: string): Promise<{ lat: number; lng: number } | null> => {
@@ -149,19 +157,23 @@ export const ProjectMap: React.FC<ProjectMapProps> = ({ projects, onGeocodeCompl
     }
   };
 
-  // Fetch tradespeople from all project teams
-  const fetchTradespeople = async () => {
+  // Fetch tradespeople from project teams and external sources
+  const fetchAllTradespeople = async () => {
     setTradespeopleLoading(true);
     try {
       // Get all project IDs from current projects
       const projectIds = projects.map(p => p.id);
+      const projectCoordinates = projects
+        .filter(p => p.latitude && p.longitude)
+        .map(p => ({ lat: p.latitude!, lng: p.longitude! }));
       
       if (projectIds.length === 0) {
         setTradespeople([]);
+        setExternalTradespeople([]);
         return;
       }
 
-      // Fetch unique tradespeople from project teams
+      // Fetch internal tradespeople from project teams
       const { data: projectUsers, error } = await supabase
         .from('project_users')
         .select(`
@@ -181,29 +193,40 @@ export const ProjectMap: React.FC<ProjectMapProps> = ({ projects, onGeocodeCompl
         .not('profiles.company_address', 'is', null);
 
       if (error) {
-        console.error('Error fetching tradespeople:', error);
-        return;
+        console.error('Error fetching internal tradespeople:', error);
+      } else {
+        // Deduplicate by user_id and filter those with company addresses
+        const uniqueTradespeople = projectUsers
+          ?.reduce((acc: any[], curr: any) => {
+            const existing = acc.find((t: any) => t.user_id === curr.user_id);
+            if (!existing && curr.profiles?.company_address) {
+              acc.push({
+                id: curr.profiles.id,
+                name: curr.profiles.name,
+                role: curr.role,
+                company_name: curr.profiles.company_name,
+                company_address: curr.profiles.company_address,
+                phone: curr.profiles.phone,
+                user_id: curr.user_id,
+                source: 'internal'
+              });
+            }
+            return acc;
+          }, []) || [];
+
+        setTradespeople(uniqueTradespeople);
       }
 
-      // Deduplicate by user_id and filter those with company addresses
-      const uniqueTradespeople = projectUsers
-        ?.reduce((acc: any[], curr: any) => {
-          const existing = acc.find((t: any) => t.user_id === curr.user_id);
-          if (!existing && curr.profiles?.company_address) {
-            acc.push({
-              id: curr.profiles.id,
-              name: curr.profiles.name,
-              role: curr.role,
-              company_name: curr.profiles.company_name,
-              company_address: curr.profiles.company_address,
-              phone: curr.profiles.phone,
-              user_id: curr.user_id
-            });
-          }
-          return acc;
-        }, []) || [];
+      // Fetch external tradespeople if we have project coordinates
+      if (projectCoordinates.length > 0) {
+        const externalData = await fetchExternalTradespeople(
+          projectCoordinates.map(c => c.lat),
+          projectCoordinates.map(c => c.lng),
+          25 // 25km radius
+        );
+        setExternalTradespeople(externalData);
+      }
 
-      setTradespeople(uniqueTradespeople);
     } catch (error) {
       console.error('Error fetching tradespeople:', error);
     } finally {
@@ -216,13 +239,16 @@ export const ProjectMap: React.FC<ProjectMapProps> = ({ projects, onGeocodeCompl
   
   // Filter tradespeople that have addresses  
   const tradespeopleWithAddresses = tradespeople.filter(tp => tp.company_address && tp.company_address.trim() !== '');
+  
+  // Filter external tradespeople (already have coordinates)
+  const externalTradespeopleWithCoords = externalTradespeople.filter(tp => tp.latitude && tp.longitude);
 
   // Fetch tradespeople when projects change
   useEffect(() => {
-    fetchTradespeople();
+    fetchAllTradespeople();
   }, [projects.length]);
 
-  // Geocode projects and tradespeople that don't have coordinates yet
+  // Geocode projects and internal tradespeople that don't have coordinates yet
   useEffect(() => {
     const geocodeAll = async () => {
       setLoading(true);
@@ -254,7 +280,7 @@ export const ProjectMap: React.FC<ProjectMapProps> = ({ projects, onGeocodeCompl
         }
       }
 
-      // Geocode tradespeople
+      // Geocode internal tradespeople
       for (const tradesperson of tradespeopleWithAddresses) {
         // Skip if already geocoded
         if (tradesperson.latitude && tradesperson.longitude) {
@@ -328,7 +354,7 @@ export const ProjectMap: React.FC<ProjectMapProps> = ({ projects, onGeocodeCompl
     };
   }, []);
 
-  // Add markers for geocoded projects and tradespeople
+  // Add markers for geocoded projects, internal and external tradespeople
   useEffect(() => {
     if (!map.current) return;
 
@@ -340,9 +366,10 @@ export const ProjectMap: React.FC<ProjectMapProps> = ({ projects, onGeocodeCompl
     });
 
     const validProjects = projectsWithAddresses.filter(p => p.latitude && p.longitude);
-    const validTradespeople = showTradespeople ? tradespeopleWithAddresses.filter(tp => tp.latitude && tp.longitude) : [];
+    const validInternalTradespeople = showTradespeople ? tradespeopleWithAddresses.filter(tp => tp.latitude && tp.longitude) : [];
+    const validExternalTradespeople = showExternalTradespeople ? externalTradespeopleWithCoords : [];
     
-    if (validProjects.length === 0 && validTradespeople.length === 0) return;
+    if (validProjects.length === 0 && validInternalTradespeople.length === 0 && validExternalTradespeople.length === 0) return;
 
     const bounds = L.latLngBounds([]);
 
@@ -397,20 +424,21 @@ export const ProjectMap: React.FC<ProjectMapProps> = ({ projects, onGeocodeCompl
       bounds.extend([project.latitude, project.longitude]);
     });
 
-    // Add markers for tradespeople if enabled
-    validTradespeople.forEach((tradesperson) => {
+    // Add markers for internal tradespeople if enabled
+    validInternalTradespeople.forEach((tradesperson) => {
       if (!map.current || !tradesperson.latitude || !tradesperson.longitude) return;
 
       const marker = L.marker([tradesperson.latitude, tradesperson.longitude], {
         icon: createTradespersonIcon(tradesperson.role)
       }).addTo(map.current);
 
-      // Custom popup content for tradespeople
+      // Custom popup content for internal tradespeople
       const popupContent = `
         <div class="p-3 min-w-[200px]">
           <div class="mb-2">
             <h3 class="font-semibold text-sm mb-1 text-foreground">${tradesperson.name}</h3>
             <p class="text-xs text-muted-foreground capitalize">${tradesperson.role}</p>
+            <span class="inline-flex items-center text-xs bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded-full mt-1">Team Member</span>
           </div>
           ${tradesperson.company_name ? `<p class="text-xs font-medium text-muted-foreground mb-2">${tradesperson.company_name}</p>` : ''}
           <p class="text-xs text-muted-foreground mb-3">${tradesperson.company_address}</p>
@@ -428,23 +456,106 @@ export const ProjectMap: React.FC<ProjectMapProps> = ({ projects, onGeocodeCompl
 
       marker.bindPopup(popupContent, {
         maxWidth: 250,
-        className: 'custom-popup tradesperson-popup'
+        className: 'custom-popup internal-tradesperson-popup'
+      });
+
+      bounds.extend([tradesperson.latitude, tradesperson.longitude]);
+    });
+
+    // Add markers for external tradespeople if enabled
+    validExternalTradespeople.forEach((tradesperson) => {
+      if (!map.current || !tradesperson.latitude || !tradesperson.longitude) return;
+
+      // Create slightly different icon for external tradespeople
+      const externalIcon = L.divIcon({
+        className: 'custom-external-tradesperson-marker',
+        html: `
+          <div style="
+            background-color: ${
+              tradesperson.role === 'contractor' ? '#8B5CF6' :
+              tradesperson.role === 'builder' ? '#F97316' :
+              tradesperson.role === 'architect' ? '#0EA5E9' : '#6B7280'
+            };
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 2px solid white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          ">
+            <div style="
+              width: 4px;
+              height: 4px;
+              background-color: white;
+              border-radius: 50%;
+            "></div>
+          </div>
+        `,
+        iconSize: [20, 20],
+        iconAnchor: [10, 10],
+        popupAnchor: [0, -10]
+      });
+
+      const marker = L.marker([tradesperson.latitude, tradesperson.longitude], {
+        icon: externalIcon
+      }).addTo(map.current);
+
+      // Custom popup content for external tradespeople
+      const popupContent = `
+        <div class="p-3 min-w-[220px]">
+          <div class="mb-2">
+            <h3 class="font-semibold text-sm mb-1 text-foreground">${tradesperson.business_name || tradesperson.name}</h3>
+            <p class="text-xs text-muted-foreground capitalize">${tradesperson.role}</p>
+            <div class="flex items-center gap-2 mt-1">
+              <span class="inline-flex items-center text-xs bg-green-100 text-green-800 px-1.5 py-0.5 rounded-full">Public Directory</span>
+              ${tradesperson.distance_km ? `<span class="text-xs text-muted-foreground">${tradesperson.distance_km.toFixed(1)}km away</span>` : ''}
+            </div>
+          </div>
+          <p class="text-xs text-muted-foreground mb-3">${tradesperson.address}</p>
+          ${tradesperson.phone ? `<p class="text-xs text-muted-foreground mb-2">📞 ${tradesperson.phone}</p>` : ''}
+          ${tradesperson.email ? `<p class="text-xs text-muted-foreground mb-2">✉️ ${tradesperson.email}</p>` : ''}
+          ${tradesperson.website ? `<p class="text-xs text-muted-foreground mb-2">🌐 <a href="${tradesperson.website}" target="_blank" class="text-blue-600 hover:underline">Website</a></p>` : ''}
+          <div class="flex items-center justify-between text-xs">
+            <div class="flex items-center gap-1 text-muted-foreground">
+              <span class="w-2 h-2 rounded-full" style="background-color: ${
+                tradesperson.role === 'contractor' ? '#8B5CF6' :
+                tradesperson.role === 'builder' ? '#F97316' :
+                tradesperson.role === 'architect' ? '#0EA5E9' : '#6B7280'
+              }"></span>
+              ${tradesperson.role.toUpperCase()}
+            </div>
+            ${tradesperson.rating ? `
+              <div class="flex items-center gap-1">
+                <span class="text-yellow-500">⭐</span>
+                <span class="font-medium">${tradesperson.rating}</span>
+                <span class="text-muted-foreground">(${tradesperson.reviews_count || 0})</span>
+              </div>
+            ` : ''}
+          </div>
+        </div>
+      `;
+
+      marker.bindPopup(popupContent, {
+        maxWidth: 280,
+        className: 'custom-popup external-tradesperson-popup'
       });
 
       bounds.extend([tradesperson.latitude, tradesperson.longitude]);
     });
 
     // Fit map to show all markers
-    const totalMarkers = validProjects.length + validTradespeople.length;
+    const totalMarkers = validProjects.length + validInternalTradespeople.length + validExternalTradespeople.length;
     if (totalMarkers > 1) {
       map.current.fitBounds(bounds, { padding: [20, 20] });
     } else if (totalMarkers === 1) {
-      const item = validProjects[0] || validTradespeople[0];
+      const item = validProjects[0] || validInternalTradespeople[0] || validExternalTradespeople[0];
       map.current.setView([item.latitude!, item.longitude!], 15);
     }
-  }, [projectsWithAddresses, tradespeopleWithAddresses, showTradespeople]);
+  }, [projectsWithAddresses, tradespeopleWithAddresses, externalTradespeopleWithCoords, showTradespeople, showExternalTradespeople]);
 
-  if (projectsWithAddresses.length === 0 && tradespeopleWithAddresses.length === 0) {
+  if (projectsWithAddresses.length === 0 && tradespeopleWithAddresses.length === 0 && externalTradespeopleWithCoords.length === 0) {
     return (
       <Card>
         <CardContent className="text-center py-8">
@@ -467,20 +578,33 @@ export const ProjectMap: React.FC<ProjectMapProps> = ({ projects, onGeocodeCompl
             Project Locations
             {(loading || tradespeopleLoading) && (
               <span className="text-sm text-muted-foreground font-normal">
-                (Geocoding addresses...)
+                (Loading locations...)
               </span>
             )}
           </div>
-          <div className="flex items-center space-x-2">
-            <Switch
-              id="show-tradespeople"
-              checked={showTradespeople}
-              onCheckedChange={setShowTradespeople}
-            />
-            <Label htmlFor="show-tradespeople" className="text-sm flex items-center gap-1">
-              <Users className="h-4 w-4" />
-              Tradespeople
-            </Label>
+          <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="show-tradespeople"
+                checked={showTradespeople}
+                onCheckedChange={setShowTradespeople}
+              />
+              <Label htmlFor="show-tradespeople" className="text-sm flex items-center gap-1">
+                <Users className="h-4 w-4" />
+                Team
+              </Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="show-external-tradespeople"
+                checked={showExternalTradespeople}
+                onCheckedChange={setShowExternalTradespeople}
+              />
+              <Label htmlFor="show-external-tradespeople" className="text-sm flex items-center gap-1">
+                <Users className="h-4 w-4" />
+                Public Directory
+              </Label>
+            </div>
           </div>
         </CardTitle>
       </CardHeader>
@@ -491,7 +615,6 @@ export const ProjectMap: React.FC<ProjectMapProps> = ({ projects, onGeocodeCompl
           style={{ zIndex: 1 }}
         />
         
-        {/* Custom subtle attribution */}
         <div className="px-4 py-2 bg-muted/30 border-t text-xs text-muted-foreground flex justify-between items-center">
           <span>Map data © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer" className="hover:underline">OpenStreetMap contributors</a></span>
           <div className="flex items-center gap-4 text-xs opacity-60">
@@ -500,7 +623,12 @@ export const ProjectMap: React.FC<ProjectMapProps> = ({ projects, onGeocodeCompl
             </span>
             {showTradespeople && (
               <span>
-                {tradespeopleWithAddresses.filter(tp => tp.latitude && tp.longitude).length} tradesperson{tradespeopleWithAddresses.filter(tp => tp.latitude && tp.longitude).length !== 1 ? 's' : ''}
+                {tradespeopleWithAddresses.filter(tp => tp.latitude && tp.longitude).length} team member{tradespeopleWithAddresses.filter(tp => tp.latitude && tp.longitude).length !== 1 ? 's' : ''}
+              </span>
+            )}
+            {showExternalTradespeople && (
+              <span>
+                {externalTradespeopleWithCoords.length} external tradesperson{externalTradespeopleWithCoords.length !== 1 ? 's' : ''}
               </span>
             )}
           </div>
