@@ -497,12 +497,7 @@ export const AdvancedProjectWizard = ({
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="square_footage">Square Metres</Label>
-                    <Input id="square_footage" type="number" value={formData.square_footage} onChange={e => handleInputChange('square_footage', e.target.value)} placeholder="Sq Metres" className="mt-1" />
-                  </div>
-                </div>
+                
               </div>
 
               <Separator className="my-6" />
