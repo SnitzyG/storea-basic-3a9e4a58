@@ -373,12 +373,6 @@ const AdvancedProjects = () => {
                   </Table>
                 </CardContent>
               </Card>
-              
-              {/* Project Map */}
-              <ProjectMap 
-                projects={projects} 
-                onGeocodeComplete={updateProjectCoordinates} 
-              />
             </div>
           )}
         </TabsContent>
