@@ -64,7 +64,7 @@ export const Sidebar = ({
         return allTabs;
       // Full access
       case 'homeowner':
-        return allTabs.filter(tab => !['tenders'].includes(tab.id));
+        return allTabs; // Give homeowners access to all tabs
       // No tenders for homeowners
       case 'contractor':
         return allTabs;
@@ -105,19 +105,14 @@ export const Sidebar = ({
           {visibleTabs.map(tab => {
           const Icon = tab.icon;
           const isActive = location.pathname.startsWith(tab.path);
-          const isDisabled = ['tenders', 'financials'].includes(tab.id);
-          if (isDisabled) {
-            return <div key={tab.id} className="flex items-center justify-between px-4 py-3 rounded-lg text-sm font-medium text-muted-foreground cursor-not-allowed opacity-50">
-              <div className="flex items-center gap-3">
+          const notificationCount = counts[tab.id as keyof typeof counts];
+          
+          return <Link key={tab.id} to={tab.path} className={cn("flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors", isActive ? "bg-sidebar-accent text-sidebar-accent-foreground" : "text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground dark:text-white")} onClick={() => markTabAsRead(tab.id)}>
                 <Icon className="h-5 w-5" />
                 {tab.label}
-              </div>
-              <span className="text-xs text-muted-foreground">Coming Soon</span>
-            </div>;
-          }
-          return <Link key={tab.id} to={tab.path} className={cn("flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors", isActive ? "bg-sidebar-accent text-sidebar-accent-foreground" : "text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground dark:text-white")}>
-                <Icon className="h-5 w-5" />
-                {tab.label}
+                {notificationCount > 0 && <Badge variant="secondary" className="ml-auto h-5 min-w-5 px-1 text-xs">
+                    {notificationCount}
+                  </Badge>}
               </Link>;
         })}
         </div>

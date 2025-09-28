@@ -87,24 +87,7 @@ const Tenders = () => {
       autoCloseExpired();
     }
   }, [expiredOpenTenders.length]);
-  if (userRole === 'homeowner') {
-    // Homeowners should not see the tenders page
-    return <div className="min-h-screen flex items-center justify-center">
-        <Card className="w-96">
-          <CardHeader>
-            <CardTitle>Access Restricted</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-muted-foreground mb-4">
-              Tender management is only available to Architects, Builders, and Contractors.
-            </p>
-            <Button asChild>
-              <Link to="/projects">Go to Projects</Link>
-            </Button>
-          </CardContent>
-        </Card>
-      </div>;
-  }
+  // Remove homeowner restriction - allow all users to access tenders
   if (projects.length === 0) {
     return <div className="min-h-screen flex items-center justify-center bg-background px-4">
         <Card className="w-full max-w-md">
