@@ -41,6 +41,9 @@ const Auth = () => {
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [showCaptcha, setShowCaptcha] = useState(false);
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmNewPassword, setConfirmNewPassword] = useState('');
+  const [isPasswordReset, setIsPasswordReset] = useState(false);
 
   // Removed early return to keep hooks order consistent and avoid hook mismatch errors during loading state
 
@@ -48,6 +51,11 @@ const Auth = () => {
     // Check if user came from email confirmation
     if (searchParams.get('confirmed') === 'true') {
       setEmailConfirmed(true);
+    }
+    
+    // Check if this is a password reset link
+    if (searchParams.get('reset') === 'true') {
+      setIsPasswordReset(true);
     }
   }, [searchParams]);
   useEffect(() => {
@@ -128,9 +136,44 @@ const Auth = () => {
       if (error) {
         toast.error(error.message);
       } else {
-        toast.success('Password reset email sent! Check your inbox.');
+        toast.success('Password reset email sent! Check your inbox and click the link to reset your password.');
         setShowForgotPassword(false);
         setResetEmail('');
+      }
+    } catch (error) {
+      toast.error('An unexpected error occurred');
+    }
+  };
+
+  const handlePasswordReset = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newPassword) {
+      toast.error('Please enter a new password');
+      return;
+    }
+    if (newPassword !== confirmNewPassword) {
+      toast.error('Passwords do not match');
+      return;
+    }
+    if (newPassword.length < 8) {
+      toast.error('Password must be at least 8 characters long');
+      return;
+    }
+
+    try {
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword
+      });
+
+      if (error) {
+        toast.error(error.message);
+      } else {
+        toast.success('Password updated successfully! You can now sign in with your new password.');
+        setIsPasswordReset(false);
+        setNewPassword('');
+        setConfirmNewPassword('');
+        // Clear URL parameters
+        navigate('/auth', { replace: true });
       }
     } catch (error) {
       toast.error('An unexpected error occurred');
@@ -352,10 +395,60 @@ const Auth = () => {
 
         <Card className="w-full max-w-md">
           <CardHeader>
-            <CardTitle>Welcome</CardTitle>
-            <CardDescription>Sign in to your account or create a new one</CardDescription>
+            <CardTitle>
+              {isPasswordReset ? 'Reset Your Password' : 'Welcome'}
+            </CardTitle>
+            <CardDescription>
+              {isPasswordReset 
+                ? 'Enter your new password below' 
+                : 'Sign in to your account or create a new one'
+              }
+            </CardDescription>
           </CardHeader>
           <CardContent>
+            {isPasswordReset ? (
+              <form onSubmit={handlePasswordReset} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="new-password">New Password</Label>
+                  <Input 
+                    id="new-password" 
+                    type="password" 
+                    placeholder="Enter your new password" 
+                    value={newPassword} 
+                    onChange={e => setNewPassword(e.target.value)} 
+                    required 
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="confirm-new-password">Confirm New Password</Label>
+                  <Input 
+                    id="confirm-new-password" 
+                    type="password" 
+                    placeholder="Confirm your new password" 
+                    value={confirmNewPassword} 
+                    onChange={e => setConfirmNewPassword(e.target.value)} 
+                    required 
+                  />
+                </div>
+                
+                <Button type="submit" className="w-full">
+                  Update Password
+                </Button>
+                
+                <Button 
+                  type="button" 
+                  variant="ghost" 
+                  className="w-full text-sm" 
+                  onClick={() => {
+                    setIsPasswordReset(false);
+                    navigate('/auth', { replace: true });
+                  }}
+                >
+                  Back to Sign In
+                </Button>
+              </form>
+            ) : (
             <Tabs defaultValue="signin" className="w-full" onValueChange={handleTabChange}>
               <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="signin">Sign In</TabsTrigger>
@@ -453,6 +546,7 @@ const Auth = () => {
                 </form>
               </TabsContent>
             </Tabs>
+            )}
           </CardContent>
         </Card>
         </div>
