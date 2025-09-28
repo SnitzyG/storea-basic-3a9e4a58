@@ -8,7 +8,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { CalendarIcon, X } from 'lucide-react';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from '@/components/ui/command';
+import { CalendarIcon, X, ChevronDown, Check } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { useRFIs } from '@/hooks/useRFIs';
@@ -304,39 +305,53 @@ export const SimplifiedRFIComposer: React.FC<SimplifiedRFIComposerProps> = ({
               {/* CC Selection */}
               <div className="space-y-2">
                 <Label>CC</Label>
-                <div className="max-h-32 overflow-y-auto border rounded-md p-2 space-y-1">
-                  {teamMembers
-                    .filter(member => {
-                      const excludeId = isReply ? (replyToRFI?.assigned_to || replyToRFI?.raised_by) : selectedRecipient;
-                      return member.user_id !== excludeId && member.user_id !== formData.assigned_to;
-                    })
-                    .map(member => (
-                      <div 
-                        key={member.user_id} 
-                        className={`flex items-center space-x-2 p-2 rounded cursor-pointer hover:bg-muted ${selectedCCUsers.includes(member.user_id) ? 'bg-primary/10' : ''}`}
-                        onClick={() => {
-                          if (selectedCCUsers.includes(member.user_id)) {
-                            setSelectedCCUsers(prev => prev.filter(id => id !== member.user_id));
-                          } else {
-                            setSelectedCCUsers(prev => [...prev, member.user_id]);
-                          }
-                        }}
-                      >
-                        <span className="text-sm flex-1">
-                          {member.user_profile?.name || 'Unknown User'} ({member.user_profile?.role || member.role})
-                        </span>
-                        {selectedCCUsers.includes(member.user_id) && (
-                          <div className="text-primary">✓</div>
-                        )}
-                      </div>
-                    ))}
-                  {teamMembers.filter(m => {
-                    const excludeId = isReply ? (replyToRFI?.assigned_to || replyToRFI?.raised_by) : selectedRecipient;
-                    return m.user_id !== excludeId && m.user_id !== formData.assigned_to;
-                  }).length === 0 && (
-                    <p className="text-sm text-muted-foreground p-2">No other team members available for CC</p>
-                  )}
-                </div>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      role="combobox"
+                      className="w-full justify-between"
+                    >
+                      {selectedCCUsers.length > 0
+                        ? `${selectedCCUsers.length} user${selectedCCUsers.length > 1 ? 's' : ''} selected`
+                        : "Select CC recipients"}
+                      <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-full p-0" align="start">
+                    <Command>
+                      <CommandInput placeholder="Search team members..." />
+                      <CommandEmpty>No team members found.</CommandEmpty>
+                      <CommandGroup className="max-h-64 overflow-auto">
+                        {teamMembers
+                          .filter(member => {
+                            const excludeId = isReply ? (replyToRFI?.assigned_to || replyToRFI?.raised_by) : selectedRecipient;
+                            return member.user_id !== excludeId && member.user_id !== formData.assigned_to;
+                          })
+                          .map(member => (
+                            <CommandItem
+                              key={member.user_id}
+                              value={`${member.user_profile?.name || 'Unknown User'} ${member.user_profile?.role || member.role}`}
+                              onSelect={() => {
+                                if (selectedCCUsers.includes(member.user_id)) {
+                                  setSelectedCCUsers(prev => prev.filter(id => id !== member.user_id));
+                                } else {
+                                  setSelectedCCUsers(prev => [...prev, member.user_id]);
+                                }
+                              }}
+                            >
+                              <Check
+                                className={`mr-2 h-4 w-4 ${
+                                  selectedCCUsers.includes(member.user_id) ? "opacity-100" : "opacity-0"
+                                }`}
+                              />
+                              {member.user_profile?.name || 'Unknown User'} ({member.user_profile?.role || member.role})
+                            </CommandItem>
+                          ))}
+                      </CommandGroup>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
                 {selectedCCUsers.length > 0 && (
                   <div className="mt-2">
                     <Label className="text-sm text-muted-foreground">
@@ -348,6 +363,12 @@ export const SimplifiedRFIComposer: React.FC<SimplifiedRFIComposerProps> = ({
                         return (
                           <Badge key={userId} variant="secondary" className="text-xs">
                             {member?.user_profile?.name || 'Unknown'}
+                            <X
+                              className="ml-1 h-3 w-3 cursor-pointer hover:text-destructive"
+                              onClick={() => {
+                                setSelectedCCUsers(prev => prev.filter(id => id !== userId));
+                              }}
+                            />
                           </Badge>
                         );
                       })}
