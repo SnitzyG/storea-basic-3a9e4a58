@@ -293,11 +293,13 @@ export const SimplifiedRFIComposer: React.FC<SimplifiedRFIComposerProps> = ({
                     <SelectValue placeholder="Select recipient" />
                   </SelectTrigger>
                   <SelectContent>
-                    {teamMembers.map(member => (
-                      <SelectItem key={member.user_id} value={member.user_id}>
-                        {member.user_profile?.name || 'Unknown User'} ({member.user_profile?.role || member.role})
-                      </SelectItem>
-                    ))}
+                    {teamMembers
+                      .filter(member => member.user_id !== user?.id)
+                      .map(member => (
+                        <SelectItem key={member.user_id} value={member.user_id}>
+                          {member.user_profile?.name || 'Unknown User'} ({member.user_profile?.role || member.role})
+                        </SelectItem>
+                      ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -329,7 +331,9 @@ export const SimplifiedRFIComposer: React.FC<SimplifiedRFIComposerProps> = ({
                     {teamMembers
                       .filter(member => {
                         const excludeId = isReply ? (replyToRFI?.assigned_to || replyToRFI?.raised_by) : selectedRecipient;
-                        return member.user_id !== excludeId && member.user_id !== formData.assigned_to;
+                        return member.user_id !== excludeId && 
+                               member.user_id !== formData.assigned_to && 
+                               member.user_id !== user?.id;
                       })
                       .map(member => (
                         <CommandItem
