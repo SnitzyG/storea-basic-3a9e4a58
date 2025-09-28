@@ -301,6 +301,61 @@ export const SimplifiedRFIComposer: React.FC<SimplifiedRFIComposerProps> = ({
                 </Select>
               </div>
 
+              {/* CC Selection */}
+              <div className="space-y-2">
+                <Label>CC</Label>
+                <div className="max-h-32 overflow-y-auto border rounded-md p-2 space-y-1">
+                  {teamMembers
+                    .filter(member => {
+                      const excludeId = isReply ? (replyToRFI?.assigned_to || replyToRFI?.raised_by) : selectedRecipient;
+                      return member.user_id !== excludeId && member.user_id !== formData.assigned_to;
+                    })
+                    .map(member => (
+                      <div 
+                        key={member.user_id} 
+                        className={`flex items-center space-x-2 p-2 rounded cursor-pointer hover:bg-muted ${selectedCCUsers.includes(member.user_id) ? 'bg-primary/10' : ''}`}
+                        onClick={() => {
+                          if (selectedCCUsers.includes(member.user_id)) {
+                            setSelectedCCUsers(prev => prev.filter(id => id !== member.user_id));
+                          } else {
+                            setSelectedCCUsers(prev => [...prev, member.user_id]);
+                          }
+                        }}
+                      >
+                        <span className="text-sm flex-1">
+                          {member.user_profile?.name || 'Unknown User'} ({member.user_profile?.role || member.role})
+                        </span>
+                        {selectedCCUsers.includes(member.user_id) && (
+                          <div className="text-primary">✓</div>
+                        )}
+                      </div>
+                    ))}
+                  {teamMembers.filter(m => {
+                    const excludeId = isReply ? (replyToRFI?.assigned_to || replyToRFI?.raised_by) : selectedRecipient;
+                    return m.user_id !== excludeId && m.user_id !== formData.assigned_to;
+                  }).length === 0 && (
+                    <p className="text-sm text-muted-foreground p-2">No other team members available for CC</p>
+                  )}
+                </div>
+                {selectedCCUsers.length > 0 && (
+                  <div className="mt-2">
+                    <Label className="text-sm text-muted-foreground">
+                      CC'd Users ({selectedCCUsers.length}):
+                    </Label>
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      {selectedCCUsers.map(userId => {
+                        const member = teamMembers.find(m => m.user_id === userId);
+                        return (
+                          <Badge key={userId} variant="secondary" className="text-xs">
+                            {member?.user_profile?.name || 'Unknown'}
+                          </Badge>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
+
               {/* Response Date (only for Request for Information) */}
               {isResponseRequired && (
                 <div>
@@ -465,60 +520,6 @@ export const SimplifiedRFIComposer: React.FC<SimplifiedRFIComposerProps> = ({
             </div>
           )}
 
-          {/* CC Selection */}
-          <div className="space-y-2">
-            <Label>CC (Carbon Copy)</Label>
-            <div className="max-h-32 overflow-y-auto border rounded-md p-2 space-y-1">
-              {teamMembers
-                .filter(member => {
-                  const excludeId = isReply ? (replyToRFI?.assigned_to || replyToRFI?.raised_by) : selectedRecipient;
-                  return member.user_id !== excludeId && member.user_id !== formData.assigned_to;
-                })
-                .map(member => (
-                  <div 
-                    key={member.user_id} 
-                    className={`flex items-center space-x-2 p-2 rounded cursor-pointer hover:bg-muted ${selectedCCUsers.includes(member.user_id) ? 'bg-primary/10' : ''}`}
-                    onClick={() => {
-                      if (selectedCCUsers.includes(member.user_id)) {
-                        setSelectedCCUsers(prev => prev.filter(id => id !== member.user_id));
-                      } else {
-                        setSelectedCCUsers(prev => [...prev, member.user_id]);
-                      }
-                    }}
-                  >
-                    <span className="text-sm flex-1">
-                      {member.user_profile?.name || 'Unknown User'} ({member.user_profile?.role || member.role})
-                    </span>
-                    {selectedCCUsers.includes(member.user_id) && (
-                      <div className="text-primary">✓</div>
-                    )}
-                  </div>
-                ))}
-              {teamMembers.filter(m => {
-                const excludeId = isReply ? (replyToRFI?.assigned_to || replyToRFI?.raised_by) : selectedRecipient;
-                return m.user_id !== excludeId && m.user_id !== formData.assigned_to;
-              }).length === 0 && (
-                <p className="text-sm text-muted-foreground p-2">No other team members available for CC</p>
-              )}
-            </div>
-            {selectedCCUsers.length > 0 && (
-              <div className="mt-2">
-                <Label className="text-sm text-muted-foreground">
-                  CC'd Users ({selectedCCUsers.length}):
-                </Label>
-                <div className="flex flex-wrap gap-1 mt-1">
-                  {selectedCCUsers.map(userId => {
-                    const member = teamMembers.find(m => m.user_id === userId);
-                    return (
-                      <Badge key={userId} variant="secondary" className="text-xs">
-                        {member?.user_profile?.name || 'Unknown'}
-                      </Badge>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-          </div>
         </div>
 
         <div className="flex justify-end space-x-2 pt-4">
