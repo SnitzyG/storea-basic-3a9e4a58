@@ -11,6 +11,7 @@ import { RFIStatusBadge, EnhancedRFIStatus } from './RFIStatusBadge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { CalendarDays, User, FileText } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import { useProjectTeam } from '@/hooks/useProjectTeam';
 import { RFIAttachmentUpload } from './RFIAttachmentUpload';
 import { DigitalSignature } from '@/components/ui/digital-signature';
 
@@ -26,11 +27,13 @@ interface RFIResponseComposerProps {
     priority?: 'low' | 'medium' | 'high' | 'critical';
     attachments?: File[];
     signature?: string;
+    cc_list?: string[];
   }) => Promise<void>;
 }
 
 export const RFIResponseComposer = ({ rfi, isOpen, onClose, onSubmit }: RFIResponseComposerProps) => {
   const { profile } = useAuth();
+  const { teamMembers } = useProjectTeam(rfi.project_id);
   const [response, setResponse] = useState('');
   const [responderName, setResponderName] = useState('');
   const [responderPosition, setResponderPosition] = useState('');
@@ -41,6 +44,7 @@ export const RFIResponseComposer = ({ rfi, isOpen, onClose, onSubmit }: RFIRespo
   const [attachments, setAttachments] = useState<File[]>([]);
   const [signature, setSignature] = useState<string | null>(null);
   const [signatureRequired, setSignatureRequired] = useState(false);
+  const [selectedCCUsers, setSelectedCCUsers] = useState<string[]>([]);
 
   // Auto-populate responder details from user profile when dialog opens
   useEffect(() => {
@@ -65,6 +69,7 @@ export const RFIResponseComposer = ({ rfi, isOpen, onClose, onSubmit }: RFIRespo
         priority: newPriority,
         attachments: attachments.length > 0 ? attachments : undefined,
         signature: signature || undefined,
+        cc_list: selectedCCUsers.length > 0 ? selectedCCUsers : undefined,
       });
       
       // Reset form
@@ -74,6 +79,7 @@ export const RFIResponseComposer = ({ rfi, isOpen, onClose, onSubmit }: RFIRespo
       setAttachments([]);
       setSignature(null);
       setSignatureRequired(false);
+      setSelectedCCUsers([]);
     } catch (error) {
       console.error('Failed to submit response:', error);
     } finally {
@@ -279,6 +285,57 @@ export const RFIResponseComposer = ({ rfi, isOpen, onClose, onSubmit }: RFIRespo
                 onFilesChange={setAttachments}
                 disabled={isSubmitting}
               />
+            </div>
+
+            {/* CC Selection */}
+            <div className="space-y-2">
+              <Label>CC (Carbon Copy)</Label>
+              <div className="max-h-32 overflow-y-auto border rounded-md p-2 space-y-1">
+                {teamMembers
+                  .filter(member => member.user_id !== rfi.raised_by && member.user_id !== rfi.assigned_to)
+                  .map(member => (
+                    <div 
+                      key={member.user_id} 
+                      className={`flex items-center space-x-2 p-2 rounded cursor-pointer hover:bg-muted ${
+                        selectedCCUsers.includes(member.user_id) ? 'bg-primary/10' : ''
+                      }`}
+                      onClick={() => {
+                        if (selectedCCUsers.includes(member.user_id)) {
+                          setSelectedCCUsers(prev => prev.filter(id => id !== member.user_id));
+                        } else {
+                          setSelectedCCUsers(prev => [...prev, member.user_id]);
+                        }
+                      }}
+                    >
+                      <span className="text-sm flex-1">
+                        {member.user_profile?.name || 'Unknown User'} ({member.user_profile?.role || member.role})
+                      </span>
+                      {selectedCCUsers.includes(member.user_id) && (
+                        <div className="text-primary">✓</div>
+                      )}
+                    </div>
+                  ))}
+                {teamMembers.filter(m => m.user_id !== rfi.raised_by && m.user_id !== rfi.assigned_to).length === 0 && (
+                  <p className="text-sm text-muted-foreground p-2">No other team members available for CC</p>
+                )}
+              </div>
+              {selectedCCUsers.length > 0 && (
+                <div className="mt-2">
+                  <Label className="text-sm text-muted-foreground">
+                    CC'd Users ({selectedCCUsers.length}):
+                  </Label>
+                  <div className="flex flex-wrap gap-1 mt-1">
+                    {selectedCCUsers.map(userId => {
+                      const member = teamMembers.find(m => m.user_id === userId);
+                      return (
+                        <Badge key={userId} variant="secondary" className="text-xs">
+                          {member?.user_profile?.name || 'Unknown'}
+                        </Badge>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 

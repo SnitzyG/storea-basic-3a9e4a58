@@ -1663,6 +1663,7 @@ export type Database = {
           assigned_to: string | null
           attachments: Json | null
           category: string | null
+          cc_list: Json | null
           contract_clause: string | null
           created_at: string
           drawing_no: string | null
@@ -1697,6 +1698,7 @@ export type Database = {
           assigned_to?: string | null
           attachments?: Json | null
           category?: string | null
+          cc_list?: Json | null
           contract_clause?: string | null
           created_at?: string
           drawing_no?: string | null
@@ -1731,6 +1733,7 @@ export type Database = {
           assigned_to?: string | null
           attachments?: Json | null
           category?: string | null
+          cc_list?: Json | null
           contract_clause?: string | null
           created_at?: string
           drawing_no?: string | null

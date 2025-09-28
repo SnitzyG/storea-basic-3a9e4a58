@@ -18,6 +18,7 @@ export interface RFI {
   category?: string;
   rfi_type?: 'general_correspondence' | 'request_for_information' | 'general_advice';
   attachments?: any[];
+  cc_list?: string[];
   created_at: string;
   updated_at: string;
   // New structured RFI fields
@@ -180,6 +181,7 @@ export const useRFIs = () => {
     category?: string;
     assigned_to?: string;
     rfi_type?: 'general_correspondence' | 'request_for_information' | 'general_advice';
+    cc_list?: string[];
     // New structured fields
     project_name?: string;
     project_number?: string;

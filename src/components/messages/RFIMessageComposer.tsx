@@ -8,6 +8,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useRFIs } from '@/hooks/useRFIs';
 import { useAuth } from '@/hooks/useAuth';
 import { useProjects } from '@/hooks/useProjects';
+import { useProjectTeam } from '@/hooks/useProjectTeam';
+import { Badge } from '@/components/ui/badge';
 
 interface RFIMessageComposerProps {
   open: boolean;
@@ -25,6 +27,7 @@ export const RFIMessageComposer: React.FC<RFIMessageComposerProps> = ({
   const { createRFI } = useRFIs();
   const { profile, user } = useAuth();
   const { projects } = useProjects();
+  const { teamMembers } = useProjectTeam(projectId);
   
   const currentProject = projects.find(p => p.id === projectId);
 
@@ -33,6 +36,7 @@ export const RFIMessageComposer: React.FC<RFIMessageComposerProps> = ({
     message: '',
     notes: ''
   });
+  const [selectedCCUsers, setSelectedCCUsers] = useState<string[]>([]);
   
   const [loading, setLoading] = useState(false);
 
@@ -65,7 +69,8 @@ export const RFIMessageComposer: React.FC<RFIMessageComposerProps> = ({
         // Link to original RFI if provided
         ...(linkedRFI && {
           other_reference: `Related to RFI ${linkedRFI.rfi_number || linkedRFI.id.slice(0, 8)}`
-        })
+        }),
+        cc_list: selectedCCUsers
       });
 
       // Reset form
@@ -74,6 +79,7 @@ export const RFIMessageComposer: React.FC<RFIMessageComposerProps> = ({
         message: '',
         notes: ''
       });
+      setSelectedCCUsers([]);
       onOpenChange(false);
     } catch (error) {
       console.error('Error creating message:', error);
@@ -127,17 +133,66 @@ export const RFIMessageComposer: React.FC<RFIMessageComposerProps> = ({
             />
           </div>
 
-          {/* Notes */}
-          <div>
-            <Label htmlFor="notes">Notes</Label>
-            <Textarea 
-              id="notes" 
-              placeholder="Additional notes (optional)"
-              value={formData.notes} 
-              onChange={e => setFormData(prev => ({ ...prev, notes: e.target.value }))}
-              className="min-h-[80px]" 
-            />
-          </div>
+            {/* Notes */}
+            <div>
+              <Label htmlFor="notes">Notes</Label>
+              <Textarea 
+                id="notes" 
+                placeholder="Additional notes (optional)"
+                value={formData.notes} 
+                onChange={e => setFormData(prev => ({ ...prev, notes: e.target.value }))}
+                className="min-h-[80px]" 
+              />
+            </div>
+
+            {/* CC Selection */}
+            <div>
+              <Label>CC (Carbon Copy)</Label>
+              <div className="max-h-32 overflow-y-auto border rounded-md p-2 space-y-1">
+                {teamMembers.map(member => (
+                  <div 
+                    key={member.user_id} 
+                    className={`flex items-center space-x-2 p-2 rounded cursor-pointer hover:bg-muted ${
+                      selectedCCUsers.includes(member.user_id) ? 'bg-primary/10' : ''
+                    }`}
+                    onClick={() => {
+                      if (selectedCCUsers.includes(member.user_id)) {
+                        setSelectedCCUsers(prev => prev.filter(id => id !== member.user_id));
+                      } else {
+                        setSelectedCCUsers(prev => [...prev, member.user_id]);
+                      }
+                    }}
+                  >
+                    <span className="text-sm flex-1">
+                      {member.user_profile?.name || 'Unknown User'} ({member.user_profile?.role || member.role})
+                    </span>
+                    {selectedCCUsers.includes(member.user_id) && (
+                      <div className="text-primary">✓</div>
+                    )}
+                  </div>
+                ))}
+                {teamMembers.length === 0 && (
+                  <p className="text-sm text-muted-foreground p-2">No team members available for CC</p>
+                )}
+              </div>
+              {selectedCCUsers.length > 0 && (
+                <div className="mt-2">
+                  <Label className="text-sm text-muted-foreground">
+                    CC'd Users ({selectedCCUsers.length}):
+                  </Label>
+                  <div className="flex flex-wrap gap-1 mt-1">
+                    {selectedCCUsers.map(userId => {
+                      const member = teamMembers.find(m => m.user_id === userId);
+                      return (
+                        <Badge key={userId} variant="secondary" className="text-xs">
+                          {member?.user_profile?.name || 'Unknown'}
+                        </Badge>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
         </div>
 
         <div className="flex justify-end space-x-2 pt-4">

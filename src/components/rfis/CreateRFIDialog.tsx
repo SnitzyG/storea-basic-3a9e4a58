@@ -15,6 +15,7 @@ import { useProjectTeam } from '@/hooks/useProjectTeam';
 import { useProjects } from '@/hooks/useProjects';
 import { useAuth } from '@/hooks/useAuth';
 import { useDocuments } from '@/hooks/useDocuments';
+import { Badge } from '@/components/ui/badge';
 interface CreateRFIDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -69,6 +70,7 @@ export const CreateRFIDialog: React.FC<CreateRFIDialogProps> = ({
   const [isOtherRecipient, setIsOtherRecipient] = useState(false);
   const [selectedDocuments, setSelectedDocuments] = useState<string[]>([]);
   const [documentNames, setDocumentNames] = useState<Record<string, string>>({});
+  const [selectedCCUsers, setSelectedCCUsers] = useState<string[]>([]);
 
   // Auto-fill project data when dialog opens
   useEffect(() => {
@@ -166,7 +168,8 @@ export const CreateRFIDialog: React.FC<CreateRFIDialogProps> = ({
         contract_clause: formData.contract_clause,
         other_reference: otherRef,
         proposed_solution: formData.proposed_solution,
-        required_response_by: requiredResponseDate?.toISOString()
+        required_response_by: requiredResponseDate?.toISOString(),
+        cc_list: selectedCCUsers
       });
 
       // Reset form
@@ -196,6 +199,7 @@ export const CreateRFIDialog: React.FC<CreateRFIDialogProps> = ({
       setIsOtherRecipient(false);
       setSelectedDocuments([]);
       setDocumentNames({});
+      setSelectedCCUsers([]);
       onOpenChange(false);
     } catch (error) {
       console.error('Error creating RFI:', error);
@@ -398,6 +402,57 @@ export const CreateRFIDialog: React.FC<CreateRFIDialogProps> = ({
                   <ModernCalendar mode="single" selected={requiredResponseDate} onSelect={setRequiredResponseDate} initialFocus className="p-0" />
                 </PopoverContent>
               </Popover>
+            </div>
+
+            <div>
+              <Label>CC (Carbon Copy)</Label>
+              <div className="max-h-32 overflow-y-auto border rounded-md p-2 space-y-1">
+                {teamMembers
+                  .filter(member => member.user_id !== selectedRecipient && member.user_id !== formData.assigned_to)
+                  .map(member => (
+                    <div 
+                      key={member.user_id} 
+                      className={cn(
+                        "flex items-center space-x-2 p-2 rounded cursor-pointer hover:bg-muted",
+                        selectedCCUsers.includes(member.user_id) && "bg-primary/10"
+                      )}
+                      onClick={() => {
+                        if (selectedCCUsers.includes(member.user_id)) {
+                          setSelectedCCUsers(prev => prev.filter(id => id !== member.user_id));
+                        } else {
+                          setSelectedCCUsers(prev => [...prev, member.user_id]);
+                        }
+                      }}
+                    >
+                      <span className="text-sm flex-1">
+                        {member.user_profile?.name || 'Unknown User'} ({member.user_profile?.role || member.role})
+                      </span>
+                      {selectedCCUsers.includes(member.user_id) && (
+                        <div className="text-primary">✓</div>
+                      )}
+                    </div>
+                  ))}
+                {teamMembers.filter(m => m.user_id !== selectedRecipient && m.user_id !== formData.assigned_to).length === 0 && (
+                  <p className="text-sm text-muted-foreground p-2">No other team members available for CC</p>
+                )}
+              </div>
+              {selectedCCUsers.length > 0 && (
+                <div className="mt-2">
+                  <Label className="text-sm text-muted-foreground">
+                    CC'd Users ({selectedCCUsers.length}):
+                  </Label>
+                  <div className="flex flex-wrap gap-1 mt-1">
+                    {selectedCCUsers.map(userId => {
+                      const member = teamMembers.find(m => m.user_id === userId);
+                      return (
+                        <Badge key={userId} variant="secondary" className="text-xs">
+                          {member?.user_profile?.name || 'Unknown'}
+                        </Badge>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
