@@ -44,14 +44,12 @@ const Auth = () => {
 
   // Removed early return to keep hooks order consistent and avoid hook mismatch errors during loading state
 
-
   useEffect(() => {
     // Check if user came from email confirmation
     if (searchParams.get('confirmed') === 'true') {
       setEmailConfirmed(true);
     }
   }, [searchParams]);
-
   useEffect(() => {
     if (user) {
       // Check for pending invitation tokens
@@ -76,60 +74,57 @@ const Auth = () => {
   // This prevents double navigation
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
-    
     if (isBlocked) {
       toast.error(`Account is locked. Please try again in ${Math.ceil(remainingLockoutTime / 60)} minutes.`);
       return;
     }
-    
     if (requiresCaptcha && !captchaVerified) {
       setShowCaptcha(true);
       return;
     }
-    
     setIsSubmitting(true);
-    const result = await secureSignIn({ 
-      email, 
-      password, 
-      captchaVerified: requiresCaptcha ? captchaVerified : true 
+    const result = await secureSignIn({
+      email,
+      password,
+      captchaVerified: requiresCaptcha ? captchaVerified : true
     });
-    
     if (result.error?.message === "CAPTCHA required") {
       setShowCaptcha(true);
     }
-    
     setIsSubmitting(false);
   };
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
-    
     if (password !== confirmPassword) {
       toast.error('Passwords do not match');
       return;
     }
-    
     if (!passwordStrength?.isValid) {
       toast.error('Please ensure your password meets all security requirements');
       return;
     }
-    
     setIsSubmitting(true);
-    await secureSignUp({ email, password, name, role, company });
+    await secureSignUp({
+      email,
+      password,
+      name,
+      role,
+      company
+    });
     setIsSubmitting(false);
   };
-
   const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!resetEmail) {
       toast.error('Please enter your email address');
       return;
     }
-    
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
-        redirectTo: `${window.location.origin}/auth?reset=true`,
+      const {
+        error
+      } = await supabase.auth.resetPasswordForEmail(resetEmail, {
+        redirectTo: `${window.location.origin}/auth?reset=true`
       });
-      
       if (error) {
         toast.error(error.message);
       } else {
@@ -141,21 +136,22 @@ const Auth = () => {
       toast.error('An unexpected error occurred');
     }
   };
-
   const handleDataWipe = async () => {
     const password = prompt('Enter the test password to wipe all data:');
     if (!password) return;
-
     try {
-      const { data, error } = await supabase.functions.invoke('wipe-test-data', {
-        body: { password }
+      const {
+        data,
+        error
+      } = await supabase.functions.invoke('wipe-test-data', {
+        body: {
+          password
+        }
       });
-
       if (error) {
         toast.error('Failed to wipe data: ' + error.message);
         return;
       }
-
       if (data.success) {
         toast.success('✅ All user data has been cleared successfully!');
         // Force reload the page to clear any cached state
@@ -173,22 +169,26 @@ const Auth = () => {
   useEffect(() => {
     let clickCount = 0;
     let clickTimeout: NodeJS.Timeout;
-    
     const handleCornerClick = (e: MouseEvent) => {
-      const { innerWidth, innerHeight } = window;
-      const { clientX, clientY } = e;
-      
+      const {
+        innerWidth,
+        innerHeight
+      } = window;
+      const {
+        clientX,
+        clientY
+      } = e;
+
       // Check if click is in bottom-right corner (last 80px of both dimensions for easier targeting)
       if (clientX > innerWidth - 80 && clientY > innerHeight - 80) {
         clickCount++;
         console.log(`Corner click ${clickCount}/3`); // Debug log
-        
+
         // Reset counter after 3 seconds of no clicks
         clearTimeout(clickTimeout);
         clickTimeout = setTimeout(() => {
           clickCount = 0;
         }, 3000);
-        
         if (clickCount >= 3) {
           setShowWipeButton(true);
           toast.info('🧪 Test data wipe button activated');
@@ -200,7 +200,6 @@ const Auth = () => {
         clearTimeout(clickTimeout);
       }
     };
-
     window.addEventListener('click', handleCornerClick);
     return () => {
       window.removeEventListener('click', handleCornerClick);
@@ -220,10 +219,11 @@ const Auth = () => {
   const handleCaptchaVerify = (success: boolean) => {
     verifyCaptcha(success);
     setShowCaptcha(false);
-    
     if (success) {
       // Retry login after successful CAPTCHA
-      handleSignIn({ preventDefault: () => {} } as React.FormEvent);
+      handleSignIn({
+        preventDefault: () => {}
+      } as React.FormEvent);
     }
   };
 
@@ -237,7 +237,6 @@ const Auth = () => {
     setCompany('');
     setRole('');
   };
-
   const roleOptions = [{
     value: 'builder',
     label: 'Builder'
@@ -252,11 +251,9 @@ const Auth = () => {
     label: 'Contractor'
   }];
   return <div className="min-h-screen flex items-center justify-center bg-background px-4 relative">
-      {loading && (
-        <div className="fixed inset-0 grid place-items-center bg-background/80 z-50">
+      {loading && <div className="fixed inset-0 grid place-items-center bg-background/80 z-50">
           <div className="text-center">Loading...</div>
-        </div>
-      )}
+        </div>}
       <div className="w-full max-w-6xl flex flex-col lg:flex-row items-center lg:items-stretch lg:justify-between gap-8">
         {/* Animated House Illustration */}
         <div className="w-full lg:w-1/2 flex justify-center lg:order-2">
@@ -366,97 +363,45 @@ const Auth = () => {
               </TabsList>
 
               <TabsContent value="signin" className="min-h-[400px]">
-                {!showForgotPassword ? (
-                  <form onSubmit={handleSignIn} className="space-y-4">
-                    {isBlocked && (
-                      <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-lg">
+                {!showForgotPassword ? <form onSubmit={handleSignIn} className="space-y-4">
+                    {isBlocked && <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-lg">
                         <p className="text-sm text-destructive">
                           🔒 Account temporarily locked due to too many failed attempts. 
                           Try again in {Math.ceil(remainingLockoutTime / 60)} minutes.
                         </p>
-                      </div>
-                    )}
+                      </div>}
                     
                     <div className="space-y-2">
                       <Label htmlFor="signin-email">Email</Label>
-                      <Input 
-                        id="signin-email" 
-                        type="email" 
-                        placeholder="Enter your email" 
-                        value={email} 
-                        onChange={e => setEmail(e.target.value)} 
-                        required 
-                        disabled={isBlocked}
-                      />
+                      <Input id="signin-email" type="email" placeholder="Enter your email" value={email} onChange={e => setEmail(e.target.value)} required disabled={isBlocked} />
                     </div>
                     
                     <div className="space-y-2">
                       <Label htmlFor="signin-password">Password</Label>
                       <div className="relative">
-                        <Input 
-                          id="signin-password" 
-                          type={isPasswordVisible ? "text" : "password"}
-                          placeholder="Enter your password" 
-                          value={password} 
-                          onChange={e => setPassword(e.target.value)} 
-                          required 
-                          disabled={isBlocked}
-                        />
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          className="absolute right-2 top-1/2 -translate-y-1/2 h-auto p-1"
-                          onClick={() => setIsPasswordVisible(!isPasswordVisible)}
-                          disabled={isBlocked}
-                        >
-                          {isPasswordVisible ? '🙈' : '👁️'}
-                        </Button>
+                        <Input id="signin-password" type={isPasswordVisible ? "text" : "password"} placeholder="Enter your password" value={password} onChange={e => setPassword(e.target.value)} required disabled={isBlocked} />
+                        
                       </div>
                     </div>
                     
-                    <Button 
-                      type="submit" 
-                      className="w-full" 
-                      disabled={isSubmitting || isBlocked}
-                    >
+                    <Button type="submit" className="w-full" disabled={isSubmitting || isBlocked}>
                       {isSubmitting ? 'Signing in...' : 'Sign In'}
                     </Button>
-                    <Button 
-                      type="button" 
-                      variant="ghost" 
-                      className="w-full text-sm" 
-                      onClick={() => setShowForgotPassword(true)}
-                    >
+                    <Button type="button" variant="ghost" className="w-full text-sm" onClick={() => setShowForgotPassword(true)}>
                       Forgot Password?
                     </Button>
-                  </form>
-                ) : (
-                  <form onSubmit={handleForgotPassword} className="space-y-4">
+                  </form> : <form onSubmit={handleForgotPassword} className="space-y-4">
                     <div className="space-y-2">
                       <Label htmlFor="reset-email">Email</Label>
-                      <Input 
-                        id="reset-email" 
-                        type="email" 
-                        placeholder="Enter your email to reset password" 
-                        value={resetEmail} 
-                        onChange={e => setResetEmail(e.target.value)} 
-                        required 
-                      />
+                      <Input id="reset-email" type="email" placeholder="Enter your email to reset password" value={resetEmail} onChange={e => setResetEmail(e.target.value)} required />
                     </div>
                     <Button type="submit" className="w-full">
                       Send Reset Email
                     </Button>
-                    <Button 
-                      type="button" 
-                      variant="ghost" 
-                      className="w-full text-sm" 
-                      onClick={() => setShowForgotPassword(false)}
-                    >
+                    <Button type="button" variant="ghost" className="w-full text-sm" onClick={() => setShowForgotPassword(false)}>
                       Back to Sign In
                     </Button>
-                  </form>
-                )}
+                  </form>}
               </TabsContent>
 
               <TabsContent value="signup" className="min-h-[400px]">
@@ -472,42 +417,18 @@ const Auth = () => {
                   <div className="space-y-2">
                     <Label htmlFor="signup-password">Password</Label>
                     <div className="relative">
-                      <Input 
-                        id="signup-password" 
-                        type={isPasswordVisible ? "text" : "password"}
-                        placeholder="Create a password" 
-                        value={password} 
-                        onChange={e => handlePasswordChange(e.target.value)} 
-                        required 
-                      />
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        className="absolute right-2 top-1/2 -translate-y-1/2 h-auto p-1"
-                        onClick={() => setIsPasswordVisible(!isPasswordVisible)}
-                      >
+                      <Input id="signup-password" type={isPasswordVisible ? "text" : "password"} placeholder="Create a password" value={password} onChange={e => handlePasswordChange(e.target.value)} required />
+                      <Button type="button" variant="ghost" size="sm" className="absolute right-2 top-1/2 -translate-y-1/2 h-auto p-1" onClick={() => setIsPasswordVisible(!isPasswordVisible)}>
                         {isPasswordVisible ? '🙈' : '👁️'}
                       </Button>
                     </div>
-                    {passwordStrength && (
-                      <PasswordStrengthIndicator result={passwordStrength} />
-                    )}
+                    {passwordStrength && <PasswordStrengthIndicator result={passwordStrength} />}
                   </div>
                   
                   <div className="space-y-2">
                     <Label htmlFor="confirm-password">Confirm Password</Label>
-                    <Input 
-                      id="confirm-password" 
-                      type={isPasswordVisible ? "text" : "password"}
-                      placeholder="Confirm your password" 
-                      value={confirmPassword} 
-                      onChange={e => setConfirmPassword(e.target.value)} 
-                      required 
-                    />
-                    {confirmPassword && password !== confirmPassword && (
-                      <p className="text-sm text-destructive">Passwords do not match</p>
-                    )}
+                    <Input id="confirm-password" type={isPasswordVisible ? "text" : "password"} placeholder="Confirm your password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} required />
+                    {confirmPassword && password !== confirmPassword && <p className="text-sm text-destructive">Passwords do not match</p>}
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="role">Your Role</Label>
@@ -522,24 +443,11 @@ const Auth = () => {
                       </SelectContent>
                     </Select>
                   </div>
-                  {role && role !== 'homeowner' && (
-                    <div className="space-y-2">
+                  {role && role !== 'homeowner' && <div className="space-y-2">
                       <Label htmlFor="company">Company *</Label>
-                      <Input 
-                        id="company" 
-                        type="text" 
-                        placeholder="Enter your company name" 
-                        value={company} 
-                        onChange={e => setCompany(e.target.value)} 
-                        required={role !== 'homeowner'}
-                      />
-                    </div>
-                  )}
-                   <Button 
-                     type="submit" 
-                     className="w-full"
-                     disabled={isSubmitting || !passwordStrength?.isValid || !role || (role !== 'homeowner' && !company.trim())}
-                   >
+                      <Input id="company" type="text" placeholder="Enter your company name" value={company} onChange={e => setCompany(e.target.value)} required={role !== 'homeowner'} />
+                    </div>}
+                   <Button type="submit" className="w-full" disabled={isSubmitting || !passwordStrength?.isValid || !role || role !== 'homeowner' && !company.trim()}>
                      {isSubmitting ? 'Creating account...' : 'Create Account'}
                    </Button>
                 </form>
@@ -551,17 +459,11 @@ const Auth = () => {
       </div>
       
       {/* Hidden data wipe button for testing */}
-      {showWipeButton && (
-        <Button
-          onClick={handleDataWipe}
-          variant="ghost"
-          size="sm"
-          className="fixed bottom-4 right-4 opacity-50 hover:opacity-100 transition-opacity text-xs bg-destructive/10 hover:bg-destructive/20 border border-destructive/30 z-50"
-          style={{ userSelect: 'none' }}
-        >
+      {showWipeButton && <Button onClick={handleDataWipe} variant="ghost" size="sm" className="fixed bottom-4 right-4 opacity-50 hover:opacity-100 transition-opacity text-xs bg-destructive/10 hover:bg-destructive/20 border border-destructive/30 z-50" style={{
+      userSelect: 'none'
+    }}>
           🧪 Wipe Test Data
-        </Button>
-      )}
+        </Button>}
     </div>;
 };
 export default Auth;
