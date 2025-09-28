@@ -7,6 +7,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Separator } from '@/components/ui/separator';
 import { AddTeamMemberDialog } from './AddTeamMemberDialog';
 import { TeamInvitationStatusCard } from './TeamInvitationStatusCard';
+import { UserProjectReferenceEditor } from './UserProjectReferenceEditor';
 import { useProjectTeam } from '@/hooks/useProjectTeam';
 import { usePendingInvitations } from '@/hooks/usePendingInvitations';
 import { useAuth } from '@/hooks/useAuth';
@@ -161,6 +162,14 @@ export const ProjectDetailView = ({ project }: ProjectDetailViewProps) => {
             </div>
           </CardContent>
         </Card>
+
+        {/* User Project Reference Editor */}
+        <UserProjectReferenceEditor 
+          projectId={project.id}
+          onUpdate={() => {
+            // Refresh team data if needed
+          }}
+        />
       </div>
 
       {/* Team Management Section */}

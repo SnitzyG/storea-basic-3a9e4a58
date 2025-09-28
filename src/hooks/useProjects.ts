@@ -368,6 +368,7 @@ export const useProjects = () => {
           role,
           joined_at,
           permissions,
+          user_project_reference,
           profiles!inner (
             user_id,
             name,
@@ -387,6 +388,33 @@ export const useProjects = () => {
         variant: "destructive"
       });
       return [];
+    }
+  };
+
+  const updateUserProjectReference = async (projectId: string, userProjectReference: string) => {
+    try {
+      const currentUser = (await supabase.auth.getUser()).data.user;
+      if (!currentUser) throw new Error('User not authenticated');
+
+      const { error } = await supabase
+        .from('project_users')
+        .update({ user_project_reference: userProjectReference })
+        .eq('project_id', projectId)
+        .eq('user_id', currentUser.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Project reference updated",
+        description: "Your project reference has been updated successfully"
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error updating project reference",
+        description: error.message,
+        variant: "destructive"
+      });
+      throw error;
     }
   };
 
@@ -488,6 +516,7 @@ export const useProjects = () => {
     deleteProject,
     inviteUserToProject,
     getProjectUsers,
+    updateUserProjectReference,
     fetchProjects
   };
 };

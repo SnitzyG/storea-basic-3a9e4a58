@@ -1331,6 +1331,7 @@ export type Database = {
           project_id: string
           role: Database["public"]["Enums"]["user_role"]
           user_id: string
+          user_project_reference: string | null
         }
         Insert: {
           created_at?: string
@@ -1341,6 +1342,7 @@ export type Database = {
           project_id: string
           role: Database["public"]["Enums"]["user_role"]
           user_id: string
+          user_project_reference?: string | null
         }
         Update: {
           created_at?: string
@@ -1351,6 +1353,7 @@ export type Database = {
           project_id?: string
           role?: Database["public"]["Enums"]["user_role"]
           user_id?: string
+          user_project_reference?: string | null
         }
         Relationships: [
           {

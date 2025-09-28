@@ -88,6 +88,7 @@ export interface ProjectUser {
     can_view_documents: boolean;
     can_upload_documents: boolean;
   };
+  user_project_reference?: string;
   invited_by: string;
   joined_at?: string;
   created_at: string;
@@ -642,6 +643,33 @@ export const useAdvancedProjects = () => {
     fetchTemplates();
   }, [fetchTemplates]);
 
+  const updateUserProjectReference = async (projectId: string, userProjectReference: string) => {
+    try {
+      const currentUser = (await supabase.auth.getUser()).data.user;
+      if (!currentUser) throw new Error('User not authenticated');
+
+      const { error } = await supabase
+        .from('project_users')
+        .update({ user_project_reference: userProjectReference })
+        .eq('project_id', projectId)
+        .eq('user_id', currentUser.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Project reference updated",
+        description: "Your project reference has been updated successfully"
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error updating project reference",
+        description: error.message,
+        variant: "destructive"
+      });
+      throw error;
+    }
+  };
+
   return {
     projects,
     templates,
@@ -656,6 +684,7 @@ export const useAdvancedProjects = () => {
     deleteProject,
     cloneProject,
     fetchProjects,
+    updateUserProjectReference,
     setSearchQuery,
     updateFilters,
     updateSort,
