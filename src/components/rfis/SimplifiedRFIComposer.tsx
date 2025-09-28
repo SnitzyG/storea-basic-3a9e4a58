@@ -3,6 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Calendar } from '@/components/ui/calendar';
@@ -58,6 +59,7 @@ export const SimplifiedRFIComposer: React.FC<SimplifiedRFIComposerProps> = ({
   const [attachmentFiles, setAttachmentFiles] = useState<File[]>([]);
   const [signature, setSignature] = useState<string | null>(null);
   const [signatureRequired, setSignatureRequired] = useState(false);
+  const [selectedCCUsers, setSelectedCCUsers] = useState<string[]>([]);
   const documentUploadService = new DocumentUploadService();
 
   // Auto-fill project data when dialog opens
@@ -132,7 +134,8 @@ export const SimplifiedRFIComposer: React.FC<SimplifiedRFIComposerProps> = ({
           responder_name: profile?.name || '',
           response_date: isDraft ? undefined : new Date().toISOString(),
           status: isDraft ? 'draft' : 'answered',
-          signature: signature || undefined
+          signature: signature || undefined,
+          cc_list: selectedCCUsers.length > 0 ? selectedCCUsers : undefined
         });
       } else {
         // Create new RFI first
@@ -158,7 +161,8 @@ export const SimplifiedRFIComposer: React.FC<SimplifiedRFIComposerProps> = ({
             sender_email: user?.email || '',
             subject: formData.subject,
             required_response_by: isResponseRequired ? requiredResponseDate?.toISOString() : undefined,
-            signature: signature || undefined
+            signature: signature || undefined,
+            cc_list: selectedCCUsers
           });
 
         // Update status if it's a draft
@@ -221,6 +225,7 @@ export const SimplifiedRFIComposer: React.FC<SimplifiedRFIComposerProps> = ({
       setAttachmentFiles([]);
       setSignature(null);
       setSignatureRequired(false);
+      setSelectedCCUsers([]);
       onOpenChange(false);
     } catch (error) {
       console.error('Error saving RFI:', error);
@@ -459,6 +464,61 @@ export const SimplifiedRFIComposer: React.FC<SimplifiedRFIComposerProps> = ({
               />
             </div>
           )}
+
+          {/* CC Selection */}
+          <div className="space-y-2">
+            <Label>CC (Carbon Copy)</Label>
+            <div className="max-h-32 overflow-y-auto border rounded-md p-2 space-y-1">
+              {teamMembers
+                .filter(member => {
+                  const excludeId = isReply ? (replyToRFI?.assigned_to || replyToRFI?.raised_by) : selectedRecipient;
+                  return member.user_id !== excludeId && member.user_id !== formData.assigned_to;
+                })
+                .map(member => (
+                  <div 
+                    key={member.user_id} 
+                    className={`flex items-center space-x-2 p-2 rounded cursor-pointer hover:bg-muted ${selectedCCUsers.includes(member.user_id) ? 'bg-primary/10' : ''}`}
+                    onClick={() => {
+                      if (selectedCCUsers.includes(member.user_id)) {
+                        setSelectedCCUsers(prev => prev.filter(id => id !== member.user_id));
+                      } else {
+                        setSelectedCCUsers(prev => [...prev, member.user_id]);
+                      }
+                    }}
+                  >
+                    <span className="text-sm flex-1">
+                      {member.user_profile?.name || 'Unknown User'} ({member.user_profile?.role || member.role})
+                    </span>
+                    {selectedCCUsers.includes(member.user_id) && (
+                      <div className="text-primary">✓</div>
+                    )}
+                  </div>
+                ))}
+              {teamMembers.filter(m => {
+                const excludeId = isReply ? (replyToRFI?.assigned_to || replyToRFI?.raised_by) : selectedRecipient;
+                return m.user_id !== excludeId && m.user_id !== formData.assigned_to;
+              }).length === 0 && (
+                <p className="text-sm text-muted-foreground p-2">No other team members available for CC</p>
+              )}
+            </div>
+            {selectedCCUsers.length > 0 && (
+              <div className="mt-2">
+                <Label className="text-sm text-muted-foreground">
+                  CC'd Users ({selectedCCUsers.length}):
+                </Label>
+                <div className="flex flex-wrap gap-1 mt-1">
+                  {selectedCCUsers.map(userId => {
+                    const member = teamMembers.find(m => m.user_id === userId);
+                    return (
+                      <Badge key={userId} variant="secondary" className="text-xs">
+                        {member?.user_profile?.name || 'Unknown'}
+                      </Badge>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
         </div>
 
         <div className="flex justify-end space-x-2 pt-4">

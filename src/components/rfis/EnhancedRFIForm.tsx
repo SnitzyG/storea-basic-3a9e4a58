@@ -94,6 +94,7 @@ export const EnhancedRFIForm: React.FC<EnhancedRFIFormProps> = ({
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [formProgress, setFormProgress] = useState(0);
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+  const [selectedCCUsers, setSelectedCCUsers] = useState<string[]>([]);
 
   const form = useForm<RFIFormData>({
     resolver: zodResolver(rfiFormSchema),
@@ -194,10 +195,12 @@ export const EnhancedRFIForm: React.FC<EnhancedRFIFormProps> = ({
           project_name: editingRFI.project_name || currentProject.name,
           project_number: editingRFI.project_number || currentProject.id,
         });
+        setSelectedCCUsers(editingRFI.cc_list || []);
       } else {
         // Set defaults for new RFI
         form.setValue('project_name', currentProject.name || '');
         form.setValue('project_number', currentProject.id || '');
+        setSelectedCCUsers([]);
       }
     }
   }, [open, currentProject, profile, user, isEditing, editingRFI, reset, form]);
@@ -241,6 +244,7 @@ export const EnhancedRFIForm: React.FC<EnhancedRFIFormProps> = ({
           specification_section: data.specification_section,
           contract_clause: data.contract_clause,
           proposed_solution: data.proposed_solution,
+          cc_list: selectedCCUsers.length > 0 ? selectedCCUsers : undefined,
         });
         
         toast({
@@ -272,6 +276,7 @@ export const EnhancedRFIForm: React.FC<EnhancedRFIFormProps> = ({
           specification_section: data.specification_section,
           contract_clause: data.contract_clause,
           proposed_solution: data.proposed_solution,
+          cc_list: selectedCCUsers,
         });
         
         toast({
@@ -285,6 +290,7 @@ export const EnhancedRFIForm: React.FC<EnhancedRFIFormProps> = ({
       
       reset();
       setCurrentStep(1);
+      setSelectedCCUsers([]);
       onOpenChange(false);
     } catch (error) {
       console.error('Error saving RFI:', error);
@@ -614,6 +620,55 @@ export const EnhancedRFIForm: React.FC<EnhancedRFIFormProps> = ({
                       )}
                     </div>
                   )}
+
+                  {/* CC Selection */}
+                  <div className="space-y-2 mt-4">
+                    <Label>CC (Carbon Copy)</Label>
+                    <div className="max-h-32 overflow-y-auto border rounded-md p-2 space-y-1">
+                      {teamMembers
+                        .filter(member => member.user_id !== watchedValues.assigned_to)
+                        .map(member => (
+                          <div 
+                            key={member.user_id} 
+                            className={`flex items-center space-x-2 p-2 rounded cursor-pointer hover:bg-muted ${selectedCCUsers.includes(member.user_id) ? 'bg-primary/10' : ''}`}
+                            onClick={() => {
+                              if (selectedCCUsers.includes(member.user_id)) {
+                                setSelectedCCUsers(prev => prev.filter(id => id !== member.user_id));
+                              } else {
+                                setSelectedCCUsers(prev => [...prev, member.user_id]);
+                              }
+                            }}
+                          >
+                            <span className="text-sm flex-1">
+                              {member.user_profile?.name || 'Unknown User'} ({member.user_profile?.role || member.role})
+                            </span>
+                            {selectedCCUsers.includes(member.user_id) && (
+                              <div className="text-primary">✓</div>
+                            )}
+                          </div>
+                        ))}
+                      {teamMembers.filter(m => m.user_id !== watchedValues.assigned_to).length === 0 && (
+                        <p className="text-sm text-muted-foreground p-2">No other team members available for CC</p>
+                      )}
+                    </div>
+                    {selectedCCUsers.length > 0 && (
+                      <div className="mt-2">
+                        <Label className="text-sm text-muted-foreground">
+                          CC'd Users ({selectedCCUsers.length}):
+                        </Label>
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          {selectedCCUsers.map(userId => {
+                            const member = teamMembers.find(m => m.user_id === userId);
+                            return (
+                              <Badge key={userId} variant="secondary" className="text-xs">
+                                {member?.user_profile?.name || 'Unknown'}
+                              </Badge>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </CardContent>
               </Card>
             )}
