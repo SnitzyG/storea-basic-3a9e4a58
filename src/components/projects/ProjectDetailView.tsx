@@ -235,13 +235,18 @@ export const ProjectDetailView = ({ project }: ProjectDetailViewProps) => {
                                 <div className="text-sm text-muted-foreground truncate mt-1">
                                   {member.email}
                                 </div>
-                                <div className="text-xs text-muted-foreground">
-                                  Member since {format(new Date(member.added_at), 'MMM d, yyyy')}
-                                </div>
-                                <div className="flex items-center gap-1 text-xs text-muted-foreground mt-2">
-                                  <Circle className={`h-2 w-2 ${member.isOnline ? 'fill-green-500 text-green-500' : 'fill-gray-400 text-gray-400'}`} />
-                                  {member.isOnline ? 'Online' : 'Offline'}
-                                </div>
+                                 <div className="text-xs text-muted-foreground">
+                                   Member since {format(new Date(member.added_at), 'MMM d, yyyy')}
+                                 </div>
+                                 {member.user_project_reference && (
+                                   <div className="text-xs text-muted-foreground mt-1">
+                                     <span className="font-medium">Project Ref:</span> {member.user_project_reference}
+                                   </div>
+                                 )}
+                                 <div className="flex items-center gap-1 text-xs text-muted-foreground mt-2">
+                                   <Circle className={`h-2 w-2 ${member.isOnline ? 'fill-green-500 text-green-500' : 'fill-gray-400 text-gray-400'}`} />
+                                   {member.isOnline ? 'Online' : 'Offline'}
+                                 </div>
                                 <div className="flex gap-2 mt-3">
                                   <Button 
                                     size="sm" 

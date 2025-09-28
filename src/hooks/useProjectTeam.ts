@@ -18,6 +18,7 @@ export interface TeamMember {
   avatar_url?: string;
   online_status?: boolean;
   last_seen?: string;
+  user_project_reference?: string;
   user_profile: {
     name: string;
     role: string;
@@ -92,7 +93,8 @@ export const useProjectTeam = (projectId: string): UseProjectTeamReturn => {
           role, 
           joined_at, 
           invited_by,
-          created_at
+          created_at,
+          user_project_reference
         `)
         .eq('project_id', currentProjectId)
         .order('joined_at', { ascending: false }); // Show newest members first
@@ -152,6 +154,7 @@ export const useProjectTeam = (projectId: string): UseProjectTeamReturn => {
             avatar_url: profile?.avatar_url,
             online_status: profile?.online_status || isRecentlyJoined, // Show as online if recently joined
             last_seen: profile?.last_seen || (isRecentlyJoined ? new Date().toISOString() : undefined),
+            user_project_reference: member.user_project_reference,
             user_profile: {
               name: displayName,
               role: profile?.role || member.role,
