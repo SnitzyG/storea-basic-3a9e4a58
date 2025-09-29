@@ -66,9 +66,6 @@ export const Sidebar = ({
       case 'client':
         return allTabs; // Give clients access to all tabs
       
-      case 'contractor':
-        return allTabs;
-      // Full access
       default:
         return allTabs;
     }
