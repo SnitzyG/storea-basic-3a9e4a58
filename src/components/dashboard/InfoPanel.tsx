@@ -9,9 +9,9 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
-export const InfoPanel = () => {
+export const InfoPanel = ({ selectedProjectFilter }: { selectedProjectFilter: string }) => {
   const [currentTime, setCurrentTime] = useState(new Date());
-  const [selectedProjectFilter, setSelectedProjectFilter] = useState<string>('current');
+  
   const {
     selectedProject,
     availableProjects
@@ -108,31 +108,6 @@ export const InfoPanel = () => {
             <Clock className="h-4 w-4 text-primary" />
             Info Panel
           </CardTitle>
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button variant="ghost" size="sm" className="h-7 w-7 p-0">
-                <Filter className="h-3 w-3" />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-56" align="end">
-              <div className="space-y-2">
-                <Label className="text-sm font-medium">Project Location</Label>
-                <Select value={selectedProjectFilter} onValueChange={setSelectedProjectFilter}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="current">Current Project</SelectItem>
-                    {availableProjects.map((project) => (
-                      <SelectItem key={project.id} value={project.id}>
-                        {project.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </PopoverContent>
-          </Popover>
         </div>
       </CardHeader>
       

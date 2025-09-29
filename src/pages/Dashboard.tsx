@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Search, MessageSquare, FileText, Upload, FolderOpen } from 'lucide-react';
+import { Label } from '@/components/ui/label';
+import { Search, MessageSquare, FileText, Upload, FolderOpen, Filter } from 'lucide-react';
 import { RecentActivity } from '@/components/dashboard/RecentActivity';
 import { ToDoList } from '@/components/dashboard/ToDoList';
 import { InfoPanel } from '@/components/dashboard/InfoPanel';
@@ -16,10 +17,11 @@ import { useProjects } from '@/hooks/useProjects';
 import { useProjectSelection } from '@/context/ProjectSelectionContext';
 const Dashboard = () => {
   const [searchOpen, setSearchOpen] = useState(false);
+  const [selectedProjectFilter, setSelectedProjectFilter] = useState<string>('all');
   const { theme, toggleTheme } = useTheme();
   const { profile } = useAuth();
   const { projects } = useProjects();
-  const { selectedProject } = useProjectSelection();
+  const { selectedProject, availableProjects } = useProjectSelection();
   const navigate = useNavigate();
 
   // Keyboard shortcuts
@@ -55,8 +57,26 @@ const Dashboard = () => {
               </div>
             </div>
             
-            {/* Quick Actions */}
+            {/* Quick Actions and Project Filter */}
             <div className="flex flex-wrap items-center gap-2">
+              {/* Project Filter */}
+              <div className="flex items-center gap-2 mr-4">
+                <Filter className="h-4 w-4 text-muted-foreground" />
+                <Select value={selectedProjectFilter} onValueChange={setSelectedProjectFilter}>
+                  <SelectTrigger className="w-40 h-8">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Projects</SelectItem>
+                    {availableProjects.map((project) => (
+                      <SelectItem key={project.id} value={project.id}>
+                        {project.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              
               <Button 
                 size="sm" 
                 variant="outline" 
@@ -96,22 +116,22 @@ const Dashboard = () => {
             
             {/* Recent Activity - Fixed compact height */}
             <div className="h-[calc(50vh-4rem)] min-h-[220px]">
-              <RecentActivity />
+              <RecentActivity selectedProjectFilter={selectedProjectFilter} />
             </div>
 
             {/* Calendar Widget - Fixed compact height */}
             <div className="h-[calc(50vh-4rem)] min-h-[220px]">
-              <CalendarWidget />
+              <CalendarWidget selectedProjectFilter={selectedProjectFilter} />
             </div>
 
             {/* To-Do List - Fixed compact height */}
             <div className="h-[calc(50vh-4rem)] min-h-[220px]">
-              <ToDoList />
+              <ToDoList selectedProjectFilter={selectedProjectFilter} />
             </div>
 
             {/* Info Panel - Fixed compact height */}
             <div className="h-[calc(50vh-4rem)] min-h-[220px]">
-              <InfoPanel />
+              <InfoPanel selectedProjectFilter={selectedProjectFilter} />
             </div>
             
           </div>

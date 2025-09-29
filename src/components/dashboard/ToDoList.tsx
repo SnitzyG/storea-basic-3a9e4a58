@@ -23,7 +23,7 @@ import { useRFIs } from '@/hooks/useRFIs';
 import { useMessages } from '@/hooks/useMessages';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
-export const ToDoList = () => {
+export const ToDoList = ({ selectedProjectFilter }: { selectedProjectFilter: string }) => {
   const [newTodo, setNewTodo] = useState('');
   const [priority, setPriority] = useState<'low' | 'medium' | 'high'>('medium');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -33,7 +33,7 @@ export const ToDoList = () => {
   const [relatedInfo, setRelatedInfo] = useState('');
   const [relatedType, setRelatedType] = useState<'document' | 'rfi' | 'message' | ''>('');
   const [exportFormat, setExportFormat] = useState<'day' | 'week' | 'fortnight' | 'month'>('week');
-  const [selectedProjectFilter, setSelectedProjectFilter] = useState<string>('all');
+  
   const { selectedProject, availableProjects } = useProjectSelection();
   const { todos, addTodo: createTodo, toggleTodo, deleteTodo, loading } = useTodos(selectedProjectFilter === 'all' ? undefined : selectedProjectFilter);
   const { documents } = useDocuments(selectedProject?.id);
@@ -359,31 +359,6 @@ export const ToDoList = () => {
             </Badge>
           </CardTitle>
           <div className="flex items-center gap-1">
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                  <Filter className="h-4 w-4" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-56" align="end">
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium">Filter by Project</Label>
-                  <Select value={selectedProjectFilter} onValueChange={setSelectedProjectFilter}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Projects</SelectItem>
-                      {availableProjects.map((project) => (
-                        <SelectItem key={project.id} value={project.id}>
-                          {project.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </PopoverContent>
-            </Popover>
             <Dialog open={isExportDialogOpen} onOpenChange={setIsExportDialogOpen}>
               <DialogTrigger asChild>
                 <Button variant="ghost" size="sm" className="h-8 w-8 p-0">

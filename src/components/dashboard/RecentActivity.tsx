@@ -68,13 +68,12 @@ const entityTypeColors = {
   user: 'bg-gray-50 border-gray-200',
 };
 
-export const RecentActivity = () => {
+export const RecentActivity = ({ selectedProjectFilter }: { selectedProjectFilter: string }) => {
   const { activities, loading, dismissActivity, refetch } = useActivity();
   const { user } = useAuth();
   const [isTaskDialogOpen, setIsTaskDialogOpen] = useState(false);
   const [isCalendarDialogOpen, setIsCalendarDialogOpen] = useState(false);
   const [selectedActivity, setSelectedActivity] = useState<any>(null);
-  const [selectedProjectFilter, setSelectedProjectFilter] = useState<string>('all');
   
   // Task dialog state
   const [taskTitle, setTaskTitle] = useState('');
@@ -313,31 +312,6 @@ export const RecentActivity = () => {
             <Clock className="h-5 w-5 text-primary" />
             Recent Activity
           </CardTitle>
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                <Filter className="h-4 w-4" />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-56" align="end">
-              <div className="space-y-2">
-                <Label className="text-sm font-medium">Filter by Project</Label>
-                <Select value={selectedProjectFilter} onValueChange={setSelectedProjectFilter}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Projects</SelectItem>
-                    {availableProjects.map((project) => (
-                      <SelectItem key={project.id} value={project.id}>
-                        {project.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </PopoverContent>
-          </Popover>
         </div>
       </CardHeader>
       <CardContent className="flex-1 p-0">
