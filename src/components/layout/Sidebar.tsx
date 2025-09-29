@@ -22,7 +22,7 @@ export const Sidebar = ({
   const getVisibleTabs = (role: string) => {
     const allTabs = [{
       id: 'dashboard',
-      label: 'Dashboard',
+      label: 'Home',
       icon: BarChart3,
       path: '/dashboard'
     }, {

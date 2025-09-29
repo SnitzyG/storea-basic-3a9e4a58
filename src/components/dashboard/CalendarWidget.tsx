@@ -23,6 +23,7 @@ import { useProjectSelection } from '@/context/ProjectSelectionContext';
 import jsPDF from 'jspdf';
 import { cn } from '@/lib/utils';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Filter } from 'lucide-react';
 
 export const CalendarWidget = () => {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
@@ -45,8 +46,9 @@ export const CalendarWidget = () => {
   const [eventDate, setEventDate] = useState<Date | undefined>(new Date());
   const [editingEvent, setEditingEvent] = useState<any>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const { selectedProject } = useProjectSelection();
-  const { todos, addTodo, updateTodo, deleteTodo } = useTodos(selectedProject?.id);
+  const [selectedProjectFilter, setSelectedProjectFilter] = useState<string>('all');
+  const { selectedProject, availableProjects } = useProjectSelection();
+  const { todos, addTodo, updateTodo, deleteTodo } = useTodos(selectedProjectFilter === 'all' ? undefined : selectedProjectFilter);
   const { documents } = useDocuments(selectedProject?.id);
   const { rfis } = useRFIs();
   const { messages } = useMessages();
@@ -440,6 +442,31 @@ export const CalendarWidget = () => {
               </div>
             </div>
             <div className="flex items-center gap-1">
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="ghost" size="sm" className="h-7 w-7 p-0">
+                    <Filter className="h-3 w-3" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-56" align="end">
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">Filter by Project</Label>
+                    <Select value={selectedProjectFilter} onValueChange={setSelectedProjectFilter}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Projects</SelectItem>
+                        {availableProjects.map((project) => (
+                          <SelectItem key={project.id} value={project.id}>
+                            {project.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </PopoverContent>
+              </Popover>
               <Dialog open={isExportDialogOpen} onOpenChange={setIsExportDialogOpen}>
                 <DialogTrigger asChild>
                   <Button variant="ghost" size="sm" className="h-7 w-7 p-0">

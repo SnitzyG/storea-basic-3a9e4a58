@@ -12,7 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
-import { CheckSquare, Trash2, Plus, Calendar, FileText, MessageSquare, HelpCircle, Users, Download } from 'lucide-react';
+import { CheckSquare, Trash2, Plus, Calendar, FileText, MessageSquare, HelpCircle, Users, Download, Filter } from 'lucide-react';
 import { useTodos, Todo } from '@/hooks/useTodos';
 import { useToast } from '@/hooks/use-toast';
 import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, addWeeks } from 'date-fns';
@@ -21,6 +21,7 @@ import jsPDF from 'jspdf';
 import { useDocuments } from '@/hooks/useDocuments';
 import { useRFIs } from '@/hooks/useRFIs';
 import { useMessages } from '@/hooks/useMessages';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
 export const ToDoList = () => {
   const [newTodo, setNewTodo] = useState('');
@@ -32,8 +33,9 @@ export const ToDoList = () => {
   const [relatedInfo, setRelatedInfo] = useState('');
   const [relatedType, setRelatedType] = useState<'document' | 'rfi' | 'message' | ''>('');
   const [exportFormat, setExportFormat] = useState<'day' | 'week' | 'fortnight' | 'month'>('week');
-  const { selectedProject } = useProjectSelection();
-  const { todos, addTodo: createTodo, toggleTodo, deleteTodo, loading } = useTodos(selectedProject?.id);
+  const [selectedProjectFilter, setSelectedProjectFilter] = useState<string>('all');
+  const { selectedProject, availableProjects } = useProjectSelection();
+  const { todos, addTodo: createTodo, toggleTodo, deleteTodo, loading } = useTodos(selectedProjectFilter === 'all' ? undefined : selectedProjectFilter);
   const { documents } = useDocuments(selectedProject?.id);
   const { rfis } = useRFIs();
   const { messages } = useMessages();
@@ -357,6 +359,31 @@ export const ToDoList = () => {
             </Badge>
           </CardTitle>
           <div className="flex items-center gap-1">
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                  <Filter className="h-4 w-4" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-56" align="end">
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">Filter by Project</Label>
+                  <Select value={selectedProjectFilter} onValueChange={setSelectedProjectFilter}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Projects</SelectItem>
+                      {availableProjects.map((project) => (
+                        <SelectItem key={project.id} value={project.id}>
+                          {project.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </PopoverContent>
+            </Popover>
             <Dialog open={isExportDialogOpen} onOpenChange={setIsExportDialogOpen}>
               <DialogTrigger asChild>
                 <Button variant="ghost" size="sm" className="h-8 w-8 p-0">

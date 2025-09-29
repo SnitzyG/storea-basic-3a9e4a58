@@ -1,14 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, Cloud, Clock, Thermometer, Droplets, Wind, CloudRain } from 'lucide-react';
+import { Calendar, Cloud, Clock, Thermometer, Droplets, Wind, CloudRain, Filter } from 'lucide-react';
 import { format } from 'date-fns';
 import { useProjectSelection } from '@/context/ProjectSelectionContext';
 import { supabase } from '@/integrations/supabase/client';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
 export const InfoPanel = () => {
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [selectedProjectFilter, setSelectedProjectFilter] = useState<string>('current');
   const {
-    selectedProject
+    selectedProject,
+    availableProjects
   } = useProjectSelection();
   const [weather, setWeather] = useState({
     temperature: 22,
@@ -36,7 +42,12 @@ export const InfoPanel = () => {
   // Real weather data based on project location via Edge Function
   useEffect(() => {
     const fetchWeather = async () => {
-      const projectLocation = selectedProject?.address || 'Melbourne CBD';
+      // Get project location based on filter selection
+      const targetProject = selectedProjectFilter === 'current' 
+        ? selectedProject 
+        : availableProjects.find(p => p.id === selectedProjectFilter);
+      
+      const projectLocation = targetProject?.address || 'Melbourne CBD';
       // Extract suburb from address - improved parsing
       let suburb = 'Melbourne CBD';
       if (projectLocation && projectLocation !== 'Melbourne CBD') {
@@ -89,13 +100,40 @@ export const InfoPanel = () => {
       }
     };
     fetchWeather();
-  }, [selectedProject]);
+  }, [selectedProject, selectedProjectFilter, availableProjects]);
   return <Card className="h-full flex flex-col">
       <CardHeader className="pb-2 flex-shrink-0 border-b">
-        <CardTitle className="text-base flex items-center gap-2 font-medium">
-          <Clock className="h-4 w-4 text-primary" />
-          Info Panel
-        </CardTitle>
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-base flex items-center gap-2 font-medium">
+            <Clock className="h-4 w-4 text-primary" />
+            Info Panel
+          </CardTitle>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="ghost" size="sm" className="h-7 w-7 p-0">
+                <Filter className="h-3 w-3" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-56" align="end">
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">Project Location</Label>
+                <Select value={selectedProjectFilter} onValueChange={setSelectedProjectFilter}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="current">Current Project</SelectItem>
+                    {availableProjects.map((project) => (
+                      <SelectItem key={project.id} value={project.id}>
+                        {project.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </PopoverContent>
+          </Popover>
+        </div>
       </CardHeader>
       
       <CardContent className="flex-1 flex flex-col overflow-hidden p-2">

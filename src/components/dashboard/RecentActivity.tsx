@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useActivity } from '@/hooks/useActivity';
@@ -33,10 +34,10 @@ import {
   MoreHorizontal,
   X,
   Bell,
-  CalendarDays
+  CalendarDays,
+  Filter
 } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 
 const activityIcons = {
@@ -73,6 +74,7 @@ export const RecentActivity = () => {
   const [isTaskDialogOpen, setIsTaskDialogOpen] = useState(false);
   const [isCalendarDialogOpen, setIsCalendarDialogOpen] = useState(false);
   const [selectedActivity, setSelectedActivity] = useState<any>(null);
+  const [selectedProjectFilter, setSelectedProjectFilter] = useState<string>('all');
   
   // Task dialog state
   const [taskTitle, setTaskTitle] = useState('');
@@ -139,7 +141,12 @@ export const RecentActivity = () => {
   const { toast } = useToast();
   const { addTodo } = useTodos();
   const { createEvent } = useCalendarEvents();
-  const { selectedProject } = useProjectSelection();
+  const { selectedProject, availableProjects } = useProjectSelection();
+
+  // Filter activities based on selected project
+  const filteredActivities = selectedProjectFilter === 'all' 
+    ? activities 
+    : activities.filter(activity => activity.project_id === selectedProjectFilter);
 
   const handleActivityClick = (activity: any) => {
     // Navigate to relevant tab based on entity type
@@ -301,16 +308,43 @@ export const RecentActivity = () => {
   return (
     <Card className="h-full flex flex-col">
       <CardHeader className="pb-4 flex-shrink-0 border-b">
-        <CardTitle className="text-lg flex items-center gap-2 font-medium">
-          <Clock className="h-5 w-5 text-primary" />
-          Recent Activity
-        </CardTitle>
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-lg flex items-center gap-2 font-medium">
+            <Clock className="h-5 w-5 text-primary" />
+            Recent Activity
+          </CardTitle>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                <Filter className="h-4 w-4" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-56" align="end">
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">Filter by Project</Label>
+                <Select value={selectedProjectFilter} onValueChange={setSelectedProjectFilter}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Projects</SelectItem>
+                    {availableProjects.map((project) => (
+                      <SelectItem key={project.id} value={project.id}>
+                        {project.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </PopoverContent>
+          </Popover>
+        </div>
       </CardHeader>
       <CardContent className="flex-1 p-0">
         <ScrollArea className="h-full">
-          {activities.length > 0 ? (
+          {filteredActivities.length > 0 ? (
             <div className="p-6 space-y-4">
-              {activities.map((activity) => {
+              {filteredActivities.map((activity) => {
                 const Icon = activityIcons[activity.entity_type as keyof typeof activityIcons] || User;
                 return (
                   <div 
@@ -344,7 +378,7 @@ export const RecentActivity = () => {
                         </Badge>
                       </div>
                       
-                      <p className="text-sm text-muted-foreground mb-2 line-clamp-2">
+                      <p className="text-sm text-muted-foreground mb-2 line-clamp-2 break-words">
                         {activity.description}
                       </p>
                       
