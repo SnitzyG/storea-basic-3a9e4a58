@@ -253,7 +253,7 @@ export const DashboardAnalytics = () => {
                 • {overdueRFIs} RFI{overdueRFIs > 1 ? 's are' : ' is'} overdue and need{overdueRFIs === 1 ? 's' : ''} attention
               </p>
             )}
-            {activeTenders === 0 && totalTenders > 0 && userRole === 'architect' && (
+            {activeTenders === 0 && totalTenders > 0 && (userRole === 'lead_consultant' || userRole === 'architect') && (
               <p className="text-sm text-orange-700">
                 • No active tenders - consider publishing draft tenders to maintain project momentum
               </p>

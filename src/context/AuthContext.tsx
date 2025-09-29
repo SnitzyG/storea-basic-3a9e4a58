@@ -6,7 +6,7 @@ import { toast } from '@/hooks/use-toast';
 export interface Profile {
   id: string;
   user_id: string;
-  role: 'architect' | 'builder' | 'homeowner' | 'contractor';
+  role: 'lead_consultant' | 'lead_contractor' | 'client' | 'contractor' | 'architect' | 'builder' | 'homeowner';
   name: string;
   company_id?: string;
   avatar_url?: string;

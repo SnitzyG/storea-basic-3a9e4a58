@@ -16,7 +16,7 @@ export const ProfileSetup: React.FC<ProfileSetupProps> = ({ onComplete }) => {
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
-    role: 'contractor' as 'homeowner' | 'builder' | 'contractor' | 'architect',
+    role: 'contractor' as 'client' | 'lead_contractor' | 'contractor' | 'lead_consultant',
     company: ''
   });
   const [loading, setLoading] = useState(false);
@@ -136,9 +136,9 @@ export const ProfileSetup: React.FC<ProfileSetupProps> = ({ onComplete }) => {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="homeowner">Homeowner</SelectItem>
-                  <SelectItem value="architect">Architect</SelectItem>
-                  <SelectItem value="builder">Builder</SelectItem>
+                  <SelectItem value="client">Client</SelectItem>
+                  <SelectItem value="lead_consultant">Lead Consultant</SelectItem>
+                  <SelectItem value="lead_contractor">Lead Contractor</SelectItem>
                   <SelectItem value="contractor">Contractor</SelectItem>
                 </SelectContent>
               </Select>

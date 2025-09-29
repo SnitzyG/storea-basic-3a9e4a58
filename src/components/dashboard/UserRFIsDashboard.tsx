@@ -183,7 +183,7 @@ export const UserRFIsDashboard = ({
                   </Button>
                 )}
                 
-                {(rfi.status === 'outstanding' || rfi.status === 'overdue') && profile?.role === 'architect' && (
+                {(rfi.status === 'outstanding' || rfi.status === 'overdue') && (profile?.role === 'lead_consultant' || profile?.role === 'architect') && (
                   <Button
                     size="sm"
                     variant="outline"

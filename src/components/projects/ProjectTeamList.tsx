@@ -224,7 +224,7 @@ export const ProjectTeamList = ({
                            </div>
                          </div>
                          
-                         {isEditing && showRemoveButton && profile?.role === 'architect' && (user.user_profile?.role || user.role) !== 'architect' && (
+                         {isEditing && showRemoveButton && (profile?.role === 'lead_consultant' || profile?.role === 'architect') && (user.user_profile?.role || user.role) !== 'architect' && (user.user_profile?.role || user.role) !== 'lead_consultant' && (
                            <Button
                              size="sm"
                              variant="ghost"

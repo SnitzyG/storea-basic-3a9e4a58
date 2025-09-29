@@ -29,7 +29,7 @@ export function BudgetOverview({ projectId, userRole }: BudgetOverviewProps) {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editValues, setEditValues] = useState({ original: 0, revised: 0 });
 
-  const canManage = ['architect', 'contractor'].includes(userRole);
+  const canManage = ['lead_consultant', 'architect', 'contractor'].includes(userRole);
 
   useEffect(() => {
     fetchBudgetData();

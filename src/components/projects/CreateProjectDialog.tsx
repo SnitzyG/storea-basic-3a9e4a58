@@ -22,7 +22,7 @@ interface CreateProjectDialogProps {
 interface Collaborator {
   email: string;
   name: string;
-  role: 'homeowner' | 'contractor' | 'builder';
+  role: 'client' | 'contractor' | 'lead_contractor';
 }
 
 export const CreateProjectDialog = ({ children }: CreateProjectDialogProps) => {
@@ -49,7 +49,7 @@ export const CreateProjectDialog = ({ children }: CreateProjectDialogProps) => {
   const [newCollaborator, setNewCollaborator] = useState<{
     email: string;
     name: string;
-    role: 'homeowner' | 'contractor' | 'builder';
+    role: 'client' | 'contractor' | 'lead_contractor';
   }>({
     email: '',
     name: '',
@@ -535,7 +535,7 @@ export const CreateProjectDialog = ({ children }: CreateProjectDialogProps) => {
                     <Label htmlFor="collaborator_role">Role</Label>
                     <Select
                       value={newCollaborator.role}
-                      onValueChange={(value: 'homeowner' | 'contractor' | 'builder') => 
+                      onValueChange={(value: 'client' | 'contractor' | 'lead_contractor') => 
                         setNewCollaborator(prev => ({ ...prev, role: value }))
                       }
                     >
@@ -543,9 +543,9 @@ export const CreateProjectDialog = ({ children }: CreateProjectDialogProps) => {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="homeowner">Homeowner</SelectItem>
+                        <SelectItem value="client">Client</SelectItem>
                         <SelectItem value="contractor">Contractor</SelectItem>
-                        <SelectItem value="builder">Builder</SelectItem>
+                        <SelectItem value="lead_contractor">Lead Contractor</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>

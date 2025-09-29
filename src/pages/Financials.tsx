@@ -17,7 +17,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 
 interface UserRole {
-  role: 'homeowner' | 'architect' | 'contractor' | 'builder';
+  role: 'client' | 'lead_consultant' | 'contractor' | 'lead_contractor' | 'homeowner' | 'architect' | 'builder';
 }
 
 export default function Financials() {
@@ -75,8 +75,8 @@ export default function Financials() {
     );
   }
 
-  const isClientView = userRole === 'homeowner';
-  const canManageFinancials = ['architect', 'contractor'].includes(userRole);
+  const isClientView = userRole === 'client' || userRole === 'homeowner';
+  const canManageFinancials = ['lead_consultant', 'architect', 'contractor'].includes(userRole);
 
   return (
     <div className="container mx-auto py-6 space-y-6">

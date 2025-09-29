@@ -305,8 +305,8 @@ export const ManageProfileDialog = ({ children }: ManageProfileDialogProps) => {
 
           <Separator />
 
-          {/* Company Information - Hide for homeowners */}
-          {profile?.role !== 'homeowner' && (
+          {/* Company Information - Hide for clients */}
+          {profile?.role !== 'client' && (
             <Card>
               <CardHeader>
                 <CardTitle className="text-sm font-medium flex items-center gap-2">

@@ -21,7 +21,7 @@ export interface ProjectUser {
   id: string;
   project_id: string;
   user_id: string;
-  role: 'architect' | 'builder' | 'homeowner' | 'contractor';
+  role: 'lead_consultant' | 'lead_contractor' | 'client' | 'contractor';
   permissions?: any;
   invited_by: string;
   joined_at?: string;
@@ -53,8 +53,8 @@ export const useProjects = () => {
 
       let query = supabase.from('projects').select('*');
 
-      if (profile?.role === 'homeowner') {
-        // For homeowners, get projects through project_users table first
+      if (profile?.role === 'client' || profile?.role === 'homeowner') {
+        // For clients, get projects through project_users table first
         const { data: projectUsers } = await supabase
           .from('project_users')
           .select('project_id')
@@ -65,12 +65,12 @@ export const useProjects = () => {
         if (projectIds.length > 0) {
           query = query.in('id', projectIds);
         } else {
-          // If no direct project assignments, check for pending homeowner email matches
+          // If no direct project assignments, check for pending client email matches
           // Use proper JSONB query syntax for nested properties
           query = query.filter('timeline->pending_homeowner->>email', 'eq', userData.user.email);
         }
       } else {
-        // For architects and other roles, use the project_users relationship
+        // For lead consultants and other roles, use the project_users relationship
         const { data: projectUsers } = await supabase
           .from('project_users')
           .select('project_id')
@@ -125,11 +125,11 @@ export const useProjects = () => {
     collaborators?: Array<{
       email: string;
       name: string;
-      role: 'homeowner' | 'contractor' | 'builder';
+      role: 'client' | 'contractor' | 'lead_contractor';
     }>;
   }) => {
     try {
-      // CRITICAL: Only architects can create projects
+      // CRITICAL: Only lead consultants can create projects
       const currentUser = (await supabase.auth.getUser()).data.user;
       if (!currentUser) {
         throw new Error('User not authenticated');
@@ -141,8 +141,8 @@ export const useProjects = () => {
         .eq('user_id', currentUser.id)
         .single();
         
-      if (userProfile?.role !== 'architect') {
-        throw new Error('Only architects can create projects');
+      if (userProfile?.role !== 'lead_consultant' && userProfile?.role !== 'architect') {
+        throw new Error('Only lead consultants can create projects');
       }
       
       const { collaborators, budget, ...projectCreateData } = projectData;
@@ -189,9 +189,9 @@ export const useProjects = () => {
           invited_by: currentUser.id
         }]);
 
-      // Handle homeowner auto-creation and linking
+      // Handle client auto-creation and linking
       if (projectData.homeowner_email) {
-        await createOrLinkHomeowner(data.id, projectData.homeowner_email, projectData.homeowner_name, projectData.homeowner_phone, currentUser.id);
+        await createOrLinkClient(data.id, projectData.homeowner_email, projectData.homeowner_name, projectData.homeowner_phone, currentUser.id);
       }
 
       // Handle collaborators - create profiles and link to project
@@ -217,10 +217,10 @@ export const useProjects = () => {
     }
   };
 
-  const createOrLinkHomeowner = async (projectId: string, email: string, name?: string, phone?: string, invitedBy?: string) => {
+  const createOrLinkClient = async (projectId: string, email: string, name?: string, phone?: string, invitedBy?: string) => {
     try {
-      // Store homeowner information in project timeline for future account creation
-      // When the homeowner signs up, they can be automatically linked to the project
+      // Store client information in project timeline for future account creation
+      // When the client signs up, they can be automatically linked to the project
       await supabase
         .from('projects')
         .update({ 
@@ -236,15 +236,15 @@ export const useProjects = () => {
         .eq('id', projectId);
 
       toast({
-        title: "Homeowner Added",
+        title: "Client Added",
         description: `${name || email} will be notified when they create an account.`
       });
     } catch (error) {
-      console.error('Error creating/linking homeowner:', error);
+      console.error('Error creating/linking client:', error);
     }
   };
 
-  const createOrLinkCollaborator = async (projectId: string, collaborator: { email: string; name: string; role: 'homeowner' | 'contractor' | 'builder' }, invitedBy?: string) => {
+  const createOrLinkCollaborator = async (projectId: string, collaborator: { email: string; name: string; role: 'client' | 'contractor' | 'lead_contractor' }, invitedBy?: string) => {
     try {
       // Store collaborator as pending invitation
       const { data: currentProject } = await supabase
@@ -332,7 +332,7 @@ export const useProjects = () => {
     }
   };
 
-  const inviteUserToProject = async (projectId: string, userId: string, role: 'architect' | 'builder' | 'homeowner' | 'contractor') => {
+  const inviteUserToProject = async (projectId: string, userId: string, role: 'lead_consultant' | 'lead_contractor' | 'client' | 'contractor') => {
     try {
       const { error } = await supabase
         .from('project_users')
