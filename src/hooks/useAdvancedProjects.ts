@@ -78,7 +78,7 @@ export interface ProjectUser {
   id: string;
   project_id: string;
   user_id: string;
-  role: 'client' | 'lead_consultant' | 'lead_contractor';
+  role: 'architect' | 'project_manager' | 'contractor' | 'subcontractor' | 'consultant' | 'homeowner' | 'client';
   permissions: {
     can_edit_project: boolean;
     can_manage_team: boolean;
@@ -135,7 +135,7 @@ export const useAdvancedProjects = () => {
       let query = supabase.from('projects').select('*, project_id, latitude, longitude, geocoded_at');
 
       // Apply filters based on user role
-      if (profile?.role === 'client') {
+      if (profile?.role === 'homeowner') {
         const { data: projectUsers } = await supabase
           .from('project_users')
           .select('project_id')
@@ -274,7 +274,7 @@ export const useAdvancedProjects = () => {
         .insert([{
           project_id: data.id,
           user_id: currentUser?.id,
-          role: 'lead_consultant',
+          role: 'architect',
           permissions: {
             can_edit_project: true,
             can_manage_team: true,

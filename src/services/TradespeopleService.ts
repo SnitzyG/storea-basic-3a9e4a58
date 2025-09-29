@@ -264,7 +264,7 @@ export async function getAllTradespeople(
           )
         `)
         .in('project_id', projectIds)
-        .in('role', ['lead_contractor', 'lead_consultant'])
+        .in('role', ['contractor', 'builder', 'architect'])
         .not('profiles.company_address', 'is', null);
 
       // Deduplicate by user_id

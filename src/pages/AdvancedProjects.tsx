@@ -131,7 +131,7 @@ const AdvancedProjects = () => {
   const [projectToView, setProjectToView] = useState<AdvancedProject | null>(null);
   
   // CRITICAL: Only architects can create projects
-  const isArchitect = profile?.role === 'lead_consultant';
+  const isArchitect = profile?.role === 'architect';
   const canCreateProjects = isArchitect;
 
   const statusColors = {

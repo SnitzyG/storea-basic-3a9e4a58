@@ -27,7 +27,7 @@ export const ProjectDetailsDialog = ({
   onUpdateBudget
 }: ProjectDetailsDialogProps) => {
   const { profile } = useAuth();
-  const isArchitect = profile?.role === 'lead_consultant';
+  const isArchitect = profile?.role === 'architect';
   const [budgetValue, setBudgetValue] = useState<number[]>([]);
   
   // Initialize budget value when project changes
@@ -299,15 +299,19 @@ const TeamMembersSection = ({ projectId }: { projectId: string }) => {
   const roleColors = {
     architect: 'bg-primary/10 text-primary',
     builder: 'bg-blue-500/10 text-blue-600',
-    client: 'bg-purple-500/10 text-purple-600',
-    lead_contractor: 'bg-orange-500/10 text-orange-600',
-    lead_consultant: 'bg-indigo-500/10 text-indigo-600'
+    homeowner: 'bg-purple-500/10 text-purple-600',
+    contractor: 'bg-orange-500/10 text-orange-600',
+    project_manager: 'bg-green-500/10 text-green-600',
+    consultant: 'bg-indigo-500/10 text-indigo-600'
   };
 
   const roleLabels = {
-    client: 'Client',
-    lead_contractor: 'Lead Contractor',
-    lead_consultant: 'Lead Consultant'
+    architect: 'Architect',
+    builder: 'Builder', 
+    homeowner: 'Homeowner',
+    contractor: 'Contractor',
+    project_manager: 'Project Manager',
+    consultant: 'Consultant'
   };
 
   if (loading) {

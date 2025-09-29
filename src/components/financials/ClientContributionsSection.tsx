@@ -41,7 +41,7 @@ export function ClientContributionsSection({ projectId, userRole }: ClientContri
     description: ''
   });
 
-  const canManage = ['lead_consultant', 'architect', 'contractor'].includes(userRole);
+  const canManage = ['architect', 'contractor'].includes(userRole);
 
   useEffect(() => {
     fetchContributions();

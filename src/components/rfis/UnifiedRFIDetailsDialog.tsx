@@ -45,7 +45,7 @@ export const UnifiedRFIDetailsDialog = ({ open, onOpenChange, rfi }: UnifiedRFID
 
   // Only contractors can respond to RFIs assigned to them
   const canRespond = user && rfi?.assigned_to === user.id && rfi.status !== 'closed' && rfi.status !== 'answered';
-  const canChangeStatus = user && (user.id === rfi?.raised_by || user.id === rfi?.assigned_to || profile?.role === 'lead_consultant');
+  const canChangeStatus = user && (user.id === rfi?.raised_by || user.id === rfi?.assigned_to || profile?.role === 'architect');
 
   const {
     mode,

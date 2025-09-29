@@ -49,7 +49,7 @@ export function InvoicesSection({ projectId, userRole }: InvoicesSectionProps) {
     description: ''
   });
 
-  const canManage = ['lead_consultant', 'architect', 'contractor'].includes(userRole);
+  const canManage = ['architect', 'contractor'].includes(userRole);
 
   useEffect(() => {
     fetchInvoices();

@@ -33,7 +33,7 @@ export const ProjectCard = ({
   const {
     profile
   } = useAuth();
-  const isArchitect = profile?.role === 'lead_consultant';
+  const isArchitect = profile?.role === 'architect';
   return <Card className="hover:shadow-md transition-shadow">
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">

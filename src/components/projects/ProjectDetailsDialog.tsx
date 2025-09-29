@@ -52,7 +52,7 @@ export const ProjectDetailsDialog = ({
   const { updateProject } = useProjects();
   const { profile } = useAuth();
   const { toast } = useToast();
-  const isArchitect = profile?.role === 'lead_consultant';
+  const isArchitect = profile?.role === 'architect';
   
   const {
     mode,

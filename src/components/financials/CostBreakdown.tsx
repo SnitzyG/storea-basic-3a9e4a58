@@ -49,7 +49,7 @@ export function CostBreakdown({ projectId, userRole }: CostBreakdownProps) {
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [newCategory, setNewCategory] = useState({ name: '', allocated: 0, type: 'general' });
 
-  const canManage = ['lead_consultant', 'architect', 'contractor'].includes(userRole);
+  const canManage = ['architect', 'contractor'].includes(userRole);
 
   useEffect(() => {
     fetchCategories();

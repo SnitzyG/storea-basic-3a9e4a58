@@ -281,14 +281,17 @@ const Auth = () => {
     setRole('');
   };
   const roleOptions = [{
-    value: 'lead_contractor',
-    label: 'Lead Contractor'
+    value: 'builder',
+    label: 'Builder'
   }, {
-    value: 'lead_consultant',
-    label: 'Lead Consultant'
+    value: 'architect',
+    label: 'Architect'
   }, {
-    value: 'client',
-    label: 'Client'
+    value: 'homeowner',
+    label: 'Homeowner'
+  }, {
+    value: 'contractor',
+    label: 'Contractor'
   }];
   return <div className="min-h-screen flex items-center justify-center bg-background px-4 relative">
       {loading && <div className="fixed inset-0 grid place-items-center bg-background/80 z-50">

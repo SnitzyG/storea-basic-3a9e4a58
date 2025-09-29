@@ -249,13 +249,13 @@ export const useProjectJoinRequests = () => {
       if (action === 'approve') {
         const { error: memberError } = await supabase
           .from('project_users')
-          .insert([{
+          .insert({
             project_id: request.project_id,
             user_id: request.requester_id,
-            role: 'lead_contractor', // Default role for joined members
+            role: 'contractor', // Default role for joined members
             invited_by: userData.user.id,
             joined_at: new Date().toISOString()
-          }]);
+          });
 
         if (memberError) throw memberError;
       }

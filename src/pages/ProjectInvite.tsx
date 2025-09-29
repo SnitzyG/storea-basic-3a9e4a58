@@ -99,13 +99,13 @@ const ProjectInvite = () => {
       // Add user to project team as contractor (default role for invitation links)
       const { error: memberError } = await supabase
         .from('project_users')
-        .insert([{
+        .insert({
           project_id: project.id,
           user_id: user.id,
-          role: 'lead_contractor',
+          role: 'contractor',
           invited_by: projectData?.created_by || null,
           joined_at: new Date().toISOString()
-        }]);
+        });
 
       if (memberError) {
         throw new Error('Failed to add you to the project: ' + memberError.message);

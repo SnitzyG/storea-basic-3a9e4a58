@@ -277,7 +277,7 @@ export const AdvancedUserManagement = ({ projectId }: { projectId: string }) => 
   };
 
   const downloadTemplate = () => {
-    const csvContent = "email,role,name\nexample@company.com,contractor,John Doe\nteam@company.com,lead_consultant,Jane Smith";
+    const csvContent = "email,role,name\nexample@company.com,contractor,John Doe\nteam@company.com,architect,Jane Smith";
     const blob = new Blob([csvContent], { type: 'text/csv' });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -342,9 +342,10 @@ export const AdvancedUserManagement = ({ projectId }: { projectId: string }) => 
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="lead_consultant">Lead Consultant</SelectItem>
-                            <SelectItem value="lead_contractor">Lead Contractor</SelectItem>
-                            <SelectItem value="client">Client</SelectItem>
+                            <SelectItem value="architect">Architect</SelectItem>
+                            <SelectItem value="builder">Builder</SelectItem>
+                            <SelectItem value="contractor">Contractor</SelectItem>
+                            <SelectItem value="homeowner">Homeowner</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>

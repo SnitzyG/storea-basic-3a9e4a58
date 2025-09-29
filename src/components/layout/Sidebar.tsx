@@ -4,7 +4,7 @@ import { BarChart3, FolderOpen, FileStack, MessageSquare, HelpCircle, Briefcase,
 import { Badge } from '@/components/ui/badge';
 import { useTabNotifications } from '@/hooks/useTabNotifications';
 interface SidebarProps {
-  userRole: 'lead_consultant' | 'lead_contractor' | 'client';
+  userRole: 'architect' | 'builder' | 'homeowner' | 'contractor';
   profile?: {
     company_logo_url?: string;
     company_name?: string;
@@ -57,21 +57,24 @@ export const Sidebar = ({
       path: '/financials'
     }];
     switch (role) {
-      case 'lead_consultant':
+      case 'architect':
         return allTabs;
-        
-      case 'lead_contractor':
+      // Full access
+      case 'builder':
         return allTabs;
-        
-      case 'client':
-        return allTabs; // Give clients access to all tabs
-      
+      // Full access
+      case 'homeowner':
+        return allTabs; // Give homeowners access to all tabs
+      // No tenders for homeowners
+      case 'contractor':
+        return allTabs;
+      // Full access
       default:
         return allTabs;
     }
   };
   const visibleTabs = getVisibleTabs(userRole);
-  const showCompanyLogo = userRole !== 'client' && profile?.company_logo_url;
+  const showCompanyLogo = userRole !== 'homeowner' && profile?.company_logo_url;
   return <div className="w-64 bg-sidebar-background border-r border-sidebar-border flex flex-col">
       <div className="p-6 border-b border-sidebar-border">
         <div className="flex items-center justify-center space-x-3">
@@ -87,7 +90,7 @@ export const Sidebar = ({
             </h1>
           </div>
           
-          {/* Company logo - shown for non-clients */}
+          {/* Company logo - shown for non-homeowners */}
           {showCompanyLogo && <div className="flex flex-col items-end flex-shrink-0 min-w-0">
               
               {profile.company_name && <p className="text-xs text-muted-foreground mt-1 text-right truncate max-w-[80px]">

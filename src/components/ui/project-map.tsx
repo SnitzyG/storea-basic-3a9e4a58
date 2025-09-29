@@ -189,7 +189,7 @@ export const ProjectMap: React.FC<ProjectMapProps> = ({ projects, onGeocodeCompl
           )
         `)
         .in('project_id', projectIds)
-        .in('role', ['lead_contractor', 'lead_consultant'])
+        .in('role', ['contractor', 'builder', 'architect'])
         .not('profiles.company_address', 'is', null);
 
       if (error) {

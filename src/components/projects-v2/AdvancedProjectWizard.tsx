@@ -77,8 +77,11 @@ const ROLES = [{
   value: 'project_manager',
   label: 'Project Manager'
 }, {
-  value: 'lead_contractor',
-  label: 'Lead Contractor'
+  value: 'contractor',
+  label: 'Contractor'
+}, {
+  value: 'subcontractor',
+  label: 'Subcontractor'
 }, {
   value: 'consultant',
   label: 'Consultant'
@@ -108,7 +111,7 @@ export const AdvancedProjectWizard = ({
   } = useToast();
 
   // Check if user is architect to show architectural fees step
-  const isArchitect = profile?.role === 'lead_consultant';
+  const isArchitect = profile?.role === 'architect';
   const [editingBudget, setEditingBudget] = useState(false);
   const [budgetInput, setBudgetInput] = useState('');
   const [formData, setFormData] = useState({
@@ -196,7 +199,7 @@ export const AdvancedProjectWizard = ({
   const [newCollaborator, setNewCollaborator] = useState<CollaboratorData>({
     email: '',
     name: '',
-    role: 'lead_contractor',
+    role: 'contractor',
     permissions: {
       can_edit_project: false,
       can_manage_team: false,

@@ -142,7 +142,7 @@ export const RFIDetailsDialog = ({ open, onOpenChange, rfi }: RFIDetailsDialogPr
   const canClose = user && user.id === rfi?.raised_by;
   
   // Can change status to non-closed states (creator, assignee, or architect)
-  const canChangeNonCloseStatus = user && (user.id === rfi?.raised_by || user.id === rfi?.assigned_to || profile?.role === 'lead_consultant');
+  const canChangeNonCloseStatus = user && (user.id === rfi?.raised_by || user.id === rfi?.assigned_to || profile?.role === 'architect');
 
   if (!rfi) return null;
 

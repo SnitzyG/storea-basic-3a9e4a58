@@ -79,13 +79,13 @@ const ProjectJoin = () => {
       // Add user to project team
       const { error: memberError } = await supabase
         .from('project_users')
-        .insert([{
+        .insert({
           project_id: projectId,
           user_id: user.id,
-          role: (role === 'architect' || role === 'builder') ? 'lead_contractor' : (role === 'homeowner' ? 'client' : 'lead_contractor'),
+          role: role as 'architect' | 'builder' | 'homeowner' | 'contractor',
           invited_by: userMetadata.inviter_id || null,
           joined_at: new Date().toISOString()
-        }])
+        })
 
       if (memberError) {
         throw new Error('Failed to add you to the project: ' + memberError.message)
