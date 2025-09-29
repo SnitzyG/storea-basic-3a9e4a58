@@ -341,7 +341,7 @@ export const RecentActivity = () => {
         </div>
       </CardHeader>
       <CardContent className="flex-1 p-0">
-        <ScrollArea className="h-[300px]">
+        <ScrollArea className="h-[400px]">
           {filteredActivities.length > 0 ? (
             <div className="p-6 space-y-4">
               {filteredActivities.map((activity) => {
