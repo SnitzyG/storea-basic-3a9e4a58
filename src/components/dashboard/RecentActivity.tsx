@@ -378,7 +378,7 @@ export const RecentActivity = () => {
                         </Badge>
                       </div>
                       
-                      <p className="text-sm text-muted-foreground mb-2 line-clamp-2 break-words">
+                      <p className="text-sm text-muted-foreground mb-2 line-clamp-2 break-words overflow-hidden text-ellipsis">
                         {activity.description}
                       </p>
                       
