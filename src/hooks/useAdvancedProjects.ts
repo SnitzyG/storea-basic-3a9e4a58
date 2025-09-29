@@ -135,7 +135,7 @@ export const useAdvancedProjects = () => {
       let query = supabase.from('projects').select('*, project_id, latitude, longitude, geocoded_at');
 
       // Apply filters based on user role
-      if (profile?.role === 'homeowner') {
+      if (profile?.role === 'client') {
         const { data: projectUsers } = await supabase
           .from('project_users')
           .select('project_id')
@@ -274,7 +274,7 @@ export const useAdvancedProjects = () => {
         .insert([{
           project_id: data.id,
           user_id: currentUser?.id,
-          role: 'architect',
+          role: 'lead_consultant',
           permissions: {
             can_edit_project: true,
             can_manage_team: true,

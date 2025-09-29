@@ -111,7 +111,7 @@ export const AdvancedProjectWizard = ({
   } = useToast();
 
   // Check if user is architect to show architectural fees step
-  const isArchitect = profile?.role === 'lead_consultant' || profile?.role === 'architect';
+  const isArchitect = profile?.role === 'lead_consultant';
   const [editingBudget, setEditingBudget] = useState(false);
   const [budgetInput, setBudgetInput] = useState('');
   const [formData, setFormData] = useState({

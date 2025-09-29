@@ -22,7 +22,7 @@ interface CreateProjectDialogProps {
 interface Collaborator {
   email: string;
   name: string;
-  role: 'client' | 'contractor' | 'lead_contractor';
+  role: 'client' | 'lead_contractor';
 }
 
 export const CreateProjectDialog = ({ children }: CreateProjectDialogProps) => {
@@ -49,11 +49,11 @@ export const CreateProjectDialog = ({ children }: CreateProjectDialogProps) => {
   const [newCollaborator, setNewCollaborator] = useState<{
     email: string;
     name: string;
-    role: 'client' | 'contractor' | 'lead_contractor';
+    role: 'client' | 'lead_contractor';
   }>({
     email: '',
     name: '',
-    role: 'contractor'
+    role: 'lead_contractor'
   });
   const [loading, setLoading] = useState(false);
   const { createProject } = useProjects();
@@ -147,7 +147,7 @@ export const CreateProjectDialog = ({ children }: CreateProjectDialogProps) => {
       setBudgetType('predefined');
       setCustomBudget('');
       setCollaborators([]);
-      setNewCollaborator({ email: '', name: '', role: 'contractor' });
+      setNewCollaborator({ email: '', name: '', role: 'lead_contractor' });
       setOpen(false);
     } catch (error: any) {
       // Additional error handling for specific cases
@@ -170,7 +170,7 @@ export const CreateProjectDialog = ({ children }: CreateProjectDialogProps) => {
   const addCollaborator = () => {
     if (newCollaborator.email && newCollaborator.name) {
       setCollaborators(prev => [...prev, newCollaborator]);
-      setNewCollaborator({ email: '', name: '', role: 'contractor' });
+      setNewCollaborator({ email: '', name: '', role: 'lead_contractor' });
     }
   };
 
@@ -535,7 +535,7 @@ export const CreateProjectDialog = ({ children }: CreateProjectDialogProps) => {
                     <Label htmlFor="collaborator_role">Role</Label>
                     <Select
                       value={newCollaborator.role}
-                      onValueChange={(value: 'client' | 'contractor' | 'lead_contractor') => 
+                      onValueChange={(value: 'client' | 'lead_contractor') => 
                         setNewCollaborator(prev => ({ ...prev, role: value }))
                       }
                     >
@@ -544,7 +544,6 @@ export const CreateProjectDialog = ({ children }: CreateProjectDialogProps) => {
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="client">Client</SelectItem>
-                        <SelectItem value="contractor">Contractor</SelectItem>
                         <SelectItem value="lead_contractor">Lead Contractor</SelectItem>
                       </SelectContent>
                     </Select>

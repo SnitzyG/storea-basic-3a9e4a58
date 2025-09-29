@@ -24,7 +24,7 @@ export const QuickActions = () => {
       description: 'Create a new construction project',
       icon: Plus,
       action: () => navigate('/projects'),
-      show: userRole === 'lead_consultant' || userRole === 'architect',
+      show: userRole === 'lead_consultant',
       variant: 'default' as const,
     },
     {
@@ -56,7 +56,7 @@ export const QuickActions = () => {
       description: 'Issue a new tender for bidding',
       icon: Briefcase,
       action: () => navigate('/tenders'),
-      show: userRole === 'lead_consultant' || userRole === 'architect',
+      show: userRole === 'lead_consultant',
       variant: 'outline' as const,
     },
     {
@@ -64,7 +64,7 @@ export const QuickActions = () => {
       description: 'Manage project team members',
       icon: Users,
       action: () => navigate('/projects'),
-      show: userRole === 'lead_consultant' || userRole === 'architect',
+      show: userRole === 'lead_consultant',
       variant: 'outline' as const,
     },
   ];

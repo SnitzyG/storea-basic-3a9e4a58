@@ -27,7 +27,7 @@ export const ProjectDetailsDialog = ({
   onUpdateBudget
 }: ProjectDetailsDialogProps) => {
   const { profile } = useAuth();
-  const isArchitect = profile?.role === 'lead_consultant' || profile?.role === 'architect';
+  const isArchitect = profile?.role === 'lead_consultant';
   const [budgetValue, setBudgetValue] = useState<number[]>([]);
   
   // Initialize budget value when project changes

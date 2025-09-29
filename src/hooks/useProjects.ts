@@ -53,7 +53,7 @@ export const useProjects = () => {
 
       let query = supabase.from('projects').select('*');
 
-      if (profile?.role === 'client' || profile?.role === 'homeowner') {
+      if (profile?.role === 'client') {
         // For clients, get projects through project_users table first
         const { data: projectUsers } = await supabase
           .from('project_users')
@@ -125,7 +125,7 @@ export const useProjects = () => {
     collaborators?: Array<{
       email: string;
       name: string;
-      role: 'client' | 'contractor' | 'lead_contractor';
+      role: 'client' | 'lead_contractor';
     }>;
   }) => {
     try {
@@ -141,7 +141,7 @@ export const useProjects = () => {
         .eq('user_id', currentUser.id)
         .single();
         
-      if (userProfile?.role !== 'lead_consultant' && userProfile?.role !== 'architect') {
+      if (userProfile?.role !== 'lead_consultant') {
         throw new Error('Only lead consultants can create projects');
       }
       
@@ -244,7 +244,7 @@ export const useProjects = () => {
     }
   };
 
-  const createOrLinkCollaborator = async (projectId: string, collaborator: { email: string; name: string; role: 'client' | 'contractor' | 'lead_contractor' }, invitedBy?: string) => {
+  const createOrLinkCollaborator = async (projectId: string, collaborator: { email: string; name: string; role: 'client' | 'lead_contractor' }, invitedBy?: string) => {
     try {
       // Store collaborator as pending invitation
       const { data: currentProject } = await supabase
@@ -332,7 +332,7 @@ export const useProjects = () => {
     }
   };
 
-  const inviteUserToProject = async (projectId: string, userId: string, role: 'lead_consultant' | 'lead_contractor' | 'client' | 'contractor') => {
+  const inviteUserToProject = async (projectId: string, userId: string, role: 'lead_consultant' | 'lead_contractor' | 'client') => {
     try {
       const { error } = await supabase
         .from('project_users')

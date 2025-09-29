@@ -34,7 +34,7 @@ export const ProjectTeamManagement = ({ projectId, projectName }: ProjectTeamMan
   const [newMemberRole, setNewMemberRole] = useState('contractor');
   const [isInviting, setIsInviting] = useState(false);
 
-  const isArchitect = profile?.role === 'lead_consultant' || profile?.role === 'architect';
+  const isArchitect = profile?.role === 'lead_consultant';
 
   // Memoized role configurations to prevent re-renders
   const roleColors = useMemo(() => ({

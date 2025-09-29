@@ -40,7 +40,7 @@ const Tenders = () => {
   // Filter tenders based on user role
   const filteredTenders = useMemo(() => {
     // Homeowners should not see tenders tab at all, but just in case
-    if (userRole === 'homeowner') return [];
+    if (userRole === 'client') return [];
     return tenders;
   }, [tenders, userRole]);
   const handleViewTender = (tender: Tender) => {
@@ -217,7 +217,7 @@ const Tenders = () => {
             Manage bidding and tender workflow for {selectedProject?.name}
           </p>
         </div>
-        {(userRole === 'lead_consultant' || userRole === 'architect') && <Button onClick={() => setCreateDialogOpen(true)}>
+        {userRole === 'lead_consultant' && <Button onClick={() => setCreateDialogOpen(true)}>
             <Plus className="w-4 h-4 mr-2" />
             Create Tender
           </Button>}
@@ -226,13 +226,13 @@ const Tenders = () => {
       {/* Tab Navigation */}
       <div className="flex gap-1 mb-6 bg-muted/30 p-1 rounded-lg w-fit">
         
-        {userRole === 'architect'}
+        
       </div>
 
       {/* Project selector is now in the header - no longer needed here */}
 
       {/* Expired Tenders Alert */}
-      {expiredOpenTenders.length > 0 && (userRole === 'lead_consultant' || userRole === 'architect') && <Card className="mb-6 border-orange-200 bg-orange-50">
+      {expiredOpenTenders.length > 0 && userRole === 'lead_consultant' && <Card className="mb-6 border-orange-200 bg-orange-50">
           <CardContent className="pt-6">
             <div className="flex items-center gap-2 text-orange-700">
               <AlertTriangle className="w-5 h-5" />
@@ -247,14 +247,14 @@ const Tenders = () => {
       {activeTab === 'tenders' ? <>
           {/* Tender Grid */}
           {filteredTenders.length > 0 ? <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredTenders.map(tender => <TenderCard key={tender.id} tender={tender} userRole={userRole} onView={handleViewTender} onBid={handleBidTender} onEdit={(userRole === 'lead_consultant' || userRole === 'architect') ? handleEditTender : undefined} onPublish={(userRole === 'lead_consultant' || userRole === 'architect') ? handlePublishTender : undefined} onAward={(userRole === 'lead_consultant' || userRole === 'architect') ? handleAwardTender : undefined} onInvite={(userRole === 'lead_consultant' || userRole === 'architect') ? handleInviteBidders : undefined} onDelete={(userRole === 'lead_consultant' || userRole === 'architect') ? handleDeleteTender : undefined} />)}
+              {filteredTenders.map(tender => <TenderCard key={tender.id} tender={tender} userRole={userRole} onView={handleViewTender} onBid={handleBidTender} onEdit={userRole === 'lead_consultant' ? handleEditTender : undefined} onPublish={userRole === 'lead_consultant' ? handlePublishTender : undefined} onAward={userRole === 'lead_consultant' ? handleAwardTender : undefined} onInvite={userRole === 'lead_consultant' ? handleInviteBidders : undefined} onDelete={userRole === 'lead_consultant' ? handleDeleteTender : undefined} />)}
             </div> : <Card>
               <CardContent className="text-center py-12">
                 <h3 className="text-lg font-semibold mb-2">No Tenders Found</h3>
                 <p className="text-muted-foreground mb-4">
-                  {userRole === 'architect' ? "No tenders have been created for this project yet." : "No tenders are available for bidding in this project."}
+                  {userRole === 'lead_consultant' ? "No tenders have been created for this project yet." : "No tenders are available for bidding in this project."}
                 </p>
-                {(userRole === 'lead_consultant' || userRole === 'architect') && <Button onClick={() => setCreateDialogOpen(true)}>
+                {userRole === 'lead_consultant' && <Button onClick={() => setCreateDialogOpen(true)}>
                     Create First Tender
                   </Button>}
               </CardContent>

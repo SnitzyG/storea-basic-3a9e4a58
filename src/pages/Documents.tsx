@@ -73,7 +73,7 @@ const Documents = () => {
     return document.created_by === profile?.user_id;
   };
   const canApproveDocument = () => {
-    return profile?.role === 'lead_consultant' || profile?.role === 'architect';
+    return profile?.role === 'lead_consultant';
   };
   const handleDownload = async (groupId: string) => {
     const group = documents.find(d => d.id === groupId);

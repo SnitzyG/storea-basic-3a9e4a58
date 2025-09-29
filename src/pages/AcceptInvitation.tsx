@@ -71,12 +71,12 @@ const AcceptInvitation = () => {
       // Add user to project_users
       const { error: memberError } = await supabase
         .from('project_users')
-        .insert({
+        .insert([{
           project_id: invite.project_id,
           user_id: user.id,
-          role: invite.role as 'architect' | 'builder' | 'homeowner' | 'contractor',
+          role: (invite.role === 'architect' || invite.role === 'builder') ? 'lead_contractor' : (invite.role === 'homeowner' ? 'client' : 'lead_contractor'),
           invited_by: invite.inviter_id
-        })
+        }])
 
       if (memberError) {
         throw new Error('Failed to add you to the project: ' + memberError.message)

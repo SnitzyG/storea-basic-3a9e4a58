@@ -121,10 +121,10 @@ export const RoleTestingTools = () => {
 
     // Test navigation access based on role
     const restrictedFeatures = [];
-    if (currentRole === 'homeowner') {
+    if (currentRole === 'client') {
       restrictedFeatures.push('Tenders should be hidden');
     }
-    if (currentRole !== 'architect') {
+    if (currentRole !== 'lead_consultant') {
       restrictedFeatures.push('Project creation should be restricted');
     }
 

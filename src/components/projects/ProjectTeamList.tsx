@@ -139,7 +139,7 @@ export const ProjectTeamList = ({
             <Users className="h-5 w-5" />
             Project Team ({teamMembers.length})
           </CardTitle>
-          {isEditing && showAddButton && profile?.role === 'architect' && (
+          {isEditing && showAddButton && profile?.role === 'lead_consultant' && (
             <Button size="sm" variant="outline" onClick={onUserAdd}>
               <Plus className="h-4 w-4 mr-2" />
               Add Member
@@ -224,7 +224,7 @@ export const ProjectTeamList = ({
                            </div>
                          </div>
                          
-                         {isEditing && showRemoveButton && (profile?.role === 'lead_consultant' || profile?.role === 'architect') && (user.user_profile?.role || user.role) !== 'architect' && (user.user_profile?.role || user.role) !== 'lead_consultant' && (
+                         {isEditing && showRemoveButton && profile?.role === 'lead_consultant' && (user.user_profile?.role || user.role) !== 'lead_consultant' && (
                            <Button
                              size="sm"
                              variant="ghost"
