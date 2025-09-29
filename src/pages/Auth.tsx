@@ -281,14 +281,14 @@ const Auth = () => {
     setRole('');
   };
   const roleOptions = [{
-    value: 'builder',
-    label: 'Builder'
+    value: 'lead_contractor',
+    label: 'Lead Contractor'
   }, {
-    value: 'architect',
-    label: 'Architect'
+    value: 'lead_consultant',
+    label: 'Lead Consultant'
   }, {
-    value: 'homeowner',
-    label: 'Homeowner'
+    value: 'client',
+    label: 'Client'
   }, {
     value: 'contractor',
     label: 'Contractor'
