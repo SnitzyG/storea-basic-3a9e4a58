@@ -49,7 +49,7 @@ export const AppLayout = ({
       </div>
     );
   }
-  const userRole = profile?.role ?? 'contractor';
+  const userRole = profile?.role ?? 'client';
 
   return (
     <ProjectSelectionProvider>

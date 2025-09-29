@@ -16,7 +16,7 @@ export const ProfileSetup: React.FC<ProfileSetupProps> = ({ onComplete }) => {
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
-    role: 'contractor' as 'client' | 'lead_contractor' | 'contractor' | 'lead_consultant',
+    role: 'client' as 'client' | 'lead_contractor' | 'lead_consultant',
     company: ''
   });
   const [loading, setLoading] = useState(false);
@@ -31,7 +31,7 @@ export const ProfileSetup: React.FC<ProfileSetupProps> = ({ onComplete }) => {
           setFormData(prev => ({
             ...prev,
             name: user.user_metadata.name || '',
-            role: user.user_metadata.role || 'contractor',
+            role: user.user_metadata.role || 'client',
             company: user.user_metadata.company || ''
           }));
         }
@@ -139,7 +139,6 @@ export const ProfileSetup: React.FC<ProfileSetupProps> = ({ onComplete }) => {
                   <SelectItem value="client">Client</SelectItem>
                   <SelectItem value="lead_consultant">Lead Consultant</SelectItem>
                   <SelectItem value="lead_contractor">Lead Contractor</SelectItem>
-                  <SelectItem value="contractor">Contractor</SelectItem>
                 </SelectContent>
               </Select>
             </div>

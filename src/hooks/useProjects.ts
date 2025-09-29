@@ -21,7 +21,7 @@ export interface ProjectUser {
   id: string;
   project_id: string;
   user_id: string;
-  role: 'lead_consultant' | 'lead_contractor' | 'client' | 'contractor';
+  role: 'lead_consultant' | 'lead_contractor' | 'client';
   permissions?: any;
   invited_by: string;
   joined_at?: string;
@@ -185,7 +185,7 @@ export const useProjects = () => {
         .insert([{
           project_id: data.id,
           user_id: currentUser.id,
-          role: userProfile?.role || 'contractor', // Default to contractor if no role found
+          role: userProfile?.role || 'lead_contractor', // Default to lead_contractor if no role found
           invited_by: currentUser.id
         }]);
 

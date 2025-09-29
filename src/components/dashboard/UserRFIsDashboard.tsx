@@ -169,7 +169,7 @@ export const UserRFIsDashboard = ({
                   View Details
                 </Button>
                 
-                {rfi.status === 'outstanding' && profile?.role === 'contractor' && (
+                {rfi.status === 'outstanding' && profile?.role === 'lead_contractor' && (
                   <Button
                     size="sm"
                     onClick={() => {
@@ -183,7 +183,7 @@ export const UserRFIsDashboard = ({
                   </Button>
                 )}
                 
-                {(rfi.status === 'outstanding' || rfi.status === 'overdue') && (profile?.role === 'lead_consultant' || profile?.role === 'architect') && (
+                {(rfi.status === 'outstanding' || rfi.status === 'overdue') && profile?.role === 'lead_consultant' && (
                   <Button
                     size="sm"
                     variant="outline"

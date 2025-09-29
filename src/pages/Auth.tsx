@@ -289,9 +289,6 @@ const Auth = () => {
   }, {
     value: 'client',
     label: 'Client'
-  }, {
-    value: 'contractor',
-    label: 'Contractor'
   }];
   return <div className="min-h-screen flex items-center justify-center bg-background px-4 relative">
       {loading && <div className="fixed inset-0 grid place-items-center bg-background/80 z-50">

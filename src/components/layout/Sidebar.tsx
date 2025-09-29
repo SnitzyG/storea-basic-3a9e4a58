@@ -4,7 +4,7 @@ import { BarChart3, FolderOpen, FileStack, MessageSquare, HelpCircle, Briefcase,
 import { Badge } from '@/components/ui/badge';
 import { useTabNotifications } from '@/hooks/useTabNotifications';
 interface SidebarProps {
-  userRole: 'lead_consultant' | 'lead_contractor' | 'client' | 'contractor' | 'architect' | 'builder' | 'homeowner';
+  userRole: 'lead_consultant' | 'lead_contractor' | 'client';
   profile?: {
     company_logo_url?: string;
     company_name?: string;
