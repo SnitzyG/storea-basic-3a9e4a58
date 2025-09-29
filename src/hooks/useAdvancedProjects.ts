@@ -78,7 +78,7 @@ export interface ProjectUser {
   id: string;
   project_id: string;
   user_id: string;
-  role: 'architect' | 'project_manager' | 'contractor' | 'subcontractor' | 'consultant' | 'homeowner' | 'client';
+  role: 'client' | 'lead_consultant' | 'lead_contractor';
   permissions: {
     can_edit_project: boolean;
     can_manage_team: boolean;

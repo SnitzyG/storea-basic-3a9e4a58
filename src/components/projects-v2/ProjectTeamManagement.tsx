@@ -31,28 +31,22 @@ export const ProjectTeamManagement = ({ projectId, projectName }: ProjectTeamMan
   const { toast } = useToast();
   
   const [newMemberEmail, setNewMemberEmail] = useState('');
-  const [newMemberRole, setNewMemberRole] = useState('contractor');
+  const [newMemberRole, setNewMemberRole] = useState('lead_contractor');
   const [isInviting, setIsInviting] = useState(false);
 
   const isArchitect = profile?.role === 'lead_consultant';
 
   // Memoized role configurations to prevent re-renders
   const roleColors = useMemo(() => ({
-    architect: 'bg-primary/10 text-primary',
-    builder: 'bg-blue-500/10 text-blue-600',
-    homeowner: 'bg-purple-500/10 text-purple-600',
-    contractor: 'bg-orange-500/10 text-orange-600',
-    project_manager: 'bg-green-500/10 text-green-600',
-    consultant: 'bg-indigo-500/10 text-indigo-600'
+    client: 'bg-purple-500/10 text-purple-600',
+    lead_contractor: 'bg-orange-500/10 text-orange-600',
+    lead_consultant: 'bg-indigo-500/10 text-indigo-600'
   }), []);
 
   const roleLabels = useMemo(() => ({
-    architect: 'Architect',
-    builder: 'Builder', 
-    homeowner: 'Homeowner',
-    contractor: 'Contractor',
-    project_manager: 'Project Manager',
-    consultant: 'Consultant'
+    client: 'Client',
+    lead_contractor: 'Lead Contractor',
+    lead_consultant: 'Lead Consultant'
   }), []);
 
   const handleAddMember = async (e?: React.FormEvent) => {
@@ -90,7 +84,7 @@ export const ProjectTeamManagement = ({ projectId, projectName }: ProjectTeamMan
       if (success) {
         console.log('Successfully added member');
         setNewMemberEmail('');
-        setNewMemberRole('contractor');
+        setNewMemberRole('lead_contractor');
         
         // Show success feedback
         toast({

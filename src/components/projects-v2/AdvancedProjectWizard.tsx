@@ -77,11 +77,8 @@ const ROLES = [{
   value: 'project_manager',
   label: 'Project Manager'
 }, {
-  value: 'contractor',
-  label: 'Contractor'
-}, {
-  value: 'subcontractor',
-  label: 'Subcontractor'
+  value: 'lead_contractor',
+  label: 'Lead Contractor'
 }, {
   value: 'consultant',
   label: 'Consultant'
@@ -199,7 +196,7 @@ export const AdvancedProjectWizard = ({
   const [newCollaborator, setNewCollaborator] = useState<CollaboratorData>({
     email: '',
     name: '',
-    role: 'contractor',
+    role: 'lead_contractor',
     permissions: {
       can_edit_project: false,
       can_manage_team: false,

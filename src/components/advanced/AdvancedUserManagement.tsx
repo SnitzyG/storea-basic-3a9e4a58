@@ -344,7 +344,6 @@ export const AdvancedUserManagement = ({ projectId }: { projectId: string }) => 
                           <SelectContent>
                             <SelectItem value="lead_consultant">Lead Consultant</SelectItem>
                             <SelectItem value="lead_contractor">Lead Contractor</SelectItem>
-                            <SelectItem value="contractor">Contractor</SelectItem>
                             <SelectItem value="client">Client</SelectItem>
                           </SelectContent>
                         </Select>
