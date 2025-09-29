@@ -2404,7 +2404,7 @@ export type Database = {
         | "request_for_information"
         | "general_advice"
       tender_status: "draft" | "open" | "closed" | "awarded" | "cancelled"
-      user_role: "architect" | "builder" | "homeowner" | "contractor"
+      user_role: "architect" | "homeowner" | "builder" | "contractor"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -2559,7 +2559,7 @@ export const Constants = {
         "general_advice",
       ],
       tender_status: ["draft", "open", "closed", "awarded", "cancelled"],
-      user_role: ["architect", "builder", "homeowner", "contractor"],
+      user_role: ["architect", "homeowner", "builder", "contractor"],
     },
   },
 } as const
