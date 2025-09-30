@@ -217,10 +217,6 @@ const Tenders = () => {
             Manage bidding and tender workflow for {selectedProject?.name}
           </p>
         </div>
-        {userRole === 'architect' && <Button onClick={() => setCreateDialogOpen(true)}>
-            <Plus className="w-4 h-4 mr-2" />
-            Create Tender
-          </Button>}
       </div>
 
       {/* Tab Navigation */}
@@ -255,7 +251,7 @@ const Tenders = () => {
                   {userRole === 'architect' ? "No tenders have been created for this project yet." : "No tenders are available for bidding in this project."}
                 </p>
                 {userRole === 'architect' && <Button onClick={() => setCreateDialogOpen(true)}>
-                    Create First Tender
+                    Create Tender
                   </Button>}
               </CardContent>
             </Card>}

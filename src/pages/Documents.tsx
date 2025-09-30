@@ -17,6 +17,7 @@ import { DocumentDetailsDialog } from '@/components/documents/DocumentDetailsDia
 import { DocumentFilters } from '@/components/documents/DocumentFilters';
 import { DocumentListView } from '@/components/documents/DocumentListView';
 import { DocumentActivity } from '@/components/documents/DocumentActivity';
+import { CreateTenderPackageDialog } from '@/components/documents/CreateTenderPackageDialog';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 const Documents = () => {
@@ -30,6 +31,8 @@ const Documents = () => {
   const [previewDocument, setPreviewDocument] = useState<DocumentGroup | null>(null);
   const [detailsDocument, setDetailsDocument] = useState<DocumentGroup | null>(null);
   const [activityDocument, setActivityDocument] = useState<DocumentGroup | null>(null);
+  const [selectedDocuments, setSelectedDocuments] = useState<DocumentGroup[]>([]);
+  const [createPackageDialogOpen, setCreatePackageDialogOpen] = useState(false);
   const {
     selectedProject
   } = useProjectSelection();
@@ -114,6 +117,18 @@ const Documents = () => {
   const handleTypeChange = async (groupId: string, type: string) => {
     // Implementation for type change would go here
     console.log('Type change:', groupId, type);
+  };
+
+  const handleDocumentSelect = (document: DocumentGroup, selected: boolean) => {
+    if (selected) {
+      setSelectedDocuments(prev => [...prev, document]);
+    } else {
+      setSelectedDocuments(prev => prev.filter(d => d.id !== document.id));
+    }
+  };
+
+  const handleCreateTenderPackage = (selectedDocs: DocumentGroup[]) => {
+    setCreatePackageDialogOpen(true);
   };
   const getStatusCounts = () => {
     const counts = {
@@ -347,7 +362,7 @@ const Documents = () => {
                 Upload Documents
               </Button>}
           </CardContent>
-        </Card> : <DocumentListView documentGroups={filteredDocuments} onDownload={handleDownload} onDelete={deleteDocumentGroup} onStatusChange={handleStatusChange} onTypeChange={handleTypeChange} onPreview={setPreviewDocument} onViewDetails={setDetailsDocument} onViewActivity={setActivityDocument} onSupersede={supersedeDocument} onToggleLock={toggleDocumentLock} onEdit={updateDocumentMetadata} canEdit={filteredDocuments.some(doc => canEditDocument(doc))} canApprove={canApproveDocument()} selectedProject={selectedProject?.id || ''} />}
+        </Card> : <DocumentListView documentGroups={filteredDocuments} onDownload={handleDownload} onDelete={deleteDocumentGroup} onStatusChange={handleStatusChange} onTypeChange={handleTypeChange} onPreview={setPreviewDocument} onViewDetails={setDetailsDocument} onViewActivity={setActivityDocument} onSupersede={supersedeDocument} onToggleLock={toggleDocumentLock} onEdit={updateDocumentMetadata} canEdit={filteredDocuments.some(doc => canEditDocument(doc))} canApprove={canApproveDocument()} selectedProject={selectedProject?.id || ''} selectedDocuments={selectedDocuments} onDocumentSelect={handleDocumentSelect} onCreateTenderPackage={handleCreateTenderPackage} />}
 
       {/* Document Preview Dialog */}
       {previewDocument && <DocumentPreview document={previewDocument} isOpen={!!previewDocument} onClose={() => setPreviewDocument(null)} onDownload={handleDownload} />}
@@ -364,6 +379,17 @@ const Documents = () => {
             <DocumentActivity document={activityDocument} />
           </DialogContent>
         </Dialog>}
+
+      {/* Create Tender Package Dialog */}
+      <CreateTenderPackageDialog
+        isOpen={createPackageDialogOpen}
+        onClose={() => {
+          setCreatePackageDialogOpen(false);
+          setSelectedDocuments([]);
+        }}
+        selectedDocuments={selectedDocuments}
+        projectId={selectedProject?.id || ''}
+      />
     </div>;
 };
 export default Documents;

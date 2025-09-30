@@ -11,12 +11,14 @@ import {
   Unlock, 
   X,
   Upload,
-  MessageSquare
+  MessageSquare,
+  Package
 } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -47,6 +49,9 @@ interface DocumentListViewProps {
   canEdit: boolean;
   canApprove: boolean;
   selectedProject: string;
+  selectedDocuments: DocumentGroup[];
+  onDocumentSelect: (document: DocumentGroup, selected: boolean) => void;
+  onCreateTenderPackage: (selectedDocuments: DocumentGroup[]) => void;
 }
 
 export const DocumentListView: React.FC<DocumentListViewProps> = ({
@@ -63,7 +68,10 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
   onEdit,
   canEdit,
   canApprove,
-  selectedProject
+  selectedProject,
+  selectedDocuments,
+  onDocumentSelect,
+  onCreateTenderPackage
 }) => {
   const { profile } = useAuth();
   const [supersedeDocument, setSupersedeDocument] = useState<DocumentGroup | null>(null);
@@ -119,13 +127,66 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
+  const isDocumentSelected = (document: DocumentGroup) => {
+    return selectedDocuments.some(d => d.id === document.id);
+  };
+
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      documentGroups.forEach(doc => {
+        if (!isDocumentSelected(doc)) {
+          onDocumentSelect(doc, true);
+        }
+      });
+    } else {
+      selectedDocuments.forEach(doc => {
+        onDocumentSelect(doc, false);
+      });
+    }
+  };
+
+  const isAllSelected = documentGroups.length > 0 && selectedDocuments.length === documentGroups.length;
+  const isIndeterminate = selectedDocuments.length > 0 && selectedDocuments.length < documentGroups.length;
+
   return (
     <div className="space-y-4">
+      {/* Selected Documents Actions */}
+      {selectedDocuments.length > 0 && (
+        <Card className="border-primary/20 bg-primary/5">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Package className="h-4 w-4 text-primary" />
+                <span className="text-sm font-medium">
+                  {selectedDocuments.length} document{selectedDocuments.length !== 1 ? 's' : ''} selected
+                </span>
+              </div>
+              <Button
+                onClick={() => onCreateTenderPackage(selectedDocuments)}
+                size="sm"
+                className="flex items-center gap-2"
+              >
+                <Package className="h-4 w-4" />
+                Create Tender Package
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       <Card className="border-0 shadow-sm bg-gradient-to-br from-card to-card/50">
         <CardContent className="p-0">
             <Table>
               <TableHeader className="bg-gradient-to-r from-muted/50 to-muted/30 border-b-2 border-primary/10">
                 <TableRow>
+                  <TableHead className="text-foreground/80 font-semibold text-sm h-12 px-4 w-[40px]">
+                    <Checkbox
+                      checked={isAllSelected}
+                      onCheckedChange={handleSelectAll}
+                      aria-label="Select all documents"
+                      {...(isIndeterminate && { 'data-indeterminate': true })}
+                    />
+                  </TableHead>
                   <TableHead className="text-foreground/80 font-semibold text-sm h-12 px-4 w-[60px]">Type</TableHead>
                   <TableHead className="text-foreground/80 font-semibold text-sm h-12 px-4">Document</TableHead>
                   <TableHead className="text-foreground/80 font-semibold text-sm h-12 px-4">Number</TableHead>
@@ -143,6 +204,13 @@ export const DocumentListView: React.FC<DocumentListViewProps> = ({
               <TableBody>
                 {documentGroups.map((group) => (
                   <TableRow key={group.id} className="hover:bg-muted/30 transition-all duration-200 cursor-pointer border-b border-muted/20">
+              <TableCell>
+                <Checkbox
+                  checked={isDocumentSelected(group)}
+                  onCheckedChange={(checked) => onDocumentSelect(group, !!checked)}
+                  aria-label={`Select ${group.title}`}
+                />
+              </TableCell>
               <TableCell>
                 <FileTypeIcon 
                   fileName={group.current_revision?.file_name || ''} 
