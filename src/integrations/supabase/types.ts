@@ -2178,18 +2178,27 @@ export type Database = {
           awarded_to: string | null
           begin_date: string | null
           budget: number | null
+          builder_details: Json | null
           compliance_requirements: Json | null
+          construction_items: Json | null
           created_at: string
           deadline: string | null
           description: string | null
           documents: Json | null
+          estimated_start_date: string | null
           evaluation_criteria: Json | null
           id: string
+          is_draft: boolean | null
+          is_ready_for_tender: boolean | null
           issued_by: string
+          message: string | null
           project_id: string
           requirements: Json | null
+          scope_of_works_path: string | null
           status: Database["public"]["Enums"]["tender_status"]
+          submission_deadline_time: string | null
           tender_package_id: string | null
+          tender_specification_path: string | null
           tender_type: string | null
           title: string
           updated_at: string
@@ -2200,18 +2209,27 @@ export type Database = {
           awarded_to?: string | null
           begin_date?: string | null
           budget?: number | null
+          builder_details?: Json | null
           compliance_requirements?: Json | null
+          construction_items?: Json | null
           created_at?: string
           deadline?: string | null
           description?: string | null
           documents?: Json | null
+          estimated_start_date?: string | null
           evaluation_criteria?: Json | null
           id?: string
+          is_draft?: boolean | null
+          is_ready_for_tender?: boolean | null
           issued_by: string
+          message?: string | null
           project_id: string
           requirements?: Json | null
+          scope_of_works_path?: string | null
           status?: Database["public"]["Enums"]["tender_status"]
+          submission_deadline_time?: string | null
           tender_package_id?: string | null
+          tender_specification_path?: string | null
           tender_type?: string | null
           title: string
           updated_at?: string
@@ -2222,18 +2240,27 @@ export type Database = {
           awarded_to?: string | null
           begin_date?: string | null
           budget?: number | null
+          builder_details?: Json | null
           compliance_requirements?: Json | null
+          construction_items?: Json | null
           created_at?: string
           deadline?: string | null
           description?: string | null
           documents?: Json | null
+          estimated_start_date?: string | null
           evaluation_criteria?: Json | null
           id?: string
+          is_draft?: boolean | null
+          is_ready_for_tender?: boolean | null
           issued_by?: string
+          message?: string | null
           project_id?: string
           requirements?: Json | null
+          scope_of_works_path?: string | null
           status?: Database["public"]["Enums"]["tender_status"]
+          submission_deadline_time?: string | null
           tender_package_id?: string | null
+          tender_specification_path?: string | null
           tender_type?: string | null
           title?: string
           updated_at?: string
