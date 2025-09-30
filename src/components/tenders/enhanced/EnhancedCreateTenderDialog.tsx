@@ -202,7 +202,7 @@ export const EnhancedCreateTenderDialog = ({ open, onOpenChange, projectId }: En
       // Create tender record
       const { error: tenderError } = await supabase
         .from('tenders')
-        .insert({
+        .insert([{
           project_id: projectId,
           title: formData.title,
           message: formData.message,
@@ -210,14 +210,14 @@ export const EnhancedCreateTenderDialog = ({ open, onOpenChange, projectId }: En
           deadline: `${formData.submission_deadline}T${formData.submission_deadline_time}:00`,
           tender_specification_path: tenderSpecPath,
           scope_of_works_path: scopeWorksPath,
-          documents: documentPaths.map(path => ({ path, name: path.split('/').pop() })),
-          construction_items: formData.construction_items,
-          builder_details: formData.builder_details,
+          documents: documentPaths.map(path => ({ path, name: path.split('/').pop() })) as any,
+          construction_items: formData.construction_items as any,
+          builder_details: formData.builder_details as any,
           is_draft: true,
           is_ready_for_tender: false,
           issued_by: user?.id,
           status: 'draft'
-        });
+        }]);
 
       if (tenderError) throw tenderError;
 
