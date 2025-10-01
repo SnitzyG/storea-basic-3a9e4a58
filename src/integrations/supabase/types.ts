@@ -2375,6 +2375,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: string
       }
+      is_project_architect: {
+        Args: { project_id: string; user_id: string }
+        Returns: boolean
+      }
       is_project_creator: {
         Args: { project_id: string; user_id: string }
         Returns: boolean
