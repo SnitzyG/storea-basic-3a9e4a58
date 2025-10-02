@@ -40,6 +40,15 @@ export const TenderComparisonDashboard: React.FC<TenderComparisonDashboardProps>
   }, [filteredBids, sortBy]);
   const priceAnalysis = useMemo(() => {
     const prices = bids.map(bid => bid.bid_amount);
+    if (prices.length === 0) {
+      return {
+        highest: 0,
+        lowest: 0,
+        average: 0,
+        range: 0,
+        savings: 0
+      };
+    }
     return {
       highest: Math.max(...prices),
       lowest: Math.min(...prices),
@@ -50,6 +59,14 @@ export const TenderComparisonDashboard: React.FC<TenderComparisonDashboardProps>
   }, [bids]);
   const timelineAnalysis = useMemo(() => {
     const timelines = bids.map(bid => bid.timeline_days || 0);
+    if (timelines.length === 0) {
+      return {
+        fastest: 0,
+        slowest: 0,
+        average: 0,
+        range: 0
+      };
+    }
     return {
       fastest: Math.min(...timelines),
       slowest: Math.max(...timelines),
@@ -114,9 +131,9 @@ export const TenderComparisonDashboard: React.FC<TenderComparisonDashboardProps>
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Price Range</p>
-                <p className="text-2xl font-bold">${(priceAnalysis.range / 1000).toFixed(0)}k</p>
+                <p className="text-2xl font-bold">{bids.length === 0 ? 'N/A' : `$${(priceAnalysis.range / 1000).toFixed(0)}k`}</p>
                 <p className="text-xs text-muted-foreground">
-                  ${(priceAnalysis.lowest / 1000).toFixed(0)}k - ${(priceAnalysis.highest / 1000).toFixed(0)}k
+                  {bids.length === 0 ? 'No bids received' : `$${(priceAnalysis.lowest / 1000).toFixed(0)}k - $${(priceAnalysis.highest / 1000).toFixed(0)}k`}
                 </p>
               </div>
               <DollarSign className="h-8 w-8 text-muted-foreground" />
@@ -129,9 +146,9 @@ export const TenderComparisonDashboard: React.FC<TenderComparisonDashboardProps>
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Potential Savings</p>
-                <p className="text-2xl font-bold text-green-600">${(priceAnalysis.savings / 1000).toFixed(0)}k</p>
+                <p className="text-2xl font-bold text-green-600">{bids.length === 0 ? 'N/A' : `$${(priceAnalysis.savings / 1000).toFixed(0)}k`}</p>
                 <p className="text-xs text-muted-foreground">
-                  {(priceAnalysis.savings / priceAnalysis.highest * 100).toFixed(1)}% below highest
+                  {bids.length === 0 ? 'No bids received' : `${(priceAnalysis.savings / priceAnalysis.highest * 100).toFixed(1)}% below highest`}
                 </p>
               </div>
               <TrendingDown className="h-8 w-8 text-green-600" />
@@ -144,9 +161,9 @@ export const TenderComparisonDashboard: React.FC<TenderComparisonDashboardProps>
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Timeline Range</p>
-                <p className="text-2xl font-bold">{timelineAnalysis.range} days</p>
+                <p className="text-2xl font-bold">{bids.length === 0 ? 'N/A' : `${timelineAnalysis.range} days`}</p>
                 <p className="text-xs text-muted-foreground">
-                  {timelineAnalysis.fastest} - {timelineAnalysis.slowest} days
+                  {bids.length === 0 ? 'No bids received' : `${timelineAnalysis.fastest} - ${timelineAnalysis.slowest} days`}
                 </p>
               </div>
               <Calendar className="h-8 w-8 text-muted-foreground" />
@@ -285,19 +302,19 @@ export const TenderComparisonDashboard: React.FC<TenderComparisonDashboardProps>
               <div className="flex justify-between">
                 <span className="text-sm font-medium">Lowest Price:</span>
                 <span className="text-green-600 font-semibold">
-                  ${(priceAnalysis.lowest / 1000).toFixed(0)}k
+                  {bids.length === 0 ? 'N/A' : `$${(priceAnalysis.lowest / 1000).toFixed(0)}k`}
                 </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-sm font-medium">Fastest Timeline:</span>
                 <span className="text-blue-600 font-semibold">
-                  {timelineAnalysis.fastest} days
+                  {bids.length === 0 ? 'N/A' : `${timelineAnalysis.fastest} days`}
                 </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-sm font-medium">Potential Savings:</span>
                 <span className="text-green-600 font-semibold">
-                  ${(priceAnalysis.savings / 1000).toFixed(0)}k ({(priceAnalysis.savings / priceAnalysis.highest * 100).toFixed(1)}%)
+                  {bids.length === 0 ? 'N/A' : `$${(priceAnalysis.savings / 1000).toFixed(0)}k (${(priceAnalysis.savings / priceAnalysis.highest * 100).toFixed(1)}%)`}
                 </span>
               </div>
             </div>
@@ -316,19 +333,19 @@ export const TenderComparisonDashboard: React.FC<TenderComparisonDashboardProps>
               <div className="flex justify-between">
                 <span className="text-sm font-medium">Highest Price:</span>
                 <span className="text-red-600 font-semibold">
-                  ${(priceAnalysis.highest / 1000).toFixed(0)}k
+                  {bids.length === 0 ? 'N/A' : `$${(priceAnalysis.highest / 1000).toFixed(0)}k`}
                 </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-sm font-medium">Longest Timeline:</span>
                 <span className="text-orange-600 font-semibold">
-                  {timelineAnalysis.slowest} days
+                  {bids.length === 0 ? 'N/A' : `${timelineAnalysis.slowest} days`}
                 </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-sm font-medium">Price Variance:</span>
                 <span className="text-orange-600 font-semibold">
-                  ${(priceAnalysis.range / 1000).toFixed(0)}k
+                  {bids.length === 0 ? 'N/A' : `$${(priceAnalysis.range / 1000).toFixed(0)}k`}
                 </span>
               </div>
             </div>
