@@ -278,11 +278,11 @@ const Tenders = () => {
                     <TableRow>
                       <TableHead className="text-foreground/80 font-semibold text-sm h-12 px-4">Title</TableHead>
                       <TableHead className="text-foreground/80 font-semibold text-sm h-12 px-4">Status</TableHead>
-                      <TableHead className="text-foreground/80 font-semibold text-sm h-12 px-4">Bids</TableHead>
-                      <TableHead className="text-foreground/80 font-semibold text-sm h-12 px-4">Budget</TableHead>
                       <TableHead className="text-foreground/80 font-semibold text-sm h-12 px-4">Deadline</TableHead>
+                      <TableHead className="text-foreground/80 font-semibold text-sm h-12 px-4">Issued By</TableHead>
+                      <TableHead className="text-foreground/80 font-semibold text-sm h-12 px-4">Bids Received</TableHead>
                       <TableHead className="text-foreground/80 font-semibold text-sm h-12 px-4">Created</TableHead>
-                      <TableHead className="text-foreground/80 font-semibold text-sm h-12 px-4 w-[50px] text-center">Actions</TableHead>
+                      <TableHead className="text-foreground/80 font-semibold text-sm h-12 px-4 w-[200px]">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -300,30 +300,60 @@ const Tenders = () => {
                           {getStatusBadge(tender.status)}
                         </TableCell>
                         <TableCell className="text-sm px-4 py-3 text-foreground/90">
-                          <div className="flex items-center gap-1">
-                            <Users className="h-3 w-3 text-muted-foreground" />
-                            <span className="text-xs text-muted-foreground">{tender.bid_count || 0}</span>
+                          <div className="space-y-1">
+                            <p className="text-xs font-medium text-foreground">
+                              Deadline: {new Date(tender.deadline).toLocaleDateString()}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              ({Math.ceil((new Date(tender.deadline).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))} days)
+                            </p>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-sm px-4 py-3 text-foreground/90">
+                          <div className="flex items-center gap-2">
+                            <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center">
+                              <span className="text-xs font-semibold text-primary">
+                                {tender.issued_by_profile?.name?.charAt(0) || 'U'}
+                              </span>
+                            </div>
+                            <span className="text-xs text-muted-foreground">
+                              {tender.issued_by_profile?.name || 'Unknown'}
+                            </span>
                           </div>
                         </TableCell>
                         <TableCell className="text-sm px-4 py-3 text-foreground/90">
                           <span className="text-xs text-muted-foreground">
-                            {tender.budget ? `$${tender.budget.toLocaleString()}` : '-'}
+                            {tender.bid_count || 0} bid(s) received
                           </span>
                         </TableCell>
                         <TableCell className="text-sm px-4 py-3 text-foreground/90">
                           <span className="text-xs text-muted-foreground">
-                            {new Date(tender.deadline).toLocaleDateString()}
+                            {(() => {
+                              const now = new Date();
+                              const created = new Date(tender.created_at);
+                              const diffMinutes = Math.floor((now.getTime() - created.getTime()) / (1000 * 60));
+                              
+                              if (diffMinutes < 60) return `${diffMinutes} minute${diffMinutes !== 1 ? 's' : ''} ago`;
+                              const diffHours = Math.floor(diffMinutes / 60);
+                              if (diffHours < 24) return `${diffHours} hour${diffHours !== 1 ? 's' : ''} ago`;
+                              const diffDays = Math.floor(diffHours / 24);
+                              return `${diffDays} day${diffDays !== 1 ? 's' : ''} ago`;
+                            })()}
                           </span>
                         </TableCell>
-                        <TableCell className="text-sm px-4 py-3 text-foreground/90">
-                          <span className="text-xs text-muted-foreground">
-                            {new Date(tender.created_at).toLocaleDateString()}
-                          </span>
-                        </TableCell>
-                        <TableCell className="text-sm px-4 py-3 text-foreground/90 w-[50px] text-center">
-                          <Button variant="outline" size="sm" onClick={() => handleViewTender(tender)}>
-                            <Eye className="h-3 w-3" />
-                          </Button>
+                        <TableCell className="text-sm px-4 py-3 text-foreground/90 w-[200px]">
+                          <div className="flex gap-2">
+                            <Button variant="outline" size="sm" onClick={() => handleViewTender(tender)} className="flex-1">
+                              <Eye className="h-3 w-3 mr-1" />
+                              View Details
+                            </Button>
+                            {userRole === 'architect' && (
+                              <Button variant="outline" size="sm" onClick={() => handleInviteBidders(tender)} className="flex-1">
+                                <Users className="h-3 w-3 mr-1" />
+                                Invite Bidders
+                              </Button>
+                            )}
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))}
