@@ -253,30 +253,6 @@ export const RFIResponseComposer = ({ rfi, isOpen, onClose, onSubmit }: RFIRespo
               </p>
             </div>
 
-            {/* Signature Section */}
-            <div className="space-y-4">
-              <div className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  id="add-my-signature"
-                  checked={signatureRequired}
-                  onChange={(e) => setSignatureRequired(e.target.checked)}
-                  className="rounded"
-                />
-                <Label htmlFor="add-my-signature" className="text-sm">
-                  Add my signature to this response
-                </Label>
-              </div>
-              
-              {signatureRequired && (
-                <DigitalSignature
-                  onSignatureCapture={setSignature}
-                  label="My Signature"
-                  required={false}
-                  disabled={isSubmitting}
-                />
-              )}
-            </div>
 
             {/* Attachments */}
             <div className="space-y-2">

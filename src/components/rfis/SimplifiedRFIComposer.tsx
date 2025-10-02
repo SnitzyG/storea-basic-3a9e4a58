@@ -515,30 +515,6 @@ export const SimplifiedRFIComposer: React.FC<SimplifiedRFIComposerProps> = ({
             />
           </div>
 
-          {/* Signature Section */}
-          <div className="space-y-4">
-            <div className="flex items-center space-x-2">
-              <input
-                type="checkbox"
-                id="add-signature"
-                checked={signatureRequired}
-                onChange={(e) => setSignatureRequired(e.target.checked)}
-                className="rounded"
-              />
-              <Label htmlFor="add-signature" className="text-sm">
-                Add my signature to this {isReply ? 'response' : 'RFI'}
-              </Label>
-            </div>
-            
-            {signatureRequired && (
-              <DigitalSignature
-                onSignatureCapture={setSignature}
-                label="My Signature"
-                required={false}
-                disabled={loading}
-              />
-            )}
-          </div>
 
           {/* Attachments - only for new RFIs */}
           {!isReply && (

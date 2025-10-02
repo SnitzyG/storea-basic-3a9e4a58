@@ -651,13 +651,6 @@ export const AdvancedRFIComposer: React.FC<AdvancedRFIComposerProps> = ({
 
                       
 
-                  <div>
-                    <Label htmlFor="signature">Signature</Label>
-                    <Textarea id="signature" value={formData.signature} onChange={e => setFormData(prev => ({
-                    ...prev,
-                    signature: e.target.value
-                  }))} placeholder="Your signature block..." className="min-h-[100px]" />
-                  </div>
                 </div>
               </TabsContent>
 
