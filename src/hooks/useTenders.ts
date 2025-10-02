@@ -7,15 +7,23 @@ export interface Tender {
   id: string;
   project_id: string;
   title: string;
-  description: string;
+  description: string; // Now used as "Message"
   issued_by: string;
   awarded_to?: string;
-  budget?: number;
-  begin_date?: string;
-  deadline: string;
+  estimated_start_date?: string; // Renamed from begin_date
+  deadline: string; // Now includes time
   status: 'draft' | 'open' | 'closed' | 'awarded' | 'cancelled';
   requirements?: any;
   documents?: any[];
+  tender_specification_path?: string;
+  scope_of_works_path?: string;
+  construction_items?: any[];
+  builder_company_name?: string;
+  builder_address?: string;
+  builder_phone?: string;
+  builder_contact_person?: string;
+  builder_email?: string;
+  is_ready_for_tender?: boolean;
   created_at: string;
   updated_at: string;
   issued_by_profile?: {
@@ -28,6 +36,9 @@ export interface Tender {
   };
   bid_count?: number;
   my_bid?: TenderBid;
+  // Legacy fields for backwards compatibility
+  budget?: number;
+  begin_date?: string;
 }
 
 export interface TenderBid {
@@ -134,10 +145,17 @@ export const useTenders = (projectId?: string) => {
     project_id: string;
     title: string;
     description: string;
-    budget?: number;
-    begin_date?: string;
+    estimated_start_date?: string;
     deadline: string;
-    requirements?: any;
+    tender_specification_path?: string;
+    scope_of_works_path?: string;
+    construction_items?: any[];
+    builder_company_name?: string;
+    builder_address?: string;
+    builder_phone?: string;
+    builder_contact_person?: string;
+    builder_email?: string;
+    is_ready_for_tender?: boolean;
     documents?: any[];
   }) => {
     if (!user) return null;
@@ -166,9 +184,9 @@ export const useTenders = (projectId?: string) => {
           action: 'created',
           description: `Created new tender: "${tenderData.title}"`,
           metadata: { 
-            budget: tenderData.budget,
             deadline: tenderData.deadline,
-            status: 'draft'
+            status: 'draft',
+            is_ready_for_tender: tenderData.is_ready_for_tender
           }
         }]);
 

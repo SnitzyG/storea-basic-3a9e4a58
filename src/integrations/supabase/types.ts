@@ -2178,7 +2178,12 @@ export type Database = {
           awarded_to: string | null
           begin_date: string | null
           budget: number | null
+          builder_address: string | null
+          builder_company_name: string | null
+          builder_contact_person: string | null
           builder_details: Json | null
+          builder_email: string | null
+          builder_phone: string | null
           compliance_requirements: Json | null
           construction_items: Json | null
           created_at: string
@@ -2209,7 +2214,12 @@ export type Database = {
           awarded_to?: string | null
           begin_date?: string | null
           budget?: number | null
+          builder_address?: string | null
+          builder_company_name?: string | null
+          builder_contact_person?: string | null
           builder_details?: Json | null
+          builder_email?: string | null
+          builder_phone?: string | null
           compliance_requirements?: Json | null
           construction_items?: Json | null
           created_at?: string
@@ -2240,7 +2250,12 @@ export type Database = {
           awarded_to?: string | null
           begin_date?: string | null
           budget?: number | null
+          builder_address?: string | null
+          builder_company_name?: string | null
+          builder_contact_person?: string | null
           builder_details?: Json | null
+          builder_email?: string | null
+          builder_phone?: string | null
           compliance_requirements?: Json | null
           construction_items?: Json | null
           created_at?: string

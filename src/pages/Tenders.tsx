@@ -8,7 +8,7 @@ import { useProjects } from '@/hooks/useProjects';
 import { useAuth } from '@/hooks/useAuth';
 import { useProjectSelection } from '@/context/ProjectSelectionContext';
 import { TenderCard } from '@/components/tenders/TenderCard';
-import { CreateTenderDialog } from '@/components/tenders/CreateTenderDialog';
+import { CreateTenderWizard } from '@/components/tenders/CreateTenderWizard';
 import { TenderDetailsDialog } from '@/components/tenders/TenderDetailsDialog';
 import { BidSubmissionDialog } from '@/components/tenders/BidSubmissionDialog';
 import { TenderInviteDialog } from '@/components/tenders/TenderInviteDialog';
@@ -267,7 +267,7 @@ const Tenders = () => {
         </> : activeTab === 'bids' ? <BidsReceivedSection tenders={filteredTenders} /> : <TenderComparisonDashboard tenderId={selectedProject?.id || ''} />}
 
       {/* Dialogs */}
-      <CreateTenderDialog open={createDialogOpen} onOpenChange={setCreateDialogOpen} projectId={selectedProject?.id || ''} />
+      <CreateTenderWizard open={createDialogOpen} onOpenChange={setCreateDialogOpen} projectId={selectedProject?.id || ''} />
 
       <TenderDetailsDialog open={detailsDialogOpen} onOpenChange={setDetailsDialogOpen} tender={selectedTender} userRole={userRole} />
 
