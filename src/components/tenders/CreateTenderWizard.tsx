@@ -11,6 +11,7 @@ import { useTenders } from '@/hooks/useTenders';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import * as XLSX from 'xlsx';
+import { FileSelector } from '@/components/messages/FileSelector';
 
 interface CreateTenderWizardProps {
   open: boolean;
@@ -25,8 +26,8 @@ export const CreateTenderWizard = ({ open, onOpenChange, projectId }: CreateTend
   const [estimatedStartDate, setEstimatedStartDate] = useState('');
   const [submissionDeadline, setSubmissionDeadline] = useState('');
   const [submissionTime, setSubmissionTime] = useState('17:00');
-  const [specFile, setSpecFile] = useState<File | null>(null);
-  const [sowFile, setSowFile] = useState<File | null>(null);
+  const [specFiles, setSpecFiles] = useState<Array<{ id: string; name: string; path: string; type: string }>>([]);
+  const [sowFiles, setSowFiles] = useState<Array<{ id: string; name: string; path: string; type: string }>>([]);
   const [constructionItems, setConstructionItems] = useState<any[]>([]);
   const [builderDetails, setBuilderDetails] = useState({
     companyName: '',
@@ -85,14 +86,12 @@ export const CreateTenderWizard = ({ open, onOpenChange, projectId }: CreateTend
       is_ready_for_tender: false,
     };
 
-    if (specFile) {
-      const specPath = await uploadFile(specFile, 'tender-specifications');
-      if (specPath) tenderData.tender_specification_path = specPath;
+    if (specFiles.length > 0) {
+      tenderData.tender_specification_path = specFiles[0].path;
     }
 
-    if (sowFile) {
-      const sowPath = await uploadFile(sowFile, 'scope-of-works');
-      if (sowPath) tenderData.scope_of_works_path = sowPath;
+    if (sowFiles.length > 0) {
+      tenderData.scope_of_works_path = sowFiles[0].path;
     }
 
     await createTender(tenderData);
@@ -128,14 +127,12 @@ export const CreateTenderWizard = ({ open, onOpenChange, projectId }: CreateTend
       is_ready_for_tender: true,
     };
 
-    if (specFile) {
-      const specPath = await uploadFile(specFile, 'tender-specifications');
-      if (specPath) tenderData.tender_specification_path = specPath;
+    if (specFiles.length > 0) {
+      tenderData.tender_specification_path = specFiles[0].path;
     }
 
-    if (sowFile) {
-      const sowPath = await uploadFile(sowFile, 'scope-of-works');
-      if (sowPath) tenderData.scope_of_works_path = sowPath;
+    if (sowFiles.length > 0) {
+      tenderData.scope_of_works_path = sowFiles[0].path;
     }
 
     const result = await createTender(tenderData);
@@ -165,8 +162,8 @@ export const CreateTenderWizard = ({ open, onOpenChange, projectId }: CreateTend
     setEstimatedStartDate('');
     setSubmissionDeadline('');
     setSubmissionTime('17:00');
-    setSpecFile(null);
-    setSowFile(null);
+    setSpecFiles([]);
+    setSowFiles([]);
     setConstructionItems([]);
     setBuilderDetails({
       companyName: '',
@@ -267,60 +264,50 @@ export const CreateTenderWizard = ({ open, onOpenChange, projectId }: CreateTend
             <div className="space-y-4">
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-base">Upload Tender Specification</CardTitle>
+                  <CardTitle className="text-base">Tender Specification</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <Label htmlFor="spec-upload" className="cursor-pointer">
-                    <div className="border-2 border-dashed rounded-lg p-8 text-center hover:border-primary transition-colors">
-                      {specFile ? (
-                        <div className="flex items-center justify-center gap-2 text-green-600">
-                          <CheckCircle className="w-5 h-5" />
-                          <span>{specFile.name}</span>
-                        </div>
-                      ) : (
-                        <div className="flex flex-col items-center gap-2 text-muted-foreground">
-                          <Upload className="w-8 h-8" />
-                          <span>Click to upload tender specification</span>
-                        </div>
-                      )}
-                    </div>
-                  </Label>
-                  <Input
-                    id="spec-upload"
-                    type="file"
-                    accept=".pdf,.doc,.docx,.xls,.xlsx"
-                    onChange={(e) => setSpecFile(e.target.files?.[0] || null)}
-                    className="hidden"
+                  <FileSelector
+                    projectId={projectId}
+                    selectedFiles={specFiles}
+                    onFileSelect={(file) => setSpecFiles([file])}
+                    onFileRemove={(fileId) => setSpecFiles([])}
+                    onUploadNew={(files) => {
+                      if (files.length > 0) {
+                        const newFile = {
+                          id: Math.random().toString(),
+                          name: files[0].name,
+                          path: URL.createObjectURL(files[0]),
+                          type: files[0].type
+                        };
+                        setSpecFiles([newFile]);
+                      }
+                    }}
                   />
                 </CardContent>
               </Card>
 
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-base">Upload Scope of Works</CardTitle>
+                  <CardTitle className="text-base">Scope of Works</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <Label htmlFor="sow-upload" className="cursor-pointer">
-                    <div className="border-2 border-dashed rounded-lg p-8 text-center hover:border-primary transition-colors">
-                      {sowFile ? (
-                        <div className="flex items-center justify-center gap-2 text-green-600">
-                          <CheckCircle className="w-5 h-5" />
-                          <span>{sowFile.name}</span>
-                        </div>
-                      ) : (
-                        <div className="flex flex-col items-center gap-2 text-muted-foreground">
-                          <Upload className="w-8 h-8" />
-                          <span>Click to upload scope of works</span>
-                        </div>
-                      )}
-                    </div>
-                  </Label>
-                  <Input
-                    id="sow-upload"
-                    type="file"
-                    accept=".pdf,.doc,.docx,.xls,.xlsx"
-                    onChange={(e) => setSowFile(e.target.files?.[0] || null)}
-                    className="hidden"
+                  <FileSelector
+                    projectId={projectId}
+                    selectedFiles={sowFiles}
+                    onFileSelect={(file) => setSowFiles([file])}
+                    onFileRemove={(fileId) => setSowFiles([])}
+                    onUploadNew={(files) => {
+                      if (files.length > 0) {
+                        const newFile = {
+                          id: Math.random().toString(),
+                          name: files[0].name,
+                          path: URL.createObjectURL(files[0]),
+                          type: files[0].type
+                        };
+                        setSowFiles([newFile]);
+                      }
+                    }}
                   />
                 </CardContent>
               </Card>
@@ -485,11 +472,11 @@ export const CreateTenderWizard = ({ open, onOpenChange, projectId }: CreateTend
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Specification:</span>
-                    <span className="font-medium">{specFile ? '✓ Uploaded' : 'Not uploaded'}</span>
+                    <span className="font-medium">{specFiles.length > 0 ? '✓ Uploaded' : 'Not uploaded'}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Scope of Works:</span>
-                    <span className="font-medium">{sowFile ? '✓ Uploaded' : 'Not uploaded'}</span>
+                    <span className="font-medium">{sowFiles.length > 0 ? '✓ Uploaded' : 'Not uploaded'}</span>
                   </div>
                   {builderDetails.email && (
                     <div className="flex justify-between">
