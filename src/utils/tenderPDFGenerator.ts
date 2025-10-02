@@ -141,8 +141,8 @@ export const generateTenderPDF = (tender: Tender) => {
       doc.text('CONSTRUCTION ITEMS', 20, yPos);
       yPos += 15;
       
-      // Create simple table manually
-      const colWidths = [25, 18, 50, 22, 18, 22, 22, 33];
+      // Create simple table manually - widths adjusted to fit within page margins (180mm total)
+      const colWidths = [20, 15, 45, 18, 15, 20, 20, 27];
       const headers = ['Section', 'Item', 'Description', 'Quantity', 'Unit', 'Rate', 'Total', 'Notes'];
       let xPos = 15;
       
