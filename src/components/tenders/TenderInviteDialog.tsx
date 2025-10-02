@@ -9,20 +9,23 @@ import { X, Plus, Mail } from 'lucide-react';
 import { Tender } from '@/hooks/useTenders';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-
 interface TenderInviteDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   tender: Tender | null;
 }
-
-export const TenderInviteDialog = ({ open, onOpenChange, tender }: TenderInviteDialogProps) => {
+export const TenderInviteDialog = ({
+  open,
+  onOpenChange,
+  tender
+}: TenderInviteDialogProps) => {
   const [emails, setEmails] = useState<string[]>([]);
   const [newEmail, setNewEmail] = useState('');
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
-  const { toast } = useToast();
-
+  const {
+    toast
+  } = useToast();
   const addEmail = () => {
     const email = newEmail.trim().toLowerCase();
     if (email && email.includes('@') && !emails.includes(email)) {
@@ -30,59 +33,52 @@ export const TenderInviteDialog = ({ open, onOpenChange, tender }: TenderInviteD
       setNewEmail('');
     }
   };
-
   const removeEmail = (emailToRemove: string) => {
     setEmails(emails.filter(email => email !== emailToRemove));
   };
-
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
       e.preventDefault();
       addEmail();
     }
   };
-
   const handleSendInvitations = async () => {
     if (!tender || emails.length === 0) return;
-
     setLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke('send-tender-invitation', {
+      const {
+        data,
+        error
+      } = await supabase.functions.invoke('send-tender-invitation', {
         body: {
           tender_id: tender.id,
           recipient_emails: emails,
           message: message.trim() || undefined
         }
       });
-
       if (error) throw error;
-
       toast({
         title: "Invitations Sent",
-        description: `Successfully sent ${data.sent} invitation(s) to potential bidders.`,
+        description: `Successfully sent ${data.sent} invitation(s) to potential bidders.`
       });
 
       // Reset form
       setEmails([]);
       setMessage('');
       onOpenChange(false);
-
     } catch (error: any) {
       console.error('Error sending invitations:', error);
       toast({
         title: "Error",
         description: "Failed to send invitations. Please try again.",
-        variant: "destructive",
+        variant: "destructive"
       });
     } finally {
       setLoading(false);
     }
   };
-
   if (!tender) return null;
-
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+  return <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
@@ -98,32 +94,17 @@ export const TenderInviteDialog = ({ open, onOpenChange, tender }: TenderInviteD
             <p className="text-sm text-muted-foreground">
               Deadline: {new Date(tender.deadline).toLocaleDateString()}
             </p>
-            {tender.budget && (
-              <p className="text-sm text-muted-foreground">
+            {tender.budget && <p className="text-sm text-muted-foreground">
                 Budget: ${tender.budget.toLocaleString()}
-              </p>
-            )}
+              </p>}
           </div>
 
           {/* Email Input */}
           <div>
             <Label htmlFor="email">Invite Email Addresses</Label>
             <div className="flex gap-2 mt-1">
-              <Input
-                id="email"
-                type="email"
-                placeholder="Enter email address..."
-                value={newEmail}
-                onChange={(e) => setNewEmail(e.target.value)}
-                onKeyPress={handleKeyPress}
-              />
-              <Button 
-                type="button" 
-                variant="outline" 
-                size="sm"
-                onClick={addEmail}
-                disabled={!newEmail.trim() || !newEmail.includes('@')}
-              >
+              <Input id="email" type="email" placeholder="Enter email address..." value={newEmail} onChange={e => setNewEmail(e.target.value)} onKeyPress={handleKeyPress} />
+              <Button type="button" variant="outline" size="sm" onClick={addEmail} disabled={!newEmail.trim() || !newEmail.includes('@')}>
                 <Plus className="w-4 h-4" />
               </Button>
             </div>
@@ -133,64 +114,38 @@ export const TenderInviteDialog = ({ open, onOpenChange, tender }: TenderInviteD
           </div>
 
           {/* Email List */}
-          {emails.length > 0 && (
-            <div>
+          {emails.length > 0 && <div>
               <Label>Recipients ({emails.length})</Label>
               <div className="flex flex-wrap gap-2 mt-2">
-                {emails.map((email) => (
-                  <Badge key={email} variant="secondary" className="flex items-center gap-1">
+                {emails.map(email => <Badge key={email} variant="secondary" className="flex items-center gap-1">
                     {email}
-                    <X 
-                      className="w-3 h-3 cursor-pointer hover:text-destructive" 
-                      onClick={() => removeEmail(email)}
-                    />
-                  </Badge>
-                ))}
+                    <X className="w-3 h-3 cursor-pointer hover:text-destructive" onClick={() => removeEmail(email)} />
+                  </Badge>)}
               </div>
-            </div>
-          )}
+            </div>}
 
           {/* Personal Message */}
           <div>
             <Label htmlFor="message">Personal Message (Optional)</Label>
-            <Textarea
-              id="message"
-              placeholder="Add a personal message to the invitation..."
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              className="min-h-[100px] mt-1"
-            />
+            <Textarea id="message" placeholder="Add a personal message to the invitation..." value={message} onChange={e => setMessage(e.target.value)} className="min-h-[100px] mt-1" />
             <p className="text-xs text-muted-foreground mt-1">
               This message will be included in the invitation email
             </p>
           </div>
 
           {/* Info Box */}
-          <div className="bg-blue-50 p-3 rounded-md border border-blue-200">
-            <p className="text-sm text-blue-800">
-              <strong>How it works:</strong> Recipients will receive an email with tender details and a secure project invitation link. 
-              They'll be able to join the project and access all related documents to submit competitive bids.
-            </p>
-          </div>
+          
 
           {/* Actions */}
           <div className="flex justify-end gap-2 pt-4">
-            <Button
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-              disabled={loading}
-            >
+            <Button variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>
               Cancel
             </Button>
-            <Button 
-              onClick={handleSendInvitations}
-              disabled={loading || emails.length === 0}
-            >
+            <Button onClick={handleSendInvitations} disabled={loading || emails.length === 0}>
               {loading ? 'Sending...' : `Send ${emails.length} Invitation${emails.length !== 1 ? 's' : ''}`}
             </Button>
           </div>
         </div>
       </DialogContent>
-    </Dialog>
-  );
+    </Dialog>;
 };
