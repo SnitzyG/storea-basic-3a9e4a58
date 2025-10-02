@@ -109,13 +109,20 @@ export const Sidebar = ({
           
           const isComingSoon = tab.id === 'financials';
           
-          return <Link key={tab.id} to={tab.path} className={cn("flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors", isActive ? "bg-sidebar-accent text-sidebar-accent-foreground" : "text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground dark:text-white", isComingSoon && "opacity-50")} onClick={() => markTabAsRead(tab.id)}>
+          if (isComingSoon) {
+            return <div key={tab.id} className={cn("flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium cursor-not-allowed opacity-50")}>
+                  <Icon className="h-5 w-5" />
+                  {tab.label}
+                  <Badge variant="outline" className="ml-auto text-xs">
+                    Coming Soon
+                  </Badge>
+                </div>;
+          }
+          
+          return <Link key={tab.id} to={tab.path} className={cn("flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors", isActive ? "bg-sidebar-accent text-sidebar-accent-foreground" : "text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground dark:text-white")} onClick={() => markTabAsRead(tab.id)}>
                 <Icon className="h-5 w-5" />
                 {tab.label}
-                {isComingSoon && <Badge variant="outline" className="ml-auto text-xs">
-                    Coming Soon
-                  </Badge>}
-                {!isComingSoon && notificationCount > 0 && <Badge variant="secondary" className="ml-auto h-5 min-w-5 px-1 text-xs">
+                {notificationCount > 0 && <Badge variant="secondary" className="ml-auto h-5 min-w-5 px-1 text-xs">
                     {notificationCount}
                   </Badge>}
               </Link>;
