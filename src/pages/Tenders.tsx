@@ -21,7 +21,9 @@ const Tenders = () => {
   const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
   const [selectedTender, setSelectedTender] = useState<Tender | null>(null);
   const [activeTab, setActiveTab] = useState<'tenders' | 'bids' | 'comparison'>('tenders');
-  const { selectedProject } = useProjectSelection();
+  const {
+    selectedProject
+  } = useProjectSelection();
   const {
     projects
   } = useProjects();
@@ -69,7 +71,6 @@ const Tenders = () => {
     setSelectedTender(tender);
     setInviteDialogOpen(true);
   };
-
   const handleDeleteTender = async (tender: Tender) => {
     await deleteTender(tender.id);
   };
@@ -186,7 +187,6 @@ const Tenders = () => {
         </Card>
       </div>;
   }
-
   if (loading) {
     return <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">Loading tenders...</div>
@@ -213,41 +213,25 @@ const Tenders = () => {
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
         <div>
-          <h1 className="text-3xl font-bold">Tenders</h1>
-          <p className="text-muted-foreground">
-            Manage bidding and tender workflow for {selectedProject?.name}
-          </p>
+          
+          
         </div>
       </div>
 
       {/* Tab Navigation */}
       <div className="flex gap-1 mb-6 bg-muted/30 p-1 rounded-lg w-fit">
-        <Button
-          variant={activeTab === 'tenders' ? 'default' : 'ghost'}
-          size="sm"
-          onClick={() => setActiveTab('tenders')}
-        >
+        <Button variant={activeTab === 'tenders' ? 'default' : 'ghost'} size="sm" onClick={() => setActiveTab('tenders')}>
           All Tenders
         </Button>
         
-        {userRole === 'architect' && (
-          <>
-            <Button
-              variant={activeTab === 'bids' ? 'default' : 'ghost'}
-              size="sm"
-              onClick={() => setActiveTab('bids')}
-            >
+        {userRole === 'architect' && <>
+            <Button variant={activeTab === 'bids' ? 'default' : 'ghost'} size="sm" onClick={() => setActiveTab('bids')}>
               Bids Received
             </Button>
-            <Button
-              variant={activeTab === 'comparison' ? 'default' : 'ghost'}
-              size="sm"
-              onClick={() => setActiveTab('comparison')}
-            >
+            <Button variant={activeTab === 'comparison' ? 'default' : 'ghost'} size="sm" onClick={() => setActiveTab('comparison')}>
               Comparison Dashboard
             </Button>
-          </>
-        )}
+          </>}
       </div>
 
       {/* Project selector is now in the header - no longer needed here */}
@@ -265,49 +249,22 @@ const Tenders = () => {
         </Card>}
 
       {/* Content based on active tab */}
-      {activeTab === 'tenders' ? (
-        <>
+      {activeTab === 'tenders' ? <>
           {/* Tender Grid */}
-          {filteredTenders.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredTenders.map(tender => (
-                <TenderCard 
-                  key={tender.id} 
-                  tender={tender} 
-                  userRole={userRole} 
-                  onView={handleViewTender} 
-                  onBid={handleBidTender} 
-                  onEdit={userRole === 'architect' ? handleEditTender : undefined} 
-                  onPublish={userRole === 'architect' ? handlePublishTender : undefined} 
-                  onAward={userRole === 'architect' ? handleAwardTender : undefined} 
-                  onInvite={userRole === 'architect' ? handleInviteBidders : undefined} 
-                  onDelete={userRole === 'architect' ? handleDeleteTender : undefined} 
-                />
-              ))}
-            </div>
-          ) : (
-            <Card>
+          {filteredTenders.length > 0 ? <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredTenders.map(tender => <TenderCard key={tender.id} tender={tender} userRole={userRole} onView={handleViewTender} onBid={handleBidTender} onEdit={userRole === 'architect' ? handleEditTender : undefined} onPublish={userRole === 'architect' ? handlePublishTender : undefined} onAward={userRole === 'architect' ? handleAwardTender : undefined} onInvite={userRole === 'architect' ? handleInviteBidders : undefined} onDelete={userRole === 'architect' ? handleDeleteTender : undefined} />)}
+            </div> : <Card>
               <CardContent className="text-center py-12">
                 <h3 className="text-lg font-semibold mb-2">No Tenders Found</h3>
                 <p className="text-muted-foreground mb-4">
                   {userRole === 'architect' ? "No tenders have been created for this project yet." : "No tenders are available for bidding in this project."}
                 </p>
-                {userRole === 'architect' && (
-                  <Button onClick={() => setCreateDialogOpen(true)}>
+                {userRole === 'architect' && <Button onClick={() => setCreateDialogOpen(true)}>
                     Create Tender
-                  </Button>
-                )}
+                  </Button>}
               </CardContent>
-            </Card>
-          )}
-        </>
-      ) : activeTab === 'bids' ? (
-        <BidsReceivedSection tenders={filteredTenders} />
-      ) : (
-        <TenderComparisonDashboard 
-          tenderId={selectedProject?.id || ''} 
-        />
-      )}
+            </Card>}
+        </> : activeTab === 'bids' ? <BidsReceivedSection tenders={filteredTenders} /> : <TenderComparisonDashboard tenderId={selectedProject?.id || ''} />}
 
       {/* Dialogs */}
       <CreateTenderDialog open={createDialogOpen} onOpenChange={setCreateDialogOpen} projectId={selectedProject?.id || ''} />
