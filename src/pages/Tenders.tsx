@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Plus, AlertTriangle, Eye, FileText, Users, BarChart3, Hash } from 'lucide-react';
+import { Plus, AlertTriangle, Eye, FileText, Users, BarChart3, UserPlus, Edit } from 'lucide-react';
 import { useTenders, Tender } from '@/hooks/useTenders';
 import { useProjects } from '@/hooks/useProjects';
 import { useAuth } from '@/hooks/useAuth';
@@ -16,6 +16,9 @@ import { BidSubmissionDialog } from '@/components/tenders/BidSubmissionDialog';
 import { TenderInviteDialog } from '@/components/tenders/TenderInviteDialog';
 import { BidsReceivedSection } from '@/components/tenders/BidsReceivedSection';
 import { TenderComparisonDashboard } from '@/components/tenders/TenderComparisonDashboard';
+import { generateTenderPDF } from '@/utils/tenderPDFGenerator';
+import { toast } from '@/hooks/use-toast';
+
 const Tenders = () => {
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
@@ -48,31 +51,52 @@ const Tenders = () => {
     if (userRole === 'homeowner') return [];
     return tenders;
   }, [tenders, userRole]);
+  
   const handleViewTender = (tender: Tender) => {
     setSelectedTender(tender);
     setDetailsDialogOpen(true);
   };
+  
   const handleBidTender = (tender: Tender) => {
     setSelectedTender(tender);
     setBidDialogOpen(true);
   };
+  
   const handleEditTender = (tender: Tender) => {
-    // For now, just show details
-    // In a full implementation, you'd have an edit dialog
     setSelectedTender(tender);
     setDetailsDialogOpen(true);
   };
+  
+  const handleViewTenderPackage = (tender: Tender) => {
+    try {
+      generateTenderPDF(tender);
+      toast({
+        title: "PDF Generated",
+        description: "Tender package PDF has been downloaded successfully.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to generate PDF. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+  
   const handlePublishTender = async (tender: Tender) => {
     await publishTender(tender.id);
   };
+  
   const handleAwardTender = (tender: Tender) => {
     setSelectedTender(tender);
     setDetailsDialogOpen(true);
   };
+  
   const handleInviteBidders = (tender: Tender) => {
     setSelectedTender(tender);
     setInviteDialogOpen(true);
   };
+  
   const handleDeleteTender = async (tender: Tender) => {
     await deleteTender(tender.id);
   };
@@ -282,7 +306,7 @@ const Tenders = () => {
                       <TableHead className="text-foreground/80 font-semibold text-sm h-12 px-4">Issued By</TableHead>
                       <TableHead className="text-foreground/80 font-semibold text-sm h-12 px-4">Bids Received</TableHead>
                       <TableHead className="text-foreground/80 font-semibold text-sm h-12 px-4">Created</TableHead>
-                      <TableHead className="text-foreground/80 font-semibold text-sm h-12 px-4 w-[200px]">Actions</TableHead>
+                      <TableHead className="text-foreground/80 font-semibold text-sm h-12 px-4 w-[150px]">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -341,17 +365,36 @@ const Tenders = () => {
                             })()}
                           </span>
                         </TableCell>
-                        <TableCell className="text-sm px-4 py-3 text-foreground/90 w-[200px]">
-                          <div className="flex gap-2">
-                            <Button variant="outline" size="sm" onClick={() => handleViewTender(tender)} className="flex-1">
-                              <Eye className="h-3 w-3 mr-1" />
-                              View Details
+                        <TableCell className="text-sm px-4 py-3 text-foreground/90 w-[150px]">
+                          <div className="flex gap-1 items-center">
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              onClick={() => handleViewTenderPackage(tender)}
+                              title="View Tender Package PDF"
+                            >
+                              <FileText className="h-4 w-4" />
                             </Button>
+                            
                             {userRole === 'architect' && (
-                              <Button variant="outline" size="sm" onClick={() => handleInviteBidders(tender)} className="flex-1">
-                                <Users className="h-3 w-3 mr-1" />
-                                Invite Bidders
-                              </Button>
+                              <>
+                                <Button 
+                                  variant="ghost" 
+                                  size="icon" 
+                                  onClick={() => handleEditTender(tender)}
+                                  title="Edit Tender"
+                                >
+                                  <Edit className="h-4 w-4" />
+                                </Button>
+                                <Button 
+                                  variant="ghost" 
+                                  size="icon" 
+                                  onClick={() => handleInviteBidders(tender)}
+                                  title="Invite Bidders"
+                                >
+                                  <UserPlus className="h-4 w-4" />
+                                </Button>
+                              </>
                             )}
                           </div>
                         </TableCell>
