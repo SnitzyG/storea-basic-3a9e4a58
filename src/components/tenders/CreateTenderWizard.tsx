@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,8 +10,9 @@ import { Upload, FileText, CheckCircle, AlertCircle, Download } from 'lucide-rea
 import { useTenders } from '@/hooks/useTenders';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import * as XLSX from 'xlsx';
 import { FileSelector } from '@/components/messages/FileSelector';
+import { ConstructionItemSelector, BUILDING_SECTIONS } from './ConstructionItemSelector';
+import { generateProfessionalQuoteTemplate, getCompanyInfoFromProfile } from '@/utils/tenderExportUtils';
 
 interface CreateTenderWizardProps {
   open: boolean;
@@ -28,7 +29,7 @@ export const CreateTenderWizard = ({ open, onOpenChange, projectId }: CreateTend
   const [submissionTime, setSubmissionTime] = useState('17:00');
   const [specFiles, setSpecFiles] = useState<Array<{ id: string; name: string; path: string; type: string }>>([]);
   const [sowFiles, setSowFiles] = useState<Array<{ id: string; name: string; path: string; type: string }>>([]);
-  const [constructionItems, setConstructionItems] = useState<any[]>([]);
+  const [selectedItemIds, setSelectedItemIds] = useState<string[]>([]);
   const [builderDetails, setBuilderDetails] = useState({
     companyName: '',
     address: '',
@@ -38,9 +39,41 @@ export const CreateTenderWizard = ({ open, onOpenChange, projectId }: CreateTend
   });
   const [loading, setLoading] = useState(false);
   const [isReadyForTender, setIsReadyForTender] = useState(false);
+  const [userProfile, setUserProfile] = useState<any>(null);
+  const [userCompany, setUserCompany] = useState<any>(null);
 
   const { createTender } = useTenders();
   const { toast } = useToast();
+
+  // Fetch user profile and company for export
+  useEffect(() => {
+    const fetchUserData = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('*, companies(*)')
+        .eq('user_id', user.id)
+        .single();
+
+      if (profile) {
+        setUserProfile(profile);
+        if (profile.company_id) {
+          const { data: company } = await supabase
+            .from('companies')
+            .select('*')
+            .eq('id', profile.company_id)
+            .single();
+          setUserCompany(company);
+        }
+      }
+    };
+
+    if (open) {
+      fetchUserData();
+    }
+  }, [open]);
 
   const totalSteps = 5;
   const progress = (step / totalSteps) * 100;
@@ -74,6 +107,8 @@ export const CreateTenderWizard = ({ open, onOpenChange, projectId }: CreateTend
 
     setLoading(true);
     
+    const selectedItems = BUILDING_SECTIONS.filter(item => selectedItemIds.includes(item.id));
+    
     const tenderData: any = {
       project_id: projectId,
       title: title.trim(),
@@ -82,7 +117,7 @@ export const CreateTenderWizard = ({ open, onOpenChange, projectId }: CreateTend
       deadline: submissionDeadline && submissionTime 
         ? `${submissionDeadline}T${submissionTime}:00` 
         : undefined,
-      construction_items: constructionItems,
+      construction_items: selectedItems,
       is_ready_for_tender: false,
     };
 
@@ -112,13 +147,15 @@ export const CreateTenderWizard = ({ open, onOpenChange, projectId }: CreateTend
 
     setLoading(true);
 
+    const selectedItems = BUILDING_SECTIONS.filter(item => selectedItemIds.includes(item.id));
+
     const tenderData: any = {
       project_id: projectId,
       title: title.trim(),
       description: message.trim(),
       estimated_start_date: estimatedStartDate || undefined,
       deadline: `${submissionDeadline}T${submissionTime}:00`,
-      construction_items: constructionItems,
+      construction_items: selectedItems,
       builder_company_name: builderDetails.companyName || undefined,
       builder_address: builderDetails.address || undefined,
       builder_phone: builderDetails.phone || undefined,
@@ -164,7 +201,7 @@ export const CreateTenderWizard = ({ open, onOpenChange, projectId }: CreateTend
     setSubmissionTime('17:00');
     setSpecFiles([]);
     setSowFiles([]);
-    setConstructionItems([]);
+    setSelectedItemIds([]);
     setBuilderDetails({
       companyName: '',
       address: '',
@@ -175,13 +212,48 @@ export const CreateTenderWizard = ({ open, onOpenChange, projectId }: CreateTend
     setIsReadyForTender(false);
   };
 
-  const handleExportConstructionItems = () => {
-    const worksheet = XLSX.utils.json_to_sheet(constructionItems.length > 0 ? constructionItems : [
-      { Item: 'Example: Foundation Works', Quantity: 1, Unit: 'LS', Description: 'Complete foundation system' }
-    ]);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Construction Items');
-    XLSX.writeFile(workbook, `${title || 'tender'}-construction-items.xlsx`);
+  const handleGenerateQuoteTemplate = async () => {
+    if (selectedItemIds.length === 0) {
+      toast({
+        title: "No items selected",
+        description: "Please select at least one construction item to include in the quote template",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!title.trim()) {
+      toast({
+        title: "Missing title",
+        description: "Please enter a tender title before generating the quote template",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const companyInfo = getCompanyInfoFromProfile(userProfile, userCompany);
+      
+      await generateProfessionalQuoteTemplate({
+        tenderTitle: title,
+        companyInfo,
+        selectedItemIds,
+        includeGST: true,
+        gstRate: 0.10,
+      });
+
+      toast({
+        title: "Quote template generated",
+        description: "Professional XLSX quote template has been downloaded",
+      });
+    } catch (error) {
+      console.error('Error generating quote template:', error);
+      toast({
+        title: "Error",
+        description: "Failed to generate quote template",
+        variant: "destructive",
+      });
+    }
   };
 
   const today = new Date().toISOString().split('T')[0];
@@ -317,37 +389,31 @@ export const CreateTenderWizard = ({ open, onOpenChange, projectId }: CreateTend
           {/* Step 3: Construction Items */}
           {step === 3 && (
             <div className="space-y-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-base flex items-center justify-between">
-                    <span>Construction Items to Quote</span>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={handleExportConstructionItems}
-                    >
-                      <Download className="w-4 h-4 mr-2" />
-                      Export .xls
-                    </Button>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-muted-foreground mb-4">
-                    Construction items can be exported as an Excel file for builder quoting.
-                    You can add specific items here or upload them with your tender specification.
+              <ConstructionItemSelector
+                selectedItems={selectedItemIds}
+                onSelectionChange={setSelectedItemIds}
+              />
+              
+              <div className="flex justify-end">
+                <Button
+                  type="button"
+                  variant="default"
+                  onClick={handleGenerateQuoteTemplate}
+                  disabled={selectedItemIds.length === 0 || !title.trim()}
+                >
+                  <Download className="w-4 h-4 mr-2" />
+                  Generate Quote Template
+                </Button>
+              </div>
+              
+              <Card className="bg-muted/30">
+                <CardContent className="pt-4">
+                  <p className="text-sm text-muted-foreground">
+                    <strong>Selected: {selectedItemIds.length} items</strong>
+                    <br />
+                    The quote template will include all selected items with columns for quantity, unit, rate, and total. 
+                    Builders can fill in their pricing directly in the Excel file.
                   </p>
-                  <Textarea
-                    placeholder="Enter construction items (optional)&#10;Example:&#10;Foundation Works - Complete foundation system&#10;Structural Frame - Steel framework installation"
-                    className="min-h-[150px]"
-                    onChange={(e) => {
-                      const items = e.target.value.split('\n').filter(line => line.trim()).map((line, idx) => ({
-                        id: idx + 1,
-                        description: line.trim()
-                      }));
-                      setConstructionItems(items);
-                    }}
-                  />
                 </CardContent>
               </Card>
             </div>
@@ -477,6 +543,10 @@ export const CreateTenderWizard = ({ open, onOpenChange, projectId }: CreateTend
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Scope of Works:</span>
                     <span className="font-medium">{sowFiles.length > 0 ? '✓ Uploaded' : 'Not uploaded'}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Construction Items:</span>
+                    <span className="font-medium">{selectedItemIds.length} items selected</span>
                   </div>
                   {builderDetails.email && (
                     <div className="flex justify-between">
