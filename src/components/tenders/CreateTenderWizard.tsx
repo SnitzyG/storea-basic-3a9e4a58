@@ -17,11 +17,13 @@ interface CreateTenderWizardProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   projectId: string;
+  existingTender?: any;
 }
 export const CreateTenderWizard = ({
   open,
   onOpenChange,
-  projectId
+  projectId,
+  existingTender
 }: CreateTenderWizardProps) => {
   const [step, setStep] = useState(1);
   const [title, setTitle] = useState('');
@@ -97,6 +99,29 @@ export const CreateTenderWizard = ({
       fetchUserData();
     }
   }, [open, projectId]);
+  
+  // Populate form with existing tender data when editing
+  useEffect(() => {
+    if (existingTender && open) {
+      setTitle(existingTender.title || '');
+      setMessage(existingTender.description || '');
+      setEstimatedStartDate(existingTender.estimated_start_date?.split('T')[0] || '');
+      setSubmissionDeadline(existingTender.deadline?.split('T')[0] || '');
+      setSubmissionTime(existingTender.deadline ? new Date(existingTender.deadline).toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' }) : '17:00');
+      setBuilderDetails({
+        companyName: existingTender.builder_company_name || '',
+        address: existingTender.builder_address || '',
+        phone: existingTender.builder_phone || '',
+        contactPerson: existingTender.builder_contact_person || '',
+        email: existingTender.builder_email || ''
+      });
+      setIsReadyForTender(existingTender.is_ready_for_tender || false);
+      if (existingTender.construction_items) {
+        const itemIds = existingTender.construction_items.map((item: any) => item.id || item);
+        setSelectedItemIds(itemIds);
+      }
+    }
+  }, [existingTender, open]);
   const totalSteps = 5;
   const progress = step / totalSteps * 100;
   const uploadFile = async (file: File, bucket: string): Promise<string | null> => {

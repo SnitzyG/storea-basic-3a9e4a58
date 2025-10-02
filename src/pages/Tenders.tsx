@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Plus, AlertTriangle, Eye, FileText, Users, BarChart3, UserPlus, Edit } from 'lucide-react';
+import { Plus, AlertTriangle, FileText, Users, BarChart3, UserPlus, Edit } from 'lucide-react';
 import { useTenders, Tender } from '@/hooks/useTenders';
 import { useProjects } from '@/hooks/useProjects';
 import { useAuth } from '@/hooks/useAuth';
@@ -21,6 +21,7 @@ import { toast } from '@/hooks/use-toast';
 
 const Tenders = () => {
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
   const [bidDialogOpen, setBidDialogOpen] = useState(false);
   const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
@@ -64,7 +65,7 @@ const Tenders = () => {
   
   const handleEditTender = (tender: Tender) => {
     setSelectedTender(tender);
-    setDetailsDialogOpen(true);
+    setEditDialogOpen(true);
   };
   
   const handleViewTenderPackage = (tender: Tender) => {
@@ -326,7 +327,7 @@ const Tenders = () => {
                         <TableCell className="text-sm px-4 py-3 text-foreground/90">
                           <div className="space-y-1">
                             <p className="text-xs font-medium text-foreground">
-                              Deadline: {new Date(tender.deadline).toLocaleDateString()}
+                              {new Date(tender.deadline).toLocaleDateString()} at {new Date(tender.deadline).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                             </p>
                             <p className="text-xs text-muted-foreground">
                               ({Math.ceil((new Date(tender.deadline).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))} days)
@@ -432,6 +433,13 @@ const Tenders = () => {
 
       {/* Dialogs */}
       <CreateTenderWizard open={createDialogOpen} onOpenChange={setCreateDialogOpen} projectId={selectedProject?.id || ''} />
+
+      <CreateTenderWizard 
+        open={editDialogOpen} 
+        onOpenChange={setEditDialogOpen} 
+        projectId={selectedProject?.id || ''} 
+        existingTender={selectedTender}
+      />
 
       <TenderDetailsDialog open={detailsDialogOpen} onOpenChange={setDetailsDialogOpen} tender={selectedTender} userRole={userRole} />
 
