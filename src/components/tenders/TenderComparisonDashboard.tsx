@@ -563,11 +563,7 @@ export const TenderComparisonDashboard: React.FC<TenderComparisonDashboardProps>
 
       {/* Main Dashboard Tabs */}
       <Tabs defaultValue="overview" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="charts">Visual Analysis</TabsTrigger>
-          <TabsTrigger value="analytics">Detailed Analytics</TabsTrigger>
-        </TabsList>
+        
 
         <TabsContent value="overview">
           {renderOverviewTab()}
