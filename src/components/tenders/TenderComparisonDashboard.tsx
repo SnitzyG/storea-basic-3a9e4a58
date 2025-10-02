@@ -4,199 +4,156 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { 
-  BarChart, 
-  Bar, 
-  LineChart, 
-  Line, 
-  PieChart, 
-  Pie, 
-  Cell, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  Legend, 
-  ResponsiveContainer,
-  RadarChart,
-  PolarGrid,
-  PolarAngleAxis,
-  PolarRadiusAxis,
-  Radar
-} from 'recharts';
-import { 
-  TrendingUp, 
-  TrendingDown, 
-  DollarSign, 
-  Calendar, 
-  Users, 
-  BarChart3,
-  Download,
-  Filter,
-  Star,
-  Clock,
-  Award,
-  Target
-} from 'lucide-react';
+import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar } from 'recharts';
+import { TrendingUp, TrendingDown, DollarSign, Calendar, Users, BarChart3, Download, Filter, Star, Clock, Award, Target } from 'lucide-react';
 import { TenderBid } from '@/hooks/useTenders';
-
 interface TenderComparisonDashboardProps {
   tenderId: string;
   bids?: TenderBid[];
 }
 
 // Dummy data for demonstration
-const DUMMY_BIDS: TenderBid[] = [
-  {
-    id: '1',
-    tender_id: 'tender-1',
-    bidder_id: 'builder-1',
-    bid_amount: 850000,
-    proposal_text: 'High quality construction with premium materials',
-    status: 'submitted',
-    submitted_at: '2024-01-15T10:00:00Z',
-    created_at: '2024-01-15T10:00:00Z',
-    updated_at: '2024-01-15T10:00:00Z',
-    timeline_days: 180,
-    bidder_profile: {
-      name: 'Premium Builders Ltd',
-      role: 'builder'
-    },
-    evaluation: {
-      price_score: 75,
-      experience_score: 95,
-      timeline_score: 85,
-      technical_score: 90,
-      communication_score: 88,
-      overall_score: 86.6,
-      evaluator_notes: 'Strong experience with premium materials',
-      evaluated_at: '2024-01-20T10:00:00Z',
-      evaluator_id: 'evaluator-1'
-    }
+const DUMMY_BIDS: TenderBid[] = [{
+  id: '1',
+  tender_id: 'tender-1',
+  bidder_id: 'builder-1',
+  bid_amount: 850000,
+  proposal_text: 'High quality construction with premium materials',
+  status: 'submitted',
+  submitted_at: '2024-01-15T10:00:00Z',
+  created_at: '2024-01-15T10:00:00Z',
+  updated_at: '2024-01-15T10:00:00Z',
+  timeline_days: 180,
+  bidder_profile: {
+    name: 'Premium Builders Ltd',
+    role: 'builder'
   },
-  {
-    id: '2',
-    tender_id: 'tender-1',
-    bidder_id: 'builder-2',
-    bid_amount: 750000,
-    proposal_text: 'Cost-effective solution with quality materials',
-    status: 'submitted',
-    submitted_at: '2024-01-16T14:30:00Z',
-    created_at: '2024-01-16T14:30:00Z',
-    updated_at: '2024-01-16T14:30:00Z',
-    timeline_days: 200,
-    bidder_profile: {
-      name: 'Value Construction Co',
-      role: 'builder'
-    },
-    evaluation: {
-      price_score: 95,
-      experience_score: 75,
-      timeline_score: 70,
-      technical_score: 80,
-      communication_score: 85,
-      overall_score: 81,
-      evaluator_notes: 'Good value proposition with solid track record',
-      evaluated_at: '2024-01-20T11:00:00Z',
-      evaluator_id: 'evaluator-1'
-    }
-  },
-  {
-    id: '3',
-    tender_id: 'tender-1',
-    bidder_id: 'builder-3',
-    bid_amount: 920000,
-    proposal_text: 'Luxury finish with sustainable practices',
-    status: 'submitted',
-    submitted_at: '2024-01-17T09:15:00Z',
-    created_at: '2024-01-17T09:15:00Z',
-    updated_at: '2024-01-17T09:15:00Z',
-    timeline_days: 165,
-    bidder_profile: {
-      name: 'Eco Luxury Homes',
-      role: 'builder'
-    },
-    evaluation: {
-      price_score: 60,
-      experience_score: 90,
-      timeline_score: 95,
-      technical_score: 95,
-      communication_score: 92,
-      overall_score: 86.4,
-      evaluator_notes: 'Excellent technical approach with sustainability focus',
-      evaluated_at: '2024-01-20T12:00:00Z',
-      evaluator_id: 'evaluator-1'
-    }
-  },
-  {
-    id: '4',
-    tender_id: 'tender-1',
-    bidder_id: 'builder-4',
-    bid_amount: 680000,
-    proposal_text: 'Budget-friendly approach with standard quality',
-    status: 'submitted',
-    submitted_at: '2024-01-18T16:45:00Z',
-    created_at: '2024-01-18T16:45:00Z',
-    updated_at: '2024-01-18T16:45:00Z',
-    timeline_days: 220,
-    bidder_profile: {
-      name: 'Budget Build Solutions',
-      role: 'builder'
-    },
-    evaluation: {
-      price_score: 100,
-      experience_score: 65,
-      timeline_score: 60,
-      technical_score: 70,
-      communication_score: 75,
-      overall_score: 74,
-      evaluator_notes: 'Most competitive price but concerns about timeline',
-      evaluated_at: '2024-01-20T13:00:00Z',
-      evaluator_id: 'evaluator-1'
-    }
-  },
-  {
-    id: '5',
-    tender_id: 'tender-1',
-    bidder_id: 'builder-5',
-    bid_amount: 825000,
-    proposal_text: 'Balanced approach with modern techniques',
-    status: 'submitted',
-    submitted_at: '2024-01-19T11:20:00Z',
-    created_at: '2024-01-19T11:20:00Z',
-    updated_at: '2024-01-19T11:20:00Z',
-    timeline_days: 190,
-    bidder_profile: {
-      name: 'Modern Build Tech',
-      role: 'builder'
-    },
-    evaluation: {
-      price_score: 80,
-      experience_score: 85,
-      timeline_score: 75,
-      technical_score: 85,
-      communication_score: 80,
-      overall_score: 81,
-      evaluator_notes: 'Well-balanced approach with modern techniques',
-      evaluated_at: '2024-01-20T14:00:00Z',
-      evaluator_id: 'evaluator-1'
-    }
+  evaluation: {
+    price_score: 75,
+    experience_score: 95,
+    timeline_score: 85,
+    technical_score: 90,
+    communication_score: 88,
+    overall_score: 86.6,
+    evaluator_notes: 'Strong experience with premium materials',
+    evaluated_at: '2024-01-20T10:00:00Z',
+    evaluator_id: 'evaluator-1'
   }
-];
-
+}, {
+  id: '2',
+  tender_id: 'tender-1',
+  bidder_id: 'builder-2',
+  bid_amount: 750000,
+  proposal_text: 'Cost-effective solution with quality materials',
+  status: 'submitted',
+  submitted_at: '2024-01-16T14:30:00Z',
+  created_at: '2024-01-16T14:30:00Z',
+  updated_at: '2024-01-16T14:30:00Z',
+  timeline_days: 200,
+  bidder_profile: {
+    name: 'Value Construction Co',
+    role: 'builder'
+  },
+  evaluation: {
+    price_score: 95,
+    experience_score: 75,
+    timeline_score: 70,
+    technical_score: 80,
+    communication_score: 85,
+    overall_score: 81,
+    evaluator_notes: 'Good value proposition with solid track record',
+    evaluated_at: '2024-01-20T11:00:00Z',
+    evaluator_id: 'evaluator-1'
+  }
+}, {
+  id: '3',
+  tender_id: 'tender-1',
+  bidder_id: 'builder-3',
+  bid_amount: 920000,
+  proposal_text: 'Luxury finish with sustainable practices',
+  status: 'submitted',
+  submitted_at: '2024-01-17T09:15:00Z',
+  created_at: '2024-01-17T09:15:00Z',
+  updated_at: '2024-01-17T09:15:00Z',
+  timeline_days: 165,
+  bidder_profile: {
+    name: 'Eco Luxury Homes',
+    role: 'builder'
+  },
+  evaluation: {
+    price_score: 60,
+    experience_score: 90,
+    timeline_score: 95,
+    technical_score: 95,
+    communication_score: 92,
+    overall_score: 86.4,
+    evaluator_notes: 'Excellent technical approach with sustainability focus',
+    evaluated_at: '2024-01-20T12:00:00Z',
+    evaluator_id: 'evaluator-1'
+  }
+}, {
+  id: '4',
+  tender_id: 'tender-1',
+  bidder_id: 'builder-4',
+  bid_amount: 680000,
+  proposal_text: 'Budget-friendly approach with standard quality',
+  status: 'submitted',
+  submitted_at: '2024-01-18T16:45:00Z',
+  created_at: '2024-01-18T16:45:00Z',
+  updated_at: '2024-01-18T16:45:00Z',
+  timeline_days: 220,
+  bidder_profile: {
+    name: 'Budget Build Solutions',
+    role: 'builder'
+  },
+  evaluation: {
+    price_score: 100,
+    experience_score: 65,
+    timeline_score: 60,
+    technical_score: 70,
+    communication_score: 75,
+    overall_score: 74,
+    evaluator_notes: 'Most competitive price but concerns about timeline',
+    evaluated_at: '2024-01-20T13:00:00Z',
+    evaluator_id: 'evaluator-1'
+  }
+}, {
+  id: '5',
+  tender_id: 'tender-1',
+  bidder_id: 'builder-5',
+  bid_amount: 825000,
+  proposal_text: 'Balanced approach with modern techniques',
+  status: 'submitted',
+  submitted_at: '2024-01-19T11:20:00Z',
+  created_at: '2024-01-19T11:20:00Z',
+  updated_at: '2024-01-19T11:20:00Z',
+  timeline_days: 190,
+  bidder_profile: {
+    name: 'Modern Build Tech',
+    role: 'builder'
+  },
+  evaluation: {
+    price_score: 80,
+    experience_score: 85,
+    timeline_score: 75,
+    technical_score: 85,
+    communication_score: 80,
+    overall_score: 81,
+    evaluator_notes: 'Well-balanced approach with modern techniques',
+    evaluated_at: '2024-01-20T14:00:00Z',
+    evaluator_id: 'evaluator-1'
+  }
+}];
 const COLORS = ['hsl(var(--primary))', 'hsl(var(--secondary))', '#8884d8', '#82ca9d', '#ffc658', '#ff7300', '#d084d0'];
-
 export const TenderComparisonDashboard: React.FC<TenderComparisonDashboardProps> = ({
   tenderId,
   bids = DUMMY_BIDS
 }) => {
   const [sortBy, setSortBy] = useState<'price' | 'timeline' | 'score'>('price');
   const [filterBy, setFilterBy] = useState<'all' | 'submitted' | 'under_review'>('all');
-
   const filteredBids = useMemo(() => {
     return bids.filter(bid => filterBy === 'all' || bid.status === filterBy);
   }, [bids, filterBy]);
-
   const sortedBids = useMemo(() => {
     return [...filteredBids].sort((a, b) => {
       switch (sortBy) {
@@ -205,17 +162,14 @@ export const TenderComparisonDashboard: React.FC<TenderComparisonDashboardProps>
         case 'timeline':
           return (a.timeline_days || 0) - (b.timeline_days || 0);
         case 'score':
-          const scoreA = a.evaluation ? 
-            (a.evaluation.price_score + a.evaluation.experience_score + a.evaluation.timeline_score + a.evaluation.technical_score + a.evaluation.communication_score) / 5 : 0;
-          const scoreB = b.evaluation ? 
-            (b.evaluation.price_score + b.evaluation.experience_score + b.evaluation.timeline_score + b.evaluation.technical_score + b.evaluation.communication_score) / 5 : 0;
+          const scoreA = a.evaluation ? (a.evaluation.price_score + a.evaluation.experience_score + a.evaluation.timeline_score + a.evaluation.technical_score + a.evaluation.communication_score) / 5 : 0;
+          const scoreB = b.evaluation ? (b.evaluation.price_score + b.evaluation.experience_score + b.evaluation.timeline_score + b.evaluation.technical_score + b.evaluation.communication_score) / 5 : 0;
           return scoreB - scoreA;
         default:
           return 0;
       }
     });
   }, [filteredBids, sortBy]);
-
   const priceAnalysis = useMemo(() => {
     const prices = bids.map(bid => bid.bid_amount);
     return {
@@ -226,7 +180,6 @@ export const TenderComparisonDashboard: React.FC<TenderComparisonDashboardProps>
       savings: Math.max(...prices) - Math.min(...prices)
     };
   }, [bids]);
-
   const timelineAnalysis = useMemo(() => {
     const timelines = bids.map(bid => bid.timeline_days || 0);
     return {
@@ -236,25 +189,21 @@ export const TenderComparisonDashboard: React.FC<TenderComparisonDashboardProps>
       range: Math.max(...timelines) - Math.min(...timelines)
     };
   }, [bids]);
-
   const chartData = useMemo(() => {
     return sortedBids.map(bid => ({
       name: bid.bidder_profile?.name || 'Unknown Bidder',
       price: bid.bid_amount,
       timeline: bid.timeline_days || 0,
-      overallScore: bid.evaluation ? 
-        (bid.evaluation.price_score + bid.evaluation.experience_score + bid.evaluation.timeline_score + bid.evaluation.technical_score + bid.evaluation.communication_score) / 5 : 0
+      overallScore: bid.evaluation ? (bid.evaluation.price_score + bid.evaluation.experience_score + bid.evaluation.timeline_score + bid.evaluation.technical_score + bid.evaluation.communication_score) / 5 : 0
     }));
   }, [sortedBids]);
-
   const pieChartData = useMemo(() => {
     return sortedBids.map((bid, index) => ({
       name: bid.bidder_profile?.name || 'Unknown Bidder',
       value: bid.bid_amount,
-      percentage: ((bid.bid_amount / bids.reduce((sum, b) => sum + b.bid_amount, 0)) * 100).toFixed(1)
+      percentage: (bid.bid_amount / bids.reduce((sum, b) => sum + b.bid_amount, 0) * 100).toFixed(1)
     }));
   }, [sortedBids, bids]);
-
   const radarData = useMemo(() => {
     return sortedBids.map(bid => ({
       bidder: bid.bidder_profile?.name || 'Unknown',
@@ -265,21 +214,11 @@ export const TenderComparisonDashboard: React.FC<TenderComparisonDashboardProps>
       Communication: bid.evaluation?.communication_score || 0
     }));
   }, [sortedBids]);
-
   const exportData = () => {
-    const csvContent = [
-      ['Bidder', 'Price', 'Timeline (Days)', 'Overall Score', 'Status'],
-      ...sortedBids.map(bid => [
-        bid.bidder_profile?.name || 'Unknown',
-        bid.bid_amount.toString(),
-        (bid.timeline_days || 0).toString(),
-        bid.evaluation ? 
-          ((bid.evaluation.price_score + bid.evaluation.experience_score + bid.evaluation.timeline_score + bid.evaluation.technical_score + bid.evaluation.communication_score) / 5).toFixed(1) : '0',
-        bid.status
-      ])
-    ].map(row => row.join(',')).join('\n');
-
-    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const csvContent = [['Bidder', 'Price', 'Timeline (Days)', 'Overall Score', 'Status'], ...sortedBids.map(bid => [bid.bidder_profile?.name || 'Unknown', bid.bid_amount.toString(), (bid.timeline_days || 0).toString(), bid.evaluation ? ((bid.evaluation.price_score + bid.evaluation.experience_score + bid.evaluation.timeline_score + bid.evaluation.technical_score + bid.evaluation.communication_score) / 5).toFixed(1) : '0', bid.status])].map(row => row.join(',')).join('\n');
+    const blob = new Blob([csvContent], {
+      type: 'text/csv'
+    });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -287,9 +226,7 @@ export const TenderComparisonDashboard: React.FC<TenderComparisonDashboardProps>
     a.click();
     window.URL.revokeObjectURL(url);
   };
-
-  const renderOverviewTab = () => (
-    <div className="space-y-6">
+  const renderOverviewTab = () => <div className="space-y-6">
       {/* Key Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
@@ -326,7 +263,7 @@ export const TenderComparisonDashboard: React.FC<TenderComparisonDashboardProps>
                 <p className="text-sm font-medium text-muted-foreground">Potential Savings</p>
                 <p className="text-2xl font-bold text-green-600">${(priceAnalysis.savings / 1000).toFixed(0)}k</p>
                 <p className="text-xs text-muted-foreground">
-                  {((priceAnalysis.savings / priceAnalysis.highest) * 100).toFixed(1)}% below highest
+                  {(priceAnalysis.savings / priceAnalysis.highest * 100).toFixed(1)}% below highest
                 </p>
               </div>
               <TrendingDown className="h-8 w-8 text-green-600" />
@@ -361,13 +298,10 @@ export const TenderComparisonDashboard: React.FC<TenderComparisonDashboardProps>
         <CardContent>
           <div className="space-y-4">
             {sortedBids.map((bid, index) => {
-              const isLowest = bid.bid_amount === priceAnalysis.lowest;
-              const isFastest = bid.timeline_days === timelineAnalysis.fastest;
-              const overallScore = bid.evaluation ? 
-                (bid.evaluation.price_score + bid.evaluation.experience_score + bid.evaluation.timeline_score + bid.evaluation.technical_score + bid.evaluation.communication_score) / 5 : 0;
-              
-              return (
-                <div key={bid.id} className="flex items-center justify-between p-4 border rounded-lg">
+            const isLowest = bid.bid_amount === priceAnalysis.lowest;
+            const isFastest = bid.timeline_days === timelineAnalysis.fastest;
+            const overallScore = bid.evaluation ? (bid.evaluation.price_score + bid.evaluation.experience_score + bid.evaluation.timeline_score + bid.evaluation.technical_score + bid.evaluation.communication_score) / 5 : 0;
+            return <div key={bid.id} className="flex items-center justify-between p-4 border rounded-lg">
                   <div className="flex items-center gap-4">
                     <div className="flex items-center gap-2">
                       <span className="font-medium">{bid.bidder_profile?.name}</span>
@@ -384,25 +318,15 @@ export const TenderComparisonDashboard: React.FC<TenderComparisonDashboardProps>
                       <p className="font-medium">{bid.timeline_days} days</p>
                       <p className="text-muted-foreground">Timeline</p>
                     </div>
-                    <div className="text-right">
-                      <div className="flex items-center gap-1">
-                        <Star className="h-4 w-4 text-yellow-500" />
-                        <span className="font-medium">{overallScore.toFixed(1)}</span>
-                      </div>
-                      <p className="text-muted-foreground">Score</p>
-                    </div>
+                    
                   </div>
-                </div>
-              );
-            })}
+                </div>;
+          })}
           </div>
         </CardContent>
       </Card>
-    </div>
-  );
-
-  const renderChartsTab = () => (
-    <div className="space-y-6">
+    </div>;
+  const renderChartsTab = () => <div className="space-y-6">
       {/* Price Comparison Bar Chart */}
       <Card>
         <CardHeader>
@@ -412,13 +336,7 @@ export const TenderComparisonDashboard: React.FC<TenderComparisonDashboardProps>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={chartData}>
               <CartesianGrid strokeDasharray="3 3" />
-              <XAxis 
-                dataKey="name" 
-                angle={-45}
-                textAnchor="end"
-                height={80}
-                interval={0}
-              />
+              <XAxis dataKey="name" angle={-45} textAnchor="end" height={80} interval={0} />
               <YAxis />
               <Tooltip formatter={(value: any) => [`$${(value / 1000).toFixed(0)}k`, 'Price']} />
               <Bar dataKey="price" fill="hsl(var(--primary))" />
@@ -437,13 +355,7 @@ export const TenderComparisonDashboard: React.FC<TenderComparisonDashboardProps>
             <ResponsiveContainer width="100%" height={250}>
               <BarChart data={chartData}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis 
-                  dataKey="name" 
-                  angle={-45}
-                  textAnchor="end"
-                  height={80}
-                  interval={0}
-                />
+                <XAxis dataKey="name" angle={-45} textAnchor="end" height={80} interval={0} />
                 <YAxis />
                 <Tooltip formatter={(value: any) => [`${value} days`, 'Timeline']} />
                 <Bar dataKey="timeline" fill="hsl(var(--secondary))" />
@@ -459,17 +371,10 @@ export const TenderComparisonDashboard: React.FC<TenderComparisonDashboardProps>
           <CardContent>
             <ResponsiveContainer width="100%" height={250}>
               <PieChart>
-                <Pie
-                  data={pieChartData}
-                  cx="50%"
-                  cy="50%"
-                  outerRadius={80}
-                  dataKey="value"
-                  label={({ percentage }) => `${percentage}%`}
-                >
-                  {pieChartData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
+                <Pie data={pieChartData} cx="50%" cy="50%" outerRadius={80} dataKey="value" label={({
+                percentage
+              }) => `${percentage}%`}>
+                  {pieChartData.map((entry, index) => <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />)}
                 </Pie>
                 <Tooltip formatter={(value: any) => [`$${(value / 1000).toFixed(0)}k`, 'Price']} />
                 <Legend />
@@ -490,26 +395,14 @@ export const TenderComparisonDashboard: React.FC<TenderComparisonDashboardProps>
               <PolarGrid />
               <PolarAngleAxis dataKey="subject" />
               <PolarRadiusAxis angle={30} domain={[0, 100]} />
-              {radarData.map((bid, index) => (
-                <Radar
-                  key={index}
-                  name={bid.bidder}
-                  dataKey="value"
-                  stroke={COLORS[index % COLORS.length]}
-                  fill={COLORS[index % COLORS.length]}
-                  fillOpacity={0.1}
-                />
-              ))}
+              {radarData.map((bid, index) => <Radar key={index} name={bid.bidder} dataKey="value" stroke={COLORS[index % COLORS.length]} fill={COLORS[index % COLORS.length]} fillOpacity={0.1} />)}
               <Legend />
             </RadarChart>
           </ResponsiveContainer>
         </CardContent>
       </Card>
-    </div>
-  );
-
-  const renderAnalyticsTab = () => (
-    <div className="space-y-6">
+    </div>;
+  const renderAnalyticsTab = () => <div className="space-y-6">
       {/* High/Low Analysis */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card>
@@ -536,7 +429,7 @@ export const TenderComparisonDashboard: React.FC<TenderComparisonDashboardProps>
               <div className="flex justify-between">
                 <span className="text-sm font-medium">Potential Savings:</span>
                 <span className="text-green-600 font-semibold">
-                  ${(priceAnalysis.savings / 1000).toFixed(0)}k ({((priceAnalysis.savings / priceAnalysis.highest) * 100).toFixed(1)}%)
+                  ${(priceAnalysis.savings / 1000).toFixed(0)}k ({(priceAnalysis.savings / priceAnalysis.highest * 100).toFixed(1)}%)
                 </span>
               </div>
             </div>
@@ -595,12 +488,9 @@ export const TenderComparisonDashboard: React.FC<TenderComparisonDashboardProps>
                 </tr>
               </thead>
               <tbody>
-                {sortedBids.map((bid) => {
-                  const overallScore = bid.evaluation ? 
-                    (bid.evaluation.price_score + bid.evaluation.experience_score + bid.evaluation.timeline_score + bid.evaluation.technical_score + bid.evaluation.communication_score) / 5 : 0;
-                  
-                  return (
-                    <tr key={bid.id} className="border-b hover:bg-muted/50">
+                {sortedBids.map(bid => {
+                const overallScore = bid.evaluation ? (bid.evaluation.price_score + bid.evaluation.experience_score + bid.evaluation.timeline_score + bid.evaluation.technical_score + bid.evaluation.communication_score) / 5 : 0;
+                return <tr key={bid.id} className="border-b hover:bg-muted/50">
                       <td className="p-2 font-medium">{bid.bidder_profile?.name}</td>
                       <td className="p-2 text-right">${(bid.bid_amount / 1000).toFixed(0)}k</td>
                       <td className="p-2 text-right">{bid.timeline_days} days</td>
@@ -625,19 +515,15 @@ export const TenderComparisonDashboard: React.FC<TenderComparisonDashboardProps>
                           <span className="font-semibold">{overallScore.toFixed(1)}</span>
                         </div>
                       </td>
-                    </tr>
-                  );
-                })}
+                    </tr>;
+              })}
               </tbody>
             </table>
           </div>
         </CardContent>
       </Card>
-    </div>
-  );
-
-  return (
-    <div className="space-y-6">
+    </div>;
+  return <div className="space-y-6">
       {/* Header with Controls */}
       <div className="flex flex-col sm:flex-row justify-between gap-4">
         <div>
@@ -695,6 +581,5 @@ export const TenderComparisonDashboard: React.FC<TenderComparisonDashboardProps>
           {renderAnalyticsTab()}
         </TabsContent>
       </Tabs>
-    </div>
-  );
+    </div>;
 };
