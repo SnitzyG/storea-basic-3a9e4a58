@@ -18,6 +18,7 @@ import { DocumentFilters } from '@/components/documents/DocumentFilters';
 import { DocumentListView } from '@/components/documents/DocumentListView';
 import { DocumentActivity } from '@/components/documents/DocumentActivity';
 import { CreateTenderPackageDialog } from '@/components/documents/CreateTenderPackageDialog';
+import { useDocumentCategories } from '@/hooks/useDocumentCategories';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 const Documents = () => {
@@ -56,6 +57,8 @@ const Documents = () => {
     toggleDocumentLock,
     updateDocumentMetadata
   } = useDocumentGroups(selectedProject?.id);
+  
+  const { categories } = useDocumentCategories(selectedProject?.id || null);
   const filteredDocuments = useMemo(() => {
     return documents.filter(doc => {
       // Enhanced search - search in title, category, document number
@@ -339,12 +342,30 @@ const Documents = () => {
       {/* Filters */}
       <Card className="mb-6">
         <CardContent className="p-6">
-          <DocumentFilters searchTerm={searchTerm} onSearchChange={setSearchTerm} selectedCategory={selectedCategory} onCategoryChange={setSelectedCategory} selectedStatus={statusFilter} onStatusChange={setStatusFilter} selectedFileType={selectedFileType} onFileTypeChange={setSelectedFileType} selectedUploadedBy={selectedUploadedBy} onUploadedByChange={setSelectedUploadedBy} selectedRevision={selectedRevision} onRevisionChange={setSelectedRevision} documentCounts={{
-          total: statusCounts.all,
-          'For Tender': statusCounts['For Tender'],
-          'For Information': statusCounts['For Information'],
-          'For Construction': statusCounts['For Construction']
-        }} availableFileTypes={availableFileTypes} availableUploaders={availableUploaders} availableRevisions={availableRevisions} />
+          <DocumentFilters 
+            searchTerm={searchTerm} 
+            onSearchChange={setSearchTerm} 
+            selectedCategory={selectedCategory} 
+            onCategoryChange={setSelectedCategory} 
+            selectedStatus={statusFilter} 
+            onStatusChange={setStatusFilter} 
+            selectedFileType={selectedFileType} 
+            onFileTypeChange={setSelectedFileType} 
+            selectedUploadedBy={selectedUploadedBy} 
+            onUploadedByChange={setSelectedUploadedBy} 
+            selectedRevision={selectedRevision} 
+            onRevisionChange={setSelectedRevision} 
+            categories={categories}
+            documentCounts={{
+              total: statusCounts.all,
+              'For Tender': statusCounts['For Tender'],
+              'For Information': statusCounts['For Information'],
+              'For Construction': statusCounts['For Construction']
+            }} 
+            availableFileTypes={availableFileTypes} 
+            availableUploaders={availableUploaders} 
+            availableRevisions={availableRevisions} 
+          />
         </CardContent>
       </Card>
 

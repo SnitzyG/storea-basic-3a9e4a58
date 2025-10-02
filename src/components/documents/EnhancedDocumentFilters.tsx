@@ -26,6 +26,7 @@ interface EnhancedDocumentFiltersProps {
   onSortOrderChange: (order: 'asc' | 'desc') => void;
   projects: Array<{ id: string; name: string; }>;
   teamMembers: Array<{ user_id: string; name: string; }>;
+  categories: string[];
   documentCounts: {
     total: number;
     'For Tender': number;
@@ -34,12 +35,6 @@ interface EnhancedDocumentFiltersProps {
   };
 }
 
-const categories = [
-  { value: 'all', label: 'All Categories' },
-  { value: 'Architectural', label: 'Architectural' },
-  { value: 'Structural', label: 'Structural' },
-  { value: 'Permit', label: 'Permit' }
-];
 
 const sortOptions = [
   { value: 'name', label: 'Document Name' },
@@ -69,6 +64,7 @@ export const EnhancedDocumentFilters: React.FC<EnhancedDocumentFiltersProps> = (
   onSortOrderChange,
   projects,
   teamMembers,
+  categories,
   documentCounts
 }) => {
   return (
@@ -131,9 +127,10 @@ export const EnhancedDocumentFilters: React.FC<EnhancedDocumentFiltersProps> = (
             <SelectValue placeholder="All Categories" />
           </SelectTrigger>
           <SelectContent>
+            <SelectItem value="all">All Categories</SelectItem>
             {categories.map(category => (
-              <SelectItem key={category.value} value={category.value}>
-                {category.label}
+              <SelectItem key={category} value={category}>
+                {category}
               </SelectItem>
             ))}
           </SelectContent>

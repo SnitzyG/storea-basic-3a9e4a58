@@ -17,6 +17,7 @@ interface DocumentFiltersProps {
   onUploadedByChange: (value: string) => void;
   selectedRevision: string;
   onRevisionChange: (value: string) => void;
+  categories: string[];
   documentCounts: {
     total: number;
     'For Tender': number;
@@ -31,19 +32,6 @@ interface DocumentFiltersProps {
   }[];
   availableRevisions: number[];
 }
-const categories = [{
-  value: 'all',
-  label: 'All Categories'
-}, {
-  value: 'Architectural',
-  label: 'Architectural'
-}, {
-  value: 'Structural',
-  label: 'Structural'
-}, {
-  value: 'Permit',
-  label: 'Permit'
-}];
 export const DocumentFilters: React.FC<DocumentFiltersProps> = ({
   searchTerm,
   onSearchChange,
@@ -57,6 +45,7 @@ export const DocumentFilters: React.FC<DocumentFiltersProps> = ({
   onUploadedByChange,
   selectedRevision,
   onRevisionChange,
+  categories,
   documentCounts,
   availableFileTypes,
   availableUploaders,
@@ -82,8 +71,9 @@ export const DocumentFilters: React.FC<DocumentFiltersProps> = ({
             <SelectValue placeholder="All Categories" />
           </SelectTrigger>
           <SelectContent>
-            {categories.map(category => <SelectItem key={category.value} value={category.value}>
-                {category.label}
+            <SelectItem value="all">All Categories</SelectItem>
+            {categories.map(category => <SelectItem key={category} value={category}>
+                {category}
               </SelectItem>)}
           </SelectContent>
         </Select>

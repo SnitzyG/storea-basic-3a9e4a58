@@ -1,6 +1,6 @@
 import React, { useCallback, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { Upload, File, X, Check, Lock } from 'lucide-react';
+import { Upload, File, X, Check, Lock, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
@@ -9,7 +9,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { useDocumentGroups } from '@/hooks/useDocumentGroups';
+import { useDocumentCategories } from '@/hooks/useDocumentCategories';
 import { getFileExtension, formatFileSize } from '@/utils/documentUtils';
 
 interface DocumentUploadProps {
@@ -26,7 +28,8 @@ interface UploadFile {
   documentNumber?: string;
   title?: string;
   documentStatus?: 'For Tender' | 'For Information' | 'For Construction';
-  fileType?: 'Architectural' | 'Structural' | 'Permit';
+  fileType?: string;
+  projectStage?: string;
   isPrivate?: boolean;
   revisionDisplay?: string;
   version?: number;
@@ -50,10 +53,13 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
 }) => {
   const [files, setFiles] = useState<UploadFile[]>([]);
   const [isUploading, setIsUploading] = useState(false);
+  const [showCategoryDialog, setShowCategoryDialog] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState('');
   const { createDocumentGroup } = useDocumentGroups();
+  const { categories, addCategory } = useDocumentCategories(projectId);
 
   const STATUS_OPTIONS = ['For Tender', 'For Information', 'For Construction'] as const;
-  const FILE_TYPE_OPTIONS = ['Architectural', 'Structural', 'Permit'] as const;
+  const PROJECT_STAGES = ['General', 'Concept', 'Preliminary', 'Detailed Design', 'Construction', 'As-Built', 'Handover'];
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     const newFiles: UploadFile[] = acceptedFiles.map(file => ({
@@ -64,6 +70,7 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
       title: file.name.replace(/\.[^/.]+$/, ""), // Remove extension for title
       documentStatus: 'For Information',
       fileType: 'Architectural',
+      projectStage: 'General',
       isPrivate: false,
       revisionDisplay: 'A',
       version: 1
@@ -144,6 +151,7 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
             documentNumber: file.documentNumber,
             status: file.documentStatus!,
             category: file.fileType!,
+            projectStage: file.projectStage,
             isPrivate: file.isPrivate
           }
         );
@@ -378,9 +386,21 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor={`filetype-${file.id}`}>
-                          Category <span className="text-destructive">*</span>
-                        </Label>
+                        <div className="flex items-center justify-between">
+                          <Label htmlFor={`filetype-${file.id}`}>
+                            Category <span className="text-destructive">*</span>
+                          </Label>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setShowCategoryDialog(true)}
+                            className="h-6"
+                          >
+                            <Plus className="h-3 w-3 mr-1" />
+                            New
+                          </Button>
+                        </div>
                         <Select
                           value={file.fileType}
                           onValueChange={(value) => updateFileProperty(file.id, 'fileType', value)}
@@ -390,9 +410,31 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
                             <SelectValue placeholder="Select category" />
                           </SelectTrigger>
                           <SelectContent>
-                            {FILE_TYPE_OPTIONS.map((type) => (
+                            {categories.map((type) => (
                               <SelectItem key={type} value={type}>
                                 {type}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor={`stage-${file.id}`}>
+                          Project Stage <span className="text-destructive">*</span>
+                        </Label>
+                        <Select
+                          value={file.projectStage}
+                          onValueChange={(value) => updateFileProperty(file.id, 'projectStage', value)}
+                          disabled={isUploading}
+                        >
+                          <SelectTrigger id={`stage-${file.id}`}>
+                            <SelectValue placeholder="Select stage" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {PROJECT_STAGES.map((stage) => (
+                              <SelectItem key={stage} value={stage}>
+                                {stage}
                               </SelectItem>
                             ))}
                           </SelectContent>
@@ -432,6 +474,45 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
             </div>
           </div>
         )}
+
+        {/* Add Category Dialog */}
+        <Dialog open={showCategoryDialog} onOpenChange={setShowCategoryDialog}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Add New Category</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="category-name">Category Name</Label>
+                <Input
+                  id="category-name"
+                  value={newCategoryName}
+                  onChange={(e) => setNewCategoryName(e.target.value)}
+                  placeholder="Enter category name"
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => {
+                setShowCategoryDialog(false);
+                setNewCategoryName('');
+              }}>
+                Cancel
+              </Button>
+              <Button onClick={async () => {
+                if (newCategoryName.trim()) {
+                  const success = await addCategory(newCategoryName.trim());
+                  if (success) {
+                    setNewCategoryName('');
+                    setShowCategoryDialog(false);
+                  }
+                }
+              }}>
+                Add Category
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </CardContent>
     </Card>
   );

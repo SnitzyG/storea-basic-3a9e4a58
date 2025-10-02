@@ -408,6 +408,38 @@ export type Database = {
           },
         ]
       }
+      document_categories: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          id: string
+          name: string
+          project_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          name: string
+          project_id: string
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          name?: string
+          project_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_categories_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       document_events: {
         Row: {
           created_at: string | null
@@ -458,6 +490,7 @@ export type Database = {
           locked_at: string | null
           locked_by: string | null
           project_id: string
+          project_stage: string | null
           status: string
           title: string
           updated_at: string
@@ -474,6 +507,7 @@ export type Database = {
           locked_at?: string | null
           locked_by?: string | null
           project_id: string
+          project_stage?: string | null
           status?: string
           title: string
           updated_at?: string
@@ -490,6 +524,7 @@ export type Database = {
           locked_at?: string | null
           locked_by?: string | null
           project_id?: string
+          project_stage?: string | null
           status?: string
           title?: string
           updated_at?: string
@@ -2360,7 +2395,11 @@ export type Database = {
         Returns: string
       }
       generate_document_group_number: {
-        Args: { project_id_param: string }
+        Args: {
+          category_param: string
+          project_id_param: string
+          project_stage_param?: string
+        }
         Returns: string
       }
       generate_document_number: {

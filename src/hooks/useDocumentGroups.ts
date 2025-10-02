@@ -181,6 +181,7 @@ export const useDocumentGroups = (projectId?: string) => {
       documentNumber?: string;
       status: string;
       category: string;
+      projectStage?: string;
       isPrivate?: boolean;
     }
   ): Promise<DocumentGroup | null> => {
@@ -205,6 +206,7 @@ export const useDocumentGroups = (projectId?: string) => {
           project_id: projectId,
           title: title || file.name.replace(/\.[^/.]+$/, ''),
           category: metadata?.category || 'Architectural',
+          project_stage: metadata?.projectStage || 'General',
           created_by: user.id,
           status: metadata?.status || 'For Information',
           visibility_scope: metadata?.isPrivate ? 'private' : 'project',
