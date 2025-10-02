@@ -8,12 +8,21 @@ interface CompanyInfo {
   phone?: string;
 }
 
+interface ProjectData {
+  reference: string;
+  name: string;
+  id: string;
+  address: string;
+}
+
 interface ExportOptions {
   tenderTitle: string;
   companyInfo: CompanyInfo;
   selectedItemIds: string[];
   includeGST?: boolean;
   gstRate?: number;
+  deadline?: string;
+  projectData?: ProjectData;
 }
 
 export const generateProfessionalQuoteTemplate = async (options: ExportOptions) => {
@@ -23,6 +32,8 @@ export const generateProfessionalQuoteTemplate = async (options: ExportOptions) 
     selectedItemIds,
     includeGST = true,
     gstRate = 0.10, // 10% GST default
+    deadline,
+    projectData,
   } = options;
 
   // Get selected items
@@ -46,6 +57,16 @@ export const generateProfessionalQuoteTemplate = async (options: ExportOptions) 
     ['Residential Building Quotation'],
     [companyInfo.name],
     [`Date: ${today}`],
+    [''],
+    [`Title: ${tenderTitle}`],
+    ...(deadline ? [[`Deadline: ${deadline}`]] : []),
+    [''],
+    ...(projectData ? [
+      ['Project Reference', 'Project Name', 'Project ID', 'Address'],
+      [projectData.reference, projectData.name, projectData.id, projectData.address],
+      [''],
+    ] : []),
+    [`Created: ${today}`],
     [''],
     ['Section', 'Item', 'Description', 'Quantity', 'Unit', 'Rate', 'Total', 'Notes'],
   ];

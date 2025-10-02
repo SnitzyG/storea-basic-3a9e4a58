@@ -53,6 +53,7 @@ export const CreateTenderWizard = ({
   const [isReadyForTender, setIsReadyForTender] = useState(false);
   const [userProfile, setUserProfile] = useState<any>(null);
   const [userCompany, setUserCompany] = useState<any>(null);
+  const [projectData, setProjectData] = useState<any>(null);
   const {
     createTender
   } = useTenders();
@@ -60,7 +61,7 @@ export const CreateTenderWizard = ({
     toast
   } = useToast();
 
-  // Fetch user profile and company for export
+  // Fetch user profile, company, and project data for export
   useEffect(() => {
     const fetchUserData = async () => {
       const {
@@ -69,6 +70,8 @@ export const CreateTenderWizard = ({
         }
       } = await supabase.auth.getUser();
       if (!user) return;
+      
+      // Fetch profile and company
       const {
         data: profile
       } = await supabase.from('profiles').select('*, companies(*)').eq('user_id', user.id).single();
@@ -81,11 +84,19 @@ export const CreateTenderWizard = ({
           setUserCompany(company);
         }
       }
+
+      // Fetch project data
+      const {
+        data: project
+      } = await supabase.from('projects').select('*').eq('id', projectId).single();
+      if (project) {
+        setProjectData(project);
+      }
     };
     if (open) {
       fetchUserData();
     }
-  }, [open]);
+  }, [open, projectId]);
   const totalSteps = 5;
   const progress = step / totalSteps * 100;
   const uploadFile = async (file: File, bucket: string): Promise<string | null> => {
@@ -223,7 +234,14 @@ export const CreateTenderWizard = ({
         companyInfo,
         selectedItemIds,
         includeGST: true,
-        gstRate: 0.10
+        gstRate: 0.10,
+        deadline: submissionDeadline ? `${submissionDeadline} ${submissionTime}` : undefined,
+        projectData: projectData ? {
+          reference: projectData.project_id || '',
+          name: projectData.name || '',
+          id: projectData.id || '',
+          address: projectData.location || projectData.address || '',
+        } : undefined,
       });
       toast({
         title: "Quote template generated",
