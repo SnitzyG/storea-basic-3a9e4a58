@@ -76,9 +76,10 @@ const Tenders = () => {
         description: "Tender package PDF has been downloaded successfully.",
       });
     } catch (error) {
+      console.error('PDF Generation Error:', error);
       toast({
         title: "Error",
-        description: "Failed to generate PDF. Please try again.",
+        description: error instanceof Error ? error.message : "Failed to generate PDF. Please try again.",
         variant: "destructive",
       });
     }
