@@ -2,12 +2,14 @@ import React, { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Plus, AlertTriangle } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Plus, AlertTriangle, Eye, FileText, Users, BarChart3, Hash } from 'lucide-react';
 import { useTenders, Tender } from '@/hooks/useTenders';
 import { useProjects } from '@/hooks/useProjects';
 import { useAuth } from '@/hooks/useAuth';
 import { useProjectSelection } from '@/context/ProjectSelectionContext';
-import { TenderCard } from '@/components/tenders/TenderCard';
 import { CreateTenderWizard } from '@/components/tenders/CreateTenderWizard';
 import { TenderDetailsDialog } from '@/components/tenders/TenderDetailsDialog';
 import { BidSubmissionDialog } from '@/components/tenders/BidSubmissionDialog';
@@ -209,32 +211,29 @@ const Tenders = () => {
         </Card>
       </div>;
   }
-  return <div className="container mx-auto px-4 py-6">
+  
+  const getStatusBadge = (status: string) => {
+    const statusConfig = {
+      draft: { label: 'DRAFT', className: 'bg-gray-100 text-gray-800' },
+      open: { label: 'OPEN', className: 'bg-green-100 text-green-800' },
+      closed: { label: 'CLOSED', className: 'bg-orange-100 text-orange-800' },
+      awarded: { label: 'AWARDED', className: 'bg-blue-100 text-blue-800' },
+    };
+    const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.draft;
+    return <Badge className={config.className}>{config.label}</Badge>;
+  };
+
+  return <div className="space-y-6 mx-[25px]">
       {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
-        <div>
-          
-          
-        </div>
+      <div className="flex items-center justify-between">
+        <div></div>
+        {userRole === 'architect' && (
+          <Button onClick={() => setCreateDialogOpen(true)} className="bg-primary hover:bg-primary/90">
+            <Plus className="h-4 w-4 mr-2" />
+            New Tender
+          </Button>
+        )}
       </div>
-
-      {/* Tab Navigation */}
-      <div className="flex gap-1 mb-6 bg-muted/30 p-1 rounded-lg w-fit">
-        <Button variant={activeTab === 'tenders' ? 'default' : 'ghost'} size="sm" onClick={() => setActiveTab('tenders')}>
-          All Tenders
-        </Button>
-        
-        {userRole === 'architect' && <>
-            <Button variant={activeTab === 'bids' ? 'default' : 'ghost'} size="sm" onClick={() => setActiveTab('bids')}>
-              Bids Received
-            </Button>
-            <Button variant={activeTab === 'comparison' ? 'default' : 'ghost'} size="sm" onClick={() => setActiveTab('comparison')}>
-              Comparison Dashboard
-            </Button>
-          </>}
-      </div>
-
-      {/* Project selector is now in the header - no longer needed here */}
 
       {/* Expired Tenders Alert */}
       {expiredOpenTenders.length > 0 && userRole === 'architect' && <Card className="mb-6 border-orange-200 bg-orange-50">
@@ -248,23 +247,115 @@ const Tenders = () => {
           </CardContent>
         </Card>}
 
-      {/* Content based on active tab */}
-      {activeTab === 'tenders' ? <>
-          {/* Tender Grid */}
-          {filteredTenders.length > 0 ? <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredTenders.map(tender => <TenderCard key={tender.id} tender={tender} userRole={userRole} onView={handleViewTender} onBid={handleBidTender} onEdit={userRole === 'architect' ? handleEditTender : undefined} onPublish={userRole === 'architect' ? handlePublishTender : undefined} onAward={userRole === 'architect' ? handleAwardTender : undefined} onInvite={userRole === 'architect' ? handleInviteBidders : undefined} onDelete={userRole === 'architect' ? handleDeleteTender : undefined} />)}
-            </div> : <Card>
+      {/* Main Content Tabs */}
+      <Tabs defaultValue="tenders" className="w-full" value={activeTab} onValueChange={(value) => setActiveTab(value as any)}>
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="tenders" className="flex items-center gap-2">
+            <FileText className="h-4 w-4" />
+            All Tenders
+          </TabsTrigger>
+          {userRole === 'architect' && (
+            <>
+              <TabsTrigger value="bids" className="flex items-center gap-2">
+                <Users className="h-4 w-4" />
+                Bids Received
+              </TabsTrigger>
+              <TabsTrigger value="comparison" className="flex items-center gap-2">
+                <BarChart3 className="h-4 w-4" />
+                Comparison
+              </TabsTrigger>
+            </>
+          )}
+        </TabsList>
+
+        <TabsContent value="tenders" className="space-y-6">
+          {/* Tenders List View */}
+          {filteredTenders.length > 0 ? (
+            <Card className="border-0 shadow-sm bg-gradient-to-br from-card to-card/50">
+              <CardContent className="p-0">
+                <Table>
+                  <TableHeader className="bg-gradient-to-r from-muted/50 to-muted/30 border-b-2 border-primary/10">
+                    <TableRow>
+                      <TableHead className="text-foreground/80 font-semibold text-sm h-12 px-4">Title</TableHead>
+                      <TableHead className="text-foreground/80 font-semibold text-sm h-12 px-4">Status</TableHead>
+                      <TableHead className="text-foreground/80 font-semibold text-sm h-12 px-4">Bids</TableHead>
+                      <TableHead className="text-foreground/80 font-semibold text-sm h-12 px-4">Budget</TableHead>
+                      <TableHead className="text-foreground/80 font-semibold text-sm h-12 px-4">Deadline</TableHead>
+                      <TableHead className="text-foreground/80 font-semibold text-sm h-12 px-4">Created</TableHead>
+                      <TableHead className="text-foreground/80 font-semibold text-sm h-12 px-4 w-[50px] text-center">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredTenders.map(tender => (
+                      <TableRow key={tender.id} className="hover:bg-muted/30 transition-all duration-200 cursor-pointer border-b border-muted/20">
+                        <TableCell className="text-sm px-4 py-3 text-foreground/90">
+                          <div className="space-y-1">
+                            <p className="font-medium text-sm leading-none text-foreground">{tender.title}</p>
+                            {tender.description && (
+                              <p className="text-xs text-muted-foreground line-clamp-1">{tender.description}</p>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-sm px-4 py-3 text-foreground/90">
+                          {getStatusBadge(tender.status)}
+                        </TableCell>
+                        <TableCell className="text-sm px-4 py-3 text-foreground/90">
+                          <div className="flex items-center gap-1">
+                            <Users className="h-3 w-3 text-muted-foreground" />
+                            <span className="text-xs text-muted-foreground">{tender.bid_count || 0}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-sm px-4 py-3 text-foreground/90">
+                          <span className="text-xs text-muted-foreground">
+                            {tender.budget ? `$${tender.budget.toLocaleString()}` : '-'}
+                          </span>
+                        </TableCell>
+                        <TableCell className="text-sm px-4 py-3 text-foreground/90">
+                          <span className="text-xs text-muted-foreground">
+                            {new Date(tender.deadline).toLocaleDateString()}
+                          </span>
+                        </TableCell>
+                        <TableCell className="text-sm px-4 py-3 text-foreground/90">
+                          <span className="text-xs text-muted-foreground">
+                            {new Date(tender.created_at).toLocaleDateString()}
+                          </span>
+                        </TableCell>
+                        <TableCell className="text-sm px-4 py-3 text-foreground/90 w-[50px] text-center">
+                          <Button variant="outline" size="sm" onClick={() => handleViewTender(tender)}>
+                            <Eye className="h-3 w-3" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          ) : (
+            <Card>
               <CardContent className="text-center py-12">
-                <h3 className="text-lg font-semibold mb-2">No Tenders Found</h3>
+                <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <h3 className="text-lg font-medium mb-2">No Tenders Found</h3>
                 <p className="text-muted-foreground mb-4">
                   {userRole === 'architect' ? "No tenders have been created for this project yet." : "No tenders are available for bidding in this project."}
                 </p>
                 {userRole === 'architect' && <Button onClick={() => setCreateDialogOpen(true)}>
+                    <Plus className="h-4 w-4 mr-2" />
                     Create Tender
                   </Button>}
               </CardContent>
-            </Card>}
-        </> : activeTab === 'bids' ? <BidsReceivedSection tenders={filteredTenders} /> : <TenderComparisonDashboard tenderId={selectedProject?.id || ''} />}
+            </Card>
+          )}
+        </TabsContent>
+
+        <TabsContent value="bids" className="space-y-6">
+          <BidsReceivedSection tenders={filteredTenders} />
+        </TabsContent>
+
+        <TabsContent value="comparison" className="space-y-6">
+          <TenderComparisonDashboard tenderId={selectedProject?.id || ''} />
+        </TabsContent>
+      </Tabs>
 
       {/* Dialogs */}
       <CreateTenderWizard open={createDialogOpen} onOpenChange={setCreateDialogOpen} projectId={selectedProject?.id || ''} />
