@@ -344,11 +344,12 @@ const Messages = () => {
         </div>
       </div>;
   }
-  return <div className="min-h-screen flex flex-col">
-      {/* Page Header */}
-      <div className="flex items-center justify-end p-6 border-b border-border bg-background">
+  return <div className="space-y-6 mx-[25px]">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div></div>
         <CreateThreadDialog projectId={selectedProject?.id || ''} onCreateThread={handleCreateThread}>
-          <Button size="sm" className="bg-green-600 hover:bg-green-700 text-white">
+          <Button size="sm" className="bg-primary hover:bg-primary/90">
             <Plus className="h-4 w-4 mr-2" />
             Create New Message
           </Button>
@@ -356,9 +357,11 @@ const Messages = () => {
       </div>
       
       {/* Messages Layout */}
-      <div className="flex-1 flex bg-background">
-      {/* WhatsApp-style Sidebar */}
-      <div className="w-60 border-r border-border bg-background flex flex-col">
+      <Card className="border-0 shadow-sm bg-gradient-to-br from-card to-card/50">
+        <CardContent className="p-0">
+          <div className="flex bg-background">
+            {/* WhatsApp-style Sidebar */}
+            <div className="w-60 border-r border-border bg-background flex flex-col">
         {/* Header with Project Info */}
         <div className="p-3 border-b border-border bg-muted/30">
           <div className="flex items-center gap-2 mb-2">
@@ -459,10 +462,10 @@ const Messages = () => {
             </div>
           </ScrollArea>
         </div>
-      </div>
+            </div>
 
-      {/* Main Chat Area */}
-      <div className="flex-1 flex flex-col bg-background">
+            {/* Main Chat Area */}
+            <div className="flex-1 flex flex-col bg-background">
         {currentThread ? <>
             {/* Chat Header */}
             <div className="border-b border-border p-4 bg-muted/30">
@@ -519,10 +522,12 @@ const Messages = () => {
               <p className="text-muted-foreground max-w-md">
                 Select a conversation to start messaging, or create a new conversation with your team members.
               </p>
+              </div>
+            </div>}
             </div>
-          </div>}
-      </div>
-      </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>;
 };
 export default Messages;
