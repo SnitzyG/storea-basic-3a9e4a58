@@ -760,16 +760,7 @@ const RFIs = () => {
         </Card>
       </div>;
   }
-  return <div className="space-y-6 mx-[25px]">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div></div>
-        <div className="flex items-center space-x-2">
-          <Button onClick={() => setQuickRespondDialogOpen(true)} size="sm" className="bg-primary hover:bg-primary/90">Respond to Mail</Button>
-          <Button onClick={() => setSimplifiedComposerOpen(true)} size="sm" className="bg-primary hover:bg-primary/90">Create New Mail</Button>
-        </div>
-      </div>
-
+  return <div className="space-y-6">
       {/* Debug validators - only show in development */}
       {showDebug && <div className="space-y-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
           <h3 className="font-semibold text-yellow-800">Debug Mode - RFI System Validators</h3>
@@ -792,17 +783,12 @@ const RFIs = () => {
           {/* Backdrop overlay when detail panel is open */}
           {isDetailOverlayOpen && <div className="absolute inset-0 bg-black/20 backdrop-blur-sm z-10 transition-all duration-300" onClick={handleCloseDetailOverlay} />}
           
-          <Card className={`h-full border-0 shadow-sm bg-gradient-to-br from-card to-card/50 transition-all duration-300 ${isDetailOverlayOpen ? 'brightness-75' : ''}`}>
-            <CardContent className="p-4">
-
-            {/* Smart Filters */}
-            <div className="mb-4">
-              <RFISmartFilters filters={smartFilters} onFiltersChange={setSmartFilters} projectUsers={projectUsers} rfis={projectRFIs} savedViews={savedViews} onSaveView={handleSaveView} onLoadView={handleLoadView} onDeleteView={handleDeleteView} />
-            </div>
-
-            {/* Bulk Actions Bar */}
-            <div className="mb-4">
-              <RFIBulkActions rfis={processedRFIs} selectedRFIIds={selectedRFIIds} onSelectionChange={setSelectedRFIIds} onBulkUpdate={handleBulkUpdate} projectUsers={projectUsers} />
+          <div className={`h-full border rounded-lg bg-card p-4 overflow-hidden transition-all duration-300 ${isDetailOverlayOpen ? 'brightness-75' : ''}`}>
+            <div className="flex items-center justify-end mb-4">
+              <div className="flex items-center space-x-2">
+                <Button onClick={() => setQuickRespondDialogOpen(true)} size="sm" className="bg-green-600 hover:bg-green-700 text-white">Respond to Mail</Button>
+                <Button onClick={() => setSimplifiedComposerOpen(true)} size="sm" className="bg-green-600 hover:bg-green-700 text-white">Create New Mail</Button>
+              </div>
             </div>
 
             {/* Smart Filters */}
@@ -818,8 +804,7 @@ const RFIs = () => {
             <div className="overflow-y-auto h-full">
               <RFIListView rfis={processedRFIs} onView={handleViewRFI} onCreateResponse={handleCreateResponse} onExportPDF={handleExportPDF} onSelectRFI={setSelectedRFIForDetail} selectedRFI={selectedRFIForDetail} onDoubleClick={handleDoubleClickRFI} onUpdateRFI={handleUpdateRFI} onSendDraft={handleSendDraft} onDeleteRFI={handleDeleteRFI} projectUsers={projectUsers} />
             </div>
-            </CardContent>
-          </Card>
+          </div>
 
           {/* Slide-over Detail Panel */}
           {isDetailOverlayOpen && <div className="absolute top-0 right-0 h-full w-1/2 bg-card border-l border-border shadow-2xl z-20 animate-slide-in-right overflow-hidden">

@@ -41,81 +41,96 @@ const Dashboard = () => {
   const userName = profile?.name || 'username';
 
   return (
-    <div className="space-y-6 mx-[25px]">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div></div>
-        <div className="flex flex-wrap items-center gap-2">
-          {/* Project Filter */}
-          <div className="flex items-center gap-2 mr-4">
-            <Filter className="h-4 w-4 text-muted-foreground" />
-            <Select value={selectedProjectFilter} onValueChange={setSelectedProjectFilter}>
-              <SelectTrigger className="w-40 h-8">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Projects</SelectItem>
-                {availableProjects.map((project) => (
-                  <SelectItem key={project.id} value={project.id}>
-                    {project.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+    <div className="h-full flex flex-col bg-background">
+      {/* Enhanced Header with Project Toggle */}
+      <div className="flex-shrink-0 border-b bg-card">
+        <div className="px-4 sm:px-6 py-4">
+          <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+            <div className="flex-1">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                <div>
+                  <h1 className="text-2xl sm:text-3xl font-bold">Welcome back, {userName}</h1>
+                  <p className="text-muted-foreground text-sm sm:text-base">
+                    Here's what's happening with your projects today.
+                  </p>
+                </div>
+              </div>
+            </div>
+            
+            {/* Quick Actions and Project Filter */}
+            <div className="flex flex-wrap items-center gap-2">
+              {/* Project Filter */}
+              <div className="flex items-center gap-2 mr-4">
+                <Filter className="h-4 w-4 text-muted-foreground" />
+                <Select value={selectedProjectFilter} onValueChange={setSelectedProjectFilter}>
+                  <SelectTrigger className="w-40 h-8">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Projects</SelectItem>
+                    {availableProjects.map((project) => (
+                      <SelectItem key={project.id} value={project.id}>
+                        {project.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <Button 
+                size="sm" 
+                variant="outline" 
+                className="gap-1 text-xs px-3 py-2 h-8" 
+                onClick={() => navigate('/messages')}
+              >
+                <MessageSquare className="h-3 w-3" />
+                <span className="hidden sm:inline">Message</span>
+              </Button>
+              <Button 
+                size="sm" 
+                variant="outline" 
+                className="gap-1 text-xs px-3 py-2 h-8" 
+                onClick={() => navigate('/rfis', { state: { openCreate: true } })}
+              >
+                <FileText className="h-3 w-3" />
+                <span className="hidden sm:inline">RFI</span>
+              </Button>
+              <Button 
+                size="sm" 
+                variant="outline" 
+                className="gap-1 text-xs px-3 py-2 h-8" 
+                onClick={() => navigate('/documents', { state: { openUpload: true } })}
+              >
+                <Upload className="h-3 w-3" />
+                <span className="hidden sm:inline">Upload</span>
+              </Button>
+            </div>
           </div>
-          
-          <Button 
-            size="sm" 
-            variant="outline" 
-            className="gap-1 text-xs px-3 py-2 h-8" 
-            onClick={() => navigate('/messages')}
-          >
-            <MessageSquare className="h-3 w-3" />
-            <span className="hidden sm:inline">Message</span>
-          </Button>
-          <Button 
-            size="sm" 
-            variant="outline" 
-            className="gap-1 text-xs px-3 py-2 h-8" 
-            onClick={() => navigate('/rfis', { state: { openCreate: true } })}
-          >
-            <FileText className="h-3 w-3" />
-            <span className="hidden sm:inline">RFI</span>
-          </Button>
-          <Button 
-            size="sm" 
-            variant="outline" 
-            className="gap-1 text-xs px-3 py-2 h-8" 
-            onClick={() => navigate('/documents', { state: { openUpload: true } })}
-          >
-            <Upload className="h-3 w-3" />
-            <span className="hidden sm:inline">Upload</span>
-          </Button>
         </div>
       </div>
 
-      {/* Dashboard Content */}
-      <div className="overflow-hidden">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {/* Compact Dashboard Content - No Scroll Layout */}
+      <div className="flex-1 p-2 overflow-hidden">
+        <div className="h-full max-w-7xl mx-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-2 h-full">
             
-            {/* Recent Activity */}
-            <div>
+            {/* Recent Activity - Fixed compact height */}
+            <div className="h-[calc(50vh-4rem)] min-h-[220px]">
               <RecentActivity selectedProjectFilter={selectedProjectFilter} />
             </div>
 
-            {/* Calendar Widget */}
-            <div>
+            {/* Calendar Widget - Fixed compact height */}
+            <div className="h-[calc(50vh-4rem)] min-h-[220px]">
               <CalendarWidget selectedProjectFilter={selectedProjectFilter} />
             </div>
 
-            {/* To-Do List */}
-            <div>
+            {/* To-Do List - Fixed compact height */}
+            <div className="h-[calc(50vh-4rem)] min-h-[220px]">
               <ToDoList selectedProjectFilter={selectedProjectFilter} />
             </div>
 
-            {/* Info Panel */}
-            <div>
+            {/* Info Panel - Fixed compact height */}
+            <div className="h-[calc(50vh-4rem)] min-h-[220px]">
               <InfoPanel selectedProjectFilter={selectedProjectFilter} />
             </div>
             
