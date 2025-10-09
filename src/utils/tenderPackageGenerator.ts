@@ -131,136 +131,170 @@ const generateTenderPDF = async (tender: Tender): Promise<Blob> => {
   yPos += 5;
 
   // STEP 3: Project Overview
-  if (tender.requirements?.project_overview) {
-    addSectionHeader('3. Project Overview');
-    const overview = tender.requirements.project_overview;
-    
-    if (overview.project_type) addField('Project Type', overview.project_type);
-    if (overview.total_area) addField('Total Area', `${overview.total_area} sqm`);
-    if (overview.number_of_levels) addField('Number of Levels', overview.number_of_levels.toString());
-    if (overview.estimated_duration) addField('Estimated Duration', `${overview.estimated_duration} months`);
-    if (overview.key_features) addField('Key Features', overview.key_features, true);
-    
-    yPos += 5;
-  }
+  addSectionHeader('3. Project Overview');
+  const overviewText = tender.description || 'No overview provided.';
+  addField('Overview', overviewText, true);
+  const timeline = (tender.requirements as any)?.timeline;
+  if (timeline?.completion_weeks) addField('Estimated Duration', `${timeline.completion_weeks} weeks`);
+  if (timeline?.completion_date) addField('Estimated Completion', timeline.completion_date);
+  yPos += 5;
 
   // STEP 4: Project Scope
   if (tender.requirements?.scope) {
     addSectionHeader('4. Project Scope');
-    
-    const addScopeItems = (subtitle: string, items: string[] | undefined) => {
+
+    const scopeObj = tender.requirements.scope as Record<string, string[]>;
+    const humanize = (key: string) => key.replace(/([A-Z])/g, ' $1').replace(/^./, c => c.toUpperCase());
+
+    Object.entries(scopeObj).forEach(([category, items]) => {
       if (!items || items.length === 0) return;
-      
       doc.setFontSize(10);
       doc.setFont('helvetica', 'bold');
       doc.setTextColor(textColor[0], textColor[1], textColor[2]);
-      doc.text(subtitle, marginLeft, yPos);
+      doc.text(humanize(category), marginLeft, yPos);
       yPos += 6;
-      
+
       doc.setFont('helvetica', 'normal');
       items.forEach(item => {
         if (yPos > pageHeight - 20) {
           doc.addPage();
           yPos = 25;
         }
-        const itemLines = doc.splitTextToSize('• ' + item, contentWidth - 10);
-        doc.text(itemLines, marginLeft + 3, yPos);
-        yPos += itemLines.length * 5;
+        const lines = doc.splitTextToSize('• ' + item, contentWidth - 10);
+        doc.text(lines, marginLeft + 3, yPos);
+        yPos += lines.length * 5;
       });
       yPos += 3;
-    };
-    
-    addScopeItems('Inclusions', tender.requirements.scope.inclusions);
-    addScopeItems('Exclusions', tender.requirements.scope.exclusions);
+    });
+
     yPos += 5;
   }
 
   // STEP 5: Requirements & Compliance
   if (tender.requirements?.compliance) {
     addSectionHeader('5. Requirements & Compliance');
-    const compliance = tender.requirements.compliance;
-    
-    if (compliance.certifications?.length) {
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(10);
-      doc.text('Required Certifications:', marginLeft, yPos);
-      yPos += 6;
+    const compliance: any = tender.requirements.compliance;
+
+    if (Array.isArray(compliance) && compliance.length) {
       doc.setFont('helvetica', 'normal');
-      compliance.certifications.forEach((cert: string) => {
-        const certLines = doc.splitTextToSize('• ' + cert, contentWidth - 10);
-        doc.text(certLines, marginLeft + 3, yPos);
-        yPos += certLines.length * 5;
+      compliance.forEach((item: string) => {
+        if (yPos > pageHeight - 20) { doc.addPage(); yPos = 25; }
+        const lines = doc.splitTextToSize('• ' + item, contentWidth - 10);
+        doc.text(lines, marginLeft + 3, yPos);
+        yPos += lines.length * 5;
       });
-      yPos += 3;
+      yPos += 5;
+    } else {
+      if (compliance.certifications?.length) {
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(10);
+        doc.text('Required Certifications:', marginLeft, yPos);
+        yPos += 6;
+        doc.setFont('helvetica', 'normal');
+        compliance.certifications.forEach((cert: string) => {
+          const certLines = doc.splitTextToSize('• ' + cert, contentWidth - 10);
+          doc.text(certLines, marginLeft + 3, yPos);
+          yPos += certLines.length * 5;
+        });
+        yPos += 3;
+      }
+      
+      if (compliance.standards?.length) {
+        doc.setFont('helvetica', 'bold');
+        doc.text('Standards:', marginLeft, yPos);
+        yPos += 6;
+        doc.setFont('helvetica', 'normal');
+        compliance.standards.forEach((std: string) => {
+          const stdLines = doc.splitTextToSize('• ' + std, contentWidth - 10);
+          doc.text(stdLines, marginLeft + 3, yPos);
+          yPos += stdLines.length * 5;
+        });
+        yPos += 3;
+      }
+      
+      if (compliance.insurance_requirements) {
+        addField('Insurance Requirements', compliance.insurance_requirements, true);
+      }
+      
+      yPos += 5;
     }
-    
-    if (compliance.standards?.length) {
-      doc.setFont('helvetica', 'bold');
-      doc.text('Standards:', marginLeft, yPos);
-      yPos += 6;
-      doc.setFont('helvetica', 'normal');
-      compliance.standards.forEach((std: string) => {
-        const stdLines = doc.splitTextToSize('• ' + std, contentWidth - 10);
-        doc.text(stdLines, marginLeft + 3, yPos);
-        yPos += stdLines.length * 5;
-      });
-      yPos += 3;
-    }
-    
-    if (compliance.insurance_requirements) {
-      addField('Insurance Requirements', compliance.insurance_requirements, true);
-    }
-    
-    yPos += 5;
   }
 
   // STEP 6: Contractor Requirements  
-  if (tender.requirements?.contractor_requirements) {
+  if (tender.requirements?.contractor || (tender as any).requirements?.contractor_requirements) {
     addSectionHeader('6. Contractor Requirements');
-    const contractorReqs = tender.requirements.contractor_requirements;
-    
-    if (contractorReqs.experience_years) addField('Minimum Experience', `${contractorReqs.experience_years} years`);
-    if (contractorReqs.team_size) addField('Required Team Size', contractorReqs.team_size);
-    if (contractorReqs.equipment) addField('Equipment Requirements', contractorReqs.equipment, true);
-    if (contractorReqs.licenses) addField('Required Licenses', contractorReqs.licenses, true);
-    
-    yPos += 5;
+    const contractor = (tender.requirements as any).contractor || (tender as any).requirements?.contractor_requirements;
+
+    if (Array.isArray(contractor)) {
+      contractor.forEach((req: string) => {
+        if (yPos > pageHeight - 20) { doc.addPage(); yPos = 25; }
+        const lines = doc.splitTextToSize('• ' + req, contentWidth - 10);
+        doc.text(lines, marginLeft + 3, yPos);
+        yPos += lines.length * 5;
+      });
+      yPos += 5;
+    } else if (contractor) {
+      if (contractor.experience_years) addField('Minimum Experience', `${contractor.experience_years} years`);
+      if (contractor.team_size) addField('Required Team Size', contractor.team_size);
+      if (contractor.equipment) addField('Equipment Requirements', contractor.equipment, true);
+      if (contractor.licenses) addField('Required Licenses', contractor.licenses, true);
+      yPos += 5;
+    }
   }
 
   // STEP 7: Environmental Targets
-  if (tender.requirements?.environmental_targets) {
+  if ((tender.requirements as any)?.environmental || (tender.requirements as any)?.environmental_targets || (tender.requirements as any)?.custom_environmental) {
     addSectionHeader('7. Environmental Targets');
-    const envTargets = tender.requirements.environmental_targets;
-    
-    if (envTargets.energy_rating) addField('Target Energy Rating', envTargets.energy_rating);
-    if (envTargets.water_efficiency) addField('Water Efficiency', envTargets.water_efficiency);
-    if (envTargets.waste_management) addField('Waste Management', envTargets.waste_management, true);
-    if (envTargets.materials) addField('Sustainable Materials', envTargets.materials, true);
-    
+    const envArray: string[] = (tender.requirements as any).environmental || [];
+    const envTargets = (tender.requirements as any).environmental_targets;
+    const customEnv: string | undefined = (tender.requirements as any).custom_environmental;
+
+    if (Array.isArray(envArray) && envArray.length) {
+      envArray.forEach((item: string) => {
+        if (yPos > pageHeight - 20) { doc.addPage(); yPos = 25; }
+        const lines = doc.splitTextToSize('• ' + item, contentWidth - 10);
+        doc.text(lines, marginLeft + 3, yPos);
+        yPos += lines.length * 5;
+      });
+      yPos += 3;
+    }
+
+    if (envTargets) {
+      if (envTargets.energy_rating) addField('Target Energy Rating', envTargets.energy_rating);
+      if (envTargets.water_efficiency) addField('Water Efficiency', envTargets.water_efficiency);
+      if (envTargets.waste_management) addField('Waste Management', envTargets.waste_management, true);
+      if (envTargets.materials) addField('Sustainable Materials', envTargets.materials, true);
+    }
+
+    if (customEnv) {
+      addField('Additional Environmental Targets', customEnv, true);
+    }
+
     yPos += 5;
   }
 
   // STEP 8: Communication & Objectives
-  if (tender.requirements?.objectives) {
+  if ((tender.requirements as any)?.communication || (tender.requirements as any)?.communication_details) {
     addSectionHeader('8. Communication & Project Objectives');
-    const objectives = tender.requirements.objectives;
-    
-    if (objectives.quality_standards) addField('Quality Standards', objectives.quality_standards, true);
-    if (objectives.sustainability_goals?.length) {
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(10);
-      doc.text('Sustainability Goals:', marginLeft, yPos);
-      yPos += 6;
+    const commArray: string[] = (tender.requirements as any).communication || [];
+    const commDetails: any = (tender.requirements as any).communication_details;
+
+    if (Array.isArray(commArray) && commArray.length) {
       doc.setFont('helvetica', 'normal');
-      objectives.sustainability_goals.forEach((goal: string) => {
-        const goalLines = doc.splitTextToSize('• ' + goal, contentWidth - 10);
-        doc.text(goalLines, marginLeft + 3, yPos);
-        yPos += goalLines.length * 5;
+      commArray.forEach((item: string) => {
+        if (yPos > pageHeight - 20) { doc.addPage(); yPos = 25; }
+        const lines = doc.splitTextToSize('• ' + item, contentWidth - 10);
+        doc.text(lines, marginLeft + 3, yPos);
+        yPos += lines.length * 5;
       });
       yPos += 3;
     }
-    if (objectives.performance_targets) addField('Performance Targets', objectives.performance_targets, true);
-    
+
+    if (commDetails) {
+      if (commDetails.reporting_frequency) addField('Reporting Frequency', commDetails.reporting_frequency);
+      if (commDetails.preferred_format) addField('Preferred Format', commDetails.preferred_format);
+    }
+
     yPos += 5;
   }
 
@@ -319,29 +353,32 @@ const generateTenderExcel = async (tender: Tender): Promise<Blob> => {
     ['Section', 'Item', 'Description', 'Quantity', 'Unit', 'Rate', 'Total', 'Notes'],
   ];
 
-  // Add construction items
+  // Add rows from construction items if available; otherwise from scope selections
   const dataRows: any[][] = [];
-  if (tender.construction_items && Array.isArray(tender.construction_items)) {
+  const pushItemRow = (section: string, item: string, description = '', unit = '') => {
+    dataRows.push([section, item, description, '', unit, '', '', '']);
+  };
+
+  if (Array.isArray(tender.construction_items) && tender.construction_items.length > 0) {
     let currentSection = '';
-    
     tender.construction_items.forEach((item: any) => {
-      if (item.section !== currentSection) {
-        dataRows.push([item.section, '', '', '', '', '', '', '']);
-        currentSection = item.section;
+      const section = item.section || 'General';
+      if (section !== currentSection) {
+        dataRows.push([section, '', '', '', '', '', '', '']);
+        currentSection = section;
       }
-      
-      dataRows.push([
-        '',
-        item.item || '',
-        item.description || '',
-        '',
-        item.unit || '',
-        '',
-        '',
-        ''
-      ]);
+      pushItemRow('', item.item || item.title || '', item.description || '', item.unit || '');
+    });
+  } else if ((tender.requirements as any)?.scope) {
+    const scopeObj = (tender.requirements as any).scope as Record<string, string[]>;
+    const humanize = (key: string) => key.replace(/([A-Z])/g, ' $1').replace(/^./, c => c.toUpperCase());
+    Object.entries(scopeObj).forEach(([category, items]) => {
+      if (!items || items.length === 0) return;
+      dataRows.push([humanize(category), '', '', '', '', '', '', '']);
+      items.forEach((sel) => pushItemRow('', sel));
     });
   }
+
 
   // Add spacing and totals
   dataRows.push(['', '', '', '', '', '', '', '']);
