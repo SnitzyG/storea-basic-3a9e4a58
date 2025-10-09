@@ -174,9 +174,33 @@ export const EnhancedTenderWizard = ({ open, onOpenChange, projectId }: Enhanced
   const [estimatedStartDate, setEstimatedStartDate] = useState('');
   const [completionWeeks, setCompletionWeeks] = useState('36');
   const [completionDate, setCompletionDate] = useState('');
-  const [selectedEnvironmental, setSelectedEnvironmental] = useState<string[]>([]);
-  const [selectedCommunication, setSelectedCommunication] = useState<string[]>([]);
   const [defectRate, setDefectRate] = useState('1');
+
+  // Step 5 - Environmental Targets
+  const [selectedEnvironmental, setSelectedEnvironmental] = useState<string[]>([]);
+  const [customEnvironmental, setCustomEnvironmental] = useState('');
+
+  // Step 6 - Communication & Transparency
+  const [selectedCommunication, setSelectedCommunication] = useState<string[]>([]);
+  const [reportingFrequency, setReportingFrequency] = useState('weekly');
+  const [preferredFormat, setPreferredFormat] = useState('email');
+
+  // Step 7 - Site Conditions
+  const [siteAccess, setSiteAccess] = useState('');
+  const [terrain, setTerrain] = useState<string[]>([]);
+  const [vegetationDemolition, setVegetationDemolition] = useState('');
+  const [existingServices, setExistingServices] = useState<string[]>([]);
+  const [neighboringStructures, setNeighboringStructures] = useState('');
+
+  // Step 8 - Risk Assessment
+  const [identifiedRisks, setIdentifiedRisks] = useState('');
+  const [safetyMeasures, setSafetyMeasures] = useState('');
+  const [insuranceCoverage, setInsuranceCoverage] = useState('');
+  const [contingencyPlanning, setContingencyPlanning] = useState('');
+  const [riskSeverity, setRiskSeverity] = useState('medium');
+
+  // Step 9 - Attachments
+  const [attachments, setAttachments] = useState<File[]>([]);
 
   const [loading, setLoading] = useState(false);
 
@@ -309,7 +333,7 @@ export const EnhancedTenderWizard = ({ open, onOpenChange, projectId }: Enhanced
         project_id: projectId,
         title,
         description: message,
-        deadline: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days from now
+        deadline: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
         estimated_start_date: estimatedStartDate || undefined,
         budget: budget ? parseFloat(budget) : undefined,
         contract_type: contractType,
@@ -317,7 +341,33 @@ export const EnhancedTenderWizard = ({ open, onOpenChange, projectId }: Enhanced
           compliance: selectedCompliance,
           contractor: selectedContractorReqs,
           environmental: selectedEnvironmental,
-          communication: selectedCommunication
+          communication: selectedCommunication,
+          scope: selectedScope,
+          timeline: {
+            start_date: estimatedStartDate,
+            completion_weeks: completionWeeks,
+            completion_date: completionDate,
+            defect_rate: defectRate
+          },
+          site_conditions: {
+            access: siteAccess,
+            terrain,
+            vegetation_demolition: vegetationDemolition,
+            existing_services: existingServices,
+            neighboring_structures: neighboringStructures
+          },
+          risk_assessment: {
+            identified_risks: identifiedRisks,
+            safety_measures: safetyMeasures,
+            insurance_coverage: insuranceCoverage,
+            contingency_planning: contingencyPlanning,
+            risk_severity: riskSeverity
+          },
+          communication_details: {
+            reporting_frequency: reportingFrequency,
+            preferred_format: preferredFormat
+          },
+          custom_environmental: customEnvironmental
         }
       };
 
@@ -522,10 +572,16 @@ export const EnhancedTenderWizard = ({ open, onOpenChange, projectId }: Enhanced
                 />
               </div>
             )}
+          </div>
+        );
 
+      case 5:
+        // Step 5: Environmental Targets
+        return (
+          <div className="space-y-4">
             <Card>
               <CardHeader>
-                <CardTitle>Environmental Targets</CardTitle>
+                <CardTitle>Environmental Objectives</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
                 {ENVIRONMENTAL_TARGETS.map((item) => (
@@ -542,10 +598,25 @@ export const EnhancedTenderWizard = ({ open, onOpenChange, projectId }: Enhanced
                 ))}
               </CardContent>
             </Card>
+            <div>
+              <Label>Custom Environmental Goals</Label>
+              <Textarea
+                value={customEnvironmental}
+                onChange={(e) => setCustomEnvironmental(e.target.value)}
+                placeholder="Enter any additional environmental objectives..."
+                rows={4}
+              />
+            </div>
+          </div>
+        );
 
+      case 6:
+        // Step 6: Communication & Transparency
+        return (
+          <div className="space-y-4">
             <Card>
               <CardHeader>
-                <CardTitle>Communication & Transparency Objectives</CardTitle>
+                <CardTitle>Communication Protocols</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
                 {COMMUNICATION_OBJECTIVES.map((item) => (
@@ -562,15 +633,269 @@ export const EnhancedTenderWizard = ({ open, onOpenChange, projectId }: Enhanced
                 ))}
               </CardContent>
             </Card>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label>Reporting Frequency</Label>
+                <Select value={reportingFrequency} onValueChange={setReportingFrequency}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="daily">Daily</SelectItem>
+                    <SelectItem value="weekly">Weekly</SelectItem>
+                    <SelectItem value="fortnightly">Fortnightly</SelectItem>
+                    <SelectItem value="monthly">Monthly</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Preferred Format</Label>
+                <Select value={preferredFormat} onValueChange={setPreferredFormat}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="email">Email</SelectItem>
+                    <SelectItem value="portal">Digital Portal</SelectItem>
+                    <SelectItem value="meeting">In-Person Meeting</SelectItem>
+                    <SelectItem value="video">Video Call</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </div>
+        );
+
+      case 7:
+        // Step 7: Site Conditions
+        return (
+          <div className="space-y-4">
+            <div>
+              <Label>Site Access</Label>
+              <Textarea
+                value={siteAccess}
+                onChange={(e) => setSiteAccess(e.target.value)}
+                placeholder="Describe site access (driveway width, gate size, parking availability, etc.)"
+                rows={3}
+              />
+            </div>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Terrain Type</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                {['Flat', 'Sloped', 'Sandy soil', 'Clay soil', 'Rocky'].map((item) => (
+                  <div key={item} className="flex items-center space-x-2">
+                    <Checkbox
+                      id={`terrain-${item}`}
+                      checked={terrain.includes(item)}
+                      onCheckedChange={() => toggleItem(terrain, setTerrain, item)}
+                    />
+                    <Label htmlFor={`terrain-${item}`} className="font-normal cursor-pointer">
+                      {item}
+                    </Label>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+
+            <div>
+              <Label>Vegetation or Demolition Required</Label>
+              <Textarea
+                value={vegetationDemolition}
+                onChange={(e) => setVegetationDemolition(e.target.value)}
+                placeholder="Describe any trees, vegetation, or structures requiring removal..."
+                rows={3}
+              />
+            </div>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Existing Services</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                {['Water', 'Electricity', 'Sewer', 'Gas', 'NBN/Internet', 'Stormwater'].map((item) => (
+                  <div key={item} className="flex items-center space-x-2">
+                    <Checkbox
+                      id={`service-${item}`}
+                      checked={existingServices.includes(item)}
+                      onCheckedChange={() => toggleItem(existingServices, setExistingServices, item)}
+                    />
+                    <Label htmlFor={`service-${item}`} className="font-normal cursor-pointer">
+                      {item}
+                    </Label>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+
+            <div>
+              <Label>Neighboring Structures or Access Issues</Label>
+              <Textarea
+                value={neighboringStructures}
+                onChange={(e) => setNeighboringStructures(e.target.value)}
+                placeholder="Describe proximity to neighboring buildings, shared driveways, access restrictions, etc."
+                rows={3}
+              />
+            </div>
+          </div>
+        );
+
+      case 8:
+        // Step 8: Risk Assessment
+        return (
+          <div className="space-y-4">
+            <div>
+              <Label>Identified Project Risks</Label>
+              <Textarea
+                value={identifiedRisks}
+                onChange={(e) => setIdentifiedRisks(e.target.value)}
+                placeholder="List potential risks (weather delays, material shortages, site conditions, etc.)"
+                rows={4}
+              />
+            </div>
+
+            <div>
+              <Label>Safety Measures Planned</Label>
+              <Textarea
+                value={safetyMeasures}
+                onChange={(e) => setSafetyMeasures(e.target.value)}
+                placeholder="Describe safety protocols, site security, PPE requirements, etc."
+                rows={4}
+              />
+            </div>
+
+            <div>
+              <Label>Insurance Coverage Summary</Label>
+              <Textarea
+                value={insuranceCoverage}
+                onChange={(e) => setInsuranceCoverage(e.target.value)}
+                placeholder="Detail insurance policies, coverage amounts, policy numbers..."
+                rows={3}
+              />
+            </div>
+
+            <div>
+              <Label>Contingency Planning Details</Label>
+              <Textarea
+                value={contingencyPlanning}
+                onChange={(e) => setContingencyPlanning(e.target.value)}
+                placeholder="Outline backup plans for key risks..."
+                rows={3}
+              />
+            </div>
+
+            <div>
+              <Label>Overall Risk Severity</Label>
+              <Select value={riskSeverity} onValueChange={setRiskSeverity}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="low">Low</SelectItem>
+                  <SelectItem value="medium">Medium</SelectItem>
+                  <SelectItem value="high">High</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        );
+
+      case 9:
+        // Step 9: Review & Attachments
+        return (
+          <div className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Tender Summary</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <p className="text-sm font-semibold">Project:</p>
+                  <p className="text-sm text-muted-foreground">{title}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-semibold">Reference:</p>
+                  <p className="text-sm text-muted-foreground">{tenderReferenceNo}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-semibold">Budget:</p>
+                  <p className="text-sm text-muted-foreground">${budget ? parseFloat(budget).toLocaleString() : 'Not specified'}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-semibold">Timeline:</p>
+                  <p className="text-sm text-muted-foreground">
+                    {estimatedStartDate} to {completionDate} ({completionWeeks} weeks)
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm font-semibold">Scope Items Selected:</p>
+                  <p className="text-sm text-muted-foreground">
+                    {Object.values(selectedScope).reduce((sum, arr) => sum + arr.length, 0)} items
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+
+            <div>
+              <Label>Supporting Documents (Optional)</Label>
+              <Input
+                type="file"
+                multiple
+                onChange={(e) => {
+                  if (e.target.files) {
+                    setAttachments(Array.from(e.target.files));
+                  }
+                }}
+                accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+              />
+              {attachments.length > 0 && (
+                <p className="text-sm text-muted-foreground mt-2">
+                  {attachments.length} file(s) selected
+                </p>
+              )}
+            </div>
+          </div>
+        );
+
+      case 10:
+        // Step 10: Generate & Export PDF
+        return (
+          <div className="space-y-6 text-center">
+            <Card>
+              <CardHeader>
+                <CardTitle>Tender Package Ready</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p className="text-muted-foreground">
+                  Your tender package has been compiled and is ready for export.
+                </p>
+                <div className="flex gap-4 justify-center">
+                  <Button
+                    onClick={async () => {
+                      // TODO: Implement PDF generation
+                      toast({
+                        title: "PDF Generation",
+                        description: "Generating tender PDF..."
+                      });
+                    }}
+                  >
+                    <FileDown className="w-4 h-4 mr-2" />
+                    Download PDF
+                  </Button>
+                  <Button variant="outline">
+                    Send via Email
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
           </div>
         );
 
       default:
-        return (
-          <div className="text-center py-8">
-            <p className="text-muted-foreground">Steps 5-10 coming soon...</p>
-          </div>
-        );
+        return null;
     }
   };
 
