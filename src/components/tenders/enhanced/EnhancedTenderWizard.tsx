@@ -135,13 +135,14 @@ interface EnhancedTenderWizardProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   projectId: string;
+  existingTender?: any;
 }
 
-export const EnhancedTenderWizard = ({ open, onOpenChange, projectId }: EnhancedTenderWizardProps) => {
+export const EnhancedTenderWizard = ({ open, onOpenChange, projectId, existingTender }: EnhancedTenderWizardProps) => {
   const [step, setStep] = useState(1);
   const totalSteps = 10;
   const { toast } = useToast();
-  const { createTender } = useTenders();
+  const { createTender, updateTender } = useTenders();
 
   // Project data
   const [projectData, setProjectData] = useState<any>(null);
@@ -211,6 +212,53 @@ export const EnhancedTenderWizard = ({ open, onOpenChange, projectId }: Enhanced
     }
   }, [open, projectId]);
 
+  // Populate form when editing existing tender
+  useEffect(() => {
+    if (existingTender && open) {
+      setTitle(existingTender.title || '');
+      setMessage(existingTender.description || '');
+      setBudget(existingTender.budget?.toString() || '');
+      setEstimatedStartDate(existingTender.estimated_start_date || '');
+      
+      const reqs = existingTender.requirements || {};
+      setSelectedCompliance(reqs.compliance || []);
+      setSelectedContractorReqs(reqs.contractor || []);
+      setSelectedEnvironmental(reqs.environmental || []);
+      setSelectedCommunication(reqs.communication || []);
+      setSelectedScope(reqs.scope || {});
+      
+      if (reqs.timeline) {
+        setCompletionWeeks(reqs.timeline.completion_weeks || '36');
+        setCompletionDate(reqs.timeline.completion_date || '');
+        setDefectRate(reqs.timeline.defect_rate || '1');
+      }
+      
+      if (reqs.site_conditions) {
+        setSiteAccess(reqs.site_conditions.access || '');
+        setTerrain(reqs.site_conditions.terrain || []);
+        setVegetationDemolition(reqs.site_conditions.vegetation_demolition || '');
+        setExistingServices(reqs.site_conditions.existing_services || []);
+        setNeighboringStructures(reqs.site_conditions.neighboring_structures || '');
+      }
+      
+      if (reqs.risk_assessment) {
+        setIdentifiedRisks(reqs.risk_assessment.identified_risks || '');
+        setSafetyMeasures(reqs.risk_assessment.safety_measures || '');
+        setInsuranceCoverage(reqs.risk_assessment.insurance_coverage || '');
+        setContingencyPlanning(reqs.risk_assessment.contingency_planning || '');
+        setRiskSeverity(reqs.risk_assessment.risk_severity || 'medium');
+      }
+      
+      if (reqs.communication_details) {
+        setReportingFrequency(reqs.communication_details.reporting_frequency || 'weekly');
+        setPreferredFormat(reqs.communication_details.preferred_format || 'email');
+      }
+      
+      setCustomEnvironmental(reqs.custom_environmental || '');
+      setContractType(reqs.contract_type || 'lump_sum');
+    }
+  }, [existingTender, open]);
+
   // Auto-calculate completion date
   useEffect(() => {
     if (estimatedStartDate && completionWeeks) {
@@ -275,8 +323,8 @@ export const EnhancedTenderWizard = ({ open, onOpenChange, projectId }: Enhanced
       const year = new Date().getFullYear();
       setTenderReferenceNo(`${companyCode}-${projectCode}-TEN-${year}`);
 
-      // Set estimated start date from project timeline
-      const estimatedStart = timeline?.estimated_start_date;
+      // Set estimated start date from project timeline or direct field
+      const estimatedStart = timeline?.estimated_start_date || project.estimated_start_date;
       if (estimatedStart) {
         setEstimatedStartDate(estimatedStart);
       }
@@ -328,12 +376,12 @@ export const EnhancedTenderWizard = ({ open, onOpenChange, projectId }: Enhanced
   const handleSubmit = async () => {
     setLoading(true);
     try {
-      // Compile all tender data (omit non-existent DB columns like contract_type)
+      // Compile all tender data
       const tenderData = {
         project_id: projectId,
         title,
         description: message,
-        deadline: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+        deadline: existingTender?.deadline || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
         estimated_start_date: estimatedStartDate || undefined,
         budget: budget ? parseFloat(budget) : undefined,
         requirements: {
@@ -366,24 +414,38 @@ export const EnhancedTenderWizard = ({ open, onOpenChange, projectId }: Enhanced
             reporting_frequency: reportingFrequency,
             preferred_format: preferredFormat
           },
-          custom_environmental: customEnvironmental
+          custom_environmental: customEnvironmental,
+          contract_type: contractType
         }
       };
 
-      const created = await createTender(tenderData);
-      if (!created) {
-        throw new Error('Tender could not be saved. Please review required fields and try again.');
+      let success;
+      if (existingTender) {
+        // Update existing tender
+        success = await updateTender(existingTender.id, tenderData);
+        if (!success) {
+          throw new Error('Tender could not be updated. Please try again.');
+        }
+        toast({
+          title: "Tender updated successfully",
+          description: "Your tender package has been updated"
+        });
+      } else {
+        // Create new tender
+        success = await createTender(tenderData);
+        if (!success) {
+          throw new Error('Tender could not be saved. Please review required fields and try again.');
+        }
+        toast({
+          title: "Tender created successfully",
+          description: "Your tender package is ready"
+        });
       }
-
-      toast({
-        title: "Tender created successfully",
-        description: "Your tender package is ready"
-      });
 
       onOpenChange(false);
     } catch (error: any) {
       toast({
-        title: "Error creating tender",
+        title: existingTender ? "Error updating tender" : "Error creating tender",
         description: error.message,
         variant: "destructive"
       });

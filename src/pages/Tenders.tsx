@@ -27,6 +27,7 @@ const Tenders = () => {
   const [bidDialogOpen, setBidDialogOpen] = useState(false);
   const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [wizardOpen, setWizardOpen] = useState(false);
   const [selectedTender, setSelectedTender] = useState<Tender | null>(null);
   const [activeTab, setActiveTab] = useState<'tenders' | 'bids' | 'comparison'>('tenders');
   const {
@@ -395,8 +396,11 @@ const Tenders = () => {
                               <>
                                 <Button 
                                   variant="ghost" 
-                                  size="icon" 
-                                  onClick={() => handleEditTender(tender)}
+                                  size="icon"
+                                  onClick={() => {
+                                    setSelectedTender(tender);
+                                    setWizardOpen(true);
+                                  }}
                                   title="Edit Tender"
                                 >
                                   <Edit className="h-4 w-4" />
@@ -455,12 +459,20 @@ const Tenders = () => {
       </Tabs>
 
       {/* Dialogs */}
-      <EnhancedTenderWizard open={createDialogOpen} onOpenChange={setCreateDialogOpen} projectId={selectedProject?.id || ''} />
+      <EnhancedTenderWizard 
+        open={createDialogOpen} 
+        onOpenChange={setCreateDialogOpen} 
+        projectId={selectedProject?.id || ''} 
+      />
 
       <EnhancedTenderWizard 
-        open={editDialogOpen} 
-        onOpenChange={setEditDialogOpen} 
+        open={wizardOpen} 
+        onOpenChange={(open) => {
+          setWizardOpen(open);
+          if (!open) setSelectedTender(null);
+        }} 
         projectId={selectedProject?.id || ''} 
+        existingTender={selectedTender}
       />
 
       <TenderDetailsDialog open={detailsDialogOpen} onOpenChange={setDetailsDialogOpen} tender={selectedTender} userRole={userRole} />
