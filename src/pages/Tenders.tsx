@@ -5,7 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Plus, AlertTriangle, FileText, Users, BarChart3, UserPlus, Edit } from 'lucide-react';
+import { Plus, AlertTriangle, FileText, Users, BarChart3, UserPlus, Edit, Trash2 } from 'lucide-react';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { useTenders, Tender } from '@/hooks/useTenders';
 import { useProjects } from '@/hooks/useProjects';
 import { useAuth } from '@/hooks/useAuth';
@@ -25,6 +26,7 @@ const Tenders = () => {
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
   const [bidDialogOpen, setBidDialogOpen] = useState(false);
   const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedTender, setSelectedTender] = useState<Tender | null>(null);
   const [activeTab, setActiveTab] = useState<'tenders' | 'bids' | 'comparison'>('tenders');
   const {
@@ -99,8 +101,19 @@ const Tenders = () => {
     setInviteDialogOpen(true);
   };
   
-  const handleDeleteTender = async (tender: Tender) => {
-    await deleteTender(tender.id);
+  const handleDeleteTender = (tender: Tender) => {
+    setSelectedTender(tender);
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDeleteTender = async () => {
+    if (!selectedTender) return;
+    
+    const success = await deleteTender(selectedTender.id);
+    if (success) {
+      setDeleteDialogOpen(false);
+      setSelectedTender(null);
+    }
   };
 
   // Check for expired tenders that need to be closed
@@ -367,7 +380,7 @@ const Tenders = () => {
                             })()}
                           </span>
                         </TableCell>
-                        <TableCell className="text-sm px-4 py-3 text-foreground/90 w-[150px]">
+                        <TableCell className="text-sm px-4 py-3 text-foreground/90 w-[200px]">
                           <div className="flex gap-1 items-center">
                             <Button 
                               variant="ghost" 
@@ -395,6 +408,15 @@ const Tenders = () => {
                                   title="Invite Bidders"
                                 >
                                   <UserPlus className="h-4 w-4" />
+                                </Button>
+                                <Button 
+                                  variant="ghost" 
+                                  size="icon" 
+                                  onClick={() => handleDeleteTender(tender)}
+                                  title="Delete Tender"
+                                  className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                                >
+                                  <Trash2 className="h-4 w-4" />
                                 </Button>
                               </>
                             )}
@@ -446,6 +468,26 @@ const Tenders = () => {
       <BidSubmissionDialog open={bidDialogOpen} onOpenChange={setBidDialogOpen} tender={selectedTender} />
 
       <TenderInviteDialog open={inviteDialogOpen} onOpenChange={setInviteDialogOpen} tender={selectedTender} />
+
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Tender</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete "{selectedTender?.title}"? This action cannot be undone and will also delete all associated bids.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={confirmDeleteTender}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>;
 };
 export default Tenders;
