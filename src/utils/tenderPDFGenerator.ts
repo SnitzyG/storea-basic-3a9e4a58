@@ -28,7 +28,10 @@ export const generateTenderPDF = (tender: TenderPDFData) => {
     const doc = new jsPDF('p', 'mm', 'a4');
     const pageWidth = doc.internal.pageSize.width;
     const pageHeight = doc.internal.pageSize.height;
-    let yPos = 20;
+    const marginLeft = 20;
+    const marginRight = 20;
+    const contentWidth = pageWidth - marginLeft - marginRight;
+    let yPos = 25;
 
     // Primary Color for branding
     const primaryColor: [number, number, number] = [59, 130, 246]; // Blue

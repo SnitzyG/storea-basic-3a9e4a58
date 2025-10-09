@@ -17,7 +17,7 @@ import { BidSubmissionDialog } from '@/components/tenders/BidSubmissionDialog';
 import { TenderInviteDialog } from '@/components/tenders/TenderInviteDialog';
 import { BidsReceivedSection } from '@/components/tenders/BidsReceivedSection';
 import { TenderComparisonDashboard } from '@/components/tenders/TenderComparisonDashboard';
-import { generateTenderPDF } from '@/utils/tenderPDFGenerator';
+import { generateTenderPackage } from '@/utils/tenderPackageGenerator';
 import { toast } from '@/hooks/use-toast';
 
 const Tenders = () => {
@@ -71,18 +71,18 @@ const Tenders = () => {
     setEditDialogOpen(true);
   };
   
-  const handleViewTenderPackage = (tender: Tender) => {
+  const handleViewTenderPackage = async (tender: Tender) => {
     try {
-      generateTenderPDF(tender);
+      await generateTenderPackage(tender);
       toast({
-        title: "PDF Generated",
-        description: "Tender package PDF has been downloaded successfully.",
+        title: "Package Generated",
+        description: "Tender package (PDF + Excel) has been downloaded successfully.",
       });
     } catch (error) {
-      console.error('PDF Generation Error:', error);
+      console.error('Package Generation Error:', error);
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : "Failed to generate PDF. Please try again.",
+        description: error instanceof Error ? error.message : "Failed to generate tender package. Please try again.",
         variant: "destructive",
       });
     }
