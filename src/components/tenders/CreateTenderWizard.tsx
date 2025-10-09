@@ -957,7 +957,7 @@ export const CreateTenderWizard = ({
               {step < totalSteps ? <Button type="button" onClick={() => {
                 setStep(Math.min(totalSteps, step + 1));
                 if (step < 6) setCurrentPhase(Math.min(5, currentPhase + 1));
-              }} disabled={loading || (step === 1 && (!title.trim() || !message.trim() || !contractType))}>
+              }} disabled={loading || (step === 1 && !title.trim())}>
                   Next
                 </Button> : <Button type="button" onClick={handleSubmit} disabled={loading || !isReadyForTender || !title.trim() || !message.trim() || !submissionDeadline}>
                   {loading ? 'Creating...' : 'Create Tender'}
