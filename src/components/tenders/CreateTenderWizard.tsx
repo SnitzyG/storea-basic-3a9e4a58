@@ -44,12 +44,84 @@ export const CreateTenderWizard = ({
   existingTender
 }: CreateTenderWizardProps) => {
   const [step, setStep] = useState(1);
+  
+  // Project Overview
   const [title, setTitle] = useState('');
+  const [projectAddress, setProjectAddress] = useState('');
+  const [clientName, setClientName] = useState('');
+  const [tenderReferenceNo, setTenderReferenceNo] = useState('');
+  
+  // Project Scope
   const [message, setMessage] = useState('');
+  const [scopeDetails, setScopeDetails] = useState({
+    sitePreparation: '',
+    foundations: '',
+    buildingEnvelope: '',
+    internalWorks: '',
+    services: '',
+    externalWorks: '',
+    compliance: ''
+  });
+  
+  // Requirements
   const [contractType, setContractType] = useState('');
+  const [complianceRequirements, setComplianceRequirements] = useState('');
+  const [contractorRequirements, setContractorRequirements] = useState('');
+  
+  // Objectives
+  const [budget, setBudget] = useState('');
   const [estimatedStartDate, setEstimatedStartDate] = useState('');
+  const [completionWeeks, setCompletionWeeks] = useState('');
+  const [environmentalTargets, setEnvironmentalTargets] = useState('');
+  const [communicationObjectives, setCommunicationObjectives] = useState('');
+  const [defectRate, setDefectRate] = useState('1');
+  
+  // Deliverables
+  const [deliverables, setDeliverables] = useState({
+    drawings: true,
+    engineeringReports: true,
+    constructionProgram: true,
+    progressReports: true,
+    qaChecklists: true,
+    occupancyPermit: true
+  });
+  
+  // Milestones
+  const [milestones, setMilestones] = useState<Array<{id: string; title: string; description: string; duration: string}>>([]);
+  
+  // Site Conditions
+  const [siteConditions, setSiteConditions] = useState({
+    soilClassification: '',
+    servicesAvailable: '',
+    accessDetails: '',
+    workingHours: '7:00 AM – 6:00 PM, Monday to Saturday'
+  });
+  
+  // Submission Requirements
+  const [submissionRequirements, setSubmissionRequirements] = useState({
+    companyProfile: true,
+    projectExperience: true,
+    priceBreakdown: true,
+    methodology: true,
+    managementPlans: true,
+    subcontractorList: true,
+    warrantyTerms: true
+  });
+  
+  // Evaluation Criteria
+  const [evaluationCriteria, setEvaluationCriteria] = useState('');
+  
+  // Communication
+  const [contactPerson, setContactPerson] = useState('');
+  const [contactEmail, setContactEmail] = useState('');
+  const [contactPhone, setContactPhone] = useState('');
   const [submissionDeadline, setSubmissionDeadline] = useState('');
   const [submissionTime, setSubmissionTime] = useState('17:00');
+  const [clarificationDeadline, setClarificationDeadline] = useState('');
+  
+  // Conditions
+  const [tenderValidity, setTenderValidity] = useState('60');
+  const [additionalConditions, setAdditionalConditions] = useState('');
   
   // Document files
   const [invitationLetter, setInvitationLetter] = useState<Array<{id: string; name: string; path: string; type: string}>>([]);
@@ -144,7 +216,7 @@ export const CreateTenderWizard = ({
       }
     }
   }, [existingTender, open]);
-  const totalSteps = 7;
+  const totalSteps = 10;
   const progress = step / totalSteps * 100;
   const uploadFile = async (file: File, bucket: string): Promise<string | null> => {
     const fileExt = file.name.split('.').pop();
@@ -241,11 +313,61 @@ export const CreateTenderWizard = ({
   const resetForm = () => {
     setStep(1);
     setTitle('');
+    setProjectAddress('');
+    setClientName('');
+    setTenderReferenceNo('');
     setMessage('');
+    setScopeDetails({
+      sitePreparation: '',
+      foundations: '',
+      buildingEnvelope: '',
+      internalWorks: '',
+      services: '',
+      externalWorks: '',
+      compliance: ''
+    });
     setContractType('');
+    setComplianceRequirements('');
+    setContractorRequirements('');
+    setBudget('');
     setEstimatedStartDate('');
+    setCompletionWeeks('');
+    setEnvironmentalTargets('');
+    setCommunicationObjectives('');
+    setDefectRate('1');
+    setDeliverables({
+      drawings: true,
+      engineeringReports: true,
+      constructionProgram: true,
+      progressReports: true,
+      qaChecklists: true,
+      occupancyPermit: true
+    });
+    setMilestones([]);
+    setSiteConditions({
+      soilClassification: '',
+      servicesAvailable: '',
+      accessDetails: '',
+      workingHours: '7:00 AM – 6:00 PM, Monday to Saturday'
+    });
+    setSubmissionRequirements({
+      companyProfile: true,
+      projectExperience: true,
+      priceBreakdown: true,
+      methodology: true,
+      managementPlans: true,
+      subcontractorList: true,
+      warrantyTerms: true
+    });
+    setEvaluationCriteria('');
+    setContactPerson('');
+    setContactEmail('');
+    setContactPhone('');
     setSubmissionDeadline('');
     setSubmissionTime('17:00');
+    setClarificationDeadline('');
+    setTenderValidity('60');
+    setAdditionalConditions('');
     setInvitationLetter([]);
     setTenderForm([]);
     setPreliminaries([]);
@@ -329,7 +451,8 @@ export const CreateTenderWizard = ({
     }
   };
 
-  return <Dialog open={open} onOpenChange={onOpenChange}>
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-xl">Create New Tender - Step {step} of {totalSteps}</DialogTitle>
@@ -337,27 +460,92 @@ export const CreateTenderWizard = ({
         </DialogHeader>
 
         <div className="space-y-6">
-          {/* Step 1: Basic Information & Contract Type */}
+          {/* Step 1: Project Overview */}
           {step === 1 && <div className="space-y-6">
               <Card className="bg-primary/5">
                 <CardHeader>
-                  <CardTitle className="text-base flex items-center gap-2">
-                    <Mail className="w-5 h-5" />
-                    Phase 1: Invitation to Tender
-                  </CardTitle>
-                  <CardDescription>Setup basic tender information and select contract type</CardDescription>
+                  <CardTitle className="text-base">Project Overview</CardTitle>
+                  <CardDescription>Basic project information and identification</CardDescription>
                 </CardHeader>
               </Card>
 
               <div>
-                <Label htmlFor="title">Tender Title *</Label>
-                <Input id="title" placeholder="e.g., Residential Extension and Renovation" value={title} onChange={e => setTitle(e.target.value)} className="mt-1" />
+                <Label htmlFor="title">Project Title *</Label>
+                <Input id="title" placeholder="e.g., Construction of New Single-Storey Residential Dwelling" value={title} onChange={e => setTitle(e.target.value)} className="mt-1" />
               </div>
 
               <div>
-                <Label htmlFor="message">Tender Description *</Label>
-                <Textarea id="message" placeholder="Describe the project scope, requirements, and objectives..." value={message} onChange={e => setMessage(e.target.value)} className="min-h-[120px] mt-1" />
+                <Label htmlFor="projectAddress">Project Address *</Label>
+                <Input id="projectAddress" placeholder="e.g., 45 Elmwood Drive, Glen Iris, VIC 3146" value={projectAddress} onChange={e => setProjectAddress(e.target.value)} className="mt-1" />
               </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="clientName">Client Name *</Label>
+                  <Input id="clientName" placeholder="Client or Owner Name" value={clientName} onChange={e => setClientName(e.target.value)} className="mt-1" />
+                </div>
+                <div>
+                  <Label htmlFor="tenderReferenceNo">Tender Reference No.</Label>
+                  <Input id="tenderReferenceNo" placeholder="e.g., TND-2025-001" value={tenderReferenceNo} onChange={e => setTenderReferenceNo(e.target.value)} className="mt-1" />
+                </div>
+              </div>
+
+              <div>
+                <Label htmlFor="message">Project Overview *</Label>
+                <Textarea id="message" placeholder="Brief overview of the project..." value={message} onChange={e => setMessage(e.target.value)} className="min-h-[100px] mt-1" />
+              </div>
+            </div>}
+
+          {/* Step 2: Project Scope */}
+          {step === 2 && <div className="space-y-6">
+              <Card className="bg-primary/5">
+                <CardHeader>
+                  <CardTitle className="text-base">Project Scope</CardTitle>
+                  <CardDescription>Detailed breakdown of work to be completed</CardDescription>
+                </CardHeader>
+              </Card>
+
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="sitePreparation">Site Preparation</Label>
+                  <Textarea id="sitePreparation" placeholder="Clearing, excavation, levelling, soil testing, temporary fencing..." value={scopeDetails.sitePreparation} onChange={e => setScopeDetails({...scopeDetails, sitePreparation: e.target.value})} className="min-h-[60px] mt-1" />
+                </div>
+
+                <div>
+                  <Label htmlFor="foundations">Foundations & Structure</Label>
+                  <Textarea id="foundations" placeholder="Concrete slab-on-ground, timber framing, structural steel..." value={scopeDetails.foundations} onChange={e => setScopeDetails({...scopeDetails, foundations: e.target.value})} className="min-h-[60px] mt-1" />
+                </div>
+
+                <div>
+                  <Label htmlFor="buildingEnvelope">Building Envelope</Label>
+                  <Textarea id="buildingEnvelope" placeholder="Brick veneer, rendered façade, roofing, insulation..." value={scopeDetails.buildingEnvelope} onChange={e => setScopeDetails({...scopeDetails, buildingEnvelope: e.target.value})} className="min-h-[60px] mt-1" />
+                </div>
+
+                <div>
+                  <Label htmlFor="internalWorks">Internal Works</Label>
+                  <Textarea id="internalWorks" placeholder="Kitchen, bathrooms, flooring, built-in joinery..." value={scopeDetails.internalWorks} onChange={e => setScopeDetails({...scopeDetails, internalWorks: e.target.value})} className="min-h-[60px] mt-1" />
+                </div>
+
+                <div>
+                  <Label htmlFor="services">Services</Label>
+                  <Textarea id="services" placeholder="Electrical, plumbing, HVAC installations..." value={scopeDetails.services} onChange={e => setScopeDetails({...scopeDetails, services: e.target.value})} className="min-h-[60px] mt-1" />
+                </div>
+
+                <div>
+                  <Label htmlFor="externalWorks">External Works</Label>
+                  <Textarea id="externalWorks" placeholder="Landscaping, driveway, fencing..." value={scopeDetails.externalWorks} onChange={e => setScopeDetails({...scopeDetails, externalWorks: e.target.value})} className="min-h-[60px] mt-1" />
+                </div>
+              </div>
+            </div>}
+
+          {/* Step 3: Requirements & Contract Type */}
+          {step === 3 && <div className="space-y-6">
+              <Card className="bg-primary/5">
+                <CardHeader>
+                  <CardTitle className="text-base">Project Requirements</CardTitle>
+                  <CardDescription>Compliance, contractor requirements, and contract type</CardDescription>
+                </CardHeader>
+              </Card>
 
               <div>
                 <Label htmlFor="contractType">Contract Type *</Label>
@@ -378,28 +566,97 @@ export const CreateTenderWizard = ({
                 </Select>
               </div>
 
+              <div>
+                <Label htmlFor="complianceRequirements">Compliance Requirements</Label>
+                <Textarea id="complianceRequirements" placeholder="e.g., NCC 2022 Volume 2, Victorian Building Regulations, Council permits..." value={complianceRequirements} onChange={e => setComplianceRequirements(e.target.value)} className="min-h-[100px] mt-1" />
+              </div>
+
+              <div>
+                <Label htmlFor="contractorRequirements">Contractor Must Provide</Label>
+                <Textarea id="contractorRequirements" placeholder="e.g., VBA registration, insurance, warranties, safety plans..." value={contractorRequirements} onChange={e => setContractorRequirements(e.target.value)} className="min-h-[100px] mt-1" />
+              </div>
+            </div>}
+
+          {/* Step 4: Project Objectives */}
+          {step === 4 && <div className="space-y-6">
+              <Card className="bg-primary/5">
+                <CardHeader>
+                  <CardTitle className="text-base">Project Objectives</CardTitle>
+                  <CardDescription>Budget, timeline, and quality targets</CardDescription>
+                </CardHeader>
+              </Card>
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="budget">Budget (excl. GST)</Label>
+                  <Input id="budget" type="number" placeholder="780000" value={budget} onChange={e => setBudget(e.target.value)} className="mt-1" />
+                </div>
+
+                <div>
+                  <Label htmlFor="completionWeeks">Completion Timeline (weeks)</Label>
+                  <Input id="completionWeeks" type="number" placeholder="36" value={completionWeeks} onChange={e => setCompletionWeeks(e.target.value)} className="mt-1" />
+                </div>
+
                 <div>
                   <Label htmlFor="estimatedStartDate">Estimated Start Date</Label>
                   <Input id="estimatedStartDate" type="date" min={today} value={estimatedStartDate} onChange={e => setEstimatedStartDate(e.target.value)} className="mt-1" />
                 </div>
 
                 <div>
-                  <Label htmlFor="submissionDeadline">Submission Deadline *</Label>
-                  <div className="flex gap-2 mt-1">
-                    <Input id="submissionDeadline" type="date" min={minDeadline} value={submissionDeadline} onChange={e => setSubmissionDeadline(e.target.value)} className="flex-1" />
-                    <Input type="time" value={submissionTime} onChange={e => setSubmissionTime(e.target.value)} className="w-32" />
-                  </div>
+                  <Label htmlFor="defectRate">Target Defect Rate (%)</Label>
+                  <Input id="defectRate" type="number" step="0.1" placeholder="1" value={defectRate} onChange={e => setDefectRate(e.target.value)} className="mt-1" />
+                </div>
+              </div>
+
+              <div>
+                <Label htmlFor="environmentalTargets">Environmental Targets</Label>
+                <Textarea id="environmentalTargets" placeholder="e.g., 80% material recycling rate, energy efficiency targets..." value={environmentalTargets} onChange={e => setEnvironmentalTargets(e.target.value)} className="min-h-[80px] mt-1" />
+              </div>
+
+              <div>
+                <Label htmlFor="communicationObjectives">Communication & Transparency Objectives</Label>
+                <Textarea id="communicationObjectives" placeholder="e.g., Weekly progress meetings, transparent reporting..." value={communicationObjectives} onChange={e => setCommunicationObjectives(e.target.value)} className="min-h-[80px] mt-1" />
+              </div>
+            </div>}
+
+          {/* Step 5: Site Conditions */}
+          {step === 5 && <div className="space-y-6">
+              <Card className="bg-primary/5">
+                <CardHeader>
+                  <CardTitle className="text-base">Site Conditions</CardTitle>
+                  <CardDescription>Physical site details and access information</CardDescription>
+                </CardHeader>
+              </Card>
+
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="soilClassification">Soil Classification</Label>
+                  <Input id="soilClassification" placeholder="e.g., Class M - moderately reactive clay" value={siteConditions.soilClassification} onChange={e => setSiteConditions({...siteConditions, soilClassification: e.target.value})} className="mt-1" />
+                </div>
+
+                <div>
+                  <Label htmlFor="servicesAvailable">Services Available</Label>
+                  <Textarea id="servicesAvailable" placeholder="e.g., Water, gas, electricity available to boundary..." value={siteConditions.servicesAvailable} onChange={e => setSiteConditions({...siteConditions, servicesAvailable: e.target.value})} className="min-h-[60px] mt-1" />
+                </div>
+
+                <div>
+                  <Label htmlFor="accessDetails">Site Access Details</Label>
+                  <Textarea id="accessDetails" placeholder="e.g., Access via residential street, parking restrictions..." value={siteConditions.accessDetails} onChange={e => setSiteConditions({...siteConditions, accessDetails: e.target.value})} className="min-h-[60px] mt-1" />
+                </div>
+
+                <div>
+                  <Label htmlFor="workingHours">Working Hours</Label>
+                  <Input id="workingHours" placeholder="7:00 AM – 6:00 PM, Monday to Saturday" value={siteConditions.workingHours} onChange={e => setSiteConditions({...siteConditions, workingHours: e.target.value})} className="mt-1" />
                 </div>
               </div>
             </div>}
 
-          {/* Step 2: Core Tender Documents */}
-          {step === 2 && <div className="space-y-4">
+          {/* Step 6: Tender Documents */}
+          {step === 6 && <div className="space-y-4">
               <Card className="bg-primary/5">
                 <CardHeader>
                   <CardTitle className="text-base">Tender Package Documents</CardTitle>
-                  <CardDescription>Upload required tender documentation</CardDescription>
+                  <CardDescription>Upload all required tender documentation</CardDescription>
                 </CardHeader>
               </Card>
 
@@ -439,19 +696,7 @@ export const CreateTenderWizard = ({
                     <FileSelector projectId={projectId} selectedFiles={contractForm} onFileSelect={file => setContractForm([file])} onFileRemove={() => setContractForm([])} onUploadNew={files => handleFileUpload(files, setContractForm)} />
                   </CardContent>
                 </Card>
-              </div>
-            </div>}
 
-          {/* Step 3: Project Documentation */}
-          {step === 3 && <div className="space-y-4">
-              <Card className="bg-primary/5">
-                <CardHeader>
-                  <CardTitle className="text-base">Project & Financial Documentation</CardTitle>
-                  <CardDescription>Upload project specifications and cost breakdown</CardDescription>
-                </CardHeader>
-              </Card>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <Card>
                   <CardHeader>
                     <CardTitle className="text-sm">Bill of Quantities / Trade Cost Table</CardTitle>
@@ -491,13 +736,62 @@ export const CreateTenderWizard = ({
               </div>
             </div>}
 
-          {/* Step 4: Construction Items & Quote Template */}
-          {step === 4 && <div className="space-y-4">
+          {/* Step 7: Submission Requirements & Evaluation */}
+          {step === 7 && <div className="space-y-6">
+              <Card className="bg-primary/5">
+                <CardHeader>
+                  <CardTitle className="text-base">Tender Submission Requirements</CardTitle>
+                  <CardDescription>What tenderers must submit and evaluation criteria</CardDescription>
+                </CardHeader>
+              </Card>
+
+              <div>
+                <Label>Required Submissions</Label>
+                <div className="mt-2 space-y-2">
+                  <div className="flex items-center gap-2">
+                    <input type="checkbox" checked={submissionRequirements.companyProfile} onChange={(e) => setSubmissionRequirements({...submissionRequirements, companyProfile: e.target.checked})} />
+                    <span className="text-sm">Company profile and current builder registration</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <input type="checkbox" checked={submissionRequirements.projectExperience} onChange={(e) => setSubmissionRequirements({...submissionRequirements, projectExperience: e.target.checked})} />
+                    <span className="text-sm">Relevant project experience (3 examples)</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <input type="checkbox" checked={submissionRequirements.priceBreakdown} onChange={(e) => setSubmissionRequirements({...submissionRequirements, priceBreakdown: e.target.checked})} />
+                    <span className="text-sm">Detailed price breakdown</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <input type="checkbox" checked={submissionRequirements.methodology} onChange={(e) => setSubmissionRequirements({...submissionRequirements, methodology: e.target.checked})} />
+                    <span className="text-sm">Construction methodology and program</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <input type="checkbox" checked={submissionRequirements.managementPlans} onChange={(e) => setSubmissionRequirements({...submissionRequirements, managementPlans: e.target.checked})} />
+                    <span className="text-sm">Quality, safety, and environmental management plans</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <input type="checkbox" checked={submissionRequirements.subcontractorList} onChange={(e) => setSubmissionRequirements({...submissionRequirements, subcontractorList: e.target.checked})} />
+                    <span className="text-sm">Proposed subcontractor and supplier list</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <input type="checkbox" checked={submissionRequirements.warrantyTerms} onChange={(e) => setSubmissionRequirements({...submissionRequirements, warrantyTerms: e.target.checked})} />
+                    <span className="text-sm">Warranty and defect liability terms</span>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <Label htmlFor="evaluationCriteria">Evaluation Criteria</Label>
+                <Textarea id="evaluationCriteria" placeholder="e.g., Compliance with specs, experience, price competitiveness, timeline, quality assurance..." value={evaluationCriteria} onChange={e => setEvaluationCriteria(e.target.value)} className="min-h-[120px] mt-1" />
+              </div>
+            </div>}
+
+          {/* Step 8: Construction Items & Quote Template */}
+          {step === 8 && <div className="space-y-4">
               <Card className="bg-primary/5">
                 <CardHeader>
                   <CardTitle className="text-base flex items-center gap-2">
                     <Clock className="w-5 h-5" />
-                    Phase 2: Tendering Period
+                    Construction Work Items
                   </CardTitle>
                   <CardDescription>Define work items and generate quote template for bidders</CardDescription>
                 </CardHeader>
@@ -513,20 +807,76 @@ export const CreateTenderWizard = ({
               </div>
             </div>}
 
-          {/* Step 5: Contractor/Builder Details */}
-          {step === 5 && <div className="space-y-4">
+          {/* Step 9: Communication & Deadlines */}
+          {step === 9 && <div className="space-y-6">
+              <Card className="bg-primary/5">
+                <CardHeader>
+                  <CardTitle className="text-base">Communication & Deadlines</CardTitle>
+                  <CardDescription>Contact details and important dates</CardDescription>
+                </CardHeader>
+              </Card>
+
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="contactPerson">Contact Person</Label>
+                  <Input id="contactPerson" placeholder="Project Manager Name" value={contactPerson} onChange={e => setContactPerson(e.target.value)} className="mt-1" />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="contactEmail">Contact Email *</Label>
+                    <Input id="contactEmail" type="email" placeholder="contact@example.com" value={contactEmail} onChange={e => setContactEmail(e.target.value)} className="mt-1" />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="contactPhone">Contact Phone</Label>
+                    <Input id="contactPhone" type="tel" placeholder="+61 xxx xxx xxx" value={contactPhone} onChange={e => setContactPhone(e.target.value)} className="mt-1" />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="clarificationDeadline">Clarification Questions Close</Label>
+                    <Input id="clarificationDeadline" type="date" min={today} value={clarificationDeadline} onChange={e => setClarificationDeadline(e.target.value)} className="mt-1" />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="submissionDeadline">Tender Submission Deadline *</Label>
+                    <div className="flex gap-2 mt-1">
+                      <Input id="submissionDeadline" type="date" min={minDeadline} value={submissionDeadline} onChange={e => setSubmissionDeadline(e.target.value)} className="flex-1" />
+                      <Input type="time" value={submissionTime} onChange={e => setSubmissionTime(e.target.value)} className="w-32" />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="tenderValidity">Tender Validity Period (days)</Label>
+                    <Input id="tenderValidity" type="number" placeholder="60" value={tenderValidity} onChange={e => setTenderValidity(e.target.value)} className="mt-1" />
+                  </div>
+                </div>
+
+                <div>
+                  <Label htmlFor="additionalConditions">Additional Conditions</Label>
+                  <Textarea id="additionalConditions" placeholder="Any special conditions or requirements..." value={additionalConditions} onChange={e => setAdditionalConditions(e.target.value)} className="min-h-[80px] mt-1" />
+                </div>
+              </div>
+            </div>}
+
+          {/* Step 10: Contractor Invitation (Optional) */}
+          {step === 10 && <div className="space-y-4">
               <Card className="bg-primary/5">
                 <CardHeader>
                   <CardTitle className="text-base flex items-center gap-2">
                     <FileUp className="w-5 h-5" />
-                    Phase 3: Invitation to Contractors
+                    Contractor Invitation (Optional)
                   </CardTitle>
-                  <CardDescription>Specify contractor details for tender invitation (optional)</CardDescription>
+                  <CardDescription>Specify contractor details to send tender invitation via email</CardDescription>
                 </CardHeader>
               </Card>
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-base">Builder Details (Optional)</CardTitle>
+                  <CardTitle className="text-base">Builder Details</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div>
@@ -572,106 +922,25 @@ export const CreateTenderWizard = ({
                   </div>
                 </CardContent>
               </Card>
-            </div>}
 
-          {/* Step 6: Tendering Process Overview */}
-          {step === 6 && <div className="space-y-4">
-              <Card className="bg-primary/5">
-                <CardHeader>
-                  <CardTitle className="text-base">5-Step Tendering Process Overview</CardTitle>
-                  <CardDescription>Review the complete tendering workflow</CardDescription>
-                </CardHeader>
-              </Card>
-
-              <div className="space-y-3">
-                {TENDERING_PHASES.map((phase, index) => (
-                  <Card key={phase.id} className={index < currentPhase - 1 ? 'bg-green-50 border-green-200' : index === currentPhase - 1 ? 'bg-blue-50 border-blue-200' : ''}>
-                    <CardContent className="p-4">
-                      <div className="flex items-start gap-3">
-                        <div className={`p-2 rounded-full ${index < currentPhase - 1 ? 'bg-green-100' : index === currentPhase - 1 ? 'bg-blue-100' : 'bg-muted'}`}>
-                          <phase.icon className={`w-5 h-5 ${index < currentPhase - 1 ? 'text-green-600' : index === currentPhase - 1 ? 'text-blue-600' : 'text-muted-foreground'}`} />
-                        </div>
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-1">
-                            <h4 className="font-semibold">Step {phase.id}: {phase.title}</h4>
-                            {index < currentPhase - 1 && <Badge variant="outline" className="bg-green-100 text-green-700">Completed</Badge>}
-                            {index === currentPhase - 1 && <Badge variant="outline" className="bg-blue-100 text-blue-700">Current</Badge>}
-                          </div>
-                          <p className="text-sm text-muted-foreground">{phase.description}</p>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            </div>}
-
-          {/* Step 7: Final Confirmation */}
-          {step === 7 && <div className="space-y-4">
-              <Card className="bg-primary/5">
-                <CardHeader>
-                  <CardTitle className="text-base flex items-center gap-2">
-                    <Gavel className="w-5 h-5" />
-                    Phase 4 & 5: Ready for Negotiation & Contract Execution
-                  </CardTitle>
-                  <CardDescription>Confirm tender is complete and ready to publish</CardDescription>
-                </CardHeader>
-              </Card>
-              <Card className={isReadyForTender ? 'border-green-500' : 'border-orange-500'}>
-                <CardContent className="pt-6">
-                  <div className="flex items-start gap-3">
-                    {isReadyForTender ? <CheckCircle className="w-6 h-6 text-green-600 flex-shrink-0 mt-1" /> : <AlertCircle className="w-6 h-6 text-orange-600 flex-shrink-0 mt-1" />}
-                    <div className="flex-1">
-                      <h3 className="font-semibold mb-2">
-                        {isReadyForTender ? 'Tender Ready' : 'Confirm Tender is Ready'}
-                      </h3>
-                      <p className="text-sm text-muted-foreground mb-4">
-                        Please review all details and confirm this tender is complete and ready to be shared with builders.
-                      </p>
-                      <div className="flex items-center gap-2">
-                        <input type="checkbox" id="readyCheck" checked={isReadyForTender} onChange={e => setIsReadyForTender(e.target.checked)} className="w-4 h-4" />
-                        <Label htmlFor="readyCheck" className="cursor-pointer">
-                          I confirm this tender is ready for submission
-                        </Label>
-                      </div>
+              <div className="mt-6">
+                <Card className={isReadyForTender ? 'border-green-500' : ''}>
+                  <CardContent className="pt-6">
+                    <div className="flex items-center gap-2">
+                      <input 
+                        type="checkbox" 
+                        id="readyCheck" 
+                        checked={isReadyForTender} 
+                        onChange={e => setIsReadyForTender(e.target.checked)} 
+                        className="w-4 h-4" 
+                      />
+                      <Label htmlFor="readyCheck" className="cursor-pointer">
+                        I confirm this tender package is complete and ready
+                      </Label>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-base">Tender Summary</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Title:</span>
-                    <span className="font-medium">{title || 'Not set'}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Deadline:</span>
-                    <span className="font-medium">
-                      {submissionDeadline ? `${submissionDeadline} ${submissionTime}` : 'Not set'}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Specification:</span>
-                    <span className="font-medium">{specFiles.length > 0 ? '✓ Uploaded' : 'Not uploaded'}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Scope of Works:</span>
-                    <span className="font-medium">{sowFiles.length > 0 ? '✓ Uploaded' : 'Not uploaded'}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Construction Items:</span>
-                    <span className="font-medium">{selectedItemIds.length} items selected</span>
-                  </div>
-                  {builderDetails.email && <div className="flex justify-between">
-                      <span className="text-muted-foreground">Builder Email:</span>
-                      <span className="font-medium">{builderDetails.email}</span>
-                    </div>}
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
+              </div>
             </div>}
 
           {/* Navigation Buttons */}
@@ -704,5 +973,6 @@ export const CreateTenderWizard = ({
           </div>
         </div>
       </DialogContent>
-    </Dialog>;
-};
+    </Dialog>
+  );
+}
