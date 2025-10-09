@@ -1,7 +1,29 @@
 import jsPDF from 'jspdf';
 import { Tender } from '@/hooks/useTenders';
 
-export const generateTenderPDF = (tender: Tender) => {
+interface TenderPDFData extends Tender {
+  project_address?: string;
+  client_name?: string;
+  tender_reference_no?: string;
+  contract_type?: string;
+  scope_details?: any;
+  compliance_requirements?: string;
+  contractor_requirements?: string;
+  completion_weeks?: string;
+  environmental_targets?: string;
+  communication_objectives?: string;
+  defect_rate?: string;
+  site_conditions?: any;
+  evaluation_criteria?: string;
+  contact_person?: string;
+  contact_email?: string;
+  contact_phone?: string;
+  clarification_deadline?: string;
+  tender_validity?: string;
+  additional_conditions?: string;
+}
+
+export const generateTenderPDF = (tender: TenderPDFData) => {
   try {
     const doc = new jsPDF('p', 'mm', 'a4');
     const pageWidth = doc.internal.pageSize.width;
@@ -43,45 +65,70 @@ export const generateTenderPDF = (tender: Tender) => {
     
     yPos += 15;
 
-    // Section: Basic Information
+    // Section: Project Information
     doc.setTextColor(0, 0, 0);
     doc.setFontSize(14);
     doc.setFont('helvetica', 'bold');
     doc.setFillColor(240, 240, 240);
     doc.rect(15, yPos - 5, pageWidth - 30, 10, 'F');
-    doc.text('BASIC INFORMATION', 20, yPos);
+    doc.text('PROJECT INFORMATION', 20, yPos);
     yPos += 12;
     
     doc.setFontSize(10);
     doc.setFont('helvetica', 'normal');
     
-    const basicInfo: Array<[string, string]> = [
+    const projectInfo: Array<[string, string]> = [
       ['Issued by:', tender.issued_by_profile?.name || 'Unknown'],
       ['Created:', new Date(tender.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })],
       ['Deadline:', `${new Date(tender.deadline).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })} at ${new Date(tender.deadline).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}`],
     ];
     
+    if (tender.project_address) {
+      projectInfo.push(['Project Address:', tender.project_address]);
+    }
+    
+    if (tender.client_name) {
+      projectInfo.push(['Client Name:', tender.client_name]);
+    }
+    
+    if (tender.tender_reference_no) {
+      projectInfo.push(['Reference No.:', tender.tender_reference_no]);
+    }
+    
     if (tender.budget) {
-      basicInfo.push(['Budget:', `$${tender.budget.toLocaleString()}`]);
+      projectInfo.push(['Budget:', `$${tender.budget.toLocaleString()}`]);
     }
     
     if (tender.estimated_start_date) {
-      basicInfo.push(['Estimated Start:', new Date(tender.estimated_start_date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })]);
+      projectInfo.push(['Estimated Start:', new Date(tender.estimated_start_date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })]);
     }
     
-    basicInfo.push(['Bids Received:', `${tender.bid_count || 0}`]);
+    if (tender.completion_weeks) {
+      projectInfo.push(['Completion Timeline:', `${tender.completion_weeks} weeks`]);
+    }
     
-    basicInfo.forEach(([label, value]) => {
+    if (tender.contract_type) {
+      projectInfo.push(['Contract Type:', tender.contract_type.replace('_', ' ').toUpperCase()]);
+    }
+    
+    projectInfo.push(['Bids Received:', `${tender.bid_count || 0}`]);
+    
+    projectInfo.forEach(([label, value]) => {
+      if (yPos > 270) {
+        doc.addPage();
+        yPos = 20;
+      }
       doc.setFont('helvetica', 'bold');
       doc.text(label, 20, yPos);
       doc.setFont('helvetica', 'normal');
-      doc.text(value, 60, yPos);
-      yPos += 7;
+      const valueLines = doc.splitTextToSize(value, pageWidth - 80);
+      doc.text(valueLines, 70, yPos);
+      yPos += Math.max(7, valueLines.length * 5);
     });
     
     yPos += 5;
 
-    // Section: Description
+    // Section: Project Overview
     if (yPos > 240) {
       doc.addPage();
       yPos = 20;
@@ -91,7 +138,7 @@ export const generateTenderPDF = (tender: Tender) => {
     doc.setFont('helvetica', 'bold');
     doc.setFillColor(240, 240, 240);
     doc.rect(15, yPos - 5, pageWidth - 30, 10, 'F');
-    doc.text('DESCRIPTION', 20, yPos);
+    doc.text('PROJECT OVERVIEW', 20, yPos);
     yPos += 12;
     
     doc.setFontSize(10);
@@ -103,8 +150,101 @@ export const generateTenderPDF = (tender: Tender) => {
     doc.text(descriptionLines, 20, yPos);
     yPos += descriptionLines.length * 5 + 15;
 
-    // Section: Requirements
-    if (tender.requirements && tender.requirements.description) {
+    // Helper function to add scope section
+    const addScopeSection = (title: string, scopeData: any) => {
+      if (!scopeData) return;
+      
+      if (yPos > 240) {
+        doc.addPage();
+        yPos = 20;
+      }
+      
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'bold');
+      doc.setFillColor(245, 245, 245);
+      doc.rect(15, yPos - 4, pageWidth - 30, 8, 'F');
+      doc.text(title, 20, yPos);
+      yPos += 10;
+      
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'normal');
+      
+      const items: string[] = [];
+      Object.entries(scopeData).forEach(([key, value]) => {
+        if (key === 'custom' && value) {
+          // Add custom text separately
+        } else if (value === true) {
+          // Convert camelCase to readable text
+          const readableKey = key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+          items.push(readableKey);
+        }
+      });
+      
+      if (items.length > 0) {
+        items.forEach(item => {
+          if (yPos > 275) {
+            doc.addPage();
+            yPos = 20;
+          }
+          doc.text(`• ${item}`, 22, yPos);
+          yPos += 5;
+        });
+      }
+      
+      if (scopeData.custom) {
+        yPos += 2;
+        doc.setFont('helvetica', 'italic');
+        const customLines = doc.splitTextToSize(scopeData.custom, pageWidth - 50);
+        customLines.forEach((line: string) => {
+          if (yPos > 275) {
+            doc.addPage();
+            yPos = 20;
+          }
+          doc.text(line, 22, yPos);
+          yPos += 5;
+        });
+        doc.setFont('helvetica', 'normal');
+      }
+      
+      yPos += 5;
+    };
+
+    // Section: Project Scope
+    if (tender.scope_details) {
+      if (yPos > 230) {
+        doc.addPage();
+        yPos = 20;
+      }
+      
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'bold');
+      doc.setFillColor(240, 240, 240);
+      doc.rect(15, yPos - 5, pageWidth - 30, 10, 'F');
+      doc.text('PROJECT SCOPE', 20, yPos);
+      yPos += 15;
+
+      if (tender.scope_details.sitePreparation) {
+        addScopeSection('Site Preparation', tender.scope_details.sitePreparation);
+      }
+      if (tender.scope_details.foundations) {
+        addScopeSection('Foundations & Structure', tender.scope_details.foundations);
+      }
+      if (tender.scope_details.buildingEnvelope) {
+        addScopeSection('Building Envelope', tender.scope_details.buildingEnvelope);
+      }
+      if (tender.scope_details.internalWorks) {
+        addScopeSection('Internal Works', tender.scope_details.internalWorks);
+      }
+      if (tender.scope_details.services) {
+        addScopeSection('Services', tender.scope_details.services);
+      }
+      if (tender.scope_details.externalWorks) {
+        addScopeSection('External Works', tender.scope_details.externalWorks);
+      }
+    }
+
+    // Section: Requirements & Compliance
+    if (tender.compliance_requirements || tender.contractor_requirements) {
       if (yPos > 230) {
         doc.addPage();
         yPos = 20;
@@ -117,14 +257,166 @@ export const generateTenderPDF = (tender: Tender) => {
       doc.text('REQUIREMENTS', 20, yPos);
       yPos += 12;
       
+      if (tender.compliance_requirements) {
+        doc.setFontSize(11);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Compliance Requirements:', 20, yPos);
+        yPos += 7;
+        
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'normal');
+        const complianceLines = doc.splitTextToSize(tender.compliance_requirements, pageWidth - 40);
+        complianceLines.forEach((line: string) => {
+          if (yPos > 275) {
+            doc.addPage();
+            yPos = 20;
+          }
+          doc.text(line, 20, yPos);
+          yPos += 5;
+        });
+        yPos += 8;
+      }
+      
+      if (tender.contractor_requirements) {
+        if (yPos > 260) {
+          doc.addPage();
+          yPos = 20;
+        }
+        
+        doc.setFontSize(11);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Contractor Must Provide:', 20, yPos);
+        yPos += 7;
+        
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'normal');
+        const contractorLines = doc.splitTextToSize(tender.contractor_requirements, pageWidth - 40);
+        contractorLines.forEach((line: string) => {
+          if (yPos > 275) {
+            doc.addPage();
+            yPos = 20;
+          }
+          doc.text(line, 20, yPos);
+          yPos += 5;
+        });
+        yPos += 10;
+      }
+    }
+
+    // Section: Project Objectives
+    if (tender.environmental_targets || tender.communication_objectives || tender.defect_rate) {
+      if (yPos > 230) {
+        doc.addPage();
+        yPos = 20;
+      }
+      
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'bold');
+      doc.setFillColor(240, 240, 240);
+      doc.rect(15, yPos - 5, pageWidth - 30, 10, 'F');
+      doc.text('PROJECT OBJECTIVES', 20, yPos);
+      yPos += 12;
+      
       doc.setFontSize(10);
       doc.setFont('helvetica', 'normal');
-      const reqLines = doc.splitTextToSize(tender.requirements.description, pageWidth - 40);
-      doc.setFillColor(250, 250, 250);
-      const reqHeight = reqLines.length * 5 + 10;
-      doc.roundedRect(15, yPos - 5, pageWidth - 30, reqHeight, 2, 2, 'F');
-      doc.text(reqLines, 20, yPos);
-      yPos += reqLines.length * 5 + 15;
+      
+      if (tender.environmental_targets) {
+        doc.setFont('helvetica', 'bold');
+        doc.text('Environmental Targets:', 20, yPos);
+        yPos += 6;
+        doc.setFont('helvetica', 'normal');
+        const envLines = doc.splitTextToSize(tender.environmental_targets, pageWidth - 40);
+        envLines.forEach((line: string) => {
+          if (yPos > 275) {
+            doc.addPage();
+            yPos = 20;
+          }
+          doc.text(line, 20, yPos);
+          yPos += 5;
+        });
+        yPos += 5;
+      }
+      
+      if (tender.communication_objectives) {
+        if (yPos > 260) {
+          doc.addPage();
+          yPos = 20;
+        }
+        doc.setFont('helvetica', 'bold');
+        doc.text('Communication Objectives:', 20, yPos);
+        yPos += 6;
+        doc.setFont('helvetica', 'normal');
+        const commLines = doc.splitTextToSize(tender.communication_objectives, pageWidth - 40);
+        commLines.forEach((line: string) => {
+          if (yPos > 275) {
+            doc.addPage();
+            yPos = 20;
+          }
+          doc.text(line, 20, yPos);
+          yPos += 5;
+        });
+        yPos += 5;
+      }
+      
+      if (tender.defect_rate) {
+        if (yPos > 270) {
+          doc.addPage();
+          yPos = 20;
+        }
+        doc.setFont('helvetica', 'bold');
+        doc.text(`Target Defect Rate:`, 20, yPos);
+        doc.setFont('helvetica', 'normal');
+        doc.text(`Below ${tender.defect_rate}%`, 70, yPos);
+        yPos += 10;
+      }
+    }
+
+    // Section: Site Conditions
+    if (tender.site_conditions) {
+      if (yPos > 220) {
+        doc.addPage();
+        yPos = 20;
+      }
+      
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'bold');
+      doc.setFillColor(240, 240, 240);
+      doc.rect(15, yPos - 5, pageWidth - 30, 10, 'F');
+      doc.text('SITE CONDITIONS', 20, yPos);
+      yPos += 12;
+      
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      
+      const siteInfo: Array<[string, string]> = [];
+      
+      if (tender.site_conditions.soilClassification) {
+        siteInfo.push(['Soil Classification:', tender.site_conditions.soilClassification]);
+      }
+      if (tender.site_conditions.servicesAvailable) {
+        siteInfo.push(['Services Available:', tender.site_conditions.servicesAvailable]);
+      }
+      if (tender.site_conditions.accessDetails) {
+        siteInfo.push(['Site Access:', tender.site_conditions.accessDetails]);
+      }
+      if (tender.site_conditions.workingHours) {
+        siteInfo.push(['Working Hours:', tender.site_conditions.workingHours]);
+      }
+      
+      siteInfo.forEach(([label, value]) => {
+        if (yPos > 270) {
+          doc.addPage();
+          yPos = 20;
+        }
+        doc.setFont('helvetica', 'bold');
+        doc.text(label, 20, yPos);
+        doc.setFont('helvetica', 'normal');
+        const valueLines = doc.splitTextToSize(value, pageWidth - 80);
+        doc.text(valueLines, 70, yPos);
+        yPos += Math.max(7, valueLines.length * 5);
+      });
+      
+      yPos += 5;
     }
 
     // Section: Construction Items Table
@@ -199,6 +491,112 @@ export const generateTenderPDF = (tender: Tender) => {
       yPos += 10;
     }
 
+    // Section: Evaluation Criteria
+    if (tender.evaluation_criteria) {
+      if (yPos > 230) {
+        doc.addPage();
+        yPos = 20;
+      }
+      
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'bold');
+      doc.setFillColor(240, 240, 240);
+      doc.rect(15, yPos - 5, pageWidth - 30, 10, 'F');
+      doc.text('EVALUATION CRITERIA', 20, yPos);
+      yPos += 12;
+      
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      const evalLines = doc.splitTextToSize(tender.evaluation_criteria, pageWidth - 40);
+      evalLines.forEach((line: string) => {
+        if (yPos > 275) {
+          doc.addPage();
+          yPos = 20;
+        }
+        doc.text(line, 20, yPos);
+        yPos += 5;
+      });
+      yPos += 10;
+    }
+
+    // Section: Contact & Deadlines
+    if (tender.contact_person || tender.contact_email || tender.clarification_deadline) {
+      if (yPos > 220) {
+        doc.addPage();
+        yPos = 20;
+      }
+      
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'bold');
+      doc.setFillColor(240, 240, 240);
+      doc.rect(15, yPos - 5, pageWidth - 30, 10, 'F');
+      doc.text('CONTACT & IMPORTANT DATES', 20, yPos);
+      yPos += 12;
+      
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      
+      const contactInfo: Array<[string, string]> = [];
+      
+      if (tender.contact_person) {
+        contactInfo.push(['Contact Person:', tender.contact_person]);
+      }
+      if (tender.contact_email) {
+        contactInfo.push(['Email:', tender.contact_email]);
+      }
+      if (tender.contact_phone) {
+        contactInfo.push(['Phone:', tender.contact_phone]);
+      }
+      if (tender.clarification_deadline) {
+        contactInfo.push(['Clarification Questions Close:', new Date(tender.clarification_deadline).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })]);
+      }
+      if (tender.tender_validity) {
+        contactInfo.push(['Tender Validity:', `${tender.tender_validity} days from closing date`]);
+      }
+      
+      contactInfo.forEach(([label, value]) => {
+        if (yPos > 270) {
+          doc.addPage();
+          yPos = 20;
+        }
+        doc.setFont('helvetica', 'bold');
+        doc.text(label, 20, yPos);
+        doc.setFont('helvetica', 'normal');
+        const valueLines = doc.splitTextToSize(value, pageWidth - 80);
+        doc.text(valueLines, 75, yPos);
+        yPos += Math.max(7, valueLines.length * 5);
+      });
+      yPos += 5;
+    }
+
+    // Section: Additional Conditions
+    if (tender.additional_conditions) {
+      if (yPos > 240) {
+        doc.addPage();
+        yPos = 20;
+      }
+      
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'bold');
+      doc.setFillColor(240, 240, 240);
+      doc.rect(15, yPos - 5, pageWidth - 30, 10, 'F');
+      doc.text('CONDITIONS OF TENDER', 20, yPos);
+      yPos += 12;
+      
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      const conditionsLines = doc.splitTextToSize(tender.additional_conditions, pageWidth - 40);
+      conditionsLines.forEach((line: string) => {
+        if (yPos > 275) {
+          doc.addPage();
+          yPos = 20;
+        }
+        doc.text(line, 20, yPos);
+        yPos += 5;
+      });
+      yPos += 10;
+    }
+
     // Section: Builder Information
     if (tender.builder_company_name) {
       if (yPos > 230) {
@@ -210,7 +608,7 @@ export const generateTenderPDF = (tender: Tender) => {
       doc.setFont('helvetica', 'bold');
       doc.setFillColor(240, 240, 240);
       doc.rect(15, yPos - 5, pageWidth - 30, 10, 'F');
-      doc.text('BUILDER INFORMATION', 20, yPos);
+      doc.text('INVITED BUILDER', 20, yPos);
       yPos += 12;
       
       doc.setFontSize(10);

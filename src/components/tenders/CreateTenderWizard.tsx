@@ -54,13 +54,52 @@ export const CreateTenderWizard = ({
   // Project Scope
   const [message, setMessage] = useState('');
   const [scopeDetails, setScopeDetails] = useState({
-    sitePreparation: '',
-    foundations: '',
-    buildingEnvelope: '',
-    internalWorks: '',
-    services: '',
-    externalWorks: '',
-    compliance: ''
+    sitePreparation: {
+      clearing: false,
+      excavation: false,
+      levelling: false,
+      soilTesting: false,
+      temporaryFencing: false,
+      custom: ''
+    },
+    foundations: {
+      concreteSlab: false,
+      timberFraming: false,
+      structuralSteel: false,
+      custom: ''
+    },
+    buildingEnvelope: {
+      brickVeneer: false,
+      rendering: false,
+      colorbondRoofing: false,
+      insulation: false,
+      custom: ''
+    },
+    internalWorks: {
+      plastering: false,
+      painting: false,
+      flooring: false,
+      kitchenCabinetry: false,
+      bathroomFitout: false,
+      builtInJoinery: false,
+      custom: ''
+    },
+    services: {
+      electrical: false,
+      plumbing: false,
+      gasFitting: false,
+      hvac: false,
+      dataCabling: false,
+      custom: ''
+    },
+    externalWorks: {
+      concreteDriveway: false,
+      pavedPathways: false,
+      turf: false,
+      planting: false,
+      fencing: false,
+      custom: ''
+    }
   });
   
   // Requirements
@@ -318,13 +357,52 @@ export const CreateTenderWizard = ({
     setTenderReferenceNo('');
     setMessage('');
     setScopeDetails({
-      sitePreparation: '',
-      foundations: '',
-      buildingEnvelope: '',
-      internalWorks: '',
-      services: '',
-      externalWorks: '',
-      compliance: ''
+      sitePreparation: {
+        clearing: false,
+        excavation: false,
+        levelling: false,
+        soilTesting: false,
+        temporaryFencing: false,
+        custom: ''
+      },
+      foundations: {
+        concreteSlab: false,
+        timberFraming: false,
+        structuralSteel: false,
+        custom: ''
+      },
+      buildingEnvelope: {
+        brickVeneer: false,
+        rendering: false,
+        colorbondRoofing: false,
+        insulation: false,
+        custom: ''
+      },
+      internalWorks: {
+        plastering: false,
+        painting: false,
+        flooring: false,
+        kitchenCabinetry: false,
+        bathroomFitout: false,
+        builtInJoinery: false,
+        custom: ''
+      },
+      services: {
+        electrical: false,
+        plumbing: false,
+        gasFitting: false,
+        hvac: false,
+        dataCabling: false,
+        custom: ''
+      },
+      externalWorks: {
+        concreteDriveway: false,
+        pavedPathways: false,
+        turf: false,
+        planting: false,
+        fencing: false,
+        custom: ''
+      }
     });
     setContractType('');
     setComplianceRequirements('');
@@ -501,40 +579,212 @@ export const CreateTenderWizard = ({
               <Card className="bg-primary/5">
                 <CardHeader>
                   <CardTitle className="text-base">Project Scope</CardTitle>
-                  <CardDescription>Detailed breakdown of work to be completed</CardDescription>
+                  <CardDescription>Select applicable items and add custom details</CardDescription>
                 </CardHeader>
               </Card>
 
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="sitePreparation">Site Preparation</Label>
-                  <Textarea id="sitePreparation" placeholder="Clearing, excavation, levelling, soil testing, temporary fencing..." value={scopeDetails.sitePreparation} onChange={e => setScopeDetails({...scopeDetails, sitePreparation: e.target.value})} className="min-h-[60px] mt-1" />
-                </div>
+              <div className="space-y-6">
+                {/* Site Preparation */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-sm">Site Preparation</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div className="grid grid-cols-2 gap-3">
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" checked={scopeDetails.sitePreparation.clearing} onChange={e => setScopeDetails({...scopeDetails, sitePreparation: {...scopeDetails.sitePreparation, clearing: e.target.checked}})} className="w-4 h-4" />
+                        <span className="text-sm">Clearing</span>
+                      </label>
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" checked={scopeDetails.sitePreparation.excavation} onChange={e => setScopeDetails({...scopeDetails, sitePreparation: {...scopeDetails.sitePreparation, excavation: e.target.checked}})} className="w-4 h-4" />
+                        <span className="text-sm">Excavation</span>
+                      </label>
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" checked={scopeDetails.sitePreparation.levelling} onChange={e => setScopeDetails({...scopeDetails, sitePreparation: {...scopeDetails.sitePreparation, levelling: e.target.checked}})} className="w-4 h-4" />
+                        <span className="text-sm">Levelling</span>
+                      </label>
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" checked={scopeDetails.sitePreparation.soilTesting} onChange={e => setScopeDetails({...scopeDetails, sitePreparation: {...scopeDetails.sitePreparation, soilTesting: e.target.checked}})} className="w-4 h-4" />
+                        <span className="text-sm">Soil Testing</span>
+                      </label>
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" checked={scopeDetails.sitePreparation.temporaryFencing} onChange={e => setScopeDetails({...scopeDetails, sitePreparation: {...scopeDetails.sitePreparation, temporaryFencing: e.target.checked}})} className="w-4 h-4" />
+                        <span className="text-sm">Temporary Fencing</span>
+                      </label>
+                    </div>
+                    <div>
+                      <Label htmlFor="sitePreparationCustom" className="text-xs">Additional Details</Label>
+                      <Textarea id="sitePreparationCustom" placeholder="Add any custom site preparation details..." value={scopeDetails.sitePreparation.custom} onChange={e => setScopeDetails({...scopeDetails, sitePreparation: {...scopeDetails.sitePreparation, custom: e.target.value}})} className="min-h-[50px] mt-1" />
+                    </div>
+                  </CardContent>
+                </Card>
 
-                <div>
-                  <Label htmlFor="foundations">Foundations & Structure</Label>
-                  <Textarea id="foundations" placeholder="Concrete slab-on-ground, timber framing, structural steel..." value={scopeDetails.foundations} onChange={e => setScopeDetails({...scopeDetails, foundations: e.target.value})} className="min-h-[60px] mt-1" />
-                </div>
+                {/* Foundations */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-sm">Foundations & Structure</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div className="grid grid-cols-2 gap-3">
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" checked={scopeDetails.foundations.concreteSlab} onChange={e => setScopeDetails({...scopeDetails, foundations: {...scopeDetails.foundations, concreteSlab: e.target.checked}})} className="w-4 h-4" />
+                        <span className="text-sm">Concrete Slab</span>
+                      </label>
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" checked={scopeDetails.foundations.timberFraming} onChange={e => setScopeDetails({...scopeDetails, foundations: {...scopeDetails.foundations, timberFraming: e.target.checked}})} className="w-4 h-4" />
+                        <span className="text-sm">Timber Framing</span>
+                      </label>
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" checked={scopeDetails.foundations.structuralSteel} onChange={e => setScopeDetails({...scopeDetails, foundations: {...scopeDetails.foundations, structuralSteel: e.target.checked}})} className="w-4 h-4" />
+                        <span className="text-sm">Structural Steel</span>
+                      </label>
+                    </div>
+                    <div>
+                      <Label htmlFor="foundationsCustom" className="text-xs">Additional Details</Label>
+                      <Textarea id="foundationsCustom" placeholder="Add any custom foundation details..." value={scopeDetails.foundations.custom} onChange={e => setScopeDetails({...scopeDetails, foundations: {...scopeDetails.foundations, custom: e.target.value}})} className="min-h-[50px] mt-1" />
+                    </div>
+                  </CardContent>
+                </Card>
 
-                <div>
-                  <Label htmlFor="buildingEnvelope">Building Envelope</Label>
-                  <Textarea id="buildingEnvelope" placeholder="Brick veneer, rendered façade, roofing, insulation..." value={scopeDetails.buildingEnvelope} onChange={e => setScopeDetails({...scopeDetails, buildingEnvelope: e.target.value})} className="min-h-[60px] mt-1" />
-                </div>
+                {/* Building Envelope */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-sm">Building Envelope</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div className="grid grid-cols-2 gap-3">
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" checked={scopeDetails.buildingEnvelope.brickVeneer} onChange={e => setScopeDetails({...scopeDetails, buildingEnvelope: {...scopeDetails.buildingEnvelope, brickVeneer: e.target.checked}})} className="w-4 h-4" />
+                        <span className="text-sm">Brick Veneer</span>
+                      </label>
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" checked={scopeDetails.buildingEnvelope.rendering} onChange={e => setScopeDetails({...scopeDetails, buildingEnvelope: {...scopeDetails.buildingEnvelope, rendering: e.target.checked}})} className="w-4 h-4" />
+                        <span className="text-sm">Rendering</span>
+                      </label>
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" checked={scopeDetails.buildingEnvelope.colorbondRoofing} onChange={e => setScopeDetails({...scopeDetails, buildingEnvelope: {...scopeDetails.buildingEnvelope, colorbondRoofing: e.target.checked}})} className="w-4 h-4" />
+                        <span className="text-sm">Colorbond Roofing</span>
+                      </label>
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" checked={scopeDetails.buildingEnvelope.insulation} onChange={e => setScopeDetails({...scopeDetails, buildingEnvelope: {...scopeDetails.buildingEnvelope, insulation: e.target.checked}})} className="w-4 h-4" />
+                        <span className="text-sm">Insulation</span>
+                      </label>
+                    </div>
+                    <div>
+                      <Label htmlFor="buildingEnvelopeCustom" className="text-xs">Additional Details</Label>
+                      <Textarea id="buildingEnvelopeCustom" placeholder="Add any custom building envelope details..." value={scopeDetails.buildingEnvelope.custom} onChange={e => setScopeDetails({...scopeDetails, buildingEnvelope: {...scopeDetails.buildingEnvelope, custom: e.target.value}})} className="min-h-[50px] mt-1" />
+                    </div>
+                  </CardContent>
+                </Card>
 
-                <div>
-                  <Label htmlFor="internalWorks">Internal Works</Label>
-                  <Textarea id="internalWorks" placeholder="Kitchen, bathrooms, flooring, built-in joinery..." value={scopeDetails.internalWorks} onChange={e => setScopeDetails({...scopeDetails, internalWorks: e.target.value})} className="min-h-[60px] mt-1" />
-                </div>
+                {/* Internal Works */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-sm">Internal Works</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div className="grid grid-cols-2 gap-3">
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" checked={scopeDetails.internalWorks.plastering} onChange={e => setScopeDetails({...scopeDetails, internalWorks: {...scopeDetails.internalWorks, plastering: e.target.checked}})} className="w-4 h-4" />
+                        <span className="text-sm">Plastering</span>
+                      </label>
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" checked={scopeDetails.internalWorks.painting} onChange={e => setScopeDetails({...scopeDetails, internalWorks: {...scopeDetails.internalWorks, painting: e.target.checked}})} className="w-4 h-4" />
+                        <span className="text-sm">Painting</span>
+                      </label>
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" checked={scopeDetails.internalWorks.flooring} onChange={e => setScopeDetails({...scopeDetails, internalWorks: {...scopeDetails.internalWorks, flooring: e.target.checked}})} className="w-4 h-4" />
+                        <span className="text-sm">Flooring</span>
+                      </label>
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" checked={scopeDetails.internalWorks.kitchenCabinetry} onChange={e => setScopeDetails({...scopeDetails, internalWorks: {...scopeDetails.internalWorks, kitchenCabinetry: e.target.checked}})} className="w-4 h-4" />
+                        <span className="text-sm">Kitchen Cabinetry</span>
+                      </label>
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" checked={scopeDetails.internalWorks.bathroomFitout} onChange={e => setScopeDetails({...scopeDetails, internalWorks: {...scopeDetails.internalWorks, bathroomFitout: e.target.checked}})} className="w-4 h-4" />
+                        <span className="text-sm">Bathroom Fitout</span>
+                      </label>
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" checked={scopeDetails.internalWorks.builtInJoinery} onChange={e => setScopeDetails({...scopeDetails, internalWorks: {...scopeDetails.internalWorks, builtInJoinery: e.target.checked}})} className="w-4 h-4" />
+                        <span className="text-sm">Built-in Joinery</span>
+                      </label>
+                    </div>
+                    <div>
+                      <Label htmlFor="internalWorksCustom" className="text-xs">Additional Details</Label>
+                      <Textarea id="internalWorksCustom" placeholder="Add any custom internal works details..." value={scopeDetails.internalWorks.custom} onChange={e => setScopeDetails({...scopeDetails, internalWorks: {...scopeDetails.internalWorks, custom: e.target.value}})} className="min-h-[50px] mt-1" />
+                    </div>
+                  </CardContent>
+                </Card>
 
-                <div>
-                  <Label htmlFor="services">Services</Label>
-                  <Textarea id="services" placeholder="Electrical, plumbing, HVAC installations..." value={scopeDetails.services} onChange={e => setScopeDetails({...scopeDetails, services: e.target.value})} className="min-h-[60px] mt-1" />
-                </div>
+                {/* Services */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-sm">Services</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div className="grid grid-cols-2 gap-3">
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" checked={scopeDetails.services.electrical} onChange={e => setScopeDetails({...scopeDetails, services: {...scopeDetails.services, electrical: e.target.checked}})} className="w-4 h-4" />
+                        <span className="text-sm">Electrical</span>
+                      </label>
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" checked={scopeDetails.services.plumbing} onChange={e => setScopeDetails({...scopeDetails, services: {...scopeDetails.services, plumbing: e.target.checked}})} className="w-4 h-4" />
+                        <span className="text-sm">Plumbing</span>
+                      </label>
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" checked={scopeDetails.services.gasFitting} onChange={e => setScopeDetails({...scopeDetails, services: {...scopeDetails.services, gasFitting: e.target.checked}})} className="w-4 h-4" />
+                        <span className="text-sm">Gas Fitting</span>
+                      </label>
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" checked={scopeDetails.services.hvac} onChange={e => setScopeDetails({...scopeDetails, services: {...scopeDetails.services, hvac: e.target.checked}})} className="w-4 h-4" />
+                        <span className="text-sm">HVAC</span>
+                      </label>
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" checked={scopeDetails.services.dataCabling} onChange={e => setScopeDetails({...scopeDetails, services: {...scopeDetails.services, dataCabling: e.target.checked}})} className="w-4 h-4" />
+                        <span className="text-sm">Data Cabling</span>
+                      </label>
+                    </div>
+                    <div>
+                      <Label htmlFor="servicesCustom" className="text-xs">Additional Details</Label>
+                      <Textarea id="servicesCustom" placeholder="Add any custom services details..." value={scopeDetails.services.custom} onChange={e => setScopeDetails({...scopeDetails, services: {...scopeDetails.services, custom: e.target.value}})} className="min-h-[50px] mt-1" />
+                    </div>
+                  </CardContent>
+                </Card>
 
-                <div>
-                  <Label htmlFor="externalWorks">External Works</Label>
-                  <Textarea id="externalWorks" placeholder="Landscaping, driveway, fencing..." value={scopeDetails.externalWorks} onChange={e => setScopeDetails({...scopeDetails, externalWorks: e.target.value})} className="min-h-[60px] mt-1" />
-                </div>
+                {/* External Works */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-sm">External Works</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div className="grid grid-cols-2 gap-3">
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" checked={scopeDetails.externalWorks.concreteDriveway} onChange={e => setScopeDetails({...scopeDetails, externalWorks: {...scopeDetails.externalWorks, concreteDriveway: e.target.checked}})} className="w-4 h-4" />
+                        <span className="text-sm">Concrete Driveway</span>
+                      </label>
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" checked={scopeDetails.externalWorks.pavedPathways} onChange={e => setScopeDetails({...scopeDetails, externalWorks: {...scopeDetails.externalWorks, pavedPathways: e.target.checked}})} className="w-4 h-4" />
+                        <span className="text-sm">Paved Pathways</span>
+                      </label>
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" checked={scopeDetails.externalWorks.turf} onChange={e => setScopeDetails({...scopeDetails, externalWorks: {...scopeDetails.externalWorks, turf: e.target.checked}})} className="w-4 h-4" />
+                        <span className="text-sm">Turf</span>
+                      </label>
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" checked={scopeDetails.externalWorks.planting} onChange={e => setScopeDetails({...scopeDetails, externalWorks: {...scopeDetails.externalWorks, planting: e.target.checked}})} className="w-4 h-4" />
+                        <span className="text-sm">Planting</span>
+                      </label>
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" checked={scopeDetails.externalWorks.fencing} onChange={e => setScopeDetails({...scopeDetails, externalWorks: {...scopeDetails.externalWorks, fencing: e.target.checked}})} className="w-4 h-4" />
+                        <span className="text-sm">Fencing</span>
+                      </label>
+                    </div>
+                    <div>
+                      <Label htmlFor="externalWorksCustom" className="text-xs">Additional Details</Label>
+                      <Textarea id="externalWorksCustom" placeholder="Add any custom external works details..." value={scopeDetails.externalWorks.custom} onChange={e => setScopeDetails({...scopeDetails, externalWorks: {...scopeDetails.externalWorks, custom: e.target.value}})} className="min-h-[50px] mt-1" />
+                    </div>
+                  </CardContent>
+                </Card>
               </div>
             </div>}
 
