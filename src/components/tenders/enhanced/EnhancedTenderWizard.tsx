@@ -328,7 +328,7 @@ export const EnhancedTenderWizard = ({ open, onOpenChange, projectId }: Enhanced
   const handleSubmit = async () => {
     setLoading(true);
     try {
-      // Compile all tender data
+      // Compile all tender data (omit non-existent DB columns like contract_type)
       const tenderData = {
         project_id: projectId,
         title,
@@ -336,7 +336,6 @@ export const EnhancedTenderWizard = ({ open, onOpenChange, projectId }: Enhanced
         deadline: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
         estimated_start_date: estimatedStartDate || undefined,
         budget: budget ? parseFloat(budget) : undefined,
-        contract_type: contractType,
         requirements: {
           compliance: selectedCompliance,
           contractor: selectedContractorReqs,
@@ -371,13 +370,16 @@ export const EnhancedTenderWizard = ({ open, onOpenChange, projectId }: Enhanced
         }
       };
 
-      await createTender(tenderData);
-      
+      const created = await createTender(tenderData);
+      if (!created) {
+        throw new Error('Tender could not be saved. Please review required fields and try again.');
+      }
+
       toast({
         title: "Tender created successfully",
         description: "Your tender package is ready"
       });
-      
+
       onOpenChange(false);
     } catch (error: any) {
       toast({

@@ -157,17 +157,38 @@ export const useTenders = (projectId?: string) => {
     builder_email?: string;
     is_ready_for_tender?: boolean;
     documents?: any[];
+    requirements?: any;
+    budget?: number;
   }) => {
     if (!user) return null;
 
     try {
+      // Only insert known columns to avoid PostgREST schema errors
+      const payload = {
+        project_id: tenderData.project_id,
+        title: tenderData.title,
+        description: tenderData.description,
+        estimated_start_date: tenderData.estimated_start_date,
+        deadline: tenderData.deadline,
+        tender_specification_path: tenderData.tender_specification_path,
+        scope_of_works_path: tenderData.scope_of_works_path,
+        construction_items: tenderData.construction_items,
+        builder_company_name: tenderData.builder_company_name,
+        builder_address: tenderData.builder_address,
+        builder_phone: tenderData.builder_phone,
+        builder_contact_person: tenderData.builder_contact_person,
+        builder_email: tenderData.builder_email,
+        is_ready_for_tender: tenderData.is_ready_for_tender,
+        documents: tenderData.documents,
+        requirements: tenderData.requirements,
+        budget: tenderData.budget,
+        issued_by: user.id,
+        status: 'draft' as const,
+      } as const;
+
       const { data, error } = await supabase
         .from('tenders')
-        .insert({
-          ...tenderData,
-          issued_by: user.id,
-          status: 'draft',
-        })
+        .insert(payload as any)
         .select()
         .single();
 
@@ -176,7 +197,7 @@ export const useTenders = (projectId?: string) => {
       // Log activity for tender creation
       await supabase
         .from('activity_log')
-        .insert([{
+        .insert([{ 
           user_id: user.id,
           project_id: tenderData.project_id,
           entity_type: 'tender',
