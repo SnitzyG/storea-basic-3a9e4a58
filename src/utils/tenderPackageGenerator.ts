@@ -1,6 +1,6 @@
 import jsPDF from 'jspdf';
 import { Tender } from '@/hooks/useTenders';
-import { generateProfessionalQuoteTemplate } from './tenderExportUtils';
+
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
 
@@ -59,13 +59,13 @@ const generateTenderPDF = async (tender: Tender): Promise<Blob> => {
     doc.setFillColor(241, 245, 249); // gray-100
     doc.rect(marginLeft - 5, yPos - 2, contentWidth + 10, 10, 'F');
     
-    doc.setTextColor(...primaryColor);
+    doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
     doc.setFontSize(12);
     doc.setFont('helvetica', 'bold');
     doc.text(title, marginLeft, yPos + 5);
     
     yPos += 15;
-    doc.setTextColor(...textColor);
+    doc.setTextColor(textColor[0], textColor[1], textColor[2]);
     doc.setFont('helvetica', 'normal');
   };
 
@@ -77,10 +77,10 @@ const generateTenderPDF = async (tender: Tender): Promise<Blob> => {
     }
     
     doc.setFontSize(9);
-    doc.setTextColor(...mutedColor);
+    doc.setTextColor(mutedColor[0], mutedColor[1], mutedColor[2]);
     doc.text(label + ':', marginLeft, yPos);
     
-    doc.setTextColor(...textColor);
+    doc.setTextColor(textColor[0], textColor[1], textColor[2]);
     doc.setFontSize(10);
     
     if (isMultiline) {
@@ -94,7 +94,7 @@ const generateTenderPDF = async (tender: Tender): Promise<Blob> => {
   };
 
   // Header with colored background (RFI-style)
-  doc.setFillColor(...primaryColor);
+  doc.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2]);
   doc.rect(0, 0, pageWidth, 45, 'F');
   
   doc.setTextColor(255, 255, 255);
@@ -153,7 +153,7 @@ const generateTenderPDF = async (tender: Tender): Promise<Blob> => {
       
       doc.setFontSize(10);
       doc.setFont('helvetica', 'bold');
-      doc.setTextColor(...textColor);
+      doc.setTextColor(textColor[0], textColor[1], textColor[2]);
       doc.text(subtitle, marginLeft, yPos);
       yPos += 6;
       
@@ -279,7 +279,7 @@ const generateTenderPDF = async (tender: Tender): Promise<Blob> => {
     
     doc.setFontSize(9);
     doc.setFont('helvetica', 'bold');
-    doc.setTextColor(...primaryColor);
+    doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
     doc.text('STOREALite', 15, pageHeight - 10);
     
     doc.setFont('helvetica', 'normal');

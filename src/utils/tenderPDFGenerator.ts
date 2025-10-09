@@ -38,7 +38,7 @@ export const generateTenderPDF = (tender: TenderPDFData) => {
     const accentColor: [number, number, number] = [16, 185, 129]; // Green
 
     // Header with colored background
-    doc.setFillColor(...primaryColor);
+    doc.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2]);
     doc.rect(0, 0, pageWidth, 40, 'F');
     
     // Title
@@ -61,7 +61,7 @@ export const generateTenderPDF = (tender: TenderPDFData) => {
                        tender.status === 'closed' ? [251, 146, 60] as [number, number, number] :
                        tender.status === 'awarded' ? [59, 130, 246] as [number, number, number] :
                        [156, 163, 175] as [number, number, number];
-    doc.setFillColor(...statusColor);
+    doc.setFillColor(statusColor[0], statusColor[1], statusColor[2]);
     doc.roundedRect(15, yPos - 4, 40, 8, 2, 2, 'F');
     doc.setTextColor(255, 255, 255);
     doc.text(tender.status.toUpperCase(), 20, yPos + 1);
@@ -442,7 +442,7 @@ export const generateTenderPDF = (tender: TenderPDFData) => {
       let xPos = 15;
       
       // Draw header
-      doc.setFillColor(...primaryColor);
+      doc.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2]);
       doc.rect(15, yPos - 6, pageWidth - 30, 8, 'F');
       doc.setTextColor(255, 255, 255);
       doc.setFontSize(8);
@@ -669,7 +669,7 @@ export const generateTenderPDF = (tender: TenderPDFData) => {
       // Branding
       doc.setFontSize(9);
       doc.setFont('helvetica', 'bold');
-      doc.setTextColor(...primaryColor);
+      doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
       doc.text('STOREALite', 15, pageHeight - 10);
       
       doc.setFont('helvetica', 'normal');
