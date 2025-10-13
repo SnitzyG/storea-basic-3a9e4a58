@@ -11,7 +11,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useTenders } from '@/hooks/useTenders';
-import { ChevronLeft, ChevronRight, FileDown } from 'lucide-react';
+import { useDocuments } from '@/hooks/useDocuments';
+import { ChevronLeft, ChevronRight, FileDown, FileText, X } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 
 // Comprehensive scope items organized by category
 const SCOPE_ITEMS = {
@@ -202,8 +204,12 @@ export const EnhancedTenderWizard = ({ open, onOpenChange, projectId, existingTe
 
   // Step 9 - Attachments
   const [attachments, setAttachments] = useState<File[]>([]);
+  const [selectedDocuments, setSelectedDocuments] = useState<string[]>([]);
+  const [showDocumentPicker, setShowDocumentPicker] = useState(false);
 
   const [loading, setLoading] = useState(false);
+  
+  const { documents } = useDocuments(projectId);
 
   // Fetch project data and auto-populate
   useEffect(() => {
@@ -373,6 +379,27 @@ export const EnhancedTenderWizard = ({ open, onOpenChange, projectId, existingTe
     );
   };
 
+  const toggleAllInCategory = (category: string) => {
+    const categoryItems = SCOPE_ITEMS[category as keyof typeof SCOPE_ITEMS];
+    const currentItems = selectedScope[category] || [];
+    const allSelected = currentItems.length === categoryItems.length;
+    
+    setSelectedScope(prev => ({
+      ...prev,
+      [category]: allSelected ? [] : [...categoryItems]
+    }));
+  };
+
+  const toggleAllCompliance = () => {
+    const allSelected = selectedCompliance.length === COMPLIANCE_ITEMS.length;
+    setSelectedCompliance(allSelected ? [] : [...COMPLIANCE_ITEMS]);
+  };
+
+  const toggleAllContractorReqs = () => {
+    const allSelected = selectedContractorReqs.length === CONTRACTOR_REQUIREMENTS.length;
+    setSelectedContractorReqs(allSelected ? [] : [...CONTRACTOR_REQUIREMENTS]);
+  };
+
   const handleSubmit = async () => {
     setLoading(true);
     try {
@@ -492,29 +519,42 @@ export const EnhancedTenderWizard = ({ open, onOpenChange, projectId, existingTe
         // Step 2: Project Scope (comprehensive checkboxes)
         return (
           <div className="space-y-6">
-            {Object.entries(SCOPE_ITEMS).map(([category, items]) => (
-              <Card key={category}>
-                <CardHeader>
-                  <CardTitle className="text-lg capitalize">
-                    {category.replace(/([A-Z])/g, ' $1').trim()}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-2">
-                  {items.map((item) => (
-                    <div key={item} className="flex items-center space-x-2">
-                      <Checkbox
-                        id={`${category}-${item}`}
-                        checked={selectedScope[category]?.includes(item) || false}
-                        onCheckedChange={() => toggleScopeItem(category, item)}
-                      />
-                      <Label htmlFor={`${category}-${item}`} className="font-normal cursor-pointer">
-                        {item}
-                      </Label>
-                    </div>
-                  ))}
-                </CardContent>
-              </Card>
-            ))}
+            {Object.entries(SCOPE_ITEMS).map(([category, items]) => {
+              const categoryItems = selectedScope[category] || [];
+              const allSelected = categoryItems.length === items.length;
+              
+              return (
+                <Card key={category}>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+                    <CardTitle className="text-lg capitalize">
+                      {category.replace(/([A-Z])/g, ' $1').trim()}
+                    </CardTitle>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => toggleAllInCategory(category)}
+                    >
+                      {allSelected ? 'Deselect All' : 'Select All'}
+                    </Button>
+                  </CardHeader>
+                  <CardContent className="space-y-2">
+                    {items.map((item) => (
+                      <div key={item} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`${category}-${item}`}
+                          checked={selectedScope[category]?.includes(item) || false}
+                          onCheckedChange={() => toggleScopeItem(category, item)}
+                        />
+                        <Label htmlFor={`${category}-${item}`} className="font-normal cursor-pointer">
+                          {item}
+                        </Label>
+                      </div>
+                    ))}
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
         );
 
@@ -539,8 +579,16 @@ export const EnhancedTenderWizard = ({ open, onOpenChange, projectId, existingTe
             </div>
 
             <Card>
-              <CardHeader>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
                 <CardTitle>Compliance Requirements</CardTitle>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={toggleAllCompliance}
+                >
+                  {selectedCompliance.length === COMPLIANCE_ITEMS.length ? 'Deselect All' : 'Select All'}
+                </Button>
               </CardHeader>
               <CardContent className="space-y-2">
                 {COMPLIANCE_ITEMS.map((item) => (
@@ -559,8 +607,16 @@ export const EnhancedTenderWizard = ({ open, onOpenChange, projectId, existingTe
             </Card>
 
             <Card>
-              <CardHeader>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
                 <CardTitle>Contractor Must Provide</CardTitle>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={toggleAllContractorReqs}
+                >
+                  {selectedContractorReqs.length === CONTRACTOR_REQUIREMENTS.length ? 'Deselect All' : 'Select All'}
+                </Button>
               </CardHeader>
               <CardContent className="space-y-2">
                 {CONTRACTOR_REQUIREMENTS.map((item) => (
@@ -584,25 +640,14 @@ export const EnhancedTenderWizard = ({ open, onOpenChange, projectId, existingTe
         // Step 4: Budget & Timeline
         return (
           <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label>Budget (AUD)</Label>
-                <Input 
-                  type="number" 
-                  value={budget} 
-                  onChange={(e) => setBudget(e.target.value)}
-                  placeholder="780000"
-                />
-              </div>
-              <div>
-                <Label>Defect Rate Target (%)</Label>
-                <Input 
-                  type="number" 
-                  value={defectRate} 
-                  onChange={(e) => setDefectRate(e.target.value)}
-                  placeholder="1"
-                />
-              </div>
+            <div>
+              <Label>Budget (AUD)</Label>
+              <Input 
+                type="number" 
+                value={budget} 
+                onChange={(e) => setBudget(e.target.value)}
+                placeholder="780000"
+              />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -903,23 +948,93 @@ export const EnhancedTenderWizard = ({ open, onOpenChange, projectId, existingTe
               </CardContent>
             </Card>
 
-            <div>
-              <Label>Supporting Documents (Optional)</Label>
-              <Input
-                type="file"
-                multiple
-                onChange={(e) => {
-                  if (e.target.files) {
-                    setAttachments(Array.from(e.target.files));
-                  }
-                }}
-                accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
-              />
-              {attachments.length > 0 && (
-                <p className="text-sm text-muted-foreground mt-2">
-                  {attachments.length} file(s) selected
-                </p>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <Label>Supporting Documents</Label>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowDocumentPicker(!showDocumentPicker)}
+                >
+                  <FileText className="h-4 w-4 mr-2" />
+                  {showDocumentPicker ? 'Hide' : 'Select from'} Document Register
+                </Button>
+              </div>
+
+              {showDocumentPicker && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-base">Available Documents</CardTitle>
+                  </CardHeader>
+                  <CardContent className="max-h-64 overflow-y-auto space-y-2">
+                    {documents.length === 0 ? (
+                      <p className="text-sm text-muted-foreground">No documents available in the register</p>
+                    ) : (
+                      documents.map((doc) => (
+                        <div key={doc.id} className="flex items-center space-x-2">
+                          <Checkbox
+                            id={`doc-${doc.id}`}
+                            checked={selectedDocuments.includes(doc.id)}
+                            onCheckedChange={(checked) => {
+                              setSelectedDocuments(prev =>
+                                checked
+                                  ? [...prev, doc.id]
+                                  : prev.filter(id => id !== doc.id)
+                              );
+                            }}
+                          />
+                          <Label htmlFor={`doc-${doc.id}`} className="font-normal cursor-pointer flex-1">
+                            {doc.name}
+                          </Label>
+                          <Badge variant="outline" className="text-xs">
+                            {doc.category || doc.file_extension}
+                          </Badge>
+                        </div>
+                      ))
+                    )}
+                  </CardContent>
+                </Card>
               )}
+
+              {selectedDocuments.length > 0 && (
+                <div className="space-y-2">
+                  <p className="text-sm font-medium">Selected Documents ({selectedDocuments.length})</p>
+                  <div className="flex flex-wrap gap-2">
+                    {selectedDocuments.map((docId) => {
+                      const doc = documents.find(d => d.id === docId);
+                      return doc ? (
+                        <Badge key={docId} variant="secondary" className="flex items-center gap-1">
+                          {doc.name}
+                          <X
+                            className="h-3 w-3 cursor-pointer"
+                            onClick={() => setSelectedDocuments(prev => prev.filter(id => id !== docId))}
+                          />
+                        </Badge>
+                      ) : null;
+                    })}
+                  </div>
+                </div>
+              )}
+
+              <div>
+                <Label>Upload New Documents (Optional)</Label>
+                <Input
+                  type="file"
+                  multiple
+                  onChange={(e) => {
+                    if (e.target.files) {
+                      setAttachments(Array.from(e.target.files));
+                    }
+                  }}
+                  accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+                />
+                {attachments.length > 0 && (
+                  <p className="text-sm text-muted-foreground mt-2">
+                    {attachments.length} file(s) selected
+                  </p>
+                )}
+              </div>
             </div>
           </div>
         );
