@@ -142,7 +142,7 @@ interface EnhancedTenderWizardProps {
 
 export const EnhancedTenderWizard = ({ open, onOpenChange, projectId, existingTender }: EnhancedTenderWizardProps) => {
   const [step, setStep] = useState(1);
-  const totalSteps = 10;
+  const totalSteps = 9; // Reduced from 10 to 9 (removed Risk Assessment step)
   const { toast } = useToast();
   const { createTender, updateTender } = useTenders();
 
@@ -168,6 +168,7 @@ export const EnhancedTenderWizard = ({ open, onOpenChange, projectId, existingTe
   });
 
   // Step 3 - Contract & Compliance (checkboxes)
+  const [tenderType, setTenderType] = useState<'open' | 'selective' | 'negotiated'>('open');
   const [contractType, setContractType] = useState('lump_sum');
   const [selectedCompliance, setSelectedCompliance] = useState<string[]>([]);
   const [selectedContractorReqs, setSelectedContractorReqs] = useState<string[]>([]);
@@ -177,7 +178,6 @@ export const EnhancedTenderWizard = ({ open, onOpenChange, projectId, existingTe
   const [estimatedStartDate, setEstimatedStartDate] = useState('');
   const [completionWeeks, setCompletionWeeks] = useState('36');
   const [completionDate, setCompletionDate] = useState('');
-  const [defectRate, setDefectRate] = useState('1');
 
   // Step 5 - Environmental Targets
   const [selectedEnvironmental, setSelectedEnvironmental] = useState<string[]>([]);
@@ -195,14 +195,7 @@ export const EnhancedTenderWizard = ({ open, onOpenChange, projectId, existingTe
   const [existingServices, setExistingServices] = useState<string[]>([]);
   const [neighboringStructures, setNeighboringStructures] = useState('');
 
-  // Step 8 - Risk Assessment
-  const [identifiedRisks, setIdentifiedRisks] = useState('');
-  const [safetyMeasures, setSafetyMeasures] = useState('');
-  const [insuranceCoverage, setInsuranceCoverage] = useState('');
-  const [contingencyPlanning, setContingencyPlanning] = useState('');
-  const [riskSeverity, setRiskSeverity] = useState('medium');
-
-  // Step 9 - Attachments
+  // Step 8 - Attachments (was Step 9)
   const [attachments, setAttachments] = useState<File[]>([]);
   const [selectedDocuments, setSelectedDocuments] = useState<string[]>([]);
   const [showDocumentPicker, setShowDocumentPicker] = useState(false);
@@ -232,11 +225,11 @@ export const EnhancedTenderWizard = ({ open, onOpenChange, projectId, existingTe
       setSelectedEnvironmental(reqs.environmental || []);
       setSelectedCommunication(reqs.communication || []);
       setSelectedScope(reqs.scope || {});
+      setTenderType(existingTender.tender_type || 'open');
       
       if (reqs.timeline) {
         setCompletionWeeks(reqs.timeline.completion_weeks || '36');
         setCompletionDate(reqs.timeline.completion_date || '');
-        setDefectRate(reqs.timeline.defect_rate || '1');
       }
       
       if (reqs.site_conditions) {
@@ -245,14 +238,6 @@ export const EnhancedTenderWizard = ({ open, onOpenChange, projectId, existingTe
         setVegetationDemolition(reqs.site_conditions.vegetation_demolition || '');
         setExistingServices(reqs.site_conditions.existing_services || []);
         setNeighboringStructures(reqs.site_conditions.neighboring_structures || '');
-      }
-      
-      if (reqs.risk_assessment) {
-        setIdentifiedRisks(reqs.risk_assessment.identified_risks || '');
-        setSafetyMeasures(reqs.risk_assessment.safety_measures || '');
-        setInsuranceCoverage(reqs.risk_assessment.insurance_coverage || '');
-        setContingencyPlanning(reqs.risk_assessment.contingency_planning || '');
-        setRiskSeverity(reqs.risk_assessment.risk_severity || 'medium');
       }
       
       if (reqs.communication_details) {
@@ -411,6 +396,8 @@ export const EnhancedTenderWizard = ({ open, onOpenChange, projectId, existingTe
         deadline: existingTender?.deadline || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
         estimated_start_date: estimatedStartDate || undefined,
         budget: budget ? parseFloat(budget) : undefined,
+        tender_type: tenderType,
+        status: existingTender ? existingTender.status : 'draft',
         requirements: {
           compliance: selectedCompliance,
           contractor: selectedContractorReqs,
@@ -420,8 +407,7 @@ export const EnhancedTenderWizard = ({ open, onOpenChange, projectId, existingTe
           timeline: {
             start_date: estimatedStartDate,
             completion_weeks: completionWeeks,
-            completion_date: completionDate,
-            defect_rate: defectRate
+            completion_date: completionDate
           },
           site_conditions: {
             access: siteAccess,
@@ -429,13 +415,6 @@ export const EnhancedTenderWizard = ({ open, onOpenChange, projectId, existingTe
             vegetation_demolition: vegetationDemolition,
             existing_services: existingServices,
             neighboring_structures: neighboringStructures
-          },
-          risk_assessment: {
-            identified_risks: identifiedRisks,
-            safety_measures: safetyMeasures,
-            insurance_coverage: insuranceCoverage,
-            contingency_planning: contingencyPlanning,
-            risk_severity: riskSeverity
           },
           communication_details: {
             reporting_frequency: reportingFrequency,
@@ -853,66 +832,6 @@ export const EnhancedTenderWizard = ({ open, onOpenChange, projectId, existingTe
         );
 
       case 8:
-        // Step 8: Risk Assessment
-        return (
-          <div className="space-y-4">
-            <div>
-              <Label>Identified Project Risks</Label>
-              <Textarea
-                value={identifiedRisks}
-                onChange={(e) => setIdentifiedRisks(e.target.value)}
-                placeholder="List potential risks (weather delays, material shortages, site conditions, etc.)"
-                rows={4}
-              />
-            </div>
-
-            <div>
-              <Label>Safety Measures Planned</Label>
-              <Textarea
-                value={safetyMeasures}
-                onChange={(e) => setSafetyMeasures(e.target.value)}
-                placeholder="Describe safety protocols, site security, PPE requirements, etc."
-                rows={4}
-              />
-            </div>
-
-            <div>
-              <Label>Insurance Coverage Summary</Label>
-              <Textarea
-                value={insuranceCoverage}
-                onChange={(e) => setInsuranceCoverage(e.target.value)}
-                placeholder="Detail insurance policies, coverage amounts, policy numbers..."
-                rows={3}
-              />
-            </div>
-
-            <div>
-              <Label>Contingency Planning Details</Label>
-              <Textarea
-                value={contingencyPlanning}
-                onChange={(e) => setContingencyPlanning(e.target.value)}
-                placeholder="Outline backup plans for key risks..."
-                rows={3}
-              />
-            </div>
-
-            <div>
-              <Label>Overall Risk Severity</Label>
-              <Select value={riskSeverity} onValueChange={setRiskSeverity}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="low">Low</SelectItem>
-                  <SelectItem value="medium">Medium</SelectItem>
-                  <SelectItem value="high">High</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-        );
-
-      case 9:
         // Step 9: Review & Attachments
         return (
           <div className="space-y-6">
@@ -1039,8 +958,8 @@ export const EnhancedTenderWizard = ({ open, onOpenChange, projectId, existingTe
           </div>
         );
 
-      case 10:
-        // Step 10: Generate & Export PDF
+      case 9:
+        // Step 9: Generate & Export PDF
         return (
           <div className="space-y-6 text-center">
             <Card>

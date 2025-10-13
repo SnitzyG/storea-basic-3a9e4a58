@@ -2233,6 +2233,7 @@ export type Database = {
           issued_by: string
           message: string | null
           project_id: string
+          published_at: string | null
           requirements: Json | null
           scope_of_works_path: string | null
           status: Database["public"]["Enums"]["tender_status"]
@@ -2269,6 +2270,7 @@ export type Database = {
           issued_by: string
           message?: string | null
           project_id: string
+          published_at?: string | null
           requirements?: Json | null
           scope_of_works_path?: string | null
           status?: Database["public"]["Enums"]["tender_status"]
@@ -2305,6 +2307,7 @@ export type Database = {
           issued_by?: string
           message?: string | null
           project_id?: string
+          published_at?: string | null
           requirements?: Json | null
           scope_of_works_path?: string | null
           status?: Database["public"]["Enums"]["tender_status"]

@@ -25,6 +25,7 @@ import {
 } from 'lucide-react';
 import { EnhancedTender } from '@/hooks/useEnhancedTenders';
 import { formatDistanceToNow } from 'date-fns';
+import { useTenderStatus } from '@/hooks/useTenderStatus';
 
 interface EnhancedTenderCardProps {
   tender: EnhancedTender;
@@ -40,22 +41,6 @@ interface EnhancedTenderCardProps {
   onDiscussion?: (tender: EnhancedTender) => void;
   onEvaluate?: (tender: EnhancedTender) => void;
 }
-
-const statusColors = {
-  draft: 'bg-gray-500/10 text-gray-700 border-gray-500/20',
-  open: 'bg-green-500/10 text-green-700 border-green-500/20',
-  closed: 'bg-yellow-500/10 text-yellow-700 border-yellow-500/20',
-  awarded: 'bg-blue-500/10 text-blue-700 border-blue-500/20',
-  cancelled: 'bg-red-500/10 text-red-700 border-red-500/20',
-};
-
-const statusLabels = {
-  draft: 'Draft',
-  open: 'Open for Bidding',
-  closed: 'Closed',
-  awarded: 'Awarded',
-  cancelled: 'Cancelled',
-};
 
 const typeColors = {
   standard: 'bg-blue-50 text-blue-700',
@@ -79,6 +64,7 @@ export const EnhancedTenderCard = ({
   onEvaluate
 }: EnhancedTenderCardProps) => {
   const [showDetails, setShowDetails] = useState(false);
+  const { getStatusColor, getStatusLabel } = useTenderStatus();
   
   const deadline = new Date(tender.deadline);
   const isExpired = deadline < new Date();
@@ -128,8 +114,8 @@ export const EnhancedTenderCard = ({
               </div>
               
               <div className="flex flex-wrap gap-2 mb-3">
-                <Badge className={statusColors[tender.status]}>
-                  {statusLabels[tender.status]}
+                <Badge className={getStatusColor(tender.status as any)}>
+                  {getStatusLabel(tender.status as any)}
                 </Badge>
                 
                 <Badge variant="outline" className={typeColors[tender.tender_type as keyof typeof typeColors] || 'bg-gray-50 text-gray-700'}>
