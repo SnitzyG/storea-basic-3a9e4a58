@@ -56,8 +56,24 @@ serve(async (req) => {
       },
     });
 
-    if (error || !data?.action_link) {
+    if (error) {
+      const status = (error as any)?.status || (error as any)?.code;
+      if (status === 404 || status === 'user_not_found') {
+        console.warn('Password reset requested for non-existent user. Returning 200 for privacy.');
+        return new Response(
+          JSON.stringify({ success: true }),
+          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
       console.error("Failed to generate recovery link:", error);
+      return new Response(
+        JSON.stringify({ error: "Failed to generate recovery link" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    if (!data?.action_link) {
+      console.error("No action link generated for password reset.");
       return new Response(
         JSON.stringify({ error: "Failed to generate recovery link" }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
