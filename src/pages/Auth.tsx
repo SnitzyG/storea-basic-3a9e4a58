@@ -127,21 +127,26 @@ const Auth = () => {
       toast.error('Please enter your email address');
       return;
     }
+    
+    setIsSubmitting(true);
     try {
-      const {
-        error
-      } = await supabase.auth.resetPasswordForEmail(resetEmail, {
+      const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
         redirectTo: `${window.location.origin}/auth?reset=true`
       });
+      
       if (error) {
-        toast.error(error.message);
+        console.error('Password reset error:', error);
+        toast.error(error.message || 'Failed to send password reset email');
       } else {
-        toast.success('Password reset email sent! Check your inbox and click the link to reset your password.');
+        toast.success('Password reset email sent! Please check your inbox (and spam folder) for the reset link.');
         setShowForgotPassword(false);
         setResetEmail('');
       }
     } catch (error) {
-      toast.error('An unexpected error occurred');
+      console.error('Unexpected error during password reset:', error);
+      toast.error('An unexpected error occurred. Please try again.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
