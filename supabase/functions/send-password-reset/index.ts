@@ -28,9 +28,20 @@ serve(async (req) => {
     const SITE_URL = Deno.env.get("SITE_URL") || "";
     const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
 
+    const origin = req.headers.get("origin") || undefined;
+    const redirectBase = origin || SITE_URL;
+
     if (!SUPABASE_URL || !SERVICE_ROLE_KEY) {
       return new Response(
         JSON.stringify({ error: "Supabase server environment not configured" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    if (!redirectBase) {
+      console.error("Missing redirect base: neither Origin header nor SITE_URL available");
+      return new Response(
+        JSON.stringify({ error: "Password reset redirect URL is not configured" }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -52,35 +63,48 @@ serve(async (req) => {
       type: "recovery",
       email: email.toLowerCase().trim(),
       options: {
-        redirectTo: `${SITE_URL}/auth?reset=true`,
+        redirectTo: `${redirectBase}/auth?reset=true`,
       },
     });
 
-    if (error) {
-      const status = (error as any)?.status || (error as any)?.code;
-      if (status === 404 || status === 'user_not_found') {
-        console.warn('Password reset requested for non-existent user. Returning 200 for privacy.');
+    let actionLink = data?.action_link;
+
+    if (error || !actionLink) {
+      // Fallback without redirectTo if not allowed or not configured
+      console.warn("Primary recovery link generation failed or missing action_link. Falling back without redirect.", { origin, SITE_URL });
+      const { data: data2, error: error2 } = await supabaseAdmin.auth.admin.generateLink({
+        type: "recovery",
+        email: email.toLowerCase().trim(),
+      });
+
+      if (error2) {
+        const status = (error2 as any)?.status || (error2 as any)?.code;
+        if (status === 404 || status === 'user_not_found') {
+          console.warn('Password reset requested for non-existent user. Returning 200 for privacy.');
+          return new Response(
+            JSON.stringify({ success: true }),
+            { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+        console.error("Failed to generate recovery link (fallback):", error2);
         return new Response(
-          JSON.stringify({ success: true }),
-          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          JSON.stringify({ error: "Failed to generate recovery link" }),
+          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
-      console.error("Failed to generate recovery link:", error);
+
+      actionLink = data2?.action_link;
+    }
+
+    if (!actionLink) {
+      console.error("No action link generated for password reset after fallback.");
       return new Response(
         JSON.stringify({ error: "Failed to generate recovery link" }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    if (!data?.action_link) {
-      console.error("No action link generated for password reset.");
-      return new Response(
-        JSON.stringify({ error: "Failed to generate recovery link" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    const resetUrl = data.action_link;
+    const resetUrl = actionLink;
 
     // Send via Resend
     const resend = new Resend(RESEND_API_KEY);

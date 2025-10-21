@@ -58,6 +58,14 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         console.log('Auth state change:', event, session?.user?.email);
         setSession(session);
         setUser(session?.user ?? null);
+
+        // Handle Supabase password recovery deep-link
+        if (event === 'PASSWORD_RECOVERY') {
+          // Defer navigation to avoid blocking callback
+          setTimeout(() => {
+            window.location.href = '/auth?reset=true';
+          }, 0);
+        }
         
         if (session?.user && session.user.email_confirmed_at) {
           setTimeout(() => {
