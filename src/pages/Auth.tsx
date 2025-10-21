@@ -127,18 +127,18 @@ const Auth = () => {
       toast.error('Please enter your email address');
       return;
     }
-    
+
     setIsSubmitting(true);
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
-        redirectTo: `${window.location.origin}/auth?reset=true`
+      const { data, error } = await supabase.functions.invoke('send-password-reset', {
+        body: { email: resetEmail }
       });
-      
+
       if (error) {
-        console.error('Password reset error:', error);
+        console.error('Password reset (edge) error:', error);
         toast.error(error.message || 'Failed to send password reset email');
       } else {
-        toast.success('Password reset email sent! Please check your inbox (and spam folder) for the reset link.');
+        toast.success('Password reset email sent! Please check your inbox (and spam folder).');
         setShowForgotPassword(false);
         setResetEmail('');
       }
