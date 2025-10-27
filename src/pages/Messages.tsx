@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { useMessages } from '@/hooks/useMessages';
@@ -236,33 +236,34 @@ const Messages = () => {
   }
 
   return (
-    <div className="min-h-screen flex flex-col mx-[25px]">
-      {/* Header with Tabs */}
-      <div className="border-b border-border bg-background mb-6">
-        <div className="flex items-center justify-between px-0 py-4">
-          <Tabs defaultValue="messages" className="flex-1">
-            <TabsList className="grid w-[600px] grid-cols-2">
-              <TabsTrigger value="messages" className="flex items-center gap-2">
-                <MessageSquare className="h-4 w-4" />
-                Messages
-              </TabsTrigger>
-              <TabsTrigger value="team" className="flex items-center gap-2">
-                <Users2 className="h-4 w-4" />
-                Team Members
-              </TabsTrigger>
-            </TabsList>
-          </Tabs>
-          <CreateThreadDialog projectId={selectedProject?.id || ''} onCreateThread={handleCreateThread}>
-            <Button size="sm" variant="default">
-              <Plus className="h-4 w-4 mr-2" />
-              Create New Message
-            </Button>
-          </CreateThreadDialog>
-        </div>
+    <div className="space-y-6 mx-[25px]">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div></div>
+        <CreateThreadDialog projectId={selectedProject?.id || ''} onCreateThread={handleCreateThread}>
+          <Button className="bg-primary hover:bg-primary/90">
+            <Plus className="h-4 w-4 mr-2" />
+            Create New Message
+          </Button>
+        </CreateThreadDialog>
       </div>
-      
-      {/* Messages Layout */}
-      <div className="flex-1 flex bg-background">
+
+      {/* Main Content Tabs */}
+      <Tabs defaultValue="messages" className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="messages" className="flex items-center gap-2">
+            <MessageSquare className="h-4 w-4" />
+            Messages
+          </TabsTrigger>
+          <TabsTrigger value="team" className="flex items-center gap-2">
+            <Users2 className="h-4 w-4" />
+            Team Members
+          </TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="messages" className="space-y-6">
+          {/* Messages Layout */}
+          <div className="flex-1 flex bg-background min-h-[calc(100vh-200px)]">
         {/* Main Chat Area */}
         <div className="flex-1 flex flex-col bg-muted/5">
           {currentThread ? (
@@ -444,7 +445,17 @@ const Messages = () => {
             </ScrollArea>
           </div>
         </div>
-      </div>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="team" className="space-y-6">
+          <Card>
+            <CardContent className="p-6">
+              <p className="text-muted-foreground">Team members view coming soon...</p>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
