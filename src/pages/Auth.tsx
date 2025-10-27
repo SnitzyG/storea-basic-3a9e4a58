@@ -340,9 +340,6 @@ const Auth = () => {
             </div>
             
             <div className="space-y-2">
-              <CardTitle className="text-3xl">
-                {isPasswordReset ? 'Reset Your Password' : 'Welcome'}
-              </CardTitle>
               <CardDescription className="text-base">
                 {isPasswordReset 
                   ? 'Enter your new password below' 
@@ -395,7 +392,7 @@ const Auth = () => {
                 </Button>
               </form>
             ) : (
-            <Tabs defaultValue="signin" className="w-full" onValueChange={handleTabChange}>
+            <Tabs defaultValue="signup" className="w-full" onValueChange={handleTabChange}>
               <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="signin">Sign In</TabsTrigger>
                 <TabsTrigger value="signup">Sign Up</TabsTrigger>
