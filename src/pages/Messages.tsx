@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -21,25 +22,15 @@ import { MessageBubble } from '@/components/messages/MessageBubble';
 import { MessageInput } from '@/components/messages/MessageInput';
 import { TypingIndicator } from '@/components/messages/TypingIndicator';
 import { cn } from '@/lib/utils';
+
 const Messages = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [connectionStatus, setConnectionStatus] = useState<'connected' | 'disconnected'>('connected');
-  const {
-    selectedProject
-  } = useProjectSelection();
-  const {
-    profile
-  } = useAuth();
-  const {
-    projects
-  } = useProjects();
-  const {
-    teamMembers: projectUsers,
-    refreshTeam
-  } = useProjectTeam(selectedProject?.id || '');
-  const {
-    createRFI
-  } = useRFIs();
+  const { selectedProject } = useProjectSelection();
+  const { profile } = useAuth();
+  const { projects } = useProjects();
+  const { teamMembers: projectUsers, refreshTeam } = useProjectTeam(selectedProject?.id || '');
+  const { createRFI } = useRFIs();
 
   // Listen for team updates to refresh team list immediately
   useEffect(() => {
@@ -56,6 +47,7 @@ const Messages = () => {
       window.removeEventListener('projectTeamUpdated', handleTeamUpdate);
     };
   }, [selectedProject, refreshTeam]);
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const {
     threads,
@@ -135,6 +127,7 @@ const Messages = () => {
       archivedThreads: archived
     };
   }, [threads, searchTerm, profile?.user_id]);
+
   const filteredTeamMembers = useMemo(() => {
     if (!profile?.user_id) return [];
     // Only show team members from current project, excluding current user
@@ -169,12 +162,15 @@ const Messages = () => {
   const getCurrentProjectName = () => {
     return selectedProject?.name || 'Select Project';
   };
+
   const handleCreateThread = async (title: string, participants: string[]) => {
     await createThread(title, participants);
   };
+
   const handleSendMessage = async (content: string, attachments?: any[], isInquiry?: boolean) => {
     await sendMessage(content, currentThread || undefined, attachments, isInquiry);
   };
+
   const handleCreateRFI = async (inquiryData: {
     selectedMessages: string[];
     assignedTo: string;
@@ -217,28 +213,34 @@ const Messages = () => {
       console.error('Error creating RFI:', error);
     }
   };
+
   const updateThreadTitle = (threadId: string, newTitle: string) => {
     updateThread(threadId, {
       title: newTitle
     });
   };
+
   const closeThread = (threadId: string) => {
     updateThread(threadId, {
       status: 'closed'
     });
   };
+
   const deleteThread = (threadId: string) => {
     if (confirm('Are you sure you want to delete this thread?')) {
       removeThread(threadId);
     }
   };
+
   const isMessageConsecutive = (currentMsg: any, previousMsg: any) => {
     if (!previousMsg) return false;
     return currentMsg.sender_id === previousMsg.sender_id && new Date(currentMsg.created_at).getTime() - new Date(previousMsg.created_at).getTime() < 300000 // 5 minutes
     ;
   };
+
   if (projects.length === 0) {
-    return <div className="min-h-screen flex items-center justify-center bg-background px-4">
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background px-4">
         <Card className="w-full max-w-md">
           <CardContent>
             <div className="relative w-full">
@@ -332,8 +334,10 @@ const Messages = () => {
             </div>
           </CardContent>
         </Card>
-      </div>;
+      </div>
+    );
   }
+
   if (loading) {
     return <div className="space-y-6">
         <div className="flex items-center justify-between">
@@ -344,185 +348,233 @@ const Messages = () => {
         </div>
       </div>;
   }
-  return <div className="min-h-screen flex flex-col">
-      {/* Page Header */}
-      <div className="flex items-center justify-end p-6 border-b border-border bg-background">
-        <CreateThreadDialog projectId={selectedProject?.id || ''} onCreateThread={handleCreateThread}>
-          <Button size="sm" className="bg-green-600 hover:bg-green-700 text-white">
-            <Plus className="h-4 w-4 mr-2" />
-            Create New Message
-          </Button>
-        </CreateThreadDialog>
+
+  return (
+    <div className="min-h-screen flex flex-col">
+      {/* Page Header with Tabs */}
+      <div className="border-b border-border bg-background">
+        <div className="flex items-center justify-between px-6 py-4">
+          <Tabs defaultValue="messages" className="flex-1">
+            <TabsList className="grid w-[400px] grid-cols-2">
+              <TabsTrigger value="messages" className="flex items-center gap-2">
+                <MessageSquare className="h-4 w-4" />
+                Messages
+              </TabsTrigger>
+              <TabsTrigger value="team" className="flex items-center gap-2">
+                <Users2 className="h-4 w-4" />
+                Team Members
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
+          <CreateThreadDialog projectId={selectedProject?.id || ''} onCreateThread={handleCreateThread}>
+            <Button size="sm" variant="default">
+              <Plus className="h-4 w-4 mr-2" />
+              Create New Message
+            </Button>
+          </CreateThreadDialog>
+        </div>
       </div>
       
       {/* Messages Layout */}
       <div className="flex-1 flex bg-background">
-      {/* WhatsApp-style Sidebar */}
-      <div className="w-60 border-r border-border bg-background flex flex-col">
-        {/* Header with Project Info */}
-        <div className="p-3 border-b border-border bg-muted/30">
-          <div className="flex items-center gap-2 mb-2">
-            <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-semibold">
-              {getCurrentProjectName().charAt(0).toUpperCase()}
-            </div>
-            <div className="flex-1">
-              <h2 className="font-semibold text-sm text-foreground">{getCurrentProjectName()}</h2>
-              <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                <Circle className={cn("h-2 w-2 fill-current", connectionStatus === 'connected' ? 'text-green-500' : 'text-red-500')} />
-                {onlineUsers.size} online
+        {/* WhatsApp-style Sidebar */}
+        <div className="w-60 border-r border-border bg-background flex flex-col">
+          {/* Header with Project Info */}
+          <div className="p-3 border-b border-border bg-muted/30">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-semibold">
+                {getCurrentProjectName().charAt(0).toUpperCase()}
               </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Search */}
-        <div className="p-2 border-b border-border">
-          <div className="relative">
-            <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-muted-foreground h-3 w-3" />
-            <Input placeholder="Search messages..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="pl-8 h-8 bg-muted/50 border-border rounded-full text-xs" />
-          </div>
-        </div>
-
-        {/* Conversations List */}
-        <div className="flex-1 overflow-hidden">
-          <ScrollArea className="h-full">
-            <div className="space-y-2">
-              {/* Team Members Section */}
-              <div className="px-2">
-                <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
-                  Team Members
-                </h3>
-                <div className="space-y-1">
-                  {filteredTeamMembers.map(user => <div key={user.user_id} className="flex items-center gap-2 p-2 rounded-md cursor-pointer hover:bg-muted/50 transition-colors" onClick={() => {
-                    const timestamp = new Date().toLocaleTimeString();
-                    handleCreateThread(`Message with ${user.user_profile?.name} (${timestamp})`, [user.user_id]);
-                  }}>
-                      <div className="relative">
-                        <Avatar className="h-6 w-6">
-                          <AvatarFallback className="text-xs bg-primary/10 text-primary">
-                            {user.user_profile?.name?.charAt(0)?.toUpperCase() || 'U'}
-                          </AvatarFallback>
-                        </Avatar>
-                        {onlineUsers.has(user.user_id) && <div className="absolute bottom-0 right-0 h-1.5 w-1.5 bg-green-500 rounded-full border border-background" />}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium truncate">
-                          {user.user_profile?.name || 'Unknown User'}
-                        </p>
-                        <p className="text-xs text-muted-foreground capitalize">
-                          {user.user_profile?.role || user.role}
-                        </p>
-                      </div>
-                    </div>)}
+              <div className="flex-1">
+                <h2 className="font-semibold text-sm text-foreground">{getCurrentProjectName()}</h2>
+                <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                  <Circle className={cn("h-2 w-2 fill-current", connectionStatus === 'connected' ? 'text-construction-success' : 'text-destructive')} />
+                  {onlineUsers.size} online
                 </div>
               </div>
-
-              {/* Pinned Conversations */}
-              {pinnedThreads.length > 0 && <div className="px-2">
-                  <Separator className="mb-2" />
-                  <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
-                    Pinned
-                  </h3>
-                  <div className="space-y-1">
-                    {pinnedThreads.map(thread => <ThreadCard key={thread.id} thread={thread} unreadCount={0} isSelected={currentThread === thread.id} isDirect={thread.participants.length === 2} onClick={() => setCurrentThread(thread.id)} onEdit={(newTitle: string) => updateThreadTitle(thread.id, newTitle)} onDelete={() => deleteThread(thread.id)} onPin={() => pinThread(thread.id)} onUnpin={() => unpinThread(thread.id)} onArchive={() => archiveThread(thread.id)} onUnarchive={() => unarchiveThread(thread.id)} />)}
-                  </div>
-                </div>}
-
-              {/* Active Conversations */}
-              {activeThreads.length > 0 && <div className="px-2">
-                  <Separator className="mb-2" />
-                  <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
-                    Messages
-                  </h3>
-                  <div className="space-y-1">
-                    {activeThreads.map(thread => <ThreadCard key={thread.id} thread={thread} unreadCount={0} isSelected={currentThread === thread.id} isDirect={thread.participants.length === 2} onClick={() => setCurrentThread(thread.id)} onEdit={(newTitle: string) => updateThreadTitle(thread.id, newTitle)} onDelete={() => deleteThread(thread.id)} onPin={() => pinThread(thread.id)} onUnpin={() => unpinThread(thread.id)} onArchive={() => archiveThread(thread.id)} onUnarchive={() => unarchiveThread(thread.id)} />)}
-                  </div>
-                </div>}
-
-              {/* Archived Conversations */}
-              {archivedThreads.length > 0 && <div className="px-2">
-                  <Separator className="mb-2" />
-                  <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
-                    Archived
-                  </h3>
-                  <div className="space-y-1">
-                    {archivedThreads.map(thread => <ThreadCard key={thread.id} thread={thread} unreadCount={0} isSelected={currentThread === thread.id} isDirect={thread.participants.length === 2} onClick={() => setCurrentThread(thread.id)} onEdit={(newTitle: string) => updateThreadTitle(thread.id, newTitle)} onDelete={() => deleteThread(thread.id)} onPin={() => pinThread(thread.id)} onUnpin={() => unpinThread(thread.id)} onArchive={() => archiveThread(thread.id)} onUnarchive={() => unarchiveThread(thread.id)} />)}
-                  </div>
-                </div>}
-
-              {/* Empty state */}
-              {pinnedThreads.length === 0 && activeThreads.length === 0 && archivedThreads.length === 0 && filteredTeamMembers.length === 0 && <div className="text-center py-6 text-muted-foreground">
-                  <MessageSquare className="h-8 w-8 mx-auto mb-3 opacity-50" />
-                  <p className="text-xs">No messages found</p>
-                  <p className="text-xs mt-1">Create a new message to get started</p>
-                </div>}
             </div>
-          </ScrollArea>
-        </div>
-      </div>
+          </div>
 
-      {/* Main Chat Area */}
-      <div className="flex-1 flex flex-col bg-background">
-        {currentThread ? <>
-            {/* Chat Header */}
-            <div className="border-b border-border p-4 bg-muted/30">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center text-sm font-semibold">
-                    {threads.find(t => t.id === currentThread)?.participants.length === 2 ? <UserCircle className="h-5 w-5" /> : "#"}
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-foreground">
-                      {threads.find(t => t.id === currentThread)?.title || 'Unknown Conversation'}
+          {/* Search */}
+          <div className="p-2 border-b border-border">
+            <div className="relative">
+              <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-muted-foreground h-3 w-3" />
+              <Input placeholder="Search messages..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="pl-8 h-8 bg-muted/50 border-border rounded-full text-xs" />
+            </div>
+          </div>
+
+          {/* Conversations List */}
+          <div className="flex-1 overflow-hidden">
+            <ScrollArea className="h-full">
+              <div className="space-y-2 px-2 py-2">
+                {/* Pinned Threads */}
+                {pinnedThreads.length > 0 && (
+                  <>
+                    <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+                      Pinned
                     </h3>
-                    <p className="text-sm text-muted-foreground">
-                      {threads.find(t => t.id === currentThread)?.participants.length} participants
-                    </p>
+                    {pinnedThreads.map(thread => (
+                      <ThreadCard 
+                        key={thread.id} 
+                        thread={thread} 
+                        onSelect={setCurrentThread} 
+                        isActive={currentThread === thread.id} 
+                        unreadCount={getUnreadCount(thread.id)} 
+                        lastMessage={messages.filter(m => m.thread_id === thread.id).sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0]} 
+                        currentUserId={profile?.user_id || ''} 
+                        onUpdateTitle={updateThreadTitle} 
+                        onClose={closeThread} 
+                        onDelete={deleteThread} 
+                        onPin={() => unpinThread(thread.id)} 
+                        onUnpin={() => unpinThread(thread.id)} 
+                        onArchive={() => archiveThread(thread.id)} 
+                        onUnarchive={() => unarchiveThread(thread.id)} 
+                      />
+                    ))}
+                    <Separator className="my-2" />
+                  </>
+                )}
+                
+                {/* Active Threads */}
+                {activeThreads.length > 0 ? (
+                  <div className="space-y-1">
+                    {activeThreads.map(thread => (
+                      <ThreadCard 
+                        key={thread.id} 
+                        thread={thread} 
+                        onSelect={setCurrentThread} 
+                        isActive={currentThread === thread.id} 
+                        unreadCount={getUnreadCount(thread.id)} 
+                        lastMessage={messages.filter(m => m.thread_id === thread.id).sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0]} 
+                        currentUserId={profile?.user_id || ''} 
+                        onUpdateTitle={updateThreadTitle} 
+                        onClose={closeThread} 
+                        onDelete={deleteThread} 
+                        onPin={() => pinThread(thread.id)} 
+                        onUnpin={() => unpinThread(thread.id)} 
+                        onArchive={() => archiveThread(thread.id)} 
+                        onUnarchive={() => unarchiveThread(thread.id)} 
+                      />
+                    ))}
                   </div>
-                </div>
+                ) : (
+                  <div className="text-center py-8 text-muted-foreground text-xs">
+                    No active conversations
+                  </div>
+                )}
+                
+                {/* Archived Threads */}
+                {archivedThreads.length > 0 && (
+                  <>
+                    <Separator className="my-2" />
+                    <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+                      Archived
+                    </h3>
+                    {archivedThreads.map(thread => (
+                      <ThreadCard 
+                        key={thread.id} 
+                        thread={thread} 
+                        onSelect={setCurrentThread} 
+                        isActive={currentThread === thread.id} 
+                        unreadCount={getUnreadCount(thread.id)} 
+                        lastMessage={messages.filter(m => m.thread_id === thread.id).sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0]} 
+                        currentUserId={profile?.user_id || ''} 
+                        onUpdateTitle={updateThreadTitle} 
+                        onClose={closeThread} 
+                        onDelete={deleteThread} 
+                        onPin={() => pinThread(thread.id)} 
+                        onUnpin={() => unpinThread(thread.id)} 
+                        onArchive={() => archiveThread(thread.id)} 
+                        onUnarchive={() => unarchiveThread(thread.id)} 
+                      />
+                    ))}
+                  </>
+                )}
               </div>
-            </div>
+            </ScrollArea>
+          </div>
+        </div>
+        
+        {/* Main Chat Area */}
+        <div className="flex-1 flex flex-col bg-muted/5">
+          {currentThread ? (
+            <>
+              {/* Chat Header */}
+              <div className="border-b border-border p-3 bg-background flex items-center gap-2">
+                <div className="w-8 h-8 rounded-full bg-accent text-accent-foreground flex items-center justify-center text-xs font-semibold">
+                  {threads.find(t => t.id === currentThread)?.title?.charAt(0).toUpperCase()}
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-semibold text-sm text-foreground">
+                    {threads.find(t => t.id === currentThread)?.title}
+                  </h3>
+                  {typingUsers.size > 0 && (
+                    <p className="text-xs text-muted-foreground">
+                      <TypingIndicator typingUsers={Array.from(typingUsers)} />
+                    </p>
+                  )}
+                </div>
+                {threads.find(t => t.id === currentThread)?.status === 'closed' && (
+                  <Badge variant="secondary" className="text-xs">CLOSED</Badge>
+                )}
+              </div>
 
-            {/* Messages */}
-            <div className="flex-1 overflow-hidden">
-              <ScrollArea className="h-full">
-                <div className="p-4 space-y-4">
-                  {messages.map((message, index) => <MessageBubble key={message.id} message={message} isOwnMessage={message.sender_id === profile?.user_id} showAvatar={!isMessageConsecutive(message, messages[index - 1])} />)}
-                  
-                  {Array.from(typingUsers).length > 0 && <TypingIndicator typingUsers={Array.from(typingUsers)} />}
-                  
+              {/* Messages */}
+              <ScrollArea className="flex-1 p-4">
+                <div className="space-y-1">
+                  {messages.length === 0 ? (
+                    <div className="text-center text-muted-foreground text-sm py-8">
+                      No messages yet. Start the conversation!
+                    </div>
+                  ) : (
+                    messages.map((message, index) => {
+                      const previousMessage = index > 0 ? messages[index - 1] : null;
+                      const isConsecutive = isMessageConsecutive(message, previousMessage);
+                      const isCurrentUser = message.sender_id === profile?.user_id;
+                      const showAvatar = !isConsecutive;
+                      return (
+                        <MessageBubble 
+                          key={message.id} 
+                          message={message} 
+                          isCurrentUser={isCurrentUser} 
+                          showAvatar={showAvatar} 
+                          senderName={projectUsers.find(u => u.user_id === message.sender_id)?.user_profile?.name || 'Unknown'} 
+                        />
+                      );
+                    })
+                  )}
                   <div ref={messagesEndRef} />
                 </div>
               </ScrollArea>
-            </div>
 
-            {/* Message Input */}
-            <div className="border-t border-border p-4">
-              <MessageInput 
-                onSendMessage={handleSendMessage} 
-                onTyping={(isTyping: boolean) => setTypingIndicator(isTyping)} 
-                onCreateRFI={handleCreateRFI} 
-                placeholder="Type a message..." 
-                supportAttachments={true}
-                supportMentions={true}
-                projectUsers={projectUsers}
-                projectId={selectedProject?.id}
-                messages={messages}
-                currentUserId={profile?.user_id}
-                companyName={companyName}
-              />
+              {/* Message Input */}
+              {threads.find(t => t.id === currentThread)?.status !== 'closed' && (
+                <div className="border-t border-border bg-background p-3">
+                  <MessageInput 
+                    onSend={handleSendMessage} 
+                    onTyping={() => setTypingIndicator(currentThread, true)} 
+                    onStopTyping={() => setTypingIndicator(currentThread, false)} 
+                    onCreateRFI={handleCreateRFI} 
+                    projectUsers={projectUsers} 
+                  />
+                </div>
+              )}
+            </>
+          ) : (
+            <div className="flex-1 flex items-center justify-center text-muted-foreground">
+              <div className="text-center space-y-4">
+                <MessageSquare className="h-16 w-16 mx-auto opacity-20" />
+                <div>
+                  <h3 className="text-lg font-semibold mb-1 text-foreground">No conversation selected</h3>
+                  <p className="text-sm">Choose a conversation from the sidebar or create a new one</p>
+                </div>
+              </div>
             </div>
-          </> : <div className="flex-1 flex items-center justify-center bg-muted/10">
-            <div className="text-center">
-              <MessageSquare className="h-16 w-16 mx-auto mb-4 text-muted-foreground/50" />
-              <h3 className="text-lg font-semibold mb-2">Welcome to Messages</h3>
-              <p className="text-muted-foreground max-w-md">
-                Select a conversation to start messaging, or create a new conversation with your team members.
-              </p>
-            </div>
-          </div>}
+          )}
+        </div>
       </div>
-      </div>
-    </div>;
+    </div>
+  );
 };
+
 export default Messages;

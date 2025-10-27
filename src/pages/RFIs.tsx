@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { supabase } from '@/integrations/supabase/client';
 import { Inbox, Send, FileEdit, Archive, AlertCircle } from 'lucide-react';
 import { useRFIs, RFI } from '@/hooks/useRFIs';
@@ -760,9 +761,9 @@ const RFIs = () => {
         </Card>
       </div>;
   }
-  return <div className="space-y-6">
+  return <div className="mx-[25px]">
       {/* Debug validators - only show in development */}
-      {showDebug && <div className="space-y-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+      {showDebug && <div className="space-y-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg mb-6">
           <h3 className="font-semibold text-yellow-800">Debug Mode - RFI System Validators</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <ProjectScopeValidator projectId={selectedProject?.id || ''} rfis={rfis} onViolationFound={violation => console.error('Project scope violation:', violation)} />
@@ -771,26 +772,48 @@ const RFIs = () => {
           </div>
         </div>}
 
-      {/* Three-Column Layout */}
-      <div className="grid grid-cols-12 gap-4 h-[calc(100vh-200px)]">
-        {/* Left Column - RFI Inbox & Status (~20% width) */}
-        <div className="col-span-2 space-y-0">
-          <RFIInbox selectedCategory={selectedInboxCategory} onCategoryChange={setSelectedInboxCategory} selectedStatus={selectedStatusFilter} onStatusChange={setSelectedStatusFilter} selectedType={selectedTypeFilter} onTypeChange={setSelectedTypeFilter} selectedPriority={selectedPriorityFilter} onPriorityChange={setSelectedPriorityFilter} counts={inboxCounts} statusCounts={statusCounts} typeCounts={typeCounts} priorityCounts={priorityCounts} />
+      {/* Header with Tabs */}
+      <div className="border-b border-border bg-background mb-6">
+        <div className="flex items-center justify-between px-0 py-4">
+          <Tabs defaultValue="all" value={selectedInboxCategory} onValueChange={(value) => setSelectedInboxCategory(value as any)} className="flex-1">
+            <TabsList className="grid w-[600px] grid-cols-4">
+              <TabsTrigger value="all" className="flex items-center gap-2">
+                <Inbox className="h-4 w-4" />
+                All Mail ({inboxCounts.all})
+              </TabsTrigger>
+              <TabsTrigger value="received" className="flex items-center gap-2">
+                <Inbox className="h-4 w-4" />
+                Received ({inboxCounts.received})
+              </TabsTrigger>
+              <TabsTrigger value="sent" className="flex items-center gap-2">
+                <Send className="h-4 w-4" />
+                Sent ({inboxCounts.sent})
+              </TabsTrigger>
+              <TabsTrigger value="drafts" className="flex items-center gap-2">
+                <FileEdit className="h-4 w-4" />
+                Drafts ({inboxCounts.drafts})
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
+          <div className="flex items-center space-x-2">
+            <Button onClick={() => setQuickRespondDialogOpen(true)} size="sm" variant="default">
+              Respond to Mail
+            </Button>
+            <Button onClick={() => setSimplifiedComposerOpen(true)} size="sm" variant="default">
+              Create New Mail
+            </Button>
+          </div>
         </div>
+      </div>
 
-        {/* Center-Right Column - RFI List (Expanded, ~75-80% width) */}
-        <div className="col-span-10 relative">
+      {/* Content Area */}
+      <div className="grid grid-cols-12 gap-4 h-[calc(100vh-200px)]">
+        {/* Center-Right Column - RFI List (Full width) */}
+        <div className="col-span-12 relative">
           {/* Backdrop overlay when detail panel is open */}
           {isDetailOverlayOpen && <div className="absolute inset-0 bg-black/20 backdrop-blur-sm z-10 transition-all duration-300" onClick={handleCloseDetailOverlay} />}
           
           <div className={`h-full border rounded-lg bg-card p-4 overflow-hidden transition-all duration-300 ${isDetailOverlayOpen ? 'brightness-75' : ''}`}>
-            <div className="flex items-center justify-end mb-4">
-              <div className="flex items-center space-x-2">
-                <Button onClick={() => setQuickRespondDialogOpen(true)} size="sm" className="bg-green-600 hover:bg-green-700 text-white">Respond to Mail</Button>
-                <Button onClick={() => setSimplifiedComposerOpen(true)} size="sm" className="bg-green-600 hover:bg-green-700 text-white">Create New Mail</Button>
-              </div>
-            </div>
-
             {/* Smart Filters */}
             <div className="mb-4">
               <RFISmartFilters filters={smartFilters} onFiltersChange={setSmartFilters} projectUsers={projectUsers} rfis={projectRFIs} savedViews={savedViews} onSaveView={handleSaveView} onLoadView={handleLoadView} onDeleteView={handleDeleteView} />
