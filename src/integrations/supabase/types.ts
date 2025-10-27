@@ -192,13 +192,17 @@ export type Database = {
       }
       change_orders: {
         Row: {
+          amount_claimed: number | null
           approval_date: string | null
           approved_by: string | null
+          balance_remaining: number | null
+          claimed_in_claim_id: string | null
           created_at: string
           description: string | null
           financial_impact: number
           id: string
           order_number: string
+          percentage_complete: number | null
           project_id: string
           reason: string | null
           requested_by: string
@@ -206,15 +210,20 @@ export type Database = {
           timeline_impact_days: number | null
           title: string
           updated_at: string
+          variation_reference: string | null
         }
         Insert: {
+          amount_claimed?: number | null
           approval_date?: string | null
           approved_by?: string | null
+          balance_remaining?: number | null
+          claimed_in_claim_id?: string | null
           created_at?: string
           description?: string | null
           financial_impact?: number
           id?: string
           order_number: string
+          percentage_complete?: number | null
           project_id: string
           reason?: string | null
           requested_by: string
@@ -222,15 +231,20 @@ export type Database = {
           timeline_impact_days?: number | null
           title: string
           updated_at?: string
+          variation_reference?: string | null
         }
         Update: {
+          amount_claimed?: number | null
           approval_date?: string | null
           approved_by?: string | null
+          balance_remaining?: number | null
+          claimed_in_claim_id?: string | null
           created_at?: string
           description?: string | null
           financial_impact?: number
           id?: string
           order_number?: string
+          percentage_complete?: number | null
           project_id?: string
           reason?: string | null
           requested_by?: string
@@ -238,8 +252,17 @@ export type Database = {
           timeline_impact_days?: number | null
           title?: string
           updated_at?: string
+          variation_reference?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "change_orders_claimed_in_claim_id_fkey"
+            columns: ["claimed_in_claim_id"]
+            isOneToOne: false
+            referencedRelation: "progress_claims"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       client_contributions: {
         Row: {
@@ -922,6 +945,65 @@ export type Database = {
           },
         ]
       }
+      line_item_budgets: {
+        Row: {
+          balance_to_claim: number
+          category: string
+          contract_budget: number
+          created_at: string
+          description: string | null
+          forecast_to_complete: number | null
+          id: string
+          item_name: string
+          item_number: number
+          percentage_complete: number
+          project_id: string
+          revised_budget: number | null
+          total_claimed_to_date: number
+          updated_at: string
+        }
+        Insert: {
+          balance_to_claim?: number
+          category?: string
+          contract_budget?: number
+          created_at?: string
+          description?: string | null
+          forecast_to_complete?: number | null
+          id?: string
+          item_name: string
+          item_number: number
+          percentage_complete?: number
+          project_id: string
+          revised_budget?: number | null
+          total_claimed_to_date?: number
+          updated_at?: string
+        }
+        Update: {
+          balance_to_claim?: number
+          category?: string
+          contract_budget?: number
+          created_at?: string
+          description?: string | null
+          forecast_to_complete?: number | null
+          id?: string
+          item_name?: string
+          item_number?: number
+          percentage_complete?: number
+          project_id?: string
+          revised_budget?: number | null
+          total_claimed_to_date?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "line_item_budgets_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       message_participants: {
         Row: {
           created_at: string
@@ -1088,6 +1170,53 @@ export type Database = {
         }
         Relationships: []
       }
+      payment_stages: {
+        Row: {
+          completion_criteria: string | null
+          created_at: string
+          id: string
+          milestone_order: number
+          percentage_of_contract: number
+          project_id: string
+          stage_name: string
+          stage_number: number
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          completion_criteria?: string | null
+          created_at?: string
+          id?: string
+          milestone_order: number
+          percentage_of_contract: number
+          project_id: string
+          stage_name: string
+          stage_number: number
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          completion_criteria?: string | null
+          created_at?: string
+          id?: string
+          milestone_order?: number
+          percentage_of_contract?: number
+          project_id?: string
+          stage_name?: string
+          stage_number?: number
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_stages_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -1156,6 +1285,65 @@ export type Database = {
           },
         ]
       }
+      progress_claims: {
+        Row: {
+          claim_date: string
+          claim_number: string
+          created_at: string
+          created_by: string
+          gst_applicable: number
+          id: string
+          month_period: string | null
+          project_id: string
+          status: string
+          total_amount_excl_gst: number
+          total_amount_incl_gst: number
+          total_variations_included: number
+          total_works_completed_to_date: number
+          updated_at: string
+        }
+        Insert: {
+          claim_date: string
+          claim_number: string
+          created_at?: string
+          created_by: string
+          gst_applicable?: number
+          id?: string
+          month_period?: string | null
+          project_id: string
+          status?: string
+          total_amount_excl_gst?: number
+          total_amount_incl_gst?: number
+          total_variations_included?: number
+          total_works_completed_to_date?: number
+          updated_at?: string
+        }
+        Update: {
+          claim_date?: string
+          claim_number?: string
+          created_at?: string
+          created_by?: string
+          gst_applicable?: number
+          id?: string
+          month_period?: string | null
+          project_id?: string
+          status?: string
+          total_amount_excl_gst?: number
+          total_amount_incl_gst?: number
+          total_variations_included?: number
+          total_works_completed_to_date?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "progress_claims_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       project_budgets: {
         Row: {
           created_at: string
@@ -1163,7 +1351,10 @@ export type Database = {
           currency: string
           id: string
           original_budget: number
+          prime_cost_sums_total: number | null
           project_id: string
+          project_management_margin_percent: number | null
+          provisional_sums_total: number | null
           revised_budget: number | null
           updated_at: string
         }
@@ -1173,7 +1364,10 @@ export type Database = {
           currency?: string
           id?: string
           original_budget: number
+          prime_cost_sums_total?: number | null
           project_id: string
+          project_management_margin_percent?: number | null
+          provisional_sums_total?: number | null
           revised_budget?: number | null
           updated_at?: string
         }
@@ -1183,7 +1377,10 @@ export type Database = {
           currency?: string
           id?: string
           original_budget?: number
+          prime_cost_sums_total?: number | null
           project_id?: string
+          project_management_margin_percent?: number | null
+          provisional_sums_total?: number | null
           revised_budget?: number | null
           updated_at?: string
         }
@@ -2381,10 +2578,7 @@ export type Database = {
         Args: { invitation_token_param: string; user_id_param: string }
         Returns: Json
       }
-      cleanup_expired_invitations: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
+      cleanup_expired_invitations: { Args: never; Returns: undefined }
       create_document_supersede: {
         Args: {
           changes_summary?: string
@@ -2409,29 +2603,29 @@ export type Database = {
         Args: { project_id_param: string }
         Returns: string
       }
-      generate_project_invitation_token: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
-      generate_rfi_number: {
-        Args:
-          | { company_name_param: string; project_id_param: string }
-          | { project_id_param: string }
-          | {
+      generate_project_invitation_token: { Args: never; Returns: string }
+      generate_rfi_number:
+        | { Args: { project_id_param: string }; Returns: string }
+        | {
+            Args: {
               project_id_param: string
               raised_by_param: string
               rfi_type_param: Database["public"]["Enums"]["rfi_type"]
             }
-          | {
+            Returns: string
+          }
+        | {
+            Args: {
               project_id_param: string
               rfi_type_param: Database["public"]["Enums"]["rfi_type"]
             }
-        Returns: string
-      }
-      generate_unique_project_id: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
+            Returns: string
+          }
+        | {
+            Args: { company_name_param: string; project_id_param: string }
+            Returns: string
+          }
+      generate_unique_project_id: { Args: never; Returns: string }
       is_project_architect: {
         Args: { project_id: string; user_id: string }
         Returns: boolean
@@ -2448,10 +2642,7 @@ export type Database = {
         Args: { target_user_id: string; user_email: string }
         Returns: undefined
       }
-      migrate_existing_documents: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
+      migrate_existing_documents: { Args: never; Returns: undefined }
       toggle_document_lock: {
         Args: { group_id: string; should_lock: boolean }
         Returns: Json

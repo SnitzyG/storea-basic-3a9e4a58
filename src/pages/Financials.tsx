@@ -11,8 +11,11 @@ import { ChangeOrdersSection } from '@/components/financials/ChangeOrdersSection
 import { ClientContributionsSection } from '@/components/financials/ClientContributionsSection';
 import { CashflowForecast } from '@/components/financials/CashflowForecast';
 import { ProgressBilling } from '@/components/financials/ProgressBilling';
+import { ProgressClaimsSection } from '@/components/financials/ProgressClaimsSection';
+import { LineItemBudgets } from '@/components/financials/LineItemBudgets';
+import { PaymentScheduleStages } from '@/components/financials/PaymentScheduleStages';
 import { Badge } from '@/components/ui/badge';
-import { DollarSign, TrendingUp, FileText, CreditCard, RefreshCw, Users, BarChart, Calendar } from 'lucide-react';
+import { DollarSign, TrendingUp, FileText, CreditCard, RefreshCw, Users, BarChart, Calendar, Receipt } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 
@@ -81,15 +84,27 @@ export default function Financials() {
   return (
     <div className="container mx-auto py-6 space-y-6">
       <Tabs defaultValue="overview" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4 lg:grid-cols-8">
+        <TabsList className="grid w-full grid-cols-5 lg:grid-cols-10">
           <TabsTrigger value="overview" className="flex items-center gap-2">
             <DollarSign className="h-4 w-4" />
             <span className="hidden sm:inline">Overview</span>
           </TabsTrigger>
+          {!isClientView && (
+            <TabsTrigger value="claims" className="flex items-center gap-2">
+              <Receipt className="h-4 w-4" />
+              <span className="hidden sm:inline">Claims</span>
+            </TabsTrigger>
+          )}
           <TabsTrigger value="breakdown" className="flex items-center gap-2">
             <BarChart className="h-4 w-4" />
-            <span className="hidden sm:inline">Breakdown</span>
+            <span className="hidden sm:inline">Line Items</span>
           </TabsTrigger>
+          {!isClientView && (
+            <TabsTrigger value="schedule" className="flex items-center gap-2">
+              <Calendar className="h-4 w-4" />
+              <span className="hidden sm:inline">Schedule</span>
+            </TabsTrigger>
+          )}
           <TabsTrigger value="invoices" className="flex items-center gap-2">
             <FileText className="h-4 w-4" />
             <span className="hidden sm:inline">Invoices</span>
@@ -101,7 +116,7 @@ export default function Financials() {
           {!isClientView && (
             <TabsTrigger value="changes" className="flex items-center gap-2">
               <RefreshCw className="h-4 w-4" />
-              <span className="hidden sm:inline">Changes</span>
+              <span className="hidden sm:inline">Variations</span>
             </TabsTrigger>
           )}
           <TabsTrigger value="contributions" className="flex items-center gap-2">
@@ -126,9 +141,21 @@ export default function Financials() {
           <BudgetOverview projectId={selectedProject.id} userRole={userRole} />
         </TabsContent>
 
+        {!isClientView && (
+          <TabsContent value="claims">
+            <ProgressClaimsSection projectId={selectedProject.id} userRole={userRole} />
+          </TabsContent>
+        )}
+
         <TabsContent value="breakdown">
-          <CostBreakdown projectId={selectedProject.id} userRole={userRole} />
+          <LineItemBudgets projectId={selectedProject.id} userRole={userRole} />
         </TabsContent>
+
+        {!isClientView && (
+          <TabsContent value="schedule">
+            <PaymentScheduleStages projectId={selectedProject.id} userRole={userRole} />
+          </TabsContent>
+        )}
 
         <TabsContent value="invoices">
           <InvoicesSection projectId={selectedProject.id} userRole={userRole} />

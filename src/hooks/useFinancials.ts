@@ -110,6 +110,53 @@ export interface ClientContribution {
   updated_at: string;
 }
 
+export interface ProgressClaim {
+  id: string;
+  project_id: string;
+  claim_number: string;
+  claim_date: string;
+  month_period: string | null;
+  status: 'draft' | 'submitted' | 'approved' | 'paid';
+  total_works_completed_to_date: number;
+  total_variations_included: number;
+  total_amount_excl_gst: number;
+  gst_applicable: number;
+  total_amount_incl_gst: number;
+  created_by: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface LineItemBudget {
+  id: string;
+  project_id: string;
+  item_number: number;
+  item_name: string;
+  description: string | null;
+  category: string;
+  contract_budget: number;
+  revised_budget: number | null;
+  percentage_complete: number;
+  total_claimed_to_date: number;
+  balance_to_claim: number;
+  forecast_to_complete: number | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PaymentStage {
+  id: string;
+  project_id: string;
+  stage_number: number;
+  stage_name: string;
+  percentage_of_contract: number;
+  completion_criteria: string | null;
+  milestone_order: number;
+  status: 'pending' | 'achieved' | 'released';
+  created_at: string;
+  updated_at: string;
+}
+
 export const useFinancials = (projectId?: string) => {
   const [budgets, setBudgets] = useState<Budget[]>([]);
   const [budgetCategories, setBudgetCategories] = useState<BudgetCategory[]>([]);
@@ -118,6 +165,9 @@ export const useFinancials = (projectId?: string) => {
   const [changeOrders, setChangeOrders] = useState<ChangeOrder[]>([]);
   const [cashflowItems, setCashflowItems] = useState<CashflowItem[]>([]);
   const [clientContributions, setClientContributions] = useState<ClientContribution[]>([]);
+  const [progressClaims, setProgressClaims] = useState<ProgressClaim[]>([]);
+  const [lineItemBudgets, setLineItemBudgets] = useState<LineItemBudget[]>([]);
+  const [paymentStages, setPaymentStages] = useState<PaymentStage[]>([]);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
   const { toast } = useToast();
@@ -152,7 +202,10 @@ export const useFinancials = (projectId?: string) => {
         paymentsData,
         changeOrdersData,
         cashflowData,
-        contributionsData
+        contributionsData,
+        progressClaimsData,
+        lineItemsData,
+        paymentStagesData
       ] = await Promise.all([
         supabase.from('project_budgets').select('*').eq('project_id', projectId),
         supabase.from('budget_categories').select('*').eq('project_id', projectId),
@@ -160,7 +213,10 @@ export const useFinancials = (projectId?: string) => {
         supabase.from('project_payments').select('*').eq('project_id', projectId),
         supabase.from('change_orders').select('*').eq('project_id', projectId),
         supabase.from('cashflow_items').select('*').eq('project_id', projectId),
-        supabase.from('client_contributions').select('*').eq('project_id', projectId)
+        supabase.from('client_contributions').select('*').eq('project_id', projectId),
+        supabase.from('progress_claims').select('*').eq('project_id', projectId).order('created_at', { ascending: false }),
+        supabase.from('line_item_budgets').select('*').eq('project_id', projectId).order('item_number', { ascending: true }),
+        supabase.from('payment_stages').select('*').eq('project_id', projectId).order('milestone_order', { ascending: true })
       ]);
 
       setBudgets(budgetsData.data as Budget[] || []);
@@ -170,6 +226,9 @@ export const useFinancials = (projectId?: string) => {
       setChangeOrders(changeOrdersData.data as ChangeOrder[] || []);
       setCashflowItems(cashflowData.data as CashflowItem[] || []);
       setClientContributions(contributionsData.data as ClientContribution[] || []);
+      setProgressClaims(progressClaimsData.data as ProgressClaim[] || []);
+      setLineItemBudgets(lineItemsData.data as LineItemBudget[] || []);
+      setPaymentStages(paymentStagesData.data as PaymentStage[] || []);
 
     } catch (error) {
       console.error('Error fetching financial data:', error);
@@ -325,6 +384,9 @@ export const useFinancials = (projectId?: string) => {
     changeOrders,
     cashflowItems,
     clientContributions,
+    progressClaims,
+    lineItemBudgets,
+    paymentStages,
     loading,
     refetch: fetchFinancialData,
   };
