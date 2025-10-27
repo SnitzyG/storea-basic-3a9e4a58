@@ -449,9 +449,68 @@ const Messages = () => {
         </TabsContent>
 
         <TabsContent value="team" className="space-y-6">
-          <Card>
+          <Card className="border-0 shadow-sm">
             <CardContent className="p-6">
-              <p className="text-muted-foreground">Team members view coming soon...</p>
+              <div className="space-y-4">
+                <div className="relative mb-4">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                  <Input 
+                    placeholder="Search team members..." 
+                    value={searchTerm} 
+                    onChange={e => setSearchTerm(e.target.value)} 
+                    className="pl-10" 
+                  />
+                </div>
+
+                {filteredTeamMembers.length === 0 ? (
+                  <div className="text-center py-12">
+                    <Users2 className="h-12 w-12 mx-auto text-muted-foreground/30 mb-3" />
+                    <p className="text-muted-foreground">
+                      {searchTerm ? 'No team members found' : 'No team members in this project'}
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {filteredTeamMembers.map((member) => {
+                      const isOnline = onlineUsers.has(member.user_id);
+                      return (
+                        <div
+                          key={member.user_id}
+                          className="flex items-center justify-between p-4 rounded-lg border border-border hover:bg-muted/50 transition-colors cursor-pointer"
+                          onClick={() => {
+                            if (profile?.user_id) {
+                              createThread(`Direct message with ${member.user_profile?.name || 'User'}`, [member.user_id]);
+                            }
+                          }}
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="relative">
+                              <div className="w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-semibold">
+                                {(member.user_profile?.name || 'U').charAt(0).toUpperCase()}
+                              </div>
+                              <div className={cn(
+                                "absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-background",
+                                isOnline ? "bg-construction-success" : "bg-muted-foreground"
+                              )} />
+                            </div>
+                            <div>
+                              <p className="font-medium text-foreground">
+                                {member.user_profile?.name || 'Unknown User'}
+                              </p>
+                              <p className="text-sm text-muted-foreground capitalize">
+                                {member.role || 'No role'}
+                              </p>
+                            </div>
+                          </div>
+                          <Button variant="ghost" size="sm">
+                            <MessageSquare className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
