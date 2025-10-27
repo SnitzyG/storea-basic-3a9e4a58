@@ -7,8 +7,8 @@ interface StorealiteLogoProps {
 }
 
 export const StorealiteLogo = ({ 
-  variant = 'full', 
-  showAnimation = true,
+  variant = 'text-only', 
+  showAnimation = false,
   className = ''
 }: StorealiteLogoProps) => {
   if (variant === 'icon-only') {

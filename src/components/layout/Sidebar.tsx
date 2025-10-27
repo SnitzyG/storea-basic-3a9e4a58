@@ -78,20 +78,7 @@ export const Sidebar = ({
   return <div className="w-64 bg-sidebar-background border-r border-sidebar-border flex flex-col">
       <div className="p-6 border-b border-sidebar-border">
         <div className="flex items-center justify-center space-x-2">
-          {/* House logo icon */}
-          <svg width="32" height="32" viewBox="0 0 48 48" className="flex-shrink-0">
-            <defs>
-              <linearGradient id="sidebarLogoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="hsl(215, 45%, 25%)" />
-                <stop offset="100%" stopColor="hsl(40, 85%, 60%)" />
-              </linearGradient>
-            </defs>
-            <path d="M 24 8 L 8 20 L 8 40 L 20 40 L 20 28 L 28 28 L 28 40 L 40 40 L 40 20 Z" fill="url(#sidebarLogoGradient)" />
-            <polygon points="24,4 4,20 8,20 24,8 40,20 44,20" fill="hsl(40, 85%, 60%)" />
-            <rect x="22" y="32" width="4" height="8" fill="hsl(40, 85%, 60%)" />
-          </svg>
-          
-          {/* Storealite text */}
+          {/* Storealite text only - no house icon */}
           <h1 className="text-xl font-bold tracking-tight leading-none">
             <span style={{ 
               background: 'linear-gradient(135deg, hsl(215, 45%, 25%), hsl(215, 45%, 35%))',

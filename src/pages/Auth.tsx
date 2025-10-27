@@ -303,35 +303,53 @@ const Auth = () => {
       {loading && <div className="fixed inset-0 grid place-items-center bg-background/80 z-50">
           <div className="text-center">Loading...</div>
         </div>}
-      <div className="w-full max-w-6xl flex flex-col lg:flex-row items-center lg:items-stretch lg:justify-between gap-8">
-        {/* Animated House Illustration */}
-        <div className="w-full lg:w-1/2 flex justify-center lg:order-2">
-          <Card className="w-full max-w-md">
-            <CardContent>
-              <StorealiteLogo />
-            </CardContent>
-          </Card>
-        </div>
+      
+      <div className="w-full max-w-2xl">
+        {emailConfirmed && <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+            <p className="text-green-800 text-sm">
+              ✓ Email confirmed! You can now sign in to your account.
+            </p>
+          </div>}
 
-        {/* Login Form Section */}
-        <div className="w-full lg:w-1/2 lg:order-1 flex flex-col items-center justify-center">
-          {emailConfirmed && <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg">
-              <p className="text-green-800 text-sm">
-                ✓ Email confirmed! You can now sign in to your account.
-              </p>
-            </div>}
-
-        <Card className="w-full max-w-md">
-          <CardHeader>
-            <CardTitle>
-              {isPasswordReset ? 'Reset Your Password' : 'Welcome'}
-            </CardTitle>
-            <CardDescription>
-              {isPasswordReset 
-                ? 'Enter your new password below' 
-                : 'Sign in to your account or create a new one'
-              }
-            </CardDescription>
+        <Card className="w-full">
+          <CardHeader className="text-center space-y-6 pt-10 pb-6">
+            {/* Storealite Logo */}
+            <div className="flex justify-center">
+              <h1 className="text-6xl font-bold tracking-tight leading-none">
+                <span style={{ 
+                  background: 'linear-gradient(135deg, hsl(215, 45%, 25%), hsl(215, 45%, 35%))',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  backgroundClip: 'text',
+                  fontWeight: 800,
+                  letterSpacing: '-0.02em'
+                }}>
+                  Storea
+                </span>
+                <span style={{ 
+                  background: 'linear-gradient(135deg, hsl(40, 85%, 60%), hsl(45, 90%, 70%))',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  backgroundClip: 'text',
+                  fontWeight: 300,
+                  letterSpacing: '0.05em'
+                }}>
+                  lite
+                </span>
+              </h1>
+            </div>
+            
+            <div className="space-y-2">
+              <CardTitle className="text-3xl">
+                {isPasswordReset ? 'Reset Your Password' : 'Welcome'}
+              </CardTitle>
+              <CardDescription className="text-base">
+                {isPasswordReset 
+                  ? 'Enter your new password below' 
+                  : 'Sign in to your account or create a new one'
+                }
+              </CardDescription>
+            </div>
           </CardHeader>
           <CardContent>
             {isPasswordReset ? (
@@ -477,7 +495,6 @@ const Auth = () => {
             )}
           </CardContent>
         </Card>
-        </div>
       </div>
       
       {/* Hidden data wipe button for testing */}
