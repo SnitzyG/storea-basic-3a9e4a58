@@ -9,95 +9,121 @@ All colors MUST be HSL.
 @layer base {
   :root {
     --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    --foreground: 215 25% 15%;
 
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: 215 25% 15%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover-foreground: 215 25% 15%;
 
-    /* STOREALite modern theme - emerald green and navy */
-    --primary: 160 84% 39%;
-    --primary-foreground: 0 0% 98%;
+    /* Professional navy and gold theme */
+    --primary: 215 45% 25%;
+    --primary-foreground: 0 0% 100%;
+    --primary-glow: 215 45% 35%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 215 25% 95%;
+    --secondary-foreground: 215 45% 25%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 215 20% 96%;
+    --muted-foreground: 215 15% 45%;
 
-    /* Vibrant accent for modern appearance */
-    --accent: 160 84% 95%;
-    --accent-foreground: 160 84% 39%;
+    /* Sophisticated gold accent */
+    --accent: 40 85% 60%;
+    --accent-foreground: 215 45% 25%;
+    --accent-subtle: 40 85% 95%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 160 84% 39%;
+    --border: 215 20% 88%;
+    --input: 215 20% 88%;
+    --ring: 215 45% 25%;
 
-    --radius: 0.5rem;
+    --radius: 0.75rem;
 
-    /* Sidebar styling - modern dark navy background */
-    --sidebar-background: 217 32% 14%;
-    --sidebar-foreground: 0 0% 0%;
-    --sidebar-primary: 160 84% 39%;
-    --sidebar-primary-foreground: 217 32% 14%;
-    --sidebar-accent: 217 20% 20%;
+    /* Professional sidebar - deep navy with gold accents */
+    --sidebar-background: 215 50% 15%;
+    --sidebar-foreground: 0 0% 95%;
+    --sidebar-primary: 40 85% 60%;
+    --sidebar-primary-foreground: 215 50% 15%;
+    --sidebar-accent: 215 40% 22%;
     --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 217 20% 20%;
-    --sidebar-ring: 160 84% 39%;
+    --sidebar-border: 215 40% 20%;
+    --sidebar-ring: 40 85% 60%;
 
-    /* STOREALite brand colors */
-    --construction-warning: 45 93% 47%;
-    --construction-success: 160 84% 39%;
-    --construction-info: 217 91% 60%;
+    /* STOREALite brand colors - refined */
+    --construction-warning: 40 85% 60%;
+    --construction-success: 145 60% 45%;
+    --construction-info: 215 80% 55%;
     
-    /* Role-specific colors */
-    --role-architect: 160 84% 39%;
-    --role-builder: 142 76% 36%;
-    --role-homeowner: 271 81% 56%;
-    --role-contractor: 45 93% 47%;
+    /* Role-specific colors - more professional palette */
+    --role-architect: 215 45% 25%;
+    --role-builder: 145 60% 45%;
+    --role-homeowner: 265 55% 50%;
+    --role-contractor: 40 85% 60%;
+
+    /* Professional gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(215 45% 25%), hsl(215 45% 35%));
+    --gradient-gold: linear-gradient(135deg, hsl(40 85% 60%), hsl(45 90% 70%));
+    --gradient-subtle: linear-gradient(180deg, hsl(215 25% 98%), hsl(215 20% 96%));
+    
+    /* Shadows for depth */
+    --shadow-elegant: 0 10px 40px -10px hsl(215 45% 25% / 0.15);
+    --shadow-glow: 0 0 30px hsl(40 85% 60% / 0.2);
+    
+    /* Transitions */
+    --transition-smooth: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-spring: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
+    --background: 215 30% 12%;
+    --foreground: 0 0% 95%;
 
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
+    --card: 215 28% 16%;
+    --card-foreground: 0 0% 95%;
 
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 215 28% 16%;
+    --popover-foreground: 0 0% 95%;
 
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    --primary: 40 85% 60%;
+    --primary-foreground: 215 30% 12%;
+    --primary-glow: 45 90% 70%;
 
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 215 25% 20%;
+    --secondary-foreground: 0 0% 95%;
 
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted: 215 25% 18%;
+    --muted-foreground: 215 10% 60%;
 
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 40 85% 60%;
+    --accent-foreground: 215 30% 12%;
+    --accent-subtle: 40 50% 25%;
 
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-    --sidebar-background: 217 32% 14%;
-    --sidebar-foreground: 0 0% 0%;
-    --sidebar-primary: 160 84% 39%;
-    --sidebar-primary-foreground: 217 32% 14%;
-    --sidebar-accent: 217 20% 20%;
+    --border: 215 25% 22%;
+    --input: 215 25% 22%;
+    --ring: 40 85% 60%;
+
+    --sidebar-background: 215 35% 10%;
+    --sidebar-foreground: 0 0% 95%;
+    --sidebar-primary: 40 85% 60%;
+    --sidebar-primary-foreground: 215 35% 10%;
+    --sidebar-accent: 215 30% 16%;
     --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 217 20% 20%;
-    --sidebar-ring: 160 84% 39%;
+    --sidebar-border: 215 30% 14%;
+    --sidebar-ring: 40 85% 60%;
+
+    /* Dark mode gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(215 35% 10%), hsl(215 28% 16%));
+    --gradient-gold: linear-gradient(135deg, hsl(40 85% 60%), hsl(45 90% 70%));
+    --gradient-subtle: linear-gradient(180deg, hsl(215 30% 14%), hsl(215 28% 16%));
+    
+    --shadow-elegant: 0 10px 40px -10px hsl(0 0% 0% / 0.4);
+    --shadow-glow: 0 0 30px hsl(40 85% 60% / 0.3);
   }
 }
 
@@ -107,7 +133,11 @@ All colors MUST be HSL.
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans antialiased;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-display font-semibold;
   }
 
   /* House building animation keyframes */
@@ -148,6 +178,48 @@ All colors MUST be HSL.
     }
     50% {
       transform: translateY(-10px);
+    }
+  }
+
+  @keyframes shimmer {
+    0% {
+      background-position: -1000px 0;
+    }
+    100% {
+      background-position: 1000px 0;
+    }
+  }
+
+  @keyframes slideInLeft {
+    from {
+      opacity: 0;
+      transform: translateX(-30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  @keyframes slideInRight {
+    from {
+      opacity: 0;
+      transform: translateX(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  @keyframes scaleIn {
+    from {
+      opacity: 0;
+      transform: scale(0.9);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
     }
   }
 
