@@ -776,7 +776,7 @@ const RFIs = () => {
       <div className="border-b border-border bg-background mb-6">
         <div className="flex items-center justify-between px-0 py-4">
           <Tabs defaultValue="all" value={selectedInboxCategory} onValueChange={(value) => setSelectedInboxCategory(value as any)} className="flex-1">
-            <TabsList className="grid w-[600px] grid-cols-4">
+            <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="all" className="flex items-center gap-2">
                 <Inbox className="h-4 w-4" />
                 All Mail ({inboxCounts.all})
