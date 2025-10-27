@@ -333,6 +333,40 @@ export const CreateTenderWizard = ({
       tenderData.scope_of_works_path = sowFiles[0].path;
     }
     const result = await createTender(tenderData);
+    
+    // Sync budget to project_budgets table if budget is set
+    if (result && budget && parseFloat(budget) > 0) {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      // Check if budget already exists
+      const { data: existingBudget } = await supabase
+        .from('project_budgets')
+        .select('id')
+        .eq('project_id', projectId)
+        .single();
+      
+      if (existingBudget) {
+        // Update existing budget
+        await supabase
+          .from('project_budgets')
+          .update({
+            original_budget: parseFloat(budget),
+            revised_budget: parseFloat(budget)
+          })
+          .eq('id', existingBudget.id);
+      } else {
+        // Create new budget
+        await supabase
+          .from('project_budgets')
+          .insert({
+            project_id: projectId,
+            original_budget: parseFloat(budget),
+            revised_budget: parseFloat(budget),
+            created_by: user?.id
+          });
+      }
+    }
+    
     if (result && builderDetails.email) {
       // Send invitation email
       await supabase.functions.invoke('send-tender-invitation', {
