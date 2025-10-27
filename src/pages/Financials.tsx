@@ -14,8 +14,11 @@ import { ProgressBilling } from '@/components/financials/ProgressBilling';
 import { ProgressClaimsSection } from '@/components/financials/ProgressClaimsSection';
 import { LineItemBudgets } from '@/components/financials/LineItemBudgets';
 import { PaymentScheduleStages } from '@/components/financials/PaymentScheduleStages';
+import { ClaimsHistoryTable } from '@/components/financials/ClaimsHistoryTable';
+import { VariationsDetailedSection } from '@/components/financials/VariationsDetailedSection';
+import { ContractSummaryOverview } from '@/components/financials/ContractSummaryOverview';
 import { Badge } from '@/components/ui/badge';
-import { DollarSign, TrendingUp, FileText, CreditCard, RefreshCw, Users, BarChart, Calendar, Receipt } from 'lucide-react';
+import { DollarSign, TrendingUp, FileText, CreditCard, RefreshCw, Users, BarChart, Calendar, Receipt, Flag } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 
@@ -84,10 +87,14 @@ export default function Financials() {
   return (
     <div className="container mx-auto py-6 space-y-6">
       <Tabs defaultValue="overview" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-5 lg:grid-cols-10">
+        <TabsList className="grid w-full grid-cols-5 lg:grid-cols-11">
           <TabsTrigger value="overview" className="flex items-center gap-2">
             <DollarSign className="h-4 w-4" />
             <span className="hidden sm:inline">Overview</span>
+          </TabsTrigger>
+          <TabsTrigger value="contract" className="flex items-center gap-2">
+            <FileText className="h-4 w-4" />
+            <span className="hidden sm:inline">Contract</span>
           </TabsTrigger>
           {!isClientView && (
             <TabsTrigger value="claims" className="flex items-center gap-2">
@@ -101,7 +108,7 @@ export default function Financials() {
           </TabsTrigger>
           {!isClientView && (
             <TabsTrigger value="schedule" className="flex items-center gap-2">
-              <Calendar className="h-4 w-4" />
+              <Flag className="h-4 w-4" />
               <span className="hidden sm:inline">Schedule</span>
             </TabsTrigger>
           )}
@@ -141,9 +148,14 @@ export default function Financials() {
           <BudgetOverview projectId={selectedProject.id} userRole={userRole} />
         </TabsContent>
 
+        <TabsContent value="contract">
+          <ContractSummaryOverview projectId={selectedProject.id} />
+        </TabsContent>
+
         {!isClientView && (
-          <TabsContent value="claims">
+          <TabsContent value="claims" className="space-y-6">
             <ProgressClaimsSection projectId={selectedProject.id} userRole={userRole} />
+            <ClaimsHistoryTable projectId={selectedProject.id} />
           </TabsContent>
         )}
 
@@ -167,7 +179,7 @@ export default function Financials() {
 
         {!isClientView && (
           <TabsContent value="changes">
-            <ChangeOrdersSection projectId={selectedProject.id} userRole={userRole} />
+            <VariationsDetailedSection projectId={selectedProject.id} userRole={userRole} />
           </TabsContent>
         )}
 
