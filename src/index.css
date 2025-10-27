@@ -223,64 +223,126 @@ All colors MUST be HSL.
     }
   }
 
-  /* Construction-themed animations */
-  @keyframes buildUp {
+  /* Advanced Construction Collaboration Animations */
+  @keyframes stakeholderEnter {
     0% {
       opacity: 0;
-      transform: translateY(20px) scaleY(0.8);
-      transform-origin: bottom;
+      transform: translateX(-100px) scale(0.5);
+    }
+    60% {
+      transform: translateX(10px) scale(1.05);
     }
     100% {
       opacity: 1;
-      transform: translateY(0) scaleY(1);
+      transform: translateX(0) scale(1);
     }
   }
 
-  @keyframes blueprint {
+  @keyframes buildProgress {
     0% {
+      width: 0%;
       opacity: 0;
-      stroke-dashoffset: 1000;
     }
     100% {
+      width: 100%;
       opacity: 1;
+    }
+  }
+
+  @keyframes blueprintDraw {
+    0% {
+      stroke-dashoffset: 1000;
+      opacity: 0.3;
+    }
+    100% {
+      stroke-dashoffset: 0;
+      opacity: 1;
+    }
+  }
+
+  @keyframes teamCollaborate {
+    0% {
+      transform: translateY(50px);
+      opacity: 0;
+    }
+    30% {
+      transform: translateY(-10px);
+    }
+    50% {
+      opacity: 1;
+    }
+    100% {
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes houseConstruct {
+    0% {
+      clip-path: inset(100% 0 0 0);
+      opacity: 0;
+    }
+    100% {
+      clip-path: inset(0 0 0 0);
+      opacity: 1;
+    }
+  }
+
+  @keyframes projectComplete {
+    0% {
+      transform: scale(0.8) rotate(-5deg);
+      opacity: 0;
+    }
+    50% {
+      transform: scale(1.1) rotate(2deg);
+    }
+    100% {
+      transform: scale(1) rotate(0deg);
+      opacity: 1;
+    }
+  }
+
+  @keyframes checkmarkDraw {
+    0% {
+      stroke-dashoffset: 100;
+    }
+    100% {
       stroke-dashoffset: 0;
     }
   }
 
-  @keyframes constructionPulse {
-    0%, 100% {
-      box-shadow: 0 0 0 0 hsl(var(--accent) / 0.4);
-    }
-    50% {
-      box-shadow: 0 0 0 10px hsl(var(--accent) / 0);
-    }
+  .animate-stakeholder-enter {
+    animation: stakeholderEnter 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
   }
 
-  @keyframes hammerSwing {
-    0%, 100% {
-      transform: rotate(0deg);
-    }
-    25% {
-      transform: rotate(-15deg);
-    }
-    75% {
-      transform: rotate(15deg);
-    }
+  .animate-build-progress {
+    animation: buildProgress 2s ease-out forwards;
   }
 
-  @keyframes stackBlocks {
-    0% {
-      transform: translateY(100%);
-      opacity: 0;
-    }
-    60% {
-      transform: translateY(-10%);
-    }
-    100% {
-      transform: translateY(0);
-      opacity: 1;
-    }
+  .animate-blueprint-draw {
+    animation: blueprintDraw 1.5s ease-out forwards;
   }
+
+  .animate-team-collaborate {
+    animation: teamCollaborate 1s ease-out forwards;
+  }
+
+  .animate-house-construct {
+    animation: houseConstruct 1.2s ease-out forwards;
+  }
+
+  .animate-project-complete {
+    animation: projectComplete 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+  }
+
+  .animate-checkmark {
+    animation: checkmarkDraw 0.5s ease-out forwards;
+  }
+
+  /* Stagger delays for multiple stakeholders */
+  .delay-100 { animation-delay: 0.1s; }
+  .delay-200 { animation-delay: 0.2s; }
+  .delay-300 { animation-delay: 0.3s; }
+  .delay-400 { animation-delay: 0.4s; }
 
   /* RFI Detail Panel Animations */
   @keyframes slide-in-right {

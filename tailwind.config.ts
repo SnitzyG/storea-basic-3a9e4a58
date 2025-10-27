@@ -171,35 +171,64 @@ export default {
 						transform: 'scale(1)'
 					}
 				},
-				'buildUp': {
+				'stakeholderEnter': {
 					'0%': {
 						opacity: '0',
-						transform: 'translateY(20px) scaleY(0.8)',
-						transformOrigin: 'bottom'
+						transform: 'translateX(-100px) scale(0.5)'
+					},
+					'60%': {
+						transform: 'translateX(10px) scale(1.05)'
 					},
 					'100%': {
 						opacity: '1',
-						transform: 'translateY(0) scaleY(1)'
+						transform: 'translateX(0) scale(1)'
 					}
 				},
-				'constructionPulse': {
-					'0%, 100%': {
-						boxShadow: '0 0 0 0 hsl(var(--accent) / 0.4)'
-					},
-					'50%': {
-						boxShadow: '0 0 0 10px hsl(var(--accent) / 0)'
-					}
-				},
-				'stackBlocks': {
+				'buildProgress': {
 					'0%': {
-						transform: 'translateY(100%)',
+						width: '0%',
 						opacity: '0'
 					},
-					'60%': {
-						transform: 'translateY(-10%)'
+					'100%': {
+						width: '100%',
+						opacity: '1'
+					}
+				},
+				'teamCollaborate': {
+					'0%': {
+						transform: 'translateY(50px)',
+						opacity: '0'
+					},
+					'30%': {
+						transform: 'translateY(-10px)'
+					},
+					'50%': {
+						opacity: '1'
 					},
 					'100%': {
-						transform: 'translateY(0)',
+						transform: 'translateY(0)'
+					}
+				},
+				'houseConstruct': {
+					'0%': {
+						clipPath: 'inset(100% 0 0 0)',
+						opacity: '0'
+					},
+					'100%': {
+						clipPath: 'inset(0 0 0 0)',
+						opacity: '1'
+					}
+				},
+				'projectComplete': {
+					'0%': {
+						transform: 'scale(0.8) rotate(-5deg)',
+						opacity: '0'
+					},
+					'50%': {
+						transform: 'scale(1.1) rotate(2deg)'
+					},
+					'100%': {
+						transform: 'scale(1) rotate(0deg)',
 						opacity: '1'
 					}
 				}
@@ -211,9 +240,11 @@ export default {
 				'slide-in-left': 'slideInLeft 0.5s ease-out',
 				'slide-in-right': 'slideInRight 0.5s ease-out',
 				'scale-in': 'scaleIn 0.3s ease-out',
-				'build-up': 'buildUp 0.6s ease-out',
-				'construction-pulse': 'constructionPulse 2s ease-in-out infinite',
-				'stack-blocks': 'stackBlocks 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)'
+				'stakeholder-enter': 'stakeholderEnter 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards',
+				'build-progress': 'buildProgress 2s ease-out forwards',
+				'team-collaborate': 'teamCollaborate 1s ease-out forwards',
+				'house-construct': 'houseConstruct 1.2s ease-out forwards',
+				'project-complete': 'projectComplete 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards'
 			}
 		}
 	},
