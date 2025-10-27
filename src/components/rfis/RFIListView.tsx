@@ -135,7 +135,8 @@ export const RFIListView: React.FC<RFIListViewProps> = ({
   return <div className="space-y-4">
       <Card className="border-0 shadow-sm bg-gradient-to-br from-card to-card/50">
         <CardContent className="p-0">
-          <Table>
+          <div className="overflow-x-auto">
+            <Table className="min-w-[1200px]">
             <TableHeader className="bg-gradient-to-r from-muted/50 to-muted/30 border-b-2 border-primary/10">
               <TableRow>
                 {onSelectionChange && <TableHead className="text-foreground/80 font-semibold text-sm h-12 px-4 w-[40px] text-center">
@@ -253,9 +254,10 @@ export const RFIListView: React.FC<RFIListViewProps> = ({
               </TableCell>
             </TableRow>)}
         </TableBody>
-      </Table>
-    </CardContent>
-  </Card>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
       
       {sortedRFIs.length === 0 && <div className="text-center py-12 text-muted-foreground">
           <MessageSquare className="h-12 w-12 mx-auto mb-2 opacity-50" />
