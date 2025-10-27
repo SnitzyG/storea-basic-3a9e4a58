@@ -80,12 +80,21 @@ export default function Financials() {
 
   return (
     <div className="container mx-auto py-6 space-y-6">
-      <Tabs defaultValue="overview" className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold">Project Financials</h1>
+          <p className="text-muted-foreground">Comprehensive financial management and tracking</p>
+        </div>
+        <Badge variant={isClientView ? "secondary" : "default"} className="px-3 py-1">
+          {isClientView ? "Client View" : "Professional View"}
+        </Badge>
+      </div>
+
+      {/* Budget Overview - Always visible */}
+      <BudgetOverview projectId={selectedProject.id} userRole={userRole} />
+
+      <Tabs defaultValue="breakdown" className="space-y-6">
         <TabsList className="grid w-full grid-cols-4 lg:grid-cols-8">
-          <TabsTrigger value="overview" className="flex items-center gap-2">
-            <DollarSign className="h-4 w-4" />
-            <span className="hidden sm:inline">Overview</span>
-          </TabsTrigger>
           <TabsTrigger value="breakdown" className="flex items-center gap-2">
             <BarChart className="h-4 w-4" />
             <span className="hidden sm:inline">Breakdown</span>
@@ -121,10 +130,6 @@ export default function Financials() {
             </TabsTrigger>
           )}
         </TabsList>
-
-        <TabsContent value="overview">
-          <BudgetOverview projectId={selectedProject.id} userRole={userRole} />
-        </TabsContent>
 
         <TabsContent value="breakdown">
           <CostBreakdown projectId={selectedProject.id} userRole={userRole} />
