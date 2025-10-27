@@ -263,8 +263,90 @@ const Messages = () => {
       
       {/* Messages Layout */}
       <div className="flex-1 flex bg-background">
+        {/* Main Chat Area */}
+        <div className="flex-1 flex flex-col bg-muted/5">
+          {currentThread ? (
+            <>
+              <div className="border-b border-border p-3 bg-background flex items-center gap-2">
+                <div className="w-8 h-8 rounded-full bg-accent text-accent-foreground flex items-center justify-center text-xs font-semibold">
+                  {threads.find(t => t.id === currentThread)?.title?.charAt(0).toUpperCase()}
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-semibold text-sm text-foreground">
+                    {threads.find(t => t.id === currentThread)?.title}
+                  </h3>
+                  {typingUsers.size > 0 && (
+                    <p className="text-xs text-muted-foreground">
+                      <TypingIndicator typingUsers={Array.from(typingUsers)} />
+                    </p>
+                  )}
+                </div>
+                {threads.find(t => t.id === currentThread)?.status === 'closed' && (
+                  <Badge variant="secondary" className="text-xs">CLOSED</Badge>
+                )}
+              </div>
+
+              <ScrollArea className="flex-1 p-4">
+                <div className="space-y-1">
+                  {messages.length === 0 ? (
+                    <div className="text-center text-muted-foreground text-sm py-8">
+                      No messages yet. Start the conversation!
+                    </div>
+                  ) : (
+                    messages.map((message, index) => {
+                      const previousMessage = index > 0 ? messages[index - 1] : null;
+                      const isConsecutive = isMessageConsecutive(message, previousMessage);
+                      const isOwnMessage = message.sender_id === profile?.user_id;
+                      const showAvatar = !isConsecutive;
+                      return (
+                        <MessageBubble 
+                          key={message.id} 
+                          message={message} 
+                          isOwnMessage={isOwnMessage} 
+                          showAvatar={showAvatar} 
+                          senderName={projectUsers.find(u => u.user_id === message.sender_id)?.user_profile?.name || 'Unknown'} 
+                          isConsecutive={isConsecutive}
+                        />
+                      );
+                    })
+                  )}
+                  <div ref={messagesEndRef} />
+                </div>
+              </ScrollArea>
+
+              {threads.find(t => t.id === currentThread)?.status !== 'closed' && (
+                <div className="border-t border-border bg-background p-3">
+                  <MessageInput 
+                    onSendMessage={handleSendMessage} 
+                    onTyping={(isTyping: boolean) => setTypingIndicator(isTyping)} 
+                    onCreateRFI={handleCreateRFI} 
+                    placeholder="Type a message..." 
+                    supportAttachments={true}
+                    supportMentions={true}
+                    projectUsers={projectUsers}
+                    projectId={selectedProject?.id}
+                    messages={messages}
+                    currentUserId={profile?.user_id}
+                    companyName={companyName}
+                  />
+                </div>
+              )}
+            </>
+          ) : (
+            <div className="flex-1 flex items-center justify-center text-muted-foreground">
+              <div className="text-center space-y-4">
+                <MessageSquare className="h-16 w-16 mx-auto opacity-20" />
+                <div>
+                  <h3 className="text-lg font-semibold mb-1 text-foreground">No conversation selected</h3>
+                  <p className="text-sm">Choose a conversation from the sidebar or create a new one</p>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
         {/* Sidebar */}
-        <div className="w-60 border-r border-border bg-background flex flex-col">
+        <div className="w-60 border-l border-border bg-background flex flex-col">
           <div className="p-3 border-b border-border bg-muted/30">
             <div className="flex items-center gap-2 mb-2">
               <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-semibold">
@@ -361,88 +443,6 @@ const Messages = () => {
               </div>
             </ScrollArea>
           </div>
-        </div>
-        
-        {/* Main Chat Area */}
-        <div className="flex-1 flex flex-col bg-muted/5">
-          {currentThread ? (
-            <>
-              <div className="border-b border-border p-3 bg-background flex items-center gap-2">
-                <div className="w-8 h-8 rounded-full bg-accent text-accent-foreground flex items-center justify-center text-xs font-semibold">
-                  {threads.find(t => t.id === currentThread)?.title?.charAt(0).toUpperCase()}
-                </div>
-                <div className="flex-1">
-                  <h3 className="font-semibold text-sm text-foreground">
-                    {threads.find(t => t.id === currentThread)?.title}
-                  </h3>
-                  {typingUsers.size > 0 && (
-                    <p className="text-xs text-muted-foreground">
-                      <TypingIndicator typingUsers={Array.from(typingUsers)} />
-                    </p>
-                  )}
-                </div>
-                {threads.find(t => t.id === currentThread)?.status === 'closed' && (
-                  <Badge variant="secondary" className="text-xs">CLOSED</Badge>
-                )}
-              </div>
-
-              <ScrollArea className="flex-1 p-4">
-                <div className="space-y-1">
-                  {messages.length === 0 ? (
-                    <div className="text-center text-muted-foreground text-sm py-8">
-                      No messages yet. Start the conversation!
-                    </div>
-                  ) : (
-                    messages.map((message, index) => {
-                      const previousMessage = index > 0 ? messages[index - 1] : null;
-                      const isConsecutive = isMessageConsecutive(message, previousMessage);
-                      const isOwnMessage = message.sender_id === profile?.user_id;
-                      const showAvatar = !isConsecutive;
-                      return (
-                        <MessageBubble 
-                          key={message.id} 
-                          message={message} 
-                          isOwnMessage={isOwnMessage} 
-                          showAvatar={showAvatar} 
-                          senderName={projectUsers.find(u => u.user_id === message.sender_id)?.user_profile?.name || 'Unknown'} 
-                          isConsecutive={isConsecutive}
-                        />
-                      );
-                    })
-                  )}
-                  <div ref={messagesEndRef} />
-                </div>
-              </ScrollArea>
-
-              {threads.find(t => t.id === currentThread)?.status !== 'closed' && (
-                <div className="border-t border-border bg-background p-3">
-                  <MessageInput 
-                    onSendMessage={handleSendMessage} 
-                    onTyping={(isTyping: boolean) => setTypingIndicator(isTyping)} 
-                    onCreateRFI={handleCreateRFI} 
-                    placeholder="Type a message..." 
-                    supportAttachments={true}
-                    supportMentions={true}
-                    projectUsers={projectUsers}
-                    projectId={selectedProject?.id}
-                    messages={messages}
-                    currentUserId={profile?.user_id}
-                    companyName={companyName}
-                  />
-                </div>
-              )}
-            </>
-          ) : (
-            <div className="flex-1 flex items-center justify-center text-muted-foreground">
-              <div className="text-center space-y-4">
-                <MessageSquare className="h-16 w-16 mx-auto opacity-20" />
-                <div>
-                  <h3 className="text-lg font-semibold mb-1 text-foreground">No conversation selected</h3>
-                  <p className="text-sm">Choose a conversation from the sidebar or create a new one</p>
-                </div>
-              </div>
-            </div>
-          )}
         </div>
       </div>
     </div>
