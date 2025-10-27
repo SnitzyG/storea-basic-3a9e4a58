@@ -42,14 +42,14 @@ All colors MUST be HSL.
 
     --radius: 0.75rem;
 
-    /* Professional sidebar - deep navy with gold accents */
-    --sidebar-background: 215 50% 15%;
-    --sidebar-foreground: 0 0% 95%;
-    --sidebar-primary: 40 85% 60%;
-    --sidebar-primary-foreground: 215 50% 15%;
-    --sidebar-accent: 215 40% 22%;
-    --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 215 40% 20%;
+    /* Professional sidebar - white background with dark text */
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 215 25% 15%;
+    --sidebar-primary: 215 45% 25%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 215 25% 95%;
+    --sidebar-accent-foreground: 215 45% 25%;
+    --sidebar-border: 215 20% 88%;
     --sidebar-ring: 40 85% 60%;
 
     /* STOREALite brand colors - refined */
@@ -108,13 +108,13 @@ All colors MUST be HSL.
     --input: 215 25% 22%;
     --ring: 40 85% 60%;
 
-    --sidebar-background: 215 35% 10%;
+    --sidebar-background: 215 28% 16%;
     --sidebar-foreground: 0 0% 95%;
     --sidebar-primary: 40 85% 60%;
-    --sidebar-primary-foreground: 215 35% 10%;
-    --sidebar-accent: 215 30% 16%;
+    --sidebar-primary-foreground: 215 28% 16%;
+    --sidebar-accent: 215 25% 20%;
     --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 215 30% 14%;
+    --sidebar-border: 215 25% 22%;
     --sidebar-ring: 40 85% 60%;
 
     /* Dark mode gradients */
@@ -220,6 +220,65 @@ All colors MUST be HSL.
     to {
       opacity: 1;
       transform: scale(1);
+    }
+  }
+
+  /* Construction-themed animations */
+  @keyframes buildUp {
+    0% {
+      opacity: 0;
+      transform: translateY(20px) scaleY(0.8);
+      transform-origin: bottom;
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0) scaleY(1);
+    }
+  }
+
+  @keyframes blueprint {
+    0% {
+      opacity: 0;
+      stroke-dashoffset: 1000;
+    }
+    100% {
+      opacity: 1;
+      stroke-dashoffset: 0;
+    }
+  }
+
+  @keyframes constructionPulse {
+    0%, 100% {
+      box-shadow: 0 0 0 0 hsl(var(--accent) / 0.4);
+    }
+    50% {
+      box-shadow: 0 0 0 10px hsl(var(--accent) / 0);
+    }
+  }
+
+  @keyframes hammerSwing {
+    0%, 100% {
+      transform: rotate(0deg);
+    }
+    25% {
+      transform: rotate(-15deg);
+    }
+    75% {
+      transform: rotate(15deg);
+    }
+  }
+
+  @keyframes stackBlocks {
+    0% {
+      transform: translateY(100%);
+      opacity: 0;
+    }
+    60% {
+      transform: translateY(-10%);
+    }
+    100% {
+      transform: translateY(0);
+      opacity: 1;
     }
   }
 
