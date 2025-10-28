@@ -10,6 +10,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { Plus, Edit, Trash } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { LineItemImporter } from './LineItemImporter';
 
 interface LineItem {
   id: string;
@@ -168,13 +169,15 @@ export function LineItemBudgets({ projectId, userRole }: LineItemBudgetsProps) {
             <CardDescription>Detailed breakdown of project costs by line item</CardDescription>
           </div>
           {canManageItems && (
-            <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-              <DialogTrigger asChild>
-                <Button>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Line Item
-                </Button>
-              </DialogTrigger>
+            <div className="flex gap-2">
+              <LineItemImporter projectId={projectId} onImportComplete={fetchLineItems} />
+              <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Line Item
+                  </Button>
+                </DialogTrigger>
               <DialogContent>
                 <DialogHeader>
                   <DialogTitle>Add Line Item</DialogTitle>
@@ -235,7 +238,8 @@ export function LineItemBudgets({ projectId, userRole }: LineItemBudgetsProps) {
                   <Button onClick={handleCreateLineItem}>Add Item</Button>
                 </DialogFooter>
               </DialogContent>
-            </Dialog>
+              </Dialog>
+            </div>
           )}
         </div>
       </CardHeader>

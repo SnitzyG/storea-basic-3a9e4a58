@@ -3,6 +3,9 @@ project_id = "inibugusrzfihldvegrb"
 [functions.link-pending-projects]
 verify_jwt = false
 
+[functions.parse-line-items]
+verify_jwt = true
+
 [functions.send-tender-invitation]
 verify_jwt = true
 
