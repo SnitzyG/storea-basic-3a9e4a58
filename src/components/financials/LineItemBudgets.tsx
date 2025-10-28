@@ -61,7 +61,11 @@ export function LineItemBudgets({ projectId, userRole }: LineItemBudgetsProps) {
     item_name: '',
     description: '',
     category: 'General',
+    quantity: '',
+    unit: '',
+    rate: '',
     contract_budget: '',
+    notes: '',
   });
 
   const canManageItems = ['architect', 'contractor', 'builder'].includes(userRole);
@@ -98,7 +102,9 @@ export function LineItemBudgets({ projectId, userRole }: LineItemBudgetsProps) {
         ? Math.max(...lineItems.map(item => item.item_number)) + 1 
         : 1;
 
-      const contractBudget = parseFloat(formData.contract_budget);
+      const contractBudget = parseFloat(formData.contract_budget) || 0;
+      const quantity = formData.quantity ? parseFloat(formData.quantity) : null;
+      const rate = formData.rate ? parseFloat(formData.rate) : null;
       
       const { error } = await supabase
         .from('line_item_budgets')
@@ -108,8 +114,13 @@ export function LineItemBudgets({ projectId, userRole }: LineItemBudgetsProps) {
           item_name: formData.item_name,
           description: formData.description || null,
           category: formData.category,
+          quantity,
+          unit: formData.unit || null,
+          rate,
+          total: contractBudget,
           contract_budget: contractBudget,
           balance_to_claim: contractBudget,
+          notes: formData.notes || null,
         });
 
       if (error) throw error;
@@ -120,7 +131,16 @@ export function LineItemBudgets({ projectId, userRole }: LineItemBudgetsProps) {
       });
 
       setCreateDialogOpen(false);
-      setFormData({ item_name: '', description: '', category: 'General', contract_budget: '' });
+      setFormData({ 
+        item_name: '', 
+        description: '', 
+        category: 'General', 
+        quantity: '', 
+        unit: '', 
+        rate: '', 
+        contract_budget: '',
+        notes: '' 
+      });
       fetchLineItems();
     } catch (error) {
       console.error('Error creating line item:', error);

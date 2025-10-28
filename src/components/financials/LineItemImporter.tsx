@@ -22,23 +22,6 @@ interface ParsedLineItem {
   notes?: string;
 }
 
-const CATEGORIES = [
-  'Preliminaries',
-  'Demolition',
-  'Excavation',
-  'Concrete',
-  'Steelwork',
-  'Carpentry',
-  'Roofing',
-  'Windows & Doors',
-  'Plumbing',
-  'Electrical',
-  'Mechanical',
-  'Internal Finishes',
-  'External Works',
-  'General',
-];
-
 export function LineItemImporter({ projectId, onImportComplete }: LineItemImporterProps) {
   const [open, setOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -62,7 +45,6 @@ export function LineItemImporter({ projectId, onImportComplete }: LineItemImport
 
   const parseDocumentContent = async (fileToUpload: File): Promise<ParsedLineItem[]> => {
     try {
-      // Upload file to a temporary location
       const fileName = `temp-${Date.now()}-${fileToUpload.name}`;
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from('documents')
@@ -70,17 +52,14 @@ export function LineItemImporter({ projectId, onImportComplete }: LineItemImport
 
       if (uploadError) throw uploadError;
 
-      // Get public URL for parsing
       const { data: { publicUrl } } = supabase.storage
         .from('documents')
         .getPublicUrl(fileName);
 
-      // Parse the document using edge function
       const { data, error } = await supabase.functions.invoke('parse-line-items', {
         body: { fileUrl: publicUrl, fileName: fileToUpload.name },
       });
 
-      // Clean up temporary file
       await supabase.storage.from('documents').remove([fileName]);
 
       if (error) throw error;
@@ -105,7 +84,6 @@ export function LineItemImporter({ projectId, onImportComplete }: LineItemImport
     setUploading(true);
 
     try {
-      // Parse the document
       const parsedItems = await parseDocumentContent(file);
 
       if (parsedItems.length === 0) {
@@ -117,7 +95,6 @@ export function LineItemImporter({ projectId, onImportComplete }: LineItemImport
         return;
       }
 
-      // Get existing line items to determine next item number
       const { data: existingItems } = await supabase
         .from('line_item_budgets')
         .select('item_number')
@@ -130,7 +107,6 @@ export function LineItemImporter({ projectId, onImportComplete }: LineItemImport
         nextItemNumber = existingItems[0].item_number + 1;
       }
 
-      // Insert parsed items
       const itemsToInsert = parsedItems.map((item, index) => ({
         project_id: projectId,
         item_number: nextItemNumber + index,
@@ -184,7 +160,7 @@ export function LineItemImporter({ projectId, onImportComplete }: LineItemImport
         <DialogHeader>
           <DialogTitle>Import Line Items</DialogTitle>
           <DialogDescription>
-            Upload a PDF, Excel, or Word document containing your budget line items
+            Upload a tender package (PDF, Excel, Word) with columns: Section, Item, Description, Quantity, Unit, Rate, Total, Notes
           </DialogDescription>
         </DialogHeader>
 
