@@ -18,12 +18,17 @@ interface LineItem {
   item_name: string;
   description: string | null;
   category: string;
+  quantity: number | null;
+  unit: string | null;
+  rate: number | null;
+  total: number | null;
   contract_budget: number;
   revised_budget: number | null;
   percentage_complete: number;
   total_claimed_to_date: number;
   balance_to_claim: number;
   forecast_to_complete: number | null;
+  notes: string | null;
 }
 
 interface LineItemBudgetsProps {
@@ -256,13 +261,15 @@ export function LineItemBudgets({ projectId, userRole }: LineItemBudgetsProps) {
                 <TableHeader>
                   <TableRow>
                     <TableHead>#</TableHead>
-                    <TableHead>Item Name</TableHead>
+                    <TableHead>Item</TableHead>
+                    <TableHead>Description</TableHead>
                     <TableHead>Category</TableHead>
-                    <TableHead>Budget</TableHead>
-                    <TableHead>Claimed</TableHead>
-                    <TableHead>Balance</TableHead>
-                    <TableHead>% Complete</TableHead>
-                    <TableHead>Progress</TableHead>
+                    <TableHead className="text-right">Qty</TableHead>
+                    <TableHead>Unit</TableHead>
+                    <TableHead className="text-right">Rate</TableHead>
+                    <TableHead className="text-right">Total</TableHead>
+                    <TableHead className="text-right">Claimed</TableHead>
+                    <TableHead>%</TableHead>
                     {canManageItems && <TableHead></TableHead>}
                   </TableRow>
                 </TableHeader>
@@ -270,22 +277,17 @@ export function LineItemBudgets({ projectId, userRole }: LineItemBudgetsProps) {
                   {lineItems.map((item) => (
                     <TableRow key={item.id}>
                       <TableCell className="font-medium">{item.item_number}</TableCell>
-                      <TableCell>
-                        <div>
-                          <p className="font-medium">{item.item_name}</p>
-                          {item.description && (
-                            <p className="text-sm text-muted-foreground">{item.description}</p>
-                          )}
-                        </div>
+                      <TableCell className="font-medium">{item.item_name}</TableCell>
+                      <TableCell className="text-sm text-muted-foreground max-w-[200px] truncate">
+                        {item.description || '-'}
                       </TableCell>
-                      <TableCell>{item.category}</TableCell>
-                      <TableCell>{formatCurrency(item.revised_budget || item.contract_budget)}</TableCell>
-                      <TableCell>{formatCurrency(item.total_claimed_to_date)}</TableCell>
-                      <TableCell>{formatCurrency(item.balance_to_claim)}</TableCell>
-                      <TableCell>{item.percentage_complete}%</TableCell>
-                      <TableCell>
-                        <Progress value={item.percentage_complete} className="w-20" />
-                      </TableCell>
+                      <TableCell><span className="text-xs px-2 py-1 bg-muted rounded">{item.category}</span></TableCell>
+                      <TableCell className="text-right">{item.quantity || '-'}</TableCell>
+                      <TableCell>{item.unit || '-'}</TableCell>
+                      <TableCell className="text-right">{item.rate ? formatCurrency(item.rate) : '-'}</TableCell>
+                      <TableCell className="text-right font-semibold">{formatCurrency(item.total || item.contract_budget)}</TableCell>
+                      <TableCell className="text-right">{formatCurrency(item.total_claimed_to_date)}</TableCell>
+                      <TableCell><span className="text-xs font-medium">{item.percentage_complete}%</span></TableCell>
                       {canManageItems && (
                         <TableCell>
                           <Button variant="ghost" size="sm">
@@ -296,11 +298,10 @@ export function LineItemBudgets({ projectId, userRole }: LineItemBudgetsProps) {
                     </TableRow>
                   ))}
                   <TableRow className="font-bold bg-muted/50">
-                    <TableCell colSpan={3}>TOTAL</TableCell>
-                    <TableCell>{formatCurrency(getTotalBudget())}</TableCell>
-                    <TableCell>{formatCurrency(getTotalClaimed())}</TableCell>
-                    <TableCell>{formatCurrency(getTotalBalance())}</TableCell>
-                    <TableCell colSpan={canManageItems ? 3 : 2}></TableCell>
+                    <TableCell colSpan={7}>TOTAL</TableCell>
+                    <TableCell className="text-right">{formatCurrency(getTotalBudget())}</TableCell>
+                    <TableCell className="text-right">{formatCurrency(getTotalClaimed())}</TableCell>
+                    <TableCell colSpan={canManageItems ? 2 : 1}></TableCell>
                   </TableRow>
                 </TableBody>
               </Table>

@@ -956,10 +956,15 @@ export type Database = {
           id: string
           item_name: string
           item_number: number
+          notes: string | null
           percentage_complete: number
           project_id: string
+          quantity: number | null
+          rate: number | null
           revised_budget: number | null
+          total: number | null
           total_claimed_to_date: number
+          unit: string | null
           updated_at: string
         }
         Insert: {
@@ -972,10 +977,15 @@ export type Database = {
           id?: string
           item_name: string
           item_number: number
+          notes?: string | null
           percentage_complete?: number
           project_id: string
+          quantity?: number | null
+          rate?: number | null
           revised_budget?: number | null
+          total?: number | null
           total_claimed_to_date?: number
+          unit?: string | null
           updated_at?: string
         }
         Update: {
@@ -988,10 +998,15 @@ export type Database = {
           id?: string
           item_name?: string
           item_number?: number
+          notes?: string | null
           percentage_complete?: number
           project_id?: string
+          quantity?: number | null
+          rate?: number | null
           revised_budget?: number | null
+          total?: number | null
           total_claimed_to_date?: number
+          unit?: string | null
           updated_at?: string
         }
         Relationships: [

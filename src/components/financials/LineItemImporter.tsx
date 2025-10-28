@@ -15,7 +15,11 @@ interface ParsedLineItem {
   item_name: string;
   description?: string;
   category: string;
-  contract_budget: number;
+  quantity?: number;
+  unit?: string;
+  rate?: number;
+  total: number;
+  notes?: string;
 }
 
 const CATEGORIES = [
@@ -133,8 +137,13 @@ export function LineItemImporter({ projectId, onImportComplete }: LineItemImport
         item_name: item.item_name,
         description: item.description || null,
         category: item.category,
-        contract_budget: item.contract_budget,
-        balance_to_claim: item.contract_budget,
+        quantity: item.quantity || null,
+        unit: item.unit || null,
+        rate: item.rate || null,
+        total: item.total,
+        contract_budget: item.total,
+        balance_to_claim: item.total,
+        notes: item.notes || null,
       }));
 
       const { error: insertError } = await supabase

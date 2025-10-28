@@ -9,7 +9,11 @@ interface LineItem {
   item_name: string;
   description?: string;
   category: string;
-  contract_budget: number;
+  quantity?: number;
+  unit?: string;
+  rate?: number;
+  total: number;
+  notes?: string;
 }
 
 const CATEGORIES = [
@@ -53,74 +57,113 @@ function extractLineItems(content: string): LineItem[] {
   const lines = content.split('\n');
   const lineItems: LineItem[] = [];
   
-  // Look for table-like structures with budget information
-  const budgetPatterns = [
-    /\$[\d,]+(?:\.\d{2})?/,  // $123,456.78
-    /[\d,]+\.\d{2}/,          // 123,456.78
-    /[\d,]+/,                 // 123456
-  ];
+  // Split content into cells by looking for tab or multiple space separators
+  const rows = lines.map(line => 
+    line.split(/\t+|\s{2,}/).map(cell => cell.trim()).filter(cell => cell.length > 0)
+  ).filter(row => row.length > 0);
   
-  let currentItem: Partial<LineItem> | null = null;
+  // Try to find header row
+  let headerIndex = -1;
+  let columnMapping: { [key: string]: number } = {};
   
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i].trim();
-    if (!line) continue;
+  for (let i = 0; i < Math.min(5, rows.length); i++) {
+    const row = rows[i];
+    const headerText = row.join(' ').toLowerCase();
     
-    // Try to find budget amounts
-    let budgetMatch = null;
-    for (const pattern of budgetPatterns) {
-      budgetMatch = line.match(pattern);
-      if (budgetMatch) break;
-    }
-    
-    if (budgetMatch) {
-      // Extract amount
-      const amountStr = budgetMatch[0].replace(/[$,]/g, '');
-      const amount = parseFloat(amountStr);
+    if (headerText.includes('section') || headerText.includes('item') || 
+        headerText.includes('description') || headerText.includes('quantity')) {
+      headerIndex = i;
       
-      if (amount > 0 && amount < 10000000) { // Reasonable budget range
-        // Look backward for item name
-        const nameMatch = line.match(/^(.+?)(?:\s+\$|\s+[\d,]+)/);
-        if (nameMatch) {
-          const itemName = nameMatch[1].trim();
-          if (itemName && itemName.length > 3 && itemName.length < 100) {
-            // Look for description in surrounding lines
-            let description = '';
-            if (i + 1 < lines.length) {
-              const nextLine = lines[i + 1].trim();
-              if (nextLine && !nextLine.match(/\$[\d,]+/) && nextLine.length < 200) {
-                description = nextLine;
-              }
-            }
-            
-            const category = categorizeItem(itemName, description);
-            
-            lineItems.push({
-              item_name: itemName,
-              description: description || undefined,
-              category,
-              contract_budget: amount,
-            });
-          }
-        }
-      }
+      // Map columns based on header
+      row.forEach((cell, idx) => {
+        const cellLower = cell.toLowerCase();
+        if (cellLower.includes('section') || cellLower.includes('category')) columnMapping.section = idx;
+        if (cellLower.includes('item') && !cellLower.includes('description')) columnMapping.item = idx;
+        if (cellLower.includes('description')) columnMapping.description = idx;
+        if (cellLower.includes('quantity') || cellLower.includes('qty')) columnMapping.quantity = idx;
+        if (cellLower.includes('unit') && !cellLower.includes('quantity')) columnMapping.unit = idx;
+        if (cellLower.includes('rate') && !cellLower.includes('total')) columnMapping.rate = idx;
+        if (cellLower.includes('total') || cellLower.includes('amount')) columnMapping.total = idx;
+        if (cellLower.includes('note')) columnMapping.notes = idx;
+      });
+      break;
     }
   }
   
-  // Remove duplicates based on similar names
-  const uniqueItems: LineItem[] = [];
-  for (const item of lineItems) {
-    const isDuplicate = uniqueItems.some(existing => {
-      const similarity = item.item_name.toLowerCase() === existing.item_name.toLowerCase();
-      return similarity;
-    });
+  // Parse data rows
+  const startRow = headerIndex >= 0 ? headerIndex + 1 : 0;
+  let currentSection = 'General';
+  
+  for (let i = startRow; i < rows.length; i++) {
+    const row = rows[i];
+    if (row.length === 0) continue;
     
-    if (!isDuplicate) {
-      uniqueItems.push(item);
+    // Check if this is a section header (single column or obvious section)
+    if (row.length === 1 || (row.length === 2 && !row[1].match(/[\d.]/))) {
+      const potentialSection = row[0];
+      if (potentialSection && potentialSection.length > 2 && potentialSection.length < 50) {
+        currentSection = potentialSection;
+      }
+      continue;
+    }
+    
+    // Extract values based on column mapping or position
+    let item: Partial<LineItem> = { category: currentSection };
+    
+    if (Object.keys(columnMapping).length > 0) {
+      // Use header mapping
+      if (columnMapping.section !== undefined && row[columnMapping.section]) {
+        item.category = row[columnMapping.section];
+        currentSection = item.category;
+      }
+      if (columnMapping.item !== undefined) item.item_name = row[columnMapping.item];
+      if (columnMapping.description !== undefined) item.description = row[columnMapping.description];
+      if (columnMapping.quantity !== undefined) {
+        const qty = parseFloat(row[columnMapping.quantity]?.replace(/[,$]/g, '') || '0');
+        if (qty > 0) item.quantity = qty;
+      }
+      if (columnMapping.unit !== undefined) item.unit = row[columnMapping.unit];
+      if (columnMapping.rate !== undefined) {
+        const rate = parseFloat(row[columnMapping.rate]?.replace(/[,$]/g, '') || '0');
+        if (rate > 0) item.rate = rate;
+      }
+      if (columnMapping.total !== undefined) {
+        const total = parseFloat(row[columnMapping.total]?.replace(/[,$]/g, '') || '0');
+        if (total > 0) item.total = total;
+      }
+      if (columnMapping.notes !== undefined) item.notes = row[columnMapping.notes];
+    } else {
+      // Fallback: assume standard order (Section, Item, Description, Quantity, Unit, Rate, Total, Notes)
+      if (row.length >= 2) item.item_name = row[1];
+      if (row.length >= 3) item.description = row[2];
+      if (row.length >= 4) {
+        const qty = parseFloat(row[3].replace(/[,$]/g, '') || '0');
+        if (qty > 0) item.quantity = qty;
+      }
+      if (row.length >= 5) item.unit = row[4];
+      if (row.length >= 6) {
+        const rate = parseFloat(row[5].replace(/[,$]/g, '') || '0');
+        if (rate > 0) item.rate = rate;
+      }
+      if (row.length >= 7) {
+        const total = parseFloat(row[6].replace(/[,$]/g, '') || '0');
+        if (total > 0) item.total = total;
+      }
+      if (row.length >= 8) item.notes = row[7];
+    }
+    
+    // Validate and add item
+    if (item.item_name && item.item_name.length > 2 && item.total && item.total > 0) {
+      // Auto-categorize if no category set
+      if (!item.category || item.category === 'General') {
+        item.category = categorizeItem(item.item_name, item.description);
+      }
+      
+      lineItems.push(item as LineItem);
     }
   }
   
-  return uniqueItems;
+  return lineItems;
 }
 
 serve(async (req) => {
