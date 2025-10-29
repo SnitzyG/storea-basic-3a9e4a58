@@ -377,38 +377,30 @@ const generateTenderExcel = async (tender: Tender): Promise<Blob> => {
   const headerRows: any[][] = [
     ['TENDER PRICING SCHEDULE'],
     [''],
-    ['Project Details'],
-    [`Project Title: ${tender.title || 'N/A'}`],
-    [`Project Address: ${(tender as any).project_address || 'N/A'}`],
-    [`Client Name: ${(tender as any).client_name || 'N/A'}`],
-    [`Tender Reference: ${(tender as any).tender_reference_no || 'N/A'}`],
-    [`Submission Deadline: ${tender.deadline ? new Date(tender.deadline).toLocaleDateString('en-AU') : 'N/A'}`],
+    [`Project: ${tender.title || 'N/A'}`],
+    [`Address: ${(tender as any).project_address || 'N/A'}`],
+    [`Client: ${(tender as any).client_name || 'N/A'}`],
+    [`Reference: ${(tender as any).tender_reference_no || 'N/A'}`],
+    [`Deadline: ${tender.deadline ? new Date(tender.deadline).toLocaleDateString('en-AU') : 'N/A'}`],
+    [`Budget: ${tender.budget ? `$${tender.budget.toLocaleString()}` : 'N/A'}`],
+    [`Start Date: ${(tender as any).estimated_start_date ? new Date((tender as any).estimated_start_date).toLocaleDateString('en-AU') : 'N/A'}`],
+    [`Duration: ${(tender as any).completion_weeks ? `${(tender as any).completion_weeks} weeks` : 'N/A'}`],
     [''],
-    ['Budget & Timeline'],
-    [`Budget (AUD): ${tender.budget ? `$${tender.budget.toLocaleString()}` : 'N/A'}`],
-    [`Estimated Start Date: ${(tender as any).estimated_start_date ? new Date((tender as any).estimated_start_date).toLocaleDateString('en-AU') : 'N/A'}`],
-    [`Completion Weeks: ${(tender as any).completion_weeks || 'N/A'}`],
+    [`Generated: ${today}`],
     [''],
-    [`Date Generated: ${today}`],
     [''],
-    ['LINE ITEMS FROM CONSTRUCTION DRAWINGS'],
-    ['Category', 'Item Description', 'Specification', 'Quantity', 'Unit', 'Rate (AUD)', 'Total (AUD)', 'Notes'],
+    ['PRICING SCHEDULE'],
+    [''],
+    ['Item #', 'Category', 'Description', 'Specification', 'Qty', 'Unit', 'Rate (AUD)', 'Total (AUD)', 'Notes'],
   ];
 
-  // Build item rows from Step 3 extracted data
+  // Build item rows from database - already ordered by line_number
   const itemRows: any[][] = [];
   if (dbLineItems.length > 0) {
-    let currentCategory = '';
     dbLineItems.forEach((it) => {
-      const cat = it.category || 'Uncategorized';
-      // Add category header row
-      if (cat !== currentCategory) {
-        itemRows.push([cat, '', '', '', '', '', '', '']);
-        currentCategory = cat;
-      }
-      // Add item detail row
       itemRows.push([
-        '',
+        it.line_number || '',
+        it.category || 'Uncategorized',
         it.item_description || '',
         it.specification || '',
         it.quantity ?? '',
@@ -419,27 +411,31 @@ const generateTenderExcel = async (tender: Tender): Promise<Blob> => {
       ]);
     });
   } else {
-    // Fallback if no line items extracted
-    itemRows.push(['No line items extracted', 'Please upload construction drawings in Step 3', '', '', '', '', '', '']);
+    itemRows.push(['', 'No line items available', 'Please upload construction drawings in Step 3', '', '', '', '', '', '']);
   }
 
   // Totals section with formulas
   const totalsRows: any[][] = [
     [''],
     [''],
-    ['', '', '', '', '', 'Subtotal:', '', ''],
-    ['', '', '', '', '', 'GST (10%):', '', ''],
-    ['', '', '', '', '', 'Grand Total (AUD):', '', ''],
+    ['', '', '', '', '', '', 'Subtotal (AUD):', '', ''],
+    ['', '', '', '', '', '', 'GST (10%):', '', ''],
+    ['', '', '', '', '', '', 'TOTAL (AUD):', '', ''],
     [''],
     [''],
-    ['Builder Details'],
-    ['Company Name:', ''],
-    ['ABN:', ''],
-    ['Contact Person:', ''],
-    ['Email:', ''],
-    ['Phone:', ''],
+    ['BUILDER/CONTRACTOR DETAILS'],
+    ['Company Name:', '', '', '', '', '', '', '', ''],
+    ['ABN:', '', '', '', '', '', '', '', ''],
+    ['Contact Person:', '', '', '', '', '', '', '', ''],
+    ['Email:', '', '', '', '', '', '', '', ''],
+    ['Phone:', '', '', '', '', '', '', '', ''],
     [''],
-    ['Signature:', '', '', 'Date:', ''],
+    ['Authorized Signature:', '', '', '', 'Date:', '', '', '', ''],
+    [''],
+    ['NOTES:'],
+    ['• All prices are in Australian Dollars (AUD) excluding GST unless otherwise stated'],
+    ['• This pricing schedule forms part of the tender submission'],
+    ['• Payment terms and conditions as per the General Conditions of Contract'],
   ];
 
   const allRows = [...headerRows, ...itemRows, ...totalsRows];
@@ -447,14 +443,15 @@ const generateTenderExcel = async (tender: Tender): Promise<Blob> => {
 
   // Enhanced column widths for better presentation
   lineItemsSheet['!cols'] = [
-    { wch: 28 },  // Category
-    { wch: 40 },  // Item Description
-    { wch: 50 },  // Specification
-    { wch: 12 },  // Quantity
-    { wch: 12 },  // Unit
+    { wch: 10 },  // Item #
+    { wch: 20 },  // Category
+    { wch: 35 },  // Description
+    { wch: 40 },  // Specification
+    { wch: 10 },  // Qty
+    { wch: 10 },  // Unit
     { wch: 15 },  // Rate
     { wch: 15 },  // Total
-    { wch: 30 },  // Notes
+    { wch: 25 },  // Notes
   ];
 
   // Formulas for line totals and summary
@@ -462,41 +459,41 @@ const generateTenderExcel = async (tender: Tender): Promise<Blob> => {
   const endDataRow = headerRows.length + itemRows.length; // 1-based Excel row index for last item row
 
   for (let i = startDataRow; i <= endDataRow; i++) {
-    const totalCell = XLSX.utils.encode_cell({ r: i - 1, c: 6 }); // G column
-    const qtyRef = XLSX.utils.encode_cell({ r: i - 1, c: 3 }); // D
-    const rateRef = XLSX.utils.encode_cell({ r: i - 1, c: 5 }); // F
+    const totalCell = XLSX.utils.encode_cell({ r: i - 1, c: 7 }); // H column (Total)
+    const qtyRef = XLSX.utils.encode_cell({ r: i - 1, c: 4 }); // E (Qty)
+    const rateRef = XLSX.utils.encode_cell({ r: i - 1, c: 6 }); // G (Rate)
     (lineItemsSheet as any)[totalCell] = {
       f: `IF(AND(ISNUMBER(${qtyRef}),ISNUMBER(${rateRef})),${qtyRef}*${rateRef},"")`,
-      t: 'n'
+      t: 'n',
+      z: '$#,##0.00'
     };
   }
 
   // Summary formulas
-  const subtotalRowR = headerRows.length + itemRows.length + 1; // zero-based+1 -> will convert below
+  const subtotalRowR = headerRows.length + itemRows.length + 2; // Offset for spacing rows
   const gstRowR = subtotalRowR + 1;
   const grandRowR = subtotalRowR + 2;
 
-  const subtotalCell = XLSX.utils.encode_cell({ r: subtotalRowR, c: 6 });
-  const totalStart = XLSX.utils.encode_cell({ r: headerRows.length, c: 6 });
-  const totalEnd = XLSX.utils.encode_cell({ r: headerRows.length + itemRows.length - 1, c: 6 });
+  const subtotalCell = XLSX.utils.encode_cell({ r: subtotalRowR, c: 7 });
+  const totalStart = XLSX.utils.encode_cell({ r: headerRows.length, c: 7 });
+  const totalEnd = XLSX.utils.encode_cell({ r: headerRows.length + itemRows.length - 1, c: 7 });
   (lineItemsSheet as any)[subtotalCell] = { f: `SUM(${totalStart}:${totalEnd})`, t: 'n', z: '$#,##0.00' };
 
-  const gstCell = XLSX.utils.encode_cell({ r: gstRowR, c: 6 });
+  const gstCell = XLSX.utils.encode_cell({ r: gstRowR, c: 7 });
   (lineItemsSheet as any)[gstCell] = { f: `${subtotalCell}*0.10`, t: 'n', z: '$#,##0.00' };
 
-  const grandCell = XLSX.utils.encode_cell({ r: grandRowR, c: 6 });
+  const grandCell = XLSX.utils.encode_cell({ r: grandRowR, c: 7 });
   (lineItemsSheet as any)[grandCell] = { f: `${subtotalCell}+${gstCell}`, t: 'n', z: '$#,##0.00' };
 
-  // Merge title cells and set some row heights
+  // Merge cells for better presentation
   (lineItemsSheet as any)['!merges'] = [
-    { s: { r: 0, c: 0 }, e: { r: 0, c: 7 } },
-    { s: { r: 2, c: 0 }, e: { r: 2, c: 7 } },
+    { s: { r: 0, c: 0 }, e: { r: 0, c: 8 } }, // Title
+    { s: { r: 14, c: 0 }, e: { r: 14, c: 8 } }, // Pricing Schedule header
   ];
+  
+  // Set row heights for better readability
   (lineItemsSheet as any)['!rows'] = [
-    { hpt: 30 },
-    { hpt: 25 },
-    { hpt: 18 },
-    { hpt: 18 },
+    { hpt: 30 }, // Title row
   ];
 
   // Create workbook
