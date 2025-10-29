@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Plus, AlertTriangle, FileText, Users, BarChart3, UserPlus, Edit, Trash2 } from 'lucide-react';
+import { Plus, AlertTriangle, FileText, Users, BarChart3, UserPlus, Edit, Trash2, Hash, Copy } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { useTenders, Tender } from '@/hooks/useTenders';
 import { useProjects } from '@/hooks/useProjects';
@@ -175,6 +175,22 @@ const Tenders = () => {
       </div>;
   }
   
+  const copyTenderId = async (tenderId: string) => {
+    try {
+      await navigator.clipboard.writeText(tenderId);
+      toast({
+        title: "Tender ID copied",
+        description: "Tender ID has been copied to clipboard"
+      });
+    } catch (error) {
+      toast({
+        title: "Failed to copy",
+        description: "Please copy the Tender ID manually",
+        variant: "destructive"
+      });
+    }
+  };
+
   const getStatusBadge = (status: string) => {
     const statusConfig = {
       draft: { label: 'DRAFT', className: 'bg-gray-100 text-gray-800' },
@@ -253,9 +269,24 @@ const Tenders = () => {
                     {filteredTenders.map(tender => (
                       <TableRow key={tender.id} className="hover:bg-muted/30 transition-all duration-200 cursor-pointer border-b border-muted/20">
                         <TableCell className="text-sm px-4 py-3 text-foreground/90">
-                          <span className="font-mono text-xs text-muted-foreground">
-                            {tender.tender_id || 'N/A'}
-                          </span>
+                          {tender.tender_id ? (
+                            <div className="flex items-center gap-2">
+                              <div className="flex items-center gap-1 text-xs text-primary font-mono bg-primary/10 px-2 py-1 rounded border border-primary/20">
+                                <Hash className="h-3 w-3" />
+                                {tender.tender_id}
+                              </div>
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                onClick={() => copyTenderId(tender.tender_id)} 
+                                className="h-6 w-6 p-0"
+                              >
+                                <Copy className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          ) : (
+                            <span className="font-mono text-xs text-muted-foreground">-</span>
+                          )}
                         </TableCell>
                         <TableCell className="text-sm px-4 py-3 text-foreground/90">
                           <div className="space-y-1">
