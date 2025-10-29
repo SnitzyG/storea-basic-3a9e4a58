@@ -2503,6 +2503,7 @@ export type Database = {
           scope_of_works_path: string | null
           status: Database["public"]["Enums"]["tender_status"]
           submission_deadline_time: string | null
+          tender_id: string | null
           tender_package_id: string | null
           tender_specification_path: string | null
           tender_type: string | null
@@ -2540,6 +2541,7 @@ export type Database = {
           scope_of_works_path?: string | null
           status?: Database["public"]["Enums"]["tender_status"]
           submission_deadline_time?: string | null
+          tender_id?: string | null
           tender_package_id?: string | null
           tender_specification_path?: string | null
           tender_type?: string | null
@@ -2577,6 +2579,7 @@ export type Database = {
           scope_of_works_path?: string | null
           status?: Database["public"]["Enums"]["tender_status"]
           submission_deadline_time?: string | null
+          tender_id?: string | null
           tender_package_id?: string | null
           tender_specification_path?: string | null
           tender_type?: string | null
@@ -2694,6 +2697,7 @@ export type Database = {
             Returns: string
           }
       generate_unique_project_id: { Args: never; Returns: string }
+      generate_unique_tender_id: { Args: never; Returns: string }
       is_project_architect: {
         Args: { project_id: string; user_id: string }
         Returns: boolean

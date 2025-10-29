@@ -6,6 +6,7 @@ import { useToast } from '@/hooks/use-toast';
 export interface Tender {
   id: string;
   project_id: string;
+  tender_id?: string;
   title: string;
   description: string; // Now used as "Message"
   issued_by: string;

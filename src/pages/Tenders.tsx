@@ -239,6 +239,7 @@ const Tenders = () => {
                 <Table>
                   <TableHeader className="bg-gradient-to-r from-muted/50 to-muted/30 border-b-2 border-primary/10">
                     <TableRow>
+                      <TableHead className="text-foreground/80 font-semibold text-sm h-12 px-4">Tender ID</TableHead>
                       <TableHead className="text-foreground/80 font-semibold text-sm h-12 px-4">Title</TableHead>
                       <TableHead className="text-foreground/80 font-semibold text-sm h-12 px-4">Status</TableHead>
                       <TableHead className="text-foreground/80 font-semibold text-sm h-12 px-4">Deadline</TableHead>
@@ -251,6 +252,11 @@ const Tenders = () => {
                   <TableBody>
                     {filteredTenders.map(tender => (
                       <TableRow key={tender.id} className="hover:bg-muted/30 transition-all duration-200 cursor-pointer border-b border-muted/20">
+                        <TableCell className="text-sm px-4 py-3 text-foreground/90">
+                          <span className="font-mono text-xs text-muted-foreground">
+                            {tender.tender_id || 'N/A'}
+                          </span>
+                        </TableCell>
                         <TableCell className="text-sm px-4 py-3 text-foreground/90">
                           <div className="space-y-1">
                             <p className="font-medium text-sm leading-none text-foreground">{tender.title}</p>
