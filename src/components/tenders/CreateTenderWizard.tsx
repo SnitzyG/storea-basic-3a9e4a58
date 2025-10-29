@@ -13,6 +13,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { DrawingsUploadManager } from './DrawingsUploadManager';
 import { generateTenderPackage } from '@/utils/tenderPackageGenerator';
+import { TenderPackageTracker } from './TenderPackageTracker';
 
 interface CreateTenderWizardProps {
   open: boolean;
@@ -55,7 +56,7 @@ export const CreateTenderWizard = ({
   const { documents } = useDocuments(projectId);
   const { toast } = useToast();
 
-  const totalSteps = 4;
+  const totalSteps = 5;
   const progress = (step / totalSteps) * 100;
 
   // Fetch project data and auto-populate on open
@@ -567,8 +568,22 @@ export const CreateTenderWizard = ({
             </div>
           )}
 
-          {/* Step 4: Review & Summary */}
+          {/* Step 4: Package Tracker */}
           {step === 4 && (
+            <div className="space-y-6">
+              <Card className="bg-primary/5">
+                <CardHeader>
+                  <CardTitle className="text-base">Tender Package Tracker</CardTitle>
+                  <CardDescription>Track documents received from your architect</CardDescription>
+                </CardHeader>
+              </Card>
+
+              <TenderPackageTracker />
+            </div>
+          )}
+
+          {/* Step 5: Review & Summary */}
+          {step === 5 && (
             <div className="space-y-6">
               <Card className="bg-primary/5">
                 <CardHeader>

@@ -18,7 +18,6 @@ import { BidSubmissionDialog } from '@/components/tenders/BidSubmissionDialog';
 import { TenderInviteDialog } from '@/components/tenders/TenderInviteDialog';
 import { BidsReceivedSection } from '@/components/tenders/BidsReceivedSection';
 import { TenderComparisonDashboard } from '@/components/tenders/TenderComparisonDashboard';
-import { TenderPackageTracker } from '@/components/tenders/TenderPackageTracker';
 import { generateTenderPackage } from '@/utils/tenderPackageGenerator';
 import { toast } from '@/hooks/use-toast';
 
@@ -229,14 +228,10 @@ const Tenders = () => {
 
       {/* Main Content Tabs */}
       <Tabs defaultValue="tenders" className="w-full" value={activeTab} onValueChange={(value) => setActiveTab(value as any)}>
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="tenders" className="flex items-center gap-2">
             <FileText className="h-4 w-4" />
             All Tenders
-          </TabsTrigger>
-          <TabsTrigger value="package-tracker" className="flex items-center gap-2">
-            <FileText className="h-4 w-4" />
-            Package Tracker
           </TabsTrigger>
           {userRole === 'architect' && (
             <>
@@ -412,10 +407,6 @@ const Tenders = () => {
               </CardContent>
             </Card>
           )}
-        </TabsContent>
-
-        <TabsContent value="package-tracker" className="space-y-6">
-          <TenderPackageTracker />
         </TabsContent>
 
         <TabsContent value="bids" className="space-y-6">
