@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { StorealiteLogo } from '@/components/ui/storealite-logo';
 import { Link } from 'react-router-dom';
 import { Plus, Search, MessageSquare, Users2, Circle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -210,7 +211,11 @@ const Messages = () => {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background px-4">
         <Card className="w-full max-w-md">
-          <CardContent className="text-center py-8">
+          <CardContent className="text-center py-12">
+            <div className="mb-6">
+              <StorealiteLogo className="text-5xl" />
+            </div>
+            
             <h3 className="text-lg font-semibold mb-2">Messages</h3>
             <p className="text-muted-foreground mb-4">
               No projects available. Create a project or join a project first to create a message.
