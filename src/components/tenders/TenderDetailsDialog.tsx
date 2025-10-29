@@ -70,7 +70,14 @@ export const TenderDetailsDialog = ({
   return <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-xl">{tender.title}</DialogTitle>
+          <DialogTitle className="text-xl flex items-center gap-3">
+            {tender.title}
+            {tender.tender_id && (
+              <span className="font-mono text-sm text-muted-foreground">
+                ({tender.tender_id})
+              </span>
+            )}
+          </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-6">
