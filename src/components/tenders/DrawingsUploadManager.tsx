@@ -71,20 +71,34 @@ export const DrawingsUploadManager = ({ projectId, tenderId, onLineItemsImported
     quantity: true
   });
 
-  // Standard line items included on every upload
-  const STANDARD_LINE_ITEMS = [
-    { category: 'Site Preparation', items: ['Site cut / excavation', 'Fill / leveling and compaction', 'Removal of debris / vegetation', 'Temporary fencing', 'Sediment control / silt fencing', 'Surveying and set-out costs', 'Soil testing (geotechnical report)'] },
-    { category: 'Foundations and Slab', items: ['Footings (strip or pier)', 'Concrete slab (waffle, raft, or conventional)', 'Reinforcement (steel mesh, bar chairs)', 'Vapour barrier', 'Termite protection', 'Edge insulation (if energy requirement)', 'Engineering certification'] },
-    { category: 'Structural Frame', items: ['Timber or steel frame supply and installation', 'Roof trusses and bracing', 'Wall framing', 'Load-bearing beams / lintels', 'Floor system (if double storey – joists, bearers, flooring sheets)'] },
-    { category: 'External Elements', items: ['Roof sheeting or tiles', 'Fascia, gutters, and downpipes', 'Wall cladding (brick veneer, render, weatherboard, etc.)', 'External doors and windows (including flyscreens and locks)', 'Eaves, soffits, and gable treatments', 'External painting or coating system'] },
-    { category: 'Services Rough-In', items: ['Electrical rough-in (power, lighting, switchboard)', 'Plumbing rough-in (hot/cold water, waste, gas)', 'HVAC / ducted system rough-in', 'NBN / data provisions', 'Meter installation (electricity, gas, water)'] },
-    { category: 'Internal Construction', items: ['Internal wall linings (plasterboard)', 'Cornices, architraves, skirting', 'Internal doors and hardware', 'Staircase (if applicable)', 'Insulation (walls, ceiling, underfloor)'] },
-    { category: 'Wet Areas', items: ['Waterproofing membranes', 'Tiling (floor and wall)', 'Sanitaryware (toilets, basins, baths, showers)', 'Tapware', 'Kitchen cabinetry and benchtops', 'Appliances (oven, cooktop, rangehood, dishwasher)', 'Laundry tub and cabinetry'] },
-    { category: 'Finishes', items: ['Internal painting (walls, ceilings, trims)', 'Floor coverings (tiles, carpet, vinyl, hybrid, etc.)', 'Wardrobes and shelving', 'Mirrors, towel rails, robe hooks', 'Light fittings and switches (often allowance or PC item)'] },
-    { category: 'External Works', items: ['Driveway and paths', 'Letterbox', 'Clothesline', 'Landscaping (turf, plants, mulch)', 'Fencing and gates', 'Crossover reinstatement (if damaged)', 'Stormwater drainage and connection to legal point of discharge'] },
-    { category: 'Permits & Compliance', items: ['Building permit and inspections', 'Energy rating report / compliance', 'Engineering and architectural drawings', 'Warranty insurance', 'Site management / supervision', 'Waste removal / site clean', 'Temporary power and water supply', "Builder's margin and contingency"] },
-    { category: 'Provisional Sums & PC Items', items: ['Floor tiles and wall tiles (per m² allowance)', 'Tapware and fittings (per item allowance)', 'Kitchen and bathroom fixtures (allowance-based)', 'Landscaping (provisional sum)', 'Site works (if soil conditions unknown)'] },
-    { category: 'Handover', items: ['Final clean', 'Occupancy permit', 'Handover inspection', 'Warranty documents and manuals', 'Keys and remotes', 'Defects liability period'] }
+  // Construction categories for line items
+  const CONSTRUCTION_CATEGORIES = [
+    'Preliminaries',
+    'Termite Protection',
+    'Demolition',
+    'Concrete Works',
+    'Structural Steel',
+    'Masonry',
+    'Carpentry',
+    'Façade Works',
+    'Roofing',
+    'Plumbing',
+    'Mechanical',
+    'Electrical',
+    'Lift',
+    'Plastering, Insulation & Sarking',
+    'Stair Works',
+    'Painting / Rendering',
+    'Joinery',
+    'Stone',
+    'Floor Finishes',
+    'Tiling',
+    'Shower Screens & Mirrors',
+    'Builders Clean',
+    'Caulking',
+    'External Landscape',
+    'Rooftop Terrace',
+    'Additional Budgets / Provisional Sums'
   ];
 
   // Convert first few PDF pages to images for AI analysis
@@ -213,27 +227,10 @@ export const DrawingsUploadManager = ({ projectId, tenderId, onLineItemsImported
       setUploadProgress(85);
       setUploadStage('Extracting line items...');
 
-      // Create standard line items
-      let lineNum = 1;
-      const standardItems: LineItem[] = [];
-      STANDARD_LINE_ITEMS.forEach(group => {
-        group.items.forEach(item => {
-          standardItems.push({
-            id: `std-${lineNum}`,
-            lineNumber: lineNum++,
-            itemDescription: item,
-            specification: '',
-            unitOfMeasure: 'item',
-            quantity: 1,
-            category: group.category
-          });
-        });
-      });
-
-      // Add any AI-extracted items
-      const aiItems: LineItem[] = (parseData?.lineItems || []).map((item: any, index: number) => ({
-        id: `ai-${index}`,
-        lineNumber: lineNum++,
+      // Extract items from AI analysis of the actual drawing
+      const extractedItems: LineItem[] = (parseData?.lineItems || []).map((item: any, index: number) => ({
+        id: `extracted-${index}`,
+        lineNumber: index + 1,
         itemDescription: item.item_description ?? '',
         specification: item.specification ?? item.description ?? item.notes ?? '',
         unitOfMeasure: item.unit_of_measure ?? item.unit ?? 'item',
@@ -241,7 +238,12 @@ export const DrawingsUploadManager = ({ projectId, tenderId, onLineItemsImported
         category: item.category ?? 'Additional Items'
       }));
 
-      const allItems = [...standardItems, ...aiItems];
+      // Validate we got results
+      if (extractedItems.length === 0) {
+        throw new Error('No line items could be extracted from the drawing. Please ensure the drawing contains clear construction details.');
+      }
+
+      const allItems = extractedItems;
       setLineItems(allItems);
       setSelectedIds(new Set(allItems.map(i => i.id)));
       onLineItemsImported?.(allItems);
@@ -580,9 +582,9 @@ export const DrawingsUploadManager = ({ projectId, tenderId, onLineItemsImported
                                   <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent>
-                                  {STANDARD_LINE_ITEMS.map(group => (
-                                    <SelectItem key={group.category} value={group.category}>
-                                      {group.category}
+                                  {CONSTRUCTION_CATEGORIES.map(category => (
+                                    <SelectItem key={category} value={category}>
+                                      {category}
                                     </SelectItem>
                                   ))}
                                   <SelectItem value="Additional Items">Additional Items</SelectItem>

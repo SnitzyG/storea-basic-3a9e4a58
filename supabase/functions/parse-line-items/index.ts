@@ -74,29 +74,56 @@ serve(async (req) => {
     };
     const mimeType = mimeTypes[fileExt || 'pdf'] || 'application/pdf';
 
-    const systemPrompt = `You are a construction cost estimator analyzing architectural and construction drawings. 
-Your task is to carefully examine the provided construction drawing and extract ALL line items needed for construction.
+    const systemPrompt = `You are an expert construction quantity surveyor analyzing architectural and construction drawings with precision.
 
-For each item you identify, provide:
-- A sequential line number
-- Clear item description
-- Detailed specification
-- Unit of measure (e.g., m², m³, m, no., sum)
-- Estimated quantity based on the drawing
-- Estimated unit price (use Australian construction rates)
-- Total cost (quantity × unit price)
-- Category from the approved list
+Your task is to carefully examine ONLY what is shown in the provided construction drawing and extract SPECIFIC line items based on the actual content.
 
-IMPORTANT: 
-- Be thorough and extract ALL visible construction items from the drawing
-- Use standard Australian construction terminology
-- Provide realistic quantity estimates based on what you can see
-- Use current Australian market rates for pricing
-- Categories MUST be from this exact list: ${CONSTRUCTION_CATEGORIES.join(', ')}`;
+CRITICAL INSTRUCTIONS:
+1. ANALYZE THE ACTUAL DRAWING - Don't use templates or generic lists
+2. Extract ONLY items that are CLEARLY VISIBLE or SPECIFIED in the drawing
+3. Look for:
+   - Dimensions and measurements (walls, slabs, areas, volumes)
+   - Materials specified in notes or legends
+   - Structural elements (beams, columns, footings)
+   - Finishes and fixtures shown
+   - Quantities that can be calculated from plans
+   - Specifications in text annotations
+   - Details in sections and elevations
 
-    const userPrompt = `Please analyze this construction drawing thoroughly and extract ALL line items needed for the project. 
-Include everything you can identify from the drawing including materials, labor, and equipment.
-Return a comprehensive bill of quantities.`;
+4. For each item you identify, provide:
+   - Line number (sequential)
+   - Clear item description (what it is + where it is)
+   - Detailed specification (material, size, grade, finish)
+   - Unit of measure (m², m³, m, no., sum, kg, etc.)
+   - Calculated quantity based on drawing dimensions
+   - Estimated unit price (Australian construction rates)
+   - Total cost (quantity × unit price)
+   - Category from the approved list
+
+5. QUALITY OVER QUANTITY:
+   - Better to extract 20 accurate items than 100 generic ones
+   - Each line item must reference something visible in the drawing
+   - Include dimensions/locations where visible
+   - If drawings show multiple pages, analyze ALL pages
+
+6. Categories MUST be from this exact list: ${CONSTRUCTION_CATEGORIES.join(', ')}
+
+EXAMPLE OUTPUT FORMAT:
+- Line 1: "Excavation for footings (as per foundation plan detail A)" | Spec: "Bulk excavation, 600mm depth, 300mm width" | Unit: m³ | Qty: 45.2
+- Line 2: "N12 reinforcement bars in slab (zone 1-3)" | Spec: "Grade 500N steel, 200mm spacing" | Unit: kg | Qty: 2,340`;
+
+    const userPrompt = `Analyze this specific construction drawing in detail. 
+
+STEP-BY-STEP PROCESS:
+1. First, identify what type of drawing this is (floor plan, elevation, section, detail, etc.)
+2. Look for dimensions, measurements, and scale
+3. Read all text annotations, notes, and specifications
+4. Identify materials specified in legends or notes
+5. Calculate quantities from dimensions shown
+6. Extract ONLY items that are clearly shown or specified
+
+Return a comprehensive bill of quantities with ONLY items that you can verify from the drawing content.
+If the drawing is unclear or lacks detail, extract what you can see and note in specifications what information is missing.`;
 
     // Build multimodal content from provided images or file URL
     let userContent: any[] = [{ type: 'text', text: userPrompt }];
