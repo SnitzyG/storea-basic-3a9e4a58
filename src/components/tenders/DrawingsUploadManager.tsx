@@ -35,16 +35,6 @@ export const DrawingsUploadManager = ({ projectId, tenderId, onLineItemsImported
   const [lineItems, setLineItems] = useState<LineItem[]>([]);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   
-  // Project specs
-  const [projectSpecs, setProjectSpecs] = useState({
-    totalArea: '',
-    floors: '',
-    bedrooms: '',
-    bathrooms: '',
-    buildingType: '',
-    constructionType: ''
-  });
-  
   // Filters and display options
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [sortBy, setSortBy] = useState<'line' | 'category' | 'description'>('line');
@@ -219,75 +209,6 @@ export const DrawingsUploadManager = ({ projectId, tenderId, onLineItemsImported
         </CardContent>
       </Card>
 
-      {/* Project Specifications */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Key Project Specifications</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-3 gap-4">
-            <div>
-              <Label>Total Floor Area (m²)</Label>
-              <Input
-                value={projectSpecs.totalArea}
-                onChange={(e) => setProjectSpecs({ ...projectSpecs, totalArea: e.target.value })}
-                placeholder="250"
-              />
-            </div>
-            <div>
-              <Label>Number of Floors</Label>
-              <Input
-                value={projectSpecs.floors}
-                onChange={(e) => setProjectSpecs({ ...projectSpecs, floors: e.target.value })}
-                placeholder="2"
-              />
-            </div>
-            <div>
-              <Label>Bedrooms</Label>
-              <Input
-                value={projectSpecs.bedrooms}
-                onChange={(e) => setProjectSpecs({ ...projectSpecs, bedrooms: e.target.value })}
-                placeholder="4"
-              />
-            </div>
-            <div>
-              <Label>Bathrooms</Label>
-              <Input
-                value={projectSpecs.bathrooms}
-                onChange={(e) => setProjectSpecs({ ...projectSpecs, bathrooms: e.target.value })}
-                placeholder="2"
-              />
-            </div>
-            <div>
-              <Label>Building Type</Label>
-              <Select value={projectSpecs.buildingType} onValueChange={(v) => setProjectSpecs({ ...projectSpecs, buildingType: v })}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="residential">Residential</SelectItem>
-                  <SelectItem value="commercial">Commercial</SelectItem>
-                  <SelectItem value="mixed">Mixed Use</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label>Construction Type</Label>
-              <Select value={projectSpecs.constructionType} onValueChange={(v) => setProjectSpecs({ ...projectSpecs, constructionType: v })}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="brick">Brick Veneer</SelectItem>
-                  <SelectItem value="timber">Timber Frame</SelectItem>
-                  <SelectItem value="concrete">Concrete</SelectItem>
-                  <SelectItem value="steel">Steel Frame</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
 
       {/* Line Items Display */}
       {lineItems.length > 0 && (
