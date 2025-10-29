@@ -144,7 +144,7 @@ interface EnhancedTenderWizardProps {
 
 export const EnhancedTenderWizard = ({ open, onOpenChange, projectId, existingTender }: EnhancedTenderWizardProps) => {
   const [step, setStep] = useState(1);
-  const totalSteps = 9; // Reduced from 10 to 9 (removed Risk Assessment step)
+  const totalSteps = 5; // Streamlined wizard
   const { toast } = useToast();
   const { createTender, updateTender } = useTenders();
   const [currentTenderId, setCurrentTenderId] = useState<string | undefined>(existingTender?.id);
@@ -404,47 +404,35 @@ export const EnhancedTenderWizard = ({ open, onOpenChange, projectId, existingTe
         requirements: {
           compliance: selectedCompliance,
           contractor: selectedContractorReqs,
-          environmental: selectedEnvironmental,
-          communication: selectedCommunication,
-          scope: selectedScope,
           timeline: {
             start_date: estimatedStartDate,
             completion_weeks: completionWeeks,
             completion_date: completionDate
           },
-          site_conditions: {
-            access: siteAccess,
-            terrain,
-            vegetation_demolition: vegetationDemolition,
-            existing_services: existingServices,
-            neighboring_structures: neighboringStructures
-          },
-          communication_details: {
-            reporting_frequency: reportingFrequency,
-            preferred_format: preferredFormat
-          },
-          custom_environmental: customEnvironmental,
           contract_type: contractType
         }
       };
 
-      let success;
+      let tenderId;
       if (existingTender) {
         // Update existing tender
-        success = await updateTender(existingTender.id, tenderData);
+        const success = await updateTender(existingTender.id, tenderData);
         if (!success) {
           throw new Error('Tender could not be updated. Please try again.');
         }
+        tenderId = existingTender.id;
         toast({
           title: "Tender updated successfully",
           description: "Your tender package has been updated"
         });
       } else {
         // Create new tender
-        success = await createTender(tenderData);
-        if (!success) {
+        const result = await createTender(tenderData);
+        if (!result) {
           throw new Error('Tender could not be saved. Please review required fields and try again.');
         }
+        tenderId = result.id;
+        setCurrentTenderId(tenderId);
         toast({
           title: "Tender created successfully",
           description: "Your tender package is ready"
@@ -466,7 +454,7 @@ export const EnhancedTenderWizard = ({ open, onOpenChange, projectId, existingTe
   const renderStep = () => {
     switch (step) {
       case 1:
-        // Step 1: Tender Information (auto-populated)
+        // Step 1: Tender Information + Budget & Timeline (consolidated)
         return (
           <div className="space-y-4">
             <div>
@@ -485,26 +473,63 @@ export const EnhancedTenderWizard = ({ open, onOpenChange, projectId, existingTe
               <Label>Tender Reference No.</Label>
               <Input value={tenderReferenceNo} readOnly className="bg-muted" />
             </div>
-            <div>
-              <Label>Project Overview</Label>
-              <Textarea 
-                value={message} 
-                onChange={(e) => setMessage(e.target.value)}
-                placeholder="Brief description of the project..."
-                rows={4}
-              />
+            
+            <div className="border-t pt-4 mt-6">
+              <h3 className="text-lg font-semibold mb-4">Budget & Timeline</h3>
+              <div className="space-y-4">
+                <div>
+                  <Label>Budget (AUD)</Label>
+                  <Input 
+                    type="number" 
+                    value={budget} 
+                    onChange={(e) => setBudget(e.target.value)}
+                    placeholder="780000"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label>Estimated Start Date</Label>
+                    <Input 
+                      type="date" 
+                      value={estimatedStartDate} 
+                      onChange={(e) => setEstimatedStartDate(e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <Label>Completion Weeks</Label>
+                    <Input 
+                      type="number" 
+                      value={completionWeeks} 
+                      onChange={(e) => setCompletionWeeks(e.target.value)}
+                      placeholder="36"
+                    />
+                  </div>
+                </div>
+
+                {completionDate && (
+                  <div>
+                    <Label>Calculated Completion Date</Label>
+                    <Input 
+                      type="date" 
+                      value={completionDate} 
+                      readOnly 
+                      className="bg-muted"
+                    />
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         );
 
       case 2:
-        // Step 2: Project Scope (comprehensive checkboxes) + Drawings Upload
+        // Step 2: Drawings Upload + Line Items
         return (
           <div className="space-y-6">
-            {/* Drawings Upload Manager */}
             <DrawingsUploadManager 
               projectId={projectId}
-              tenderId={existingTender?.id}
+              tenderId={currentTenderId}
               onLineItemsImported={(items) => {
                 toast({
                   title: "Line items imported",
@@ -513,43 +538,11 @@ export const EnhancedTenderWizard = ({ open, onOpenChange, projectId, existingTe
               }}
             />
             
-            {/* Existing Scope Items */}
-            {Object.entries(SCOPE_ITEMS).map(([category, items]) => {
-              const categoryItems = selectedScope[category] || [];
-              const allSelected = categoryItems.length === items.length;
-              
-              return (
-                <Card key={category}>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-                    <CardTitle className="text-lg capitalize">
-                      {category.replace(/([A-Z])/g, ' $1').trim()}
-                    </CardTitle>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => toggleAllInCategory(category)}
-                    >
-                      {allSelected ? 'Deselect All' : 'Select All'}
-                    </Button>
-                  </CardHeader>
-                  <CardContent className="space-y-2">
-                    {items.map((item) => (
-                      <div key={item} className="flex items-center space-x-2">
-                        <Checkbox
-                          id={`${category}-${item}`}
-                          checked={selectedScope[category]?.includes(item) || false}
-                          onCheckedChange={() => toggleScopeItem(category, item)}
-                        />
-                        <Label htmlFor={`${category}-${item}`} className="font-normal cursor-pointer">
-                          {item}
-                        </Label>
-                      </div>
-                    ))}
-                  </CardContent>
-                </Card>
-              );
-            })}
+            {currentTenderId && (
+              <div className="mt-6">
+                <TenderLineItemsDisplay tenderId={currentTenderId} />
+              </div>
+            )}
           </div>
         );
 
@@ -632,230 +625,80 @@ export const EnhancedTenderWizard = ({ open, onOpenChange, projectId, existingTe
         );
 
       case 4:
-        // Step 4: Budget & Timeline
+        // Step 4: Supporting Documents
         return (
           <div className="space-y-4">
-            <div>
-              <Label>Budget (AUD)</Label>
-              <Input 
-                type="number" 
-                value={budget} 
-                onChange={(e) => setBudget(e.target.value)}
-                placeholder="780000"
-              />
+            <div className="flex items-center justify-between">
+              <Label>Supporting Documents</Label>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setShowDocumentPicker(!showDocumentPicker)}
+              >
+                <FileText className="h-4 w-4 mr-2" />
+                {showDocumentPicker ? 'Hide' : 'Select from'} Document Register
+              </Button>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label>Estimated Start Date</Label>
-                <Input 
-                  type="date" 
-                  value={estimatedStartDate} 
-                  onChange={(e) => setEstimatedStartDate(e.target.value)}
-                />
-              </div>
-              <div>
-                <Label>Completion Weeks</Label>
-                <Input 
-                  type="number" 
-                  value={completionWeeks} 
-                  onChange={(e) => setCompletionWeeks(e.target.value)}
-                  placeholder="36"
-                />
-              </div>
-            </div>
+            {showDocumentPicker && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">Available Documents</CardTitle>
+                </CardHeader>
+                <CardContent className="max-h-64 overflow-y-auto space-y-2">
+                  {documents.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">No documents available in the register</p>
+                  ) : (
+                    documents.map((doc) => (
+                      <div key={doc.id} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`doc-${doc.id}`}
+                          checked={selectedDocuments.includes(doc.id)}
+                          onCheckedChange={(checked) => {
+                            setSelectedDocuments(prev =>
+                              checked
+                                ? [...prev, doc.id]
+                                : prev.filter(id => id !== doc.id)
+                            );
+                          }}
+                        />
+                        <Label htmlFor={`doc-${doc.id}`} className="font-normal cursor-pointer text-sm">
+                          {doc.name}
+                        </Label>
+                      </div>
+                    ))
+                  )}
+                </CardContent>
+              </Card>
+            )}
 
-            {completionDate && (
-              <div>
-                <Label>Calculated Completion Date</Label>
-                <Input 
-                  type="date" 
-                  value={completionDate} 
-                  readOnly 
-                  className="bg-muted"
-                />
+            {selectedDocuments.length > 0 && (
+              <div className="mt-4">
+                <p className="text-sm font-semibold mb-2">Selected Documents ({selectedDocuments.length})</p>
+                <div className="flex flex-wrap gap-2">
+                  {selectedDocuments.map(docId => {
+                    const doc = documents.find(d => d.id === docId);
+                    return doc ? (
+                      <Badge key={docId} variant="secondary" className="flex items-center gap-1">
+                        {doc.name}
+                        <X 
+                          className="h-3 w-3 cursor-pointer" 
+                          onClick={() => setSelectedDocuments(prev => prev.filter(id => id !== docId))}
+                        />
+                      </Badge>
+                    ) : null;
+                  })}
+                </div>
               </div>
             )}
           </div>
         );
 
       case 5:
-        // Step 5: Environmental Targets
-        return (
-          <div className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Environmental Objectives</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                {ENVIRONMENTAL_TARGETS.map((item) => (
-                  <div key={item} className="flex items-center space-x-2">
-                    <Checkbox
-                      id={`env-${item}`}
-                      checked={selectedEnvironmental.includes(item)}
-                      onCheckedChange={() => toggleItem(selectedEnvironmental, setSelectedEnvironmental, item)}
-                    />
-                    <Label htmlFor={`env-${item}`} className="font-normal cursor-pointer">
-                      {item}
-                    </Label>
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-            <div>
-              <Label>Custom Environmental Goals</Label>
-              <Textarea
-                value={customEnvironmental}
-                onChange={(e) => setCustomEnvironmental(e.target.value)}
-                placeholder="Enter any additional environmental objectives..."
-                rows={4}
-              />
-            </div>
-          </div>
-        );
-
-      case 6:
-        // Step 6: Communication & Transparency
-        return (
-          <div className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Communication Protocols</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                {COMMUNICATION_OBJECTIVES.map((item) => (
-                  <div key={item} className="flex items-center space-x-2">
-                    <Checkbox
-                      id={`comm-${item}`}
-                      checked={selectedCommunication.includes(item)}
-                      onCheckedChange={() => toggleItem(selectedCommunication, setSelectedCommunication, item)}
-                    />
-                    <Label htmlFor={`comm-${item}`} className="font-normal cursor-pointer">
-                      {item}
-                    </Label>
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-            
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label>Reporting Frequency</Label>
-                <Select value={reportingFrequency} onValueChange={setReportingFrequency}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="daily">Daily</SelectItem>
-                    <SelectItem value="weekly">Weekly</SelectItem>
-                    <SelectItem value="fortnightly">Fortnightly</SelectItem>
-                    <SelectItem value="monthly">Monthly</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label>Preferred Format</Label>
-                <Select value={preferredFormat} onValueChange={setPreferredFormat}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="email">Email</SelectItem>
-                    <SelectItem value="portal">Digital Portal</SelectItem>
-                    <SelectItem value="meeting">In-Person Meeting</SelectItem>
-                    <SelectItem value="video">Video Call</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          </div>
-        );
-
-      case 7:
-        // Step 7: Site Conditions
-        return (
-          <div className="space-y-4">
-            <div>
-              <Label>Site Access</Label>
-              <Textarea
-                value={siteAccess}
-                onChange={(e) => setSiteAccess(e.target.value)}
-                placeholder="Describe site access (driveway width, gate size, parking availability, etc.)"
-                rows={3}
-              />
-            </div>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Terrain Type</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                {['Flat', 'Sloped', 'Sandy soil', 'Clay soil', 'Rocky'].map((item) => (
-                  <div key={item} className="flex items-center space-x-2">
-                    <Checkbox
-                      id={`terrain-${item}`}
-                      checked={terrain.includes(item)}
-                      onCheckedChange={() => toggleItem(terrain, setTerrain, item)}
-                    />
-                    <Label htmlFor={`terrain-${item}`} className="font-normal cursor-pointer">
-                      {item}
-                    </Label>
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-
-            <div>
-              <Label>Vegetation or Demolition Required</Label>
-              <Textarea
-                value={vegetationDemolition}
-                onChange={(e) => setVegetationDemolition(e.target.value)}
-                placeholder="Describe any trees, vegetation, or structures requiring removal..."
-                rows={3}
-              />
-            </div>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Existing Services</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                {['Water', 'Electricity', 'Sewer', 'Gas', 'NBN/Internet', 'Stormwater'].map((item) => (
-                  <div key={item} className="flex items-center space-x-2">
-                    <Checkbox
-                      id={`service-${item}`}
-                      checked={existingServices.includes(item)}
-                      onCheckedChange={() => toggleItem(existingServices, setExistingServices, item)}
-                    />
-                    <Label htmlFor={`service-${item}`} className="font-normal cursor-pointer">
-                      {item}
-                    </Label>
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-
-            <div>
-              <Label>Neighboring Structures or Access Issues</Label>
-              <Textarea
-                value={neighboringStructures}
-                onChange={(e) => setNeighboringStructures(e.target.value)}
-                placeholder="Describe proximity to neighboring buildings, shared driveways, access restrictions, etc."
-                rows={3}
-              />
-            </div>
-          </div>
-        );
-
-      case 8:
-        // Step 8: Review & Attachments + Building Quote
+        // Step 5: Review Package
         return (
           <div className="space-y-6">
-            {/* Building Quote - Line Items */}
-            {existingTender?.id && (
-              <TenderLineItemsDisplay tenderId={existingTender.id} />
-            )}
-
             <Card>
               <CardHeader>
                 <CardTitle>Tender Summary</CardTitle>
@@ -880,136 +723,37 @@ export const EnhancedTenderWizard = ({ open, onOpenChange, projectId, existingTe
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm font-semibold">Scope Items Selected:</p>
-                  <p className="text-sm text-muted-foreground">
-                    {Object.values(selectedScope).reduce((sum, arr) => sum + arr.length, 0)} items
-                  </p>
+                  <p className="text-sm font-semibold">Compliance Requirements:</p>
+                  <p className="text-sm text-muted-foreground">{selectedCompliance.length} items</p>
+                </div>
+                <div>
+                  <p className="text-sm font-semibold">Supporting Documents:</p>
+                  <p className="text-sm text-muted-foreground">{selectedDocuments.length} attached</p>
                 </div>
               </CardContent>
             </Card>
 
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <Label>Supporting Documents</Label>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setShowDocumentPicker(!showDocumentPicker)}
-                >
-                  <FileText className="h-4 w-4 mr-2" />
-                  {showDocumentPicker ? 'Hide' : 'Select from'} Document Register
-                </Button>
-              </div>
-
-              {showDocumentPicker && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-base">Available Documents</CardTitle>
-                  </CardHeader>
-                  <CardContent className="max-h-64 overflow-y-auto space-y-2">
-                    {documents.length === 0 ? (
-                      <p className="text-sm text-muted-foreground">No documents available in the register</p>
-                    ) : (
-                      documents.map((doc) => (
-                        <div key={doc.id} className="flex items-center space-x-2">
-                          <Checkbox
-                            id={`doc-${doc.id}`}
-                            checked={selectedDocuments.includes(doc.id)}
-                            onCheckedChange={(checked) => {
-                              setSelectedDocuments(prev =>
-                                checked
-                                  ? [...prev, doc.id]
-                                  : prev.filter(id => id !== doc.id)
-                              );
-                            }}
-                          />
-                          <Label htmlFor={`doc-${doc.id}`} className="font-normal cursor-pointer flex-1">
-                            {doc.name}
-                          </Label>
-                          <Badge variant="outline" className="text-xs">
-                            {doc.category || doc.file_extension}
-                          </Badge>
-                        </div>
-                      ))
-                    )}
-                  </CardContent>
-                </Card>
-              )}
-
-              {selectedDocuments.length > 0 && (
-                <div className="space-y-2">
-                  <p className="text-sm font-medium">Selected Documents ({selectedDocuments.length})</p>
-                  <div className="flex flex-wrap gap-2">
-                    {selectedDocuments.map((docId) => {
-                      const doc = documents.find(d => d.id === docId);
-                      return doc ? (
-                        <Badge key={docId} variant="secondary" className="flex items-center gap-1">
-                          {doc.name}
-                          <X
-                            className="h-3 w-3 cursor-pointer"
-                            onClick={() => setSelectedDocuments(prev => prev.filter(id => id !== docId))}
-                          />
-                        </Badge>
-                      ) : null;
-                    })}
-                  </div>
-                </div>
-              )}
-
-              <div>
-                <Label>Upload New Documents (Optional)</Label>
-                <Input
-                  type="file"
-                  multiple
-                  onChange={(e) => {
-                    if (e.target.files) {
-                      setAttachments(Array.from(e.target.files));
-                    }
-                  }}
-                  accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
-                />
-                {attachments.length > 0 && (
-                  <p className="text-sm text-muted-foreground mt-2">
-                    {attachments.length} file(s) selected
-                  </p>
-                )}
-              </div>
+            <div className="flex justify-center">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  toast({
+                    title: "Package Preview",
+                    description: "Preview functionality will be available soon"
+                  });
+                }}
+              >
+                <FileDown className="h-4 w-4 mr-2" />
+                View Package Preview
+              </Button>
             </div>
-          </div>
-        );
 
-      case 9:
-        // Step 9: Generate & Export PDF
-        return (
-          <div className="space-y-6 text-center">
-            <Card>
-              <CardHeader>
-                <CardTitle>Tender Package Ready</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <p className="text-muted-foreground">
-                  Your tender package has been compiled and is ready for export.
-                </p>
-                <div className="flex gap-4 justify-center">
-                  <Button
-                    onClick={async () => {
-                      // TODO: Implement PDF generation
-                      toast({
-                        title: "PDF Generation",
-                        description: "Generating tender PDF..."
-                      });
-                    }}
-                  >
-                    <FileDown className="w-4 h-4 mr-2" />
-                    Download PDF
-                  </Button>
-                  <Button variant="outline">
-                    Send via Email
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+            <div className="border-t pt-4">
+              <p className="text-sm text-muted-foreground text-center">
+                Review your tender package before creating. You can preview and make adjustments before finalizing.
+              </p>
+            </div>
           </div>
         );
 
