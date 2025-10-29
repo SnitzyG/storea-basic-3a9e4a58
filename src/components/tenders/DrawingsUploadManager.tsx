@@ -9,10 +9,11 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Upload, FileText, ArrowUpDown, Filter } from 'lucide-react';
+import { Upload, FileText, ArrowUpDown, Filter, Download } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import { StorealiteLogo } from '@/components/ui/storealite-logo';
 import { Progress } from '@/components/ui/progress';
+import * as XLSX from 'xlsx';
 // PDF rendering for client-side PDF -> image conversion
 import * as pdfjsLib from 'pdfjs-dist';
 // @ts-ignore - Vite will resolve this to a URL
@@ -367,6 +368,68 @@ export const DrawingsUploadManager = ({ projectId, tenderId, onLineItemsImported
   const categories = ['all', ...Array.from(new Set(lineItems.map(item => item.category)))];
   const displayedItems = getFilteredAndSortedItems();
 
+  const exportToExcel = (itemsToExport: LineItem[], filename: string) => {
+    // Prepare data for Excel
+    const excelData = itemsToExport.map(item => ({
+      'Line #': item.lineNumber,
+      'Category': item.category,
+      'Item Description': item.itemDescription,
+      'Specification/Notes': item.specification,
+      'Unit of Measure': item.unitOfMeasure,
+      'Quantity': item.quantity
+    }));
+
+    // Create workbook and worksheet
+    const ws = XLSX.utils.json_to_sheet(excelData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Line Items');
+
+    // Set column widths for readability
+    ws['!cols'] = [
+      { wch: 8 },  // Line #
+      { wch: 25 }, // Category
+      { wch: 40 }, // Item Description
+      { wch: 50 }, // Specification/Notes
+      { wch: 15 }, // Unit of Measure
+      { wch: 10 }  // Quantity
+    ];
+
+    // Generate Excel file with proper date format
+    const dateStr = new Date().toISOString().split('T')[0];
+    const fullFilename = `${filename}-${dateStr}.xlsx`;
+    XLSX.writeFile(wb, fullFilename);
+
+    toast({
+      title: 'Export successful',
+      description: `Exported ${itemsToExport.length} items to ${fullFilename}`
+    });
+  };
+
+  const handleExportSelected = () => {
+    const selectedItems = lineItems.filter(item => selectedIds.has(item.id));
+    if (selectedItems.length === 0) {
+      toast({
+        title: 'No items selected',
+        description: 'Please select at least one item to export',
+        variant: 'destructive'
+      });
+      return;
+    }
+    exportToExcel(selectedItems, 'line-items-selected');
+  };
+
+  const handleExportAll = () => {
+    if (lineItems.length === 0) {
+      toast({
+        title: 'No items to export',
+        description: 'Please upload drawings first',
+        variant: 'destructive'
+      });
+      return;
+    }
+    exportToExcel(lineItems, 'line-items-all');
+  };
+
   return (
     <>
       {/* Full-screen upload overlay */}
@@ -432,6 +495,22 @@ export const DrawingsUploadManager = ({ projectId, tenderId, onLineItemsImported
                 <div className="flex items-center gap-2">
                   <span className="text-sm text-muted-foreground">Selected: {selectedIds.size}</span>
                   <Button onClick={addLineItem} size="sm">Add Line Item</Button>
+                  <Button 
+                    size="sm"
+                    variant="outline"
+                    onClick={handleExportSelected}
+                  >
+                    <Download className="h-4 w-4 mr-2" />
+                    Export Selected
+                  </Button>
+                  <Button 
+                    size="sm"
+                    variant="outline"
+                    onClick={handleExportAll}
+                  >
+                    <Download className="h-4 w-4 mr-2" />
+                    Export All
+                  </Button>
                   <Button 
                     size="sm"
                     variant="outline"
