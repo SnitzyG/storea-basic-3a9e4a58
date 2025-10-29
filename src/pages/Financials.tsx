@@ -85,7 +85,28 @@ export default function Financials() {
   const canManageFinancials = ['architect', 'contractor'].includes(userRole);
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
+    <div className="container mx-auto py-6 space-y-6 relative">
+      {/* Coming Soon Overlay */}
+      <div className="absolute inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center">
+        <Card className="w-full max-w-md shadow-xl border-2">
+          <CardHeader className="text-center space-y-2">
+            <div className="mx-auto w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+              <DollarSign className="w-10 h-10 text-primary" />
+            </div>
+            <CardTitle className="text-3xl font-bold">Financials</CardTitle>
+            <CardDescription className="text-lg">
+              Coming Soon
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="text-center">
+            <p className="text-muted-foreground">
+              We're working hard to bring you comprehensive financial management tools. Stay tuned!
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Existing Content (kept intact but hidden behind overlay) */}
       <Tabs defaultValue="overview" className="space-y-6">
         <TabsList className="grid w-full grid-cols-5 lg:grid-cols-11">
           <TabsTrigger value="overview" className="flex items-center gap-2">
