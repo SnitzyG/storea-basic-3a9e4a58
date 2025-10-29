@@ -16,6 +16,7 @@ import { ChevronLeft, ChevronRight, FileDown, FileText, X } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { DrawingsUploadManager } from '../DrawingsUploadManager';
 import { TenderLineItemsDisplay } from '../TenderLineItemsDisplay';
+import { useTenderLineItems } from '@/hooks/useTenderLineItems';
 
 // Comprehensive scope items organized by category
 const SCOPE_ITEMS = {
@@ -144,7 +145,7 @@ interface EnhancedTenderWizardProps {
 
 export const EnhancedTenderWizard = ({ open, onOpenChange, projectId, existingTender }: EnhancedTenderWizardProps) => {
   const [step, setStep] = useState(1);
-  const totalSteps = 5; // Streamlined wizard
+  const totalSteps = 4; // Streamlined wizard: 1-Info, 2-Line Items, 3-Documents, 4-Review
   const { toast } = useToast();
   const { createTender, updateTender } = useTenders();
   const [currentTenderId, setCurrentTenderId] = useState<string | undefined>(existingTender?.id);
@@ -348,7 +349,23 @@ export const EnhancedTenderWizard = ({ open, onOpenChange, projectId, existingTe
     }
   };
 
-  const handleNext = () => {
+  // Fetch line items for validation
+  const { lineItems, refetch: refetchLineItems } = useTenderLineItems(currentTenderId);
+
+  const handleNext = async () => {
+    // Validate step 2 - ensure line items exist if currentTenderId exists
+    if (step === 2 && currentTenderId) {
+      await refetchLineItems();
+      if (lineItems.length === 0) {
+        toast({
+          title: "Line items required",
+          description: "Please upload drawings to extract line items before proceeding.",
+          variant: "destructive"
+        });
+        return;
+      }
+    }
+    
     if (step < totalSteps) setStep(step + 1);
   };
 
@@ -585,85 +602,7 @@ export const EnhancedTenderWizard = ({ open, onOpenChange, projectId, existingTe
         );
 
       case 3:
-        // Step 3: Contract & Compliance
-        return (
-          <div className="space-y-6">
-            <div>
-              <Label>Contract Type</Label>
-              <Select value={contractType} onValueChange={setContractType}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="lump_sum">Lump Sum</SelectItem>
-                  <SelectItem value="time_materials">Time & Materials</SelectItem>
-                  <SelectItem value="unit_price">Unit Price</SelectItem>
-                  <SelectItem value="gmp">Guaranteed Maximum Price</SelectItem>
-                  <SelectItem value="cost_plus">Cost-Plus</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-                <CardTitle>Compliance Requirements</CardTitle>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={toggleAllCompliance}
-                >
-                  {selectedCompliance.length === COMPLIANCE_ITEMS.length ? 'Deselect All' : 'Select All'}
-                </Button>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                {COMPLIANCE_ITEMS.map((item) => (
-                  <div key={item} className="flex items-center space-x-2">
-                    <Checkbox
-                      id={`compliance-${item}`}
-                      checked={selectedCompliance.includes(item)}
-                      onCheckedChange={() => toggleItem(selectedCompliance, setSelectedCompliance, item)}
-                    />
-                    <Label htmlFor={`compliance-${item}`} className="font-normal cursor-pointer">
-                      {item}
-                    </Label>
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-                <CardTitle>Contractor Must Provide</CardTitle>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={toggleAllContractorReqs}
-                >
-                  {selectedContractorReqs.length === CONTRACTOR_REQUIREMENTS.length ? 'Deselect All' : 'Select All'}
-                </Button>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                {CONTRACTOR_REQUIREMENTS.map((item) => (
-                  <div key={item} className="flex items-center space-x-2">
-                    <Checkbox
-                      id={`contractor-${item}`}
-                      checked={selectedContractorReqs.includes(item)}
-                      onCheckedChange={() => toggleItem(selectedContractorReqs, setSelectedContractorReqs, item)}
-                    />
-                    <Label htmlFor={`contractor-${item}`} className="font-normal cursor-pointer">
-                      {item}
-                    </Label>
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-          </div>
-        );
-
-      case 4:
-        // Step 4: Supporting Documents
+        // Step 3: Supporting Documents
         return (
           <div className="space-y-4">
             <div className="flex items-center justify-between">
@@ -733,8 +672,8 @@ export const EnhancedTenderWizard = ({ open, onOpenChange, projectId, existingTe
           </div>
         );
 
-      case 5:
-        // Step 5: Review Package
+      case 4:
+        // Step 4: Review Package (was step 5)
         return (
           <div className="space-y-6">
             <Card>
