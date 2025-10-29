@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.57.0';
+import { encode as b64encode } from "https://deno.land/std@0.168.0/encoding/base64.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -104,6 +105,24 @@ IMPORTANT:
 Include everything you can identify from the drawing including materials, labor, and equipment.
 Return a comprehensive bill of quantities.`;
 
+    // Build multimodal content based on file type
+    const fullUrl = fileUrl.startsWith('http') ? fileUrl : `${Deno.env.get('SUPABASE_URL')}${fileUrl}`;
+    let userContent: any[] = [{ type: 'text', text: userPrompt }];
+    if (mimeType === 'application/pdf') {
+      console.log('Fetching PDF for base64 encoding...');
+      const resp = await fetch(fullUrl);
+      if (!resp.ok) {
+        console.warn('PDF fetch failed, passing URL instead:', resp.status, resp.statusText);
+        userContent.push({ type: 'image_url', image_url: { url: fullUrl } });
+      } else {
+        const ab = await resp.arrayBuffer();
+        const base64 = b64encode(new Uint8Array(ab));
+        userContent.push({ type: 'image_url', image_url: { url: `data:${mimeType};base64,${base64}` } });
+      }
+    } else {
+      userContent.push({ type: 'image_url', image_url: { url: fullUrl } });
+    }
+
     // Call Lovable AI with vision capabilities
     const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
@@ -120,15 +139,7 @@ Return a comprehensive bill of quantities.`;
           },
           { 
             role: 'user', 
-            content: [
-              { type: 'text', text: userPrompt },
-              { 
-                type: 'image_url',
-                image_url: {
-                  url: fullUrl
-                }
-              }
-            ]
+            content: userContent
           }
         ],
         tools: [
