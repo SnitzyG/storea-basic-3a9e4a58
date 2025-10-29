@@ -159,6 +159,8 @@ export const EnhancedTenderWizard = ({ open, onOpenChange, projectId, existingTe
   const [clientName, setClientName] = useState('');
   const [tenderReferenceNo, setTenderReferenceNo] = useState('');
   const [message, setMessage] = useState('');
+  const [deadlineDate, setDeadlineDate] = useState('');
+  const [deadlineTime, setDeadlineTime] = useState('');
 
   // Step 2 - Project Scope (checkboxes)
   const [selectedScope, setSelectedScope] = useState<Record<string, string[]>>({
@@ -221,6 +223,13 @@ export const EnhancedTenderWizard = ({ open, onOpenChange, projectId, existingTe
       setMessage(existingTender.description || '');
       setBudget(existingTender.budget?.toString() || '');
       setEstimatedStartDate(existingTender.estimated_start_date || '');
+      
+      // Parse deadline into date and time
+      if (existingTender.deadline) {
+        const deadline = new Date(existingTender.deadline);
+        setDeadlineDate(deadline.toISOString().split('T')[0]);
+        setDeadlineTime(deadline.toTimeString().slice(0, 5)); // HH:MM format
+      }
       
       const reqs = existingTender.requirements || {};
       setSelectedCompliance(reqs.compliance || []);
@@ -392,11 +401,20 @@ export const EnhancedTenderWizard = ({ open, onOpenChange, projectId, existingTe
     setLoading(true);
     try {
       // Compile all tender data
+      // Combine deadline date and time
+      let deadlineISO = existingTender?.deadline || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+      if (deadlineDate) {
+        const dateTimeString = deadlineTime 
+          ? `${deadlineDate}T${deadlineTime}:00` 
+          : `${deadlineDate}T17:00:00`; // Default to 5 PM if no time specified
+        deadlineISO = new Date(dateTimeString).toISOString();
+      }
+
       const tenderData = {
         project_id: projectId,
         title,
         description: message,
-        deadline: existingTender?.deadline || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+        deadline: deadlineISO,
         estimated_start_date: estimatedStartDate || undefined,
         budget: budget ? parseFloat(budget) : undefined,
         tender_type: tenderType,
@@ -472,6 +490,26 @@ export const EnhancedTenderWizard = ({ open, onOpenChange, projectId, existingTe
             <div>
               <Label>Tender Reference No.</Label>
               <Input value={tenderReferenceNo} readOnly className="bg-muted" />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label>Deadline Date</Label>
+                <Input 
+                  type="date" 
+                  value={deadlineDate} 
+                  onChange={(e) => setDeadlineDate(e.target.value)}
+                />
+              </div>
+              <div>
+                <Label>Deadline Time</Label>
+                <Input 
+                  type="time" 
+                  value={deadlineTime} 
+                  onChange={(e) => setDeadlineTime(e.target.value)}
+                  placeholder="17:00"
+                />
+              </div>
             </div>
             
             <div className="border-t pt-4 mt-6">
