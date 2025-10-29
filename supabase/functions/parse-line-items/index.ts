@@ -53,7 +53,7 @@ serve(async (req) => {
   }
 
   try {
-    const { fileUrl, fileName } = await req.json();
+    const { fileUrl, fileName, bucket, filePath } = await req.json();
     
     console.log('Analyzing construction drawing:', fileName);
     
@@ -62,19 +62,43 @@ serve(async (req) => {
       throw new Error('LOVABLE_API_KEY not configured');
     }
 
-    // Use the signed URL directly to fetch the file
-    const fullUrl = fileUrl.startsWith('http') ? fileUrl : `${Deno.env.get('SUPABASE_URL')}${fileUrl}`;
-    
-    console.log('Fetching file from:', fullUrl);
-    
-    const fileResponse = await fetch(fullUrl);
-    if (!fileResponse.ok) {
-      console.error('Failed to fetch file:', fileResponse.status, fileResponse.statusText);
-      throw new Error(`Failed to download file: ${fileResponse.statusText}`);
+    let arrayBuffer: ArrayBuffer | null = null;
+
+    // Try using the signed URL first
+    if (fileUrl) {
+      const fullUrl = fileUrl.startsWith('http') ? fileUrl : `${Deno.env.get('SUPABASE_URL')}${fileUrl}`;
+      console.log('Fetching file via signed URL:', fullUrl);
+      const fetchResp = await fetch(fullUrl);
+      if (fetchResp.ok) {
+        arrayBuffer = await fetchResp.arrayBuffer();
+      } else {
+        console.warn('Signed URL fetch failed:', fetchResp.status, fetchResp.statusText);
+      }
+    }
+
+    // Fallback to storage download with service role if provided
+    if (!arrayBuffer && bucket && filePath) {
+      const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+      const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+      const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+      console.log(`Downloading from storage: ${bucket}/${filePath}`);
+      const { data: fileData, error: downloadError } = await supabase.storage
+        .from(bucket)
+        .download(filePath);
+
+      if (downloadError) {
+        console.error('Storage download error:', downloadError.message);
+        throw new Error('Unable to download file from storage');
+      }
+      arrayBuffer = await fileData.arrayBuffer();
+    }
+
+    if (!arrayBuffer) {
+      throw new Error('File could not be retrieved (invalid URL or storage path)');
     }
 
     // Convert file to base64 for AI analysis
-    const arrayBuffer = await fileResponse.arrayBuffer();
     const bytes = new Uint8Array(arrayBuffer);
     const base64 = btoa(String.fromCharCode(...bytes));
     

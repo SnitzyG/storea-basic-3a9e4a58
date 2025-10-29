@@ -79,7 +79,9 @@ export const DrawingsUploadManager = ({ projectId, tenderId, onLineItemsImported
       const { data: parseData, error: parseError } = await supabase.functions.invoke('parse-line-items', {
         body: {
           fileUrl: signedUrlData.signedUrl,
-          fileName: file.name
+          fileName: file.name,
+          bucket: 'documents',
+          filePath
         }
       });
 
