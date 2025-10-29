@@ -11,6 +11,8 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Upload, FileText, ArrowUpDown, Filter } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
+import { StorealiteLogo } from '@/components/ui/storealite-logo';
+import { Progress } from '@/components/ui/progress';
 // PDF rendering for client-side PDF -> image conversion
 import * as pdfjsLib from 'pdfjs-dist';
 // @ts-ignore - Vite will resolve this to a URL
@@ -38,6 +40,8 @@ interface DrawingsUploadManagerProps {
 export const DrawingsUploadManager = ({ projectId, tenderId, onLineItemsImported }: DrawingsUploadManagerProps) => {
   const { toast } = useToast();
   const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadStage, setUploadStage] = useState('');
   const [lineItems, setLineItems] = useState<LineItem[]>([]);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   
@@ -82,19 +86,26 @@ export const DrawingsUploadManager = ({ projectId, tenderId, onLineItemsImported
 
     setUploadedFile(file);
     setUploading(true);
+    setUploadProgress(0);
+    setUploadStage('Uploading file...');
 
     try {
       // Upload file to storage
+      setUploadProgress(10);
       const fileExt = file.name.split('.').pop();
       const fileName = `${Date.now()}_${file.name}`;
       const filePath = `${projectId}/drawings/${fileName}`;
 
+      setUploadProgress(20);
       const { error: uploadError } = await supabase.storage
         .from('documents')
         .upload(filePath, file);
 
       if (uploadError) throw uploadError;
 
+      setUploadProgress(30);
+      setUploadStage('Processing file...');
+      
       // Get signed URL (valid for 1 hour) for private bucket access
       const { data: signedUrlData, error: signedUrlError } = await supabase.storage
         .from('documents')
@@ -111,7 +122,11 @@ export const DrawingsUploadManager = ({ projectId, tenderId, onLineItemsImported
       };
 
       if (isPdf) {
+        setUploadProgress(40);
+        setUploadStage('Converting PDF pages to images...');
         const pageBlobs = await pdfToImages(file, 5);
+        setUploadProgress(50);
+        setUploadStage('Uploading page images...');
         const imageUrls: string[] = [];
         for (let i = 0; i < pageBlobs.length; i++) {
           const pagePath = `${projectId}/drawings/pages/${Date.now()}_${i + 1}.png`;
@@ -124,11 +139,15 @@ export const DrawingsUploadManager = ({ projectId, tenderId, onLineItemsImported
             .createSignedUrl(pagePath, 3600);
           if (signErr) throw signErr;
           imageUrls.push(pageSigned.signedUrl);
+          setUploadProgress(50 + (i + 1) * (20 / pageBlobs.length));
         }
         invokeBody.imageUrls = imageUrls;
       } else {
         invokeBody.fileUrl = signedUrlData.signedUrl;
       }
+
+      setUploadProgress(70);
+      setUploadStage('Analyzing construction drawings...');
 
       // Call edge function to parse the document/images
       const { data: parseData, error: parseError } = await supabase.functions.invoke('parse-line-items', {
@@ -136,6 +155,9 @@ export const DrawingsUploadManager = ({ projectId, tenderId, onLineItemsImported
       });
 
       if (parseError) throw parseError;
+
+      setUploadProgress(85);
+      setUploadStage('Extracting line items...');
 
       // Transform parsed data into line items
       const parsedItems: LineItem[] = parseData.lineItems.map((item: any, index: number) => ({
@@ -151,6 +173,9 @@ export const DrawingsUploadManager = ({ projectId, tenderId, onLineItemsImported
 
       setLineItems(parsedItems);
       onLineItemsImported?.(parsedItems);
+
+      setUploadProgress(95);
+      setUploadStage('Saving to database...');
 
       // If tenderId is provided, save to database
       if (tenderId) {
@@ -179,6 +204,9 @@ export const DrawingsUploadManager = ({ projectId, tenderId, onLineItemsImported
           });
         }
       }
+
+      setUploadProgress(100);
+      setUploadStage('Complete!');
 
       toast({
         title: 'Drawings parsed successfully',
@@ -230,7 +258,28 @@ export const DrawingsUploadManager = ({ projectId, tenderId, onLineItemsImported
   const totalValue = displayedItems.reduce((sum, item) => sum + item.total, 0);
 
   return (
-    <div className="space-y-6">
+    <>
+      {/* Full-screen upload overlay */}
+      {uploading && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/95 backdrop-blur-sm">
+          <div className="flex flex-col items-center gap-8 max-w-md w-full px-4">
+            <div className="animate-pulse">
+              <StorealiteLogo className="text-7xl" />
+            </div>
+            <div className="w-full space-y-3">
+              <Progress value={uploadProgress} className="h-3" />
+              <p className="text-center text-lg font-medium text-muted-foreground">
+                {uploadStage}
+              </p>
+              <p className="text-center text-3xl font-bold">
+                {uploadProgress}%
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="space-y-6">
       {/* Upload Section */}
       <Card>
         <CardHeader>
@@ -399,6 +448,7 @@ export const DrawingsUploadManager = ({ projectId, tenderId, onLineItemsImported
           </Card>
         </>
       )}
-    </div>
+     </div>
+    </>
   );
 };
