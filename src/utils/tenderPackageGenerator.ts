@@ -3,6 +3,7 @@ import { Tender } from '@/hooks/useTenders';
 
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
+import { supabase } from '@/integrations/supabase/client';
 
 // Helper to convert tender construction items to export format
 const prepareTenderConstructionItems = (tender: Tender) => {
@@ -326,19 +327,37 @@ const generateTenderPDF = async (tender: Tender): Promise<Blob> => {
 };
 
 const generateTenderExcel = async (tender: Tender): Promise<Blob> => {
-  // Reuse existing Excel generation but return blob instead of saving
-  const selectedItemIds = prepareTenderConstructionItems(tender);
-  
-  // Import XLSX dynamically
+  // Prefer saved tender_line_items; fall back to construction_items/scope
   const XLSX = await import('xlsx');
-  
-  // Prepare data similar to existing function
+
+  // Try to load saved line items for this tender
+  let dbLineItems: Array<{
+    category: string;
+    item_description: string;
+    specification: string | null;
+    quantity: number | null;
+    unit_of_measure: string | null;
+    line_number: number;
+  }> = [];
+  try {
+    const { data, error } = await supabase
+      .from('tender_line_items')
+      .select('*')
+      .eq('tender_id', tender.id)
+      .order('line_number', { ascending: true });
+    if (error) throw error;
+    dbLineItems = data || [];
+  } catch (e) {
+    console.warn('Could not load tender_line_items, falling back:', e);
+  }
+
   const today = new Date().toLocaleDateString('en-AU', {
     year: 'numeric',
     month: 'long',
     day: 'numeric'
   });
 
+  // Header rows consistent with professional template
   const headerRows: any[][] = [
     [''],
     ['Residential Building Quotation'],
@@ -346,58 +365,117 @@ const generateTenderExcel = async (tender: Tender): Promise<Blob> => {
     [`Date: ${today}`],
     [''],
     [`Title: ${tender.title}`],
-    [`Deadline: ${new Date(tender.deadline).toLocaleDateString()}`],
+    ...(tender.deadline ? [[`Deadline: ${new Date(tender.deadline).toLocaleDateString()}`]] : []),
     [''],
     [`Created: ${today}`],
     [''],
-    ['Section', 'Item', 'Description', 'Quantity', 'Unit', 'Rate', 'Total', 'Notes'],
+    ['Category', 'Item Description', 'Specification', 'Quantity', 'Unit', 'Rate', 'Total', 'Notes'],
   ];
 
-  // Add rows from construction items if available; otherwise from scope selections
-  const dataRows: any[][] = [];
-  const pushItemRow = (section: string, item: string, description = '', unit = '') => {
-    dataRows.push([section, item, description, '', unit, '', '', '']);
-  };
-
-  if (Array.isArray(tender.construction_items) && tender.construction_items.length > 0) {
+  // Build item rows
+  const itemRows: any[][] = [];
+  if (dbLineItems.length > 0) {
+    let currentCategory = '';
+    dbLineItems.forEach((it) => {
+      const cat = it.category || 'Uncategorized';
+      if (cat !== currentCategory) {
+        itemRows.push([cat, '', '', '', '', '', '', '']);
+        currentCategory = cat;
+      }
+      itemRows.push([
+        '',
+        it.item_description || '',
+        it.specification || '',
+        it.quantity ?? '',
+        it.unit_of_measure || '',
+        '',
+        '',
+        ''
+      ]);
+    });
+  } else if (Array.isArray(tender.construction_items) && tender.construction_items.length > 0) {
     let currentSection = '';
     tender.construction_items.forEach((item: any) => {
       const section = item.section || 'General';
       if (section !== currentSection) {
-        dataRows.push([section, '', '', '', '', '', '', '']);
+        itemRows.push([section, '', '', '', '', '', '', '']);
         currentSection = section;
       }
-      pushItemRow('', item.item || item.title || '', item.description || '', item.unit || '');
+      itemRows.push(['', item.item || item.title || '', item.description || '', '', item.unit || '', '', '', '']);
     });
   } else if ((tender.requirements as any)?.scope) {
     const scopeObj = (tender.requirements as any).scope as Record<string, string[]>;
     const humanize = (key: string) => key.replace(/([A-Z])/g, ' $1').replace(/^./, c => c.toUpperCase());
     Object.entries(scopeObj).forEach(([category, items]) => {
       if (!items || items.length === 0) return;
-      dataRows.push([humanize(category), '', '', '', '', '', '', '']);
-      items.forEach((sel) => pushItemRow('', sel));
+      itemRows.push([humanize(category), '', '', '', '', '', '', '']);
+      items.forEach((sel) => itemRows.push(['', sel, '', '', '', '', '', '']))
     });
   }
 
+  // Totals section
+  const totalsRows: any[][] = [
+    ['', '', '', '', '', '', '', ''],
+    ['', '', '', '', '', 'Subtotal:', '', ''],
+    ['', '', '', '', '', 'GST (10%):', '', ''],
+    ['', '', '', '', '', 'Grand Total:', '', ''],
+  ];
 
-  // Add spacing and totals
-  dataRows.push(['', '', '', '', '', '', '', '']);
-  dataRows.push(['', '', '', '', '', 'Subtotal:', '', '']);
-  dataRows.push(['', '', '', '', '', 'GST (10%):', '', '']);
-  dataRows.push(['', '', '', '', '', 'Grand Total:', '', '']);
-
-  const allRows = [...headerRows, ...dataRows];
+  const allRows = [...headerRows, ...itemRows, ...totalsRows];
   const ws = XLSX.utils.aoa_to_sheet(allRows);
 
+  // Column widths
   ws['!cols'] = [
-    { wch: 20 },
     { wch: 25 },
-    { wch: 40 },
+    { wch: 35 },
+    { wch: 45 },
     { wch: 10 },
-    { wch: 8 },
+    { wch: 10 },
     { wch: 12 },
     { wch: 12 },
     { wch: 25 },
+  ];
+
+  // Formulas for line totals and summary
+  const startDataRow = headerRows.length + 1; // 1-based Excel row index for first item row
+  const endDataRow = headerRows.length + itemRows.length; // 1-based Excel row index for last item row
+
+  for (let i = startDataRow; i <= endDataRow; i++) {
+    const totalCell = XLSX.utils.encode_cell({ r: i - 1, c: 6 }); // G column
+    const qtyRef = XLSX.utils.encode_cell({ r: i - 1, c: 3 }); // D
+    const rateRef = XLSX.utils.encode_cell({ r: i - 1, c: 5 }); // F
+    (ws as any)[totalCell] = {
+      f: `IF(AND(ISNUMBER(${qtyRef}),ISNUMBER(${rateRef})),${qtyRef}*${rateRef},"")`,
+      t: 'n'
+    };
+  }
+
+  // Summary formulas
+  const subtotalRowR = headerRows.length + itemRows.length + 1; // zero-based+1 -> will convert below
+  const gstRowR = subtotalRowR + 1;
+  const grandRowR = subtotalRowR + 2;
+
+  const subtotalCell = XLSX.utils.encode_cell({ r: subtotalRowR, c: 6 });
+  const totalStart = XLSX.utils.encode_cell({ r: headerRows.length, c: 6 });
+  const totalEnd = XLSX.utils.encode_cell({ r: headerRows.length + itemRows.length - 1, c: 6 });
+  (ws as any)[subtotalCell] = { f: `SUM(${totalStart}:${totalEnd})`, t: 'n', z: '$#,##0.00' };
+
+  const gstCell = XLSX.utils.encode_cell({ r: gstRowR, c: 6 });
+  (ws as any)[gstCell] = { f: `${subtotalCell}*0.10`, t: 'n', z: '$#,##0.00' };
+
+  const grandCell = XLSX.utils.encode_cell({ r: grandRowR, c: 6 });
+  (ws as any)[grandCell] = { f: `${subtotalCell}+${gstCell}`, t: 'n', z: '$#,##0.00' };
+
+  // Merge title cells and set some row heights
+  (ws as any)['!merges'] = [
+    { s: { r: 1, c: 0 }, e: { r: 1, c: 7 } },
+    { s: { r: 2, c: 0 }, e: { r: 2, c: 7 } },
+  ];
+  (ws as any)['!rows'] = [
+    { hpt: 30 },
+    { hpt: 25 },
+    { hpt: 18 },
+    { hpt: 18 },
   ];
 
   const wb = XLSX.utils.book_new();
@@ -406,3 +484,4 @@ const generateTenderExcel = async (tender: Tender): Promise<Blob> => {
   const excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
   return new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
 };
+

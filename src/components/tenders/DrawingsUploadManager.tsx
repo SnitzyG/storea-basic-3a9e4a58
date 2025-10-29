@@ -233,7 +233,13 @@ export const DrawingsUploadManager = ({ projectId, tenderId, onLineItemsImported
             variant: 'destructive'
           });
         }
+      } else {
+        toast({
+          title: 'Line items not saved',
+          description: 'Create or select a tender first to save extracted items.',
+        });
       }
+
 
       setUploadProgress(100);
       setUploadStage('Complete!');
