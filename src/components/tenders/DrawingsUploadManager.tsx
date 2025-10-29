@@ -9,8 +9,14 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Upload, FileText, Eye, EyeOff, ArrowUpDown, Filter } from 'lucide-react';
+import { Upload, FileText, ArrowUpDown, Filter } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
+// PDF rendering for client-side PDF -> image conversion
+import * as pdfjsLib from 'pdfjs-dist';
+// @ts-ignore - Vite will resolve this to a URL
+import workerSrc from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
+
+(pdfjsLib as any).GlobalWorkerOptions.workerSrc = workerSrc;
 
 interface LineItem {
   lineNumber: number;
@@ -49,6 +55,27 @@ export const DrawingsUploadManager = ({ projectId, tenderId, onLineItemsImported
     total: true
   });
 
+  // Convert first few PDF pages to images for AI analysis
+  const pdfToImages = async (file: File, maxPages = 5): Promise<Blob[]> => {
+    const arrayBuffer = await file.arrayBuffer();
+    const pdf = await (pdfjsLib as any).getDocument({ data: arrayBuffer }).promise;
+    const blobs: Blob[] = [];
+    const pages = Math.min(pdf.numPages, maxPages);
+    for (let i = 1; i <= pages; i++) {
+      const page = await pdf.getPage(i);
+      const viewport = page.getViewport({ scale: 1.6 });
+      const canvas = document.createElement('canvas');
+      const context = canvas.getContext('2d');
+      if (!context) continue;
+      canvas.width = viewport.width;
+      canvas.height = viewport.height;
+      await page.render({ canvasContext: context as any, viewport }).promise;
+      const blob: Blob | null = await new Promise(resolve => canvas.toBlob(resolve, 'image/png', 0.9));
+      if (blob) blobs.push(blob);
+    }
+    return blobs;
+  };
+
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -75,14 +102,37 @@ export const DrawingsUploadManager = ({ projectId, tenderId, onLineItemsImported
 
       if (signedUrlError) throw signedUrlError;
 
-      // Call edge function to parse the document
-      const { data: parseData, error: parseError } = await supabase.functions.invoke('parse-line-items', {
-        body: {
-          fileUrl: signedUrlData.signedUrl,
-          fileName: file.name,
-          bucket: 'documents',
-          filePath
+      // Build payload for edge function; for PDFs render pages to images
+      const isPdf = (fileExt?.toLowerCase() === 'pdf') || file.type === 'application/pdf';
+      let invokeBody: any = {
+        fileName: file.name,
+        bucket: 'documents',
+        filePath
+      };
+
+      if (isPdf) {
+        const pageBlobs = await pdfToImages(file, 5);
+        const imageUrls: string[] = [];
+        for (let i = 0; i < pageBlobs.length; i++) {
+          const pagePath = `${projectId}/drawings/pages/${Date.now()}_${i + 1}.png`;
+          const { error: upErr } = await supabase.storage
+            .from('documents')
+            .upload(pagePath, pageBlobs[i], { contentType: 'image/png', upsert: true } as any);
+          if (upErr) throw upErr;
+          const { data: pageSigned, error: signErr } = await supabase.storage
+            .from('documents')
+            .createSignedUrl(pagePath, 3600);
+          if (signErr) throw signErr;
+          imageUrls.push(pageSigned.signedUrl);
         }
+        invokeBody.imageUrls = imageUrls;
+      } else {
+        invokeBody.fileUrl = signedUrlData.signedUrl;
+      }
+
+      // Call edge function to parse the document/images
+      const { data: parseData, error: parseError } = await supabase.functions.invoke('parse-line-items', {
+        body: invokeBody
       });
 
       if (parseError) throw parseError;

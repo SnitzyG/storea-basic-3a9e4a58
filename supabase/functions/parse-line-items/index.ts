@@ -54,7 +54,7 @@ serve(async (req) => {
   }
 
   try {
-    const { fileUrl, fileName, bucket, filePath } = await req.json();
+    const { fileUrl, fileName, bucket, filePath, imageUrls } = await req.json();
     
     console.log('Analyzing construction drawing:', fileName);
     
@@ -98,23 +98,34 @@ IMPORTANT:
 Include everything you can identify from the drawing including materials, labor, and equipment.
 Return a comprehensive bill of quantities.`;
 
-    // Build multimodal content based on file type
-    const signedUrl = fileUrl.startsWith('http') ? fileUrl : `${Deno.env.get('SUPABASE_URL')}${fileUrl}`;
+    // Build multimodal content from provided images or file URL
     let userContent: any[] = [{ type: 'text', text: userPrompt }];
     
-    if (mimeType === 'application/pdf') {
-      console.log('Fetching PDF for base64 encoding...');
-      const resp = await fetch(signedUrl);
-      if (!resp.ok) {
-        console.warn('PDF fetch failed, passing URL instead:', resp.status, resp.statusText);
-        userContent.push({ type: 'image_url', image_url: { url: signedUrl } });
-      } else {
-        const ab = await resp.arrayBuffer();
-        const base64 = b64encode(new Uint8Array(ab));
-        userContent.push({ type: 'image_url', image_url: { url: `data:${mimeType};base64,${base64}` } });
+    if (Array.isArray(imageUrls) && imageUrls.length > 0) {
+      console.log(`Using ${imageUrls.length} pre-rendered image(s) from client`);
+      for (const url of imageUrls) {
+        userContent.push({ type: 'image_url', image_url: { url } });
       }
     } else {
-      userContent.push({ type: 'image_url', image_url: { url: signedUrl } });
+      const signedUrl = fileUrl && (fileUrl.startsWith('http') ? fileUrl : `${Deno.env.get('SUPABASE_URL')}${fileUrl}`);
+      if (signedUrl) {
+        if (mimeType === 'application/pdf') {
+          console.log('Fetching PDF for base64 encoding...');
+          const resp = await fetch(signedUrl);
+          if (!resp.ok) {
+            console.warn('PDF fetch failed, passing URL instead:', resp.status, resp.statusText);
+            userContent.push({ type: 'image_url', image_url: { url: signedUrl } });
+          } else {
+            const ab = await resp.arrayBuffer();
+            const base64 = b64encode(new Uint8Array(ab));
+            userContent.push({ type: 'image_url', image_url: { url: `data:${mimeType};base64,${base64}` } });
+          }
+        } else {
+          userContent.push({ type: 'image_url', image_url: { url: signedUrl } });
+        }
+      } else {
+        console.warn('No imageUrls or fileUrl provided in request body');
+      }
     }
 
     console.log('Sending to AI for analysis...');
