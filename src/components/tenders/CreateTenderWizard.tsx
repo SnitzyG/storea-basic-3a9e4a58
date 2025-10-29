@@ -502,14 +502,6 @@ export const CreateTenderWizard = ({
     setCurrentPhase(1);
   };
   const handleGenerateQuoteTemplate = async () => {
-    if (selectedItemIds.length === 0) {
-      toast({
-        title: "No items selected",
-        description: "Please select at least one construction item to include in the quote template",
-        variant: "destructive"
-      });
-      return;
-    }
     if (!title.trim()) {
       toast({
         title: "Missing title",
@@ -518,12 +510,55 @@ export const CreateTenderWizard = ({
       });
       return;
     }
+    
     try {
+      // Fetch line items from the tender if it exists
+      let lineItems: any[] = [];
+      
+      if (existingTender?.id) {
+        const { data, error } = await supabase
+          .from('tender_line_items')
+          .select('*')
+          .eq('tender_id', existingTender.id)
+          .order('line_number', { ascending: true });
+        
+        if (error) throw error;
+        lineItems = data || [];
+      }
+      
+      // If no line items from tender, fall back to selected construction items
+      if (lineItems.length === 0 && selectedItemIds.length > 0) {
+        const selectedItems = BUILDING_SECTIONS.filter(item => selectedItemIds.includes(item.id));
+        lineItems = selectedItems.map((item, index) => ({
+          lineNumber: index + 1,
+          itemDescription: item.item,
+          specification: item.description,
+          unitOfMeasure: item.unit,
+          category: item.section,
+          quantity: null
+        }));
+      }
+      
+      if (lineItems.length === 0) {
+        toast({
+          title: "No items available",
+          description: "Please upload drawings to extract line items or select construction items",
+          variant: "destructive"
+        });
+        return;
+      }
+      
       const companyInfo = getCompanyInfoFromProfile(userProfile, userCompany);
       await generateProfessionalQuoteTemplate({
         tenderTitle: title,
         companyInfo,
-        selectedItemIds,
+        lineItems: lineItems.map(item => ({
+          itemDescription: item.item_description || item.itemDescription,
+          specification: item.specification,
+          unitOfMeasure: item.unit_of_measure || item.unitOfMeasure,
+          quantity: item.quantity,
+          category: item.category
+        })),
         includeGST: true,
         gstRate: 0.10,
         deadline: submissionDeadline ? `${submissionDeadline} ${submissionTime}` : undefined,
@@ -536,7 +571,7 @@ export const CreateTenderWizard = ({
       });
       toast({
         title: "Quote template generated",
-        description: "Professional XLSX quote template has been downloaded"
+        description: "Professional XLSX quote template has been downloaded with all line items"
       });
     } catch (error) {
       console.error('Error generating quote template:', error);

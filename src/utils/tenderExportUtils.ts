@@ -1,5 +1,4 @@
 import * as XLSX from 'xlsx';
-import { BUILDING_SECTIONS, ConstructionItem } from '@/components/tenders/ConstructionItemSelector';
 
 interface CompanyInfo {
   name: string;
@@ -15,10 +14,18 @@ interface ProjectData {
   address: string;
 }
 
+interface LineItem {
+  itemDescription: string;
+  specification?: string;
+  unitOfMeasure?: string;
+  quantity?: number;
+  category?: string;
+}
+
 interface ExportOptions {
   tenderTitle: string;
   companyInfo: CompanyInfo;
-  selectedItemIds: string[];
+  lineItems: LineItem[];
   includeGST?: boolean;
   gstRate?: number;
   deadline?: string;
@@ -29,17 +36,12 @@ export const generateProfessionalQuoteTemplate = async (options: ExportOptions) 
   const {
     tenderTitle,
     companyInfo,
-    selectedItemIds,
+    lineItems,
     includeGST = true,
     gstRate = 0.10, // 10% GST default
     deadline,
     projectData,
   } = options;
-
-  // Get selected items
-  const selectedItems = BUILDING_SECTIONS.filter(item => 
-    selectedItemIds.includes(item.id)
-  );
 
   // Create workbook
   const wb = XLSX.utils.book_new();
@@ -68,29 +70,31 @@ export const generateProfessionalQuoteTemplate = async (options: ExportOptions) 
     ] : []),
     [`Created: ${today}`],
     [''],
-    ['Section', 'Item', 'Description', 'Quantity', 'Unit', 'Rate', 'Total', 'Notes'],
+    ['Category', 'Item Description', 'Specification', 'Quantity', 'Unit', 'Rate', 'Total', 'Notes'],
   ];
 
-  // Data rows grouped by section
+  // Data rows grouped by category
   const dataRows: any[][] = [];
-  let currentSection = '';
+  let currentCategory = '';
   let rowIndex = headerRows.length;
 
-  selectedItems.forEach((item) => {
-    if (item.section !== currentSection) {
-      // Add section header row
-      dataRows.push([item.section, '', '', '', '', '', '', '']);
-      currentSection = item.section;
+  lineItems.forEach((item) => {
+    const category = item.category || 'Uncategorized';
+    
+    if (category !== currentCategory) {
+      // Add category header row
+      dataRows.push([category, '', '', '', '', '', '', '']);
+      currentCategory = category;
       rowIndex++;
     }
     
     // Add item row with formula for Total column (G = Quantity * Rate)
     const itemRow = [
-      '', // Section (blank for sub-items)
-      item.item,
-      item.description,
-      '', // Quantity (to be filled by builder)
-      item.unit,
+      '', // Category (blank for sub-items)
+      item.itemDescription,
+      item.specification || '',
+      item.quantity || '', // Pre-filled if available
+      item.unitOfMeasure || '',
       '', // Rate (to be filled by builder)
       '', // Total will have formula
       '', // Notes
@@ -121,11 +125,11 @@ export const generateProfessionalQuoteTemplate = async (options: ExportOptions) 
 
   // Set column widths
   ws['!cols'] = [
-    { wch: 20 }, // Section
-    { wch: 25 }, // Item
-    { wch: 40 }, // Description
+    { wch: 25 }, // Category
+    { wch: 35 }, // Item Description
+    { wch: 45 }, // Specification
     { wch: 10 }, // Quantity
-    { wch: 8 },  // Unit
+    { wch: 10 }, // Unit
     { wch: 12 }, // Rate
     { wch: 12 }, // Total
     { wch: 25 }, // Notes
