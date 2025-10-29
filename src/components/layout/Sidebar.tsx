@@ -3,6 +3,7 @@ import { useLocation, Link } from 'react-router-dom';
 import { BarChart3, FolderOpen, FileStack, MessageSquare, HelpCircle, Briefcase, TestTube, DollarSign } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { useTabNotifications } from '@/hooks/useTabNotifications';
+import { StorealiteLogo } from '@/components/ui/storealite-logo';
 interface SidebarProps {
   userRole: 'architect' | 'builder' | 'homeowner' | 'contractor';
   profile?: {
@@ -78,29 +79,7 @@ export const Sidebar = ({
   return <div className="w-64 bg-sidebar-background border-r border-sidebar-border flex flex-col">
       <div className="p-6 border-b border-sidebar-border">
         <div className="flex items-center justify-center space-x-2">
-          {/* Storealite text only - no house icon */}
-          <h1 className="text-xl font-bold tracking-tight leading-none">
-            <span style={{ 
-              background: 'linear-gradient(135deg, hsl(215, 45%, 25%), hsl(215, 45%, 35%))',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text',
-              fontWeight: 800,
-              letterSpacing: '-0.02em'
-            }}>
-              Storea
-            </span>
-            <span style={{ 
-              background: 'linear-gradient(135deg, hsl(40, 85%, 60%), hsl(45, 90%, 70%))',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text',
-              fontWeight: 300,
-              letterSpacing: '0.05em'
-            }}>
-              lite
-            </span>
-          </h1>
+          <StorealiteLogo className="text-2xl" />
           
           {/* Company logo - shown for non-homeowners */}
           {showCompanyLogo && <div className="flex flex-col items-end flex-shrink-0 min-w-0">

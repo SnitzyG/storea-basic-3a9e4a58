@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import storealiteLogo from '@/assets/storeali-favicon.png';
+import { StorealiteLogo } from '@/components/ui/storealite-logo';
 
 const NotFound = () => {
   const location = useLocation();
@@ -22,16 +22,8 @@ const NotFound = () => {
       <div className="text-center space-y-6 animate-fade-in">
         {/* Logo with pulse animation */}
         <div className="flex justify-center">
-          <div className="relative">
-            <div className="animate-pulse">
-              <img 
-                src={storealiteLogo} 
-                alt="STOREALite" 
-                className="h-16 w-16 mx-auto object-contain" 
-              />
-            </div>
-            {/* Subtle ring animation around logo */}
-            <div className="absolute inset-0 rounded-full border-2 border-primary/20 animate-ping"></div>
+          <div className="animate-pulse">
+            <StorealiteLogo className="text-4xl" />
           </div>
         </div>
         

@@ -313,30 +313,8 @@ const Auth = () => {
 
         <Card className="w-full">
           <CardHeader className="text-center space-y-6 pt-10 pb-6">
-            {/* Storealite Logo */}
             <div className="flex justify-center">
-              <h1 className="text-6xl font-bold tracking-tight leading-none">
-                <span style={{ 
-                  background: 'linear-gradient(135deg, hsl(215, 45%, 25%), hsl(215, 45%, 35%))',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                  backgroundClip: 'text',
-                  fontWeight: 800,
-                  letterSpacing: '-0.02em'
-                }}>
-                  Storea
-                </span>
-                <span style={{ 
-                  background: 'linear-gradient(135deg, hsl(40, 85%, 60%), hsl(45, 90%, 70%))',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                  backgroundClip: 'text',
-                  fontWeight: 300,
-                  letterSpacing: '0.05em'
-                }}>
-                  lite
-                </span>
-              </h1>
+              <StorealiteLogo className="text-6xl" />
             </div>
             
             <div className="space-y-2">
