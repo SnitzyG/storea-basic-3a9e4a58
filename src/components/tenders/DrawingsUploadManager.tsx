@@ -44,6 +44,21 @@ export const DrawingsUploadManager = ({ projectId, tenderId, onLineItemsImported
   const [lineItems, setLineItems] = useState<LineItem[]>([]);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   
+  // Selection state
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const allSelected = selectedIds.size > 0 && selectedIds.size === lineItems.length;
+  const toggleSelect = (id: string) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+  const toggleSelectAll = () => {
+    if (allSelected) setSelectedIds(new Set());
+    else setSelectedIds(new Set(lineItems.map(li => li.id)));
+  };
+  
   // Filters and display options
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [sortBy, setSortBy] = useState<'line' | 'category' | 'description'>('line');
@@ -202,12 +217,13 @@ export const DrawingsUploadManager = ({ projectId, tenderId, onLineItemsImported
 
       const allItems = [...standardItems, ...aiItems];
       setLineItems(allItems);
+      setSelectedIds(new Set(allItems.map(i => i.id)));
       onLineItemsImported?.(allItems);
 
       setUploadProgress(95);
       setUploadStage('Saving to database...');
 
-      // If tenderId is provided, save to database
+      // If tenderId is provided, save ALL extracted items initially
       if (tenderId) {
         await supabase.from('tender_line_items').delete().eq('tender_id', tenderId);
         
@@ -236,7 +252,7 @@ export const DrawingsUploadManager = ({ projectId, tenderId, onLineItemsImported
       } else {
         toast({
           title: 'Line items not saved',
-          description: 'Create or select a tender first to save extracted items.',
+          description: 'Save the tender draft first, then use “Save Selected Items to Tender”.',
         });
       }
 
@@ -289,6 +305,11 @@ export const DrawingsUploadManager = ({ projectId, tenderId, onLineItemsImported
       ...item,
       lineNumber: idx + 1
     })));
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      next.delete(id);
+      return next;
+    });
   };
 
   const getFilteredAndSortedItems = () => {
@@ -380,9 +401,44 @@ export const DrawingsUploadManager = ({ projectId, tenderId, onLineItemsImported
             <CardHeader>
               <CardTitle className="flex items-center justify-between">
                 <span>Tender Line Items ({displayedItems.length})</span>
-                <Button onClick={addLineItem} size="sm">
-                  Add Line Item
-                </Button>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-muted-foreground">Selected: {selectedIds.size}</span>
+                  <Button onClick={addLineItem} size="sm">Add Line Item</Button>
+                  <Button 
+                    size="sm"
+                    variant="outline"
+                    onClick={async () => {
+                      if (!tenderId) {
+                        toast({ title: 'Save draft first', description: 'Save the tender to enable saving selected items.', variant: 'destructive' });
+                        return;
+                      }
+                      const selected = lineItems.filter(li => selectedIds.has(li.id));
+                      if (selected.length === 0) {
+                        toast({ title: 'No items selected', description: 'Select at least one line item to save.', variant: 'destructive' });
+                        return;
+                      }
+                      await supabase.from('tender_line_items').delete().eq('tender_id', tenderId);
+                      const { error } = await supabase.from('tender_line_items').insert(selected.map(item => ({
+                        tender_id: tenderId,
+                        line_number: item.lineNumber,
+                        item_description: item.itemDescription,
+                        specification: item.specification,
+                        unit_of_measure: item.unitOfMeasure,
+                        quantity: item.quantity,
+                        unit_price: 0,
+                        total: 0,
+                        category: item.category
+                      })));
+                      if (error) {
+                        toast({ title: 'Save failed', description: 'Could not save selected items.', variant: 'destructive' });
+                      } else {
+                        toast({ title: 'Saved', description: `Saved ${selected.length} selected items to tender.` });
+                      }
+                    }}
+                  >
+                    Save Selected Items to Tender
+                  </Button>
+                </div>
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -454,6 +510,13 @@ export const DrawingsUploadManager = ({ projectId, tenderId, onLineItemsImported
                 <Table>
                   <TableHeader>
                     <TableRow>
+                      <TableHead className="w-10">
+                        <Checkbox
+                          aria-label="Select all"
+                          checked={allSelected}
+                          onCheckedChange={toggleSelectAll}
+                        />
+                      </TableHead>
                       {visibleColumns.lineNumber && <TableHead className="w-20">Line #</TableHead>}
                       {visibleColumns.itemDescription && <TableHead>Item Description</TableHead>}
                       {visibleColumns.specification && <TableHead>Specification/Notes</TableHead>}
@@ -465,6 +528,13 @@ export const DrawingsUploadManager = ({ projectId, tenderId, onLineItemsImported
                   <TableBody>
                     {displayedItems.map((item) => (
                       <TableRow key={item.id}>
+                        <TableCell className="w-10">
+                          <Checkbox
+                            aria-label={`Select ${item.itemDescription}`}
+                            checked={selectedIds.has(item.id)}
+                            onCheckedChange={() => toggleSelect(item.id)}
+                          />
+                        </TableCell>
                         {visibleColumns.lineNumber && (
                           <TableCell className="font-medium">{item.lineNumber}</TableCell>
                         )}

@@ -520,6 +520,11 @@ export const CreateTenderWizard = ({
                 projectId={projectId}
                 tenderId={tenderId || existingTender?.id}
               />
+              {!tenderId && !existingTender?.id && (
+                <p className="text-sm text-muted-foreground mt-2">
+                  Tip: Click “Save Draft” to create a tender ID before saving selected line items.
+                </p>
+              )}
 
               <Card className="bg-primary/5 mt-6">
                 <CardHeader>
