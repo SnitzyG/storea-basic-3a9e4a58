@@ -62,47 +62,7 @@ serve(async (req) => {
       throw new Error('LOVABLE_API_KEY not configured');
     }
 
-    let arrayBuffer: ArrayBuffer | null = null;
-
-    // Try using the signed URL first
-    if (fileUrl) {
-      const fullUrl = fileUrl.startsWith('http') ? fileUrl : `${Deno.env.get('SUPABASE_URL')}${fileUrl}`;
-      console.log('Fetching file via signed URL:', fullUrl);
-      const fetchResp = await fetch(fullUrl);
-      if (fetchResp.ok) {
-        arrayBuffer = await fetchResp.arrayBuffer();
-      } else {
-        console.warn('Signed URL fetch failed:', fetchResp.status, fetchResp.statusText);
-      }
-    }
-
-    // Fallback to storage download with service role if provided
-    if (!arrayBuffer && bucket && filePath) {
-      const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-      const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-      const supabase = createClient(supabaseUrl, supabaseServiceKey);
-
-      console.log(`Downloading from storage: ${bucket}/${filePath}`);
-      const { data: fileData, error: downloadError } = await supabase.storage
-        .from(bucket)
-        .download(filePath);
-
-      if (downloadError) {
-        console.error('Storage download error:', downloadError.message);
-        throw new Error('Unable to download file from storage');
-      }
-      arrayBuffer = await fileData.arrayBuffer();
-    }
-
-    if (!arrayBuffer) {
-      throw new Error('File could not be retrieved (invalid URL or storage path)');
-    }
-
-    // Convert file to base64 for AI analysis
-    const bytes = new Uint8Array(arrayBuffer);
-    const base64 = btoa(String.fromCharCode(...bytes));
-    
-    // Determine MIME type
+    // Determine MIME type (for hinting)
     const fileExt = fileName.toLowerCase().split('.').pop();
     const mimeTypes: Record<string, string> = {
       'pdf': 'application/pdf',
@@ -112,6 +72,11 @@ serve(async (req) => {
       'webp': 'image/webp'
     };
     const mimeType = mimeTypes[fileExt || 'pdf'] || 'application/pdf';
+
+    // We will pass the signed URL directly to the AI instead of inlining the file
+    const fullUrl = fileUrl.startsWith('http') ? fileUrl : `${Deno.env.get('SUPABASE_URL')}${fileUrl}`;
+
+    console.log('Sending to AI for analysis using URL...');
 
     console.log('Sending to AI for analysis...');
 
@@ -160,7 +125,7 @@ Return a comprehensive bill of quantities.`;
               { 
                 type: 'image_url',
                 image_url: {
-                  url: `data:${mimeType};base64,${base64}`
+                  url: fullUrl
                 }
               }
             ]

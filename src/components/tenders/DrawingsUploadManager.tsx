@@ -89,14 +89,14 @@ export const DrawingsUploadManager = ({ projectId, tenderId, onLineItemsImported
 
       // Transform parsed data into line items
       const parsedItems: LineItem[] = parseData.lineItems.map((item: any, index: number) => ({
-        lineNumber: item.item_number || index + 1,
-        itemDescription: item.item_name || '',
-        specification: item.description || item.notes || '',
-        unitOfMeasure: item.unit || 'ea',
-        quantity: item.quantity || 0,
-        unitPrice: item.rate || 0,
-        total: item.total || 0,
-        category: item.category || 'General'
+        lineNumber: item.line_number ?? index + 1,
+        itemDescription: item.item_description ?? '',
+        specification: item.specification ?? item.description ?? item.notes ?? '',
+        unitOfMeasure: item.unit_of_measure ?? item.unit ?? 'ea',
+        quantity: Number(item.quantity ?? 0),
+        unitPrice: Number(item.unit_price ?? item.rate ?? 0),
+        total: Number(item.total ?? 0),
+        category: item.category ?? 'General'
       }));
 
       setLineItems(parsedItems);
