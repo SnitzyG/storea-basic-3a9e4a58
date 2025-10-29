@@ -241,6 +241,10 @@ export const EnhancedCreateTenderDialog = ({ open, onOpenChange, projectId }: En
         .insert([{
           project_id: projectId,
           title: formData.title,
+          project_title: formData.project_title,
+          project_address: formData.project_address,
+          client_name: formData.client_name,
+          tender_reference_no: formData.tender_reference,
           message: formData.message,
           estimated_start_date: formData.estimated_start_date || null,
           deadline: `${formData.submission_deadline}T${formData.submission_deadline_time}:00`,

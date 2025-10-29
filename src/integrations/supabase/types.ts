@@ -2534,6 +2534,7 @@ export type Database = {
           builder_details: Json | null
           builder_email: string | null
           builder_phone: string | null
+          client_name: string | null
           compliance_requirements: Json | null
           construction_items: Json | null
           created_at: string
@@ -2547,7 +2548,9 @@ export type Database = {
           is_ready_for_tender: boolean | null
           issued_by: string
           message: string | null
+          project_address: string | null
           project_id: string
+          project_title: string | null
           published_at: string | null
           requirements: Json | null
           scope_of_works_path: string | null
@@ -2555,6 +2558,7 @@ export type Database = {
           submission_deadline_time: string | null
           tender_id: string | null
           tender_package_id: string | null
+          tender_reference_no: string | null
           tender_specification_path: string | null
           tender_type: string | null
           title: string
@@ -2572,6 +2576,7 @@ export type Database = {
           builder_details?: Json | null
           builder_email?: string | null
           builder_phone?: string | null
+          client_name?: string | null
           compliance_requirements?: Json | null
           construction_items?: Json | null
           created_at?: string
@@ -2585,7 +2590,9 @@ export type Database = {
           is_ready_for_tender?: boolean | null
           issued_by: string
           message?: string | null
+          project_address?: string | null
           project_id: string
+          project_title?: string | null
           published_at?: string | null
           requirements?: Json | null
           scope_of_works_path?: string | null
@@ -2593,6 +2600,7 @@ export type Database = {
           submission_deadline_time?: string | null
           tender_id?: string | null
           tender_package_id?: string | null
+          tender_reference_no?: string | null
           tender_specification_path?: string | null
           tender_type?: string | null
           title: string
@@ -2610,6 +2618,7 @@ export type Database = {
           builder_details?: Json | null
           builder_email?: string | null
           builder_phone?: string | null
+          client_name?: string | null
           compliance_requirements?: Json | null
           construction_items?: Json | null
           created_at?: string
@@ -2623,7 +2632,9 @@ export type Database = {
           is_ready_for_tender?: boolean | null
           issued_by?: string
           message?: string | null
+          project_address?: string | null
           project_id?: string
+          project_title?: string | null
           published_at?: string | null
           requirements?: Json | null
           scope_of_works_path?: string | null
@@ -2631,6 +2642,7 @@ export type Database = {
           submission_deadline_time?: string | null
           tender_id?: string | null
           tender_package_id?: string | null
+          tender_reference_no?: string | null
           tender_specification_path?: string | null
           tender_type?: string | null
           title?: string

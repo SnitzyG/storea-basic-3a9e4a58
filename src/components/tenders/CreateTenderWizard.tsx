@@ -271,6 +271,10 @@ export const CreateTenderWizard = ({
       const tenderData: any = {
         project_id: projectId,
         title: title.trim(),
+        project_title: title.trim(), // Use the same title as project title
+        project_address: projectAddress || undefined,
+        client_name: clientName || undefined,
+        tender_reference_no: tenderReferenceNo || undefined,
         budget: budget ? parseFloat(budget) : undefined,
         estimated_start_date: estimatedStartDate || undefined,
         deadline: `${submissionDeadline}T${submissionTime}:00`,
