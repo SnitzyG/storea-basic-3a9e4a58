@@ -15,6 +15,7 @@ import { useDocuments } from '@/hooks/useDocuments';
 import { ChevronLeft, ChevronRight, FileDown, FileText, X } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { DrawingsUploadManager } from '../DrawingsUploadManager';
+import { TenderLineItemsDisplay } from '../TenderLineItemsDisplay';
 
 // Comprehensive scope items organized by category
 const SCOPE_ITEMS = {
@@ -502,6 +503,7 @@ export const EnhancedTenderWizard = ({ open, onOpenChange, projectId, existingTe
             {/* Drawings Upload Manager */}
             <DrawingsUploadManager 
               projectId={projectId}
+              tenderId={existingTender?.id}
               onLineItemsImported={(items) => {
                 toast({
                   title: "Line items imported",
@@ -845,9 +847,14 @@ export const EnhancedTenderWizard = ({ open, onOpenChange, projectId, existingTe
         );
 
       case 8:
-        // Step 9: Review & Attachments
+        // Step 8: Review & Attachments + Building Quote
         return (
           <div className="space-y-6">
+            {/* Building Quote - Line Items */}
+            {existingTender?.id && (
+              <TenderLineItemsDisplay tenderId={existingTender.id} />
+            )}
+
             <Card>
               <CardHeader>
                 <CardTitle>Tender Summary</CardTitle>

@@ -25,10 +25,11 @@ interface LineItem {
 
 interface DrawingsUploadManagerProps {
   projectId: string;
+  tenderId?: string;
   onLineItemsImported?: (items: LineItem[]) => void;
 }
 
-export const DrawingsUploadManager = ({ projectId, onLineItemsImported }: DrawingsUploadManagerProps) => {
+export const DrawingsUploadManager = ({ projectId, tenderId, onLineItemsImported }: DrawingsUploadManagerProps) => {
   const { toast } = useToast();
   const [uploading, setUploading] = useState(false);
   const [lineItems, setLineItems] = useState<LineItem[]>([]);
@@ -108,6 +109,34 @@ export const DrawingsUploadManager = ({ projectId, onLineItemsImported }: Drawin
 
       setLineItems(parsedItems);
       onLineItemsImported?.(parsedItems);
+
+      // If tenderId is provided, save to database
+      if (tenderId) {
+        await supabase.from('tender_line_items').delete().eq('tender_id', tenderId);
+        
+        const { error: insertError } = await supabase.from('tender_line_items').insert(
+          parsedItems.map(item => ({
+            tender_id: tenderId,
+            line_number: item.lineNumber,
+            item_description: item.itemDescription,
+            specification: item.specification,
+            unit_of_measure: item.unitOfMeasure,
+            quantity: item.quantity,
+            unit_price: item.unitPrice,
+            total: item.total,
+            category: item.category
+          }))
+        );
+
+        if (insertError) {
+          console.error('Error saving to database:', insertError);
+          toast({
+            title: 'Warning',
+            description: 'Line items displayed but not saved to tender',
+            variant: 'destructive'
+          });
+        }
+      }
 
       toast({
         title: 'Drawings parsed successfully',

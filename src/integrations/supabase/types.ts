@@ -2295,6 +2295,59 @@ export type Database = {
           },
         ]
       }
+      tender_line_items: {
+        Row: {
+          category: string
+          created_at: string
+          id: string
+          item_description: string
+          line_number: number
+          quantity: number | null
+          specification: string | null
+          tender_id: string
+          total: number
+          unit_of_measure: string | null
+          unit_price: number | null
+          updated_at: string
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          id?: string
+          item_description: string
+          line_number: number
+          quantity?: number | null
+          specification?: string | null
+          tender_id: string
+          total: number
+          unit_of_measure?: string | null
+          unit_price?: number | null
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          id?: string
+          item_description?: string
+          line_number?: number
+          quantity?: number | null
+          specification?: string | null
+          tender_id?: string
+          total?: number
+          unit_of_measure?: string | null
+          unit_price?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tender_line_items_tender_id_fkey"
+            columns: ["tender_id"]
+            isOneToOne: false
+            referencedRelation: "tenders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tender_notifications: {
         Row: {
           id: string
