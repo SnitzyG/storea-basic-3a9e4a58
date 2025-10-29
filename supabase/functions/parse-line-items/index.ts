@@ -62,26 +62,19 @@ serve(async (req) => {
       throw new Error('LOVABLE_API_KEY not configured');
     }
 
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
-
-    // Download the file from storage
-    const urlParts = fileUrl.split('/');
-    const bucket = urlParts[urlParts.length - 3];
-    const path = decodeURIComponent(urlParts.slice(-2).join('/'));
+    // Use the signed URL directly to fetch the file
+    const fullUrl = fileUrl.startsWith('http') ? fileUrl : `${Deno.env.get('SUPABASE_URL')}${fileUrl}`;
     
-    const { data: fileData, error: downloadError } = await supabase.storage
-      .from(bucket)
-      .download(path);
-
-    if (downloadError) {
-      console.error('Download error:', downloadError);
-      throw new Error('Failed to download file from storage');
+    console.log('Fetching file from:', fullUrl);
+    
+    const fileResponse = await fetch(fullUrl);
+    if (!fileResponse.ok) {
+      console.error('Failed to fetch file:', fileResponse.status, fileResponse.statusText);
+      throw new Error(`Failed to download file: ${fileResponse.statusText}`);
     }
 
     // Convert file to base64 for AI analysis
-    const arrayBuffer = await fileData.arrayBuffer();
+    const arrayBuffer = await fileResponse.arrayBuffer();
     const bytes = new Uint8Array(arrayBuffer);
     const base64 = btoa(String.fromCharCode(...bytes));
     
