@@ -14,6 +14,7 @@ import { useTenders } from '@/hooks/useTenders';
 import { useDocuments } from '@/hooks/useDocuments';
 import { ChevronLeft, ChevronRight, FileDown, FileText, X } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { DrawingsUploadManager } from '../DrawingsUploadManager';
 
 // Comprehensive scope items organized by category
 const SCOPE_ITEMS = {
@@ -495,9 +496,21 @@ export const EnhancedTenderWizard = ({ open, onOpenChange, projectId, existingTe
         );
 
       case 2:
-        // Step 2: Project Scope (comprehensive checkboxes)
+        // Step 2: Project Scope (comprehensive checkboxes) + Drawings Upload
         return (
           <div className="space-y-6">
+            {/* Drawings Upload Manager */}
+            <DrawingsUploadManager 
+              projectId={projectId}
+              onLineItemsImported={(items) => {
+                toast({
+                  title: "Line items imported",
+                  description: `${items.length} line items ready for tender package`
+                });
+              }}
+            />
+            
+            {/* Existing Scope Items */}
             {Object.entries(SCOPE_ITEMS).map(([category, items]) => {
               const categoryItems = selectedScope[category] || [];
               const allSelected = categoryItems.length === items.length;
