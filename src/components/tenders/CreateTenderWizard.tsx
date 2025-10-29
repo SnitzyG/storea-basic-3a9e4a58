@@ -271,12 +271,8 @@ export const CreateTenderWizard = ({
       const tenderData: any = {
         project_id: projectId,
         title: title.trim(),
-        project_address: projectAddress || undefined,
-        client_name: clientName || undefined,
-        tender_reference_no: tenderReferenceNo || undefined,
         budget: budget ? parseFloat(budget) : undefined,
         estimated_start_date: estimatedStartDate || undefined,
-        completion_weeks: completionWeeks ? parseInt(completionWeeks) : undefined,
         deadline: `${submissionDeadline}T${submissionTime}:00`,
         supporting_documents: supportingDocuments,
         status: 'open'
