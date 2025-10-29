@@ -527,44 +527,6 @@ export const CreateTenderWizard = ({
                 </p>
               )}
 
-              <Card className="bg-primary/5 mt-6">
-                <CardHeader>
-                  <CardTitle className="text-base">Supporting Documents</CardTitle>
-                  <CardDescription>Select from Document Register</CardDescription>
-                </CardHeader>
-              </Card>
-
-              {documents.length > 0 ? (
-                <div className="space-y-2 max-h-60 overflow-y-auto">
-                  {documents.map(doc => (
-                    <label 
-                      key={doc.id} 
-                      className="flex items-center gap-3 p-3 bg-muted/50 rounded-md cursor-pointer hover:bg-muted transition-colors"
-                    >
-                      <input
-                        type="checkbox"
-                        checked={supportingDocuments.includes(doc.id)}
-                        onChange={() => toggleDocument(doc.id)}
-                        className="w-4 h-4"
-                      />
-                      <FileText className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm flex-1">{doc.name}</span>
-                      <span className="text-xs text-muted-foreground">
-                        {doc.file_type}
-                      </span>
-                    </label>
-                  ))}
-                </div>
-              ) : (
-                <Card>
-                  <CardContent className="text-center py-8">
-                    <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-2" />
-                    <p className="text-sm text-muted-foreground">
-                      No documents available in the register
-                    </p>
-                  </CardContent>
-                </Card>
-              )}
             </div>
           )}
 
