@@ -12,7 +12,7 @@ import { useTenders, Tender } from '@/hooks/useTenders';
 import { useProjects } from '@/hooks/useProjects';
 import { useAuth } from '@/hooks/useAuth';
 import { useProjectSelection } from '@/context/ProjectSelectionContext';
-import { EnhancedTenderWizard } from '@/components/tenders/enhanced/EnhancedTenderWizard';
+import { CreateTenderWizard } from '@/components/tenders/CreateTenderWizard';
 import { TenderDetailsDialog } from '@/components/tenders/TenderDetailsDialog';
 import { BidSubmissionDialog } from '@/components/tenders/BidSubmissionDialog';
 import { TenderInviteDialog } from '@/components/tenders/TenderInviteDialog';
@@ -382,13 +382,13 @@ const Tenders = () => {
       </Tabs>
 
       {/* Dialogs */}
-      <EnhancedTenderWizard 
+      <CreateTenderWizard 
         open={createDialogOpen} 
         onOpenChange={setCreateDialogOpen} 
         projectId={selectedProject?.id || ''} 
       />
 
-      <EnhancedTenderWizard 
+      <CreateTenderWizard 
         open={wizardOpen} 
         onOpenChange={(open) => {
           setWizardOpen(open);
