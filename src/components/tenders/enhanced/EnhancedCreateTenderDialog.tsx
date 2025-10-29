@@ -37,6 +37,10 @@ interface EnhancedCreateTenderDialogProps {
 
 interface TenderFormData {
   title: string;
+  project_title: string;
+  project_address: string;
+  client_name: string;
+  tender_reference: string;
   message: string;
   estimated_start_date: string;
   submission_deadline: string;
@@ -70,6 +74,10 @@ export const EnhancedCreateTenderDialog = ({ open, onOpenChange, projectId }: En
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState<TenderFormData>({
     title: '',
+    project_title: '',
+    project_address: '',
+    client_name: '',
+    tender_reference: '',
     message: '',
     estimated_start_date: '',
     submission_deadline: '',
@@ -91,6 +99,34 @@ export const EnhancedCreateTenderDialog = ({ open, onOpenChange, projectId }: En
 
   const { user } = useAuth();
   const { toast } = useToast();
+
+  // Auto-populate project details when dialog opens
+  React.useEffect(() => {
+    if (open && projectId) {
+      const fetchProjectDetails = async () => {
+        const { data: project } = await supabase
+          .from('projects')
+          .select('name, address')
+          .eq('id', projectId)
+          .single();
+
+        if (project) {
+          // Generate tender reference number
+          const tenderRef = `TDR-${Date.now().toString().slice(-8)}`;
+          
+          setFormData(prev => ({
+            ...prev,
+            project_title: project.name || '',
+            project_address: project.address || '',
+            client_name: '', // Will be filled from homeowner profile
+            tender_reference: tenderRef
+          }));
+        }
+      };
+
+      fetchProjectDetails();
+    }
+  }, [open, projectId]);
 
   const steps = [
     { number: 1, title: 'Basic Details', description: 'Tender information and timeline' },
@@ -350,6 +386,52 @@ export const EnhancedCreateTenderDialog = ({ open, onOpenChange, projectId }: En
                   <CardTitle className="text-lg">Basic Tender Information</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
+                  <div>
+                    <Label htmlFor="project_title">Project Title *</Label>
+                    <Input
+                      id="project_title"
+                      value={formData.project_title}
+                      onChange={(e) => updateFormData('project_title', e.target.value)}
+                      className="mt-1"
+                      disabled
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="project_address">Project Address *</Label>
+                    <Input
+                      id="project_address"
+                      value={formData.project_address}
+                      onChange={(e) => updateFormData('project_address', e.target.value)}
+                      className="mt-1"
+                      disabled
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="client_name">Client Name *</Label>
+                    <Input
+                      id="client_name"
+                      value={formData.client_name}
+                      onChange={(e) => updateFormData('client_name', e.target.value)}
+                      className="mt-1"
+                      disabled
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="tender_reference">Tender Reference No. *</Label>
+                    <Input
+                      id="tender_reference"
+                      value={formData.tender_reference}
+                      onChange={(e) => updateFormData('tender_reference', e.target.value)}
+                      className="mt-1"
+                      disabled
+                    />
+                  </div>
+
+                  <Separator className="my-4" />
+
                   <div>
                     <Label htmlFor="title">Tender Title *</Label>
                     <Input
