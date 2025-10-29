@@ -156,33 +156,59 @@ export const DrawingsUploadManager = ({ projectId, tenderId, onLineItemsImported
         setUploadProgress(50);
         setUploadStage('Uploading page images...');
         const imageUrls: string[] = [];
-        for (let i = 0; i < pageBlobs.length; i++) {
-          const pagePath = `${projectId}/drawings/pages/${Date.now()}_${i + 1}.png`;
-          const { error: upErr } = await supabase.storage
-            .from('documents')
-            .upload(pagePath, pageBlobs[i], { contentType: 'image/png', upsert: true } as any);
-          if (upErr) throw upErr;
-          const { data: pageSigned, error: signErr } = await supabase.storage
-            .from('documents')
-            .createSignedUrl(pagePath, 3600);
-          if (signErr) throw signErr;
-          imageUrls.push(pageSigned.signedUrl);
-          setUploadProgress(50 + (i + 1) * (20 / pageBlobs.length));
-        }
+          for (let i = 0; i < pageBlobs.length; i++) {
+            const pagePath = `${projectId}/drawings/pages/${Date.now()}_${i + 1}.png`;
+            const { error: upErr } = await supabase.storage
+              .from('documents')
+              .upload(pagePath, pageBlobs[i], { contentType: 'image/png', upsert: true } as any);
+            if (upErr) throw upErr;
+            const { data: pageSigned, error: signErr } = await supabase.storage
+              .from('documents')
+              .createSignedUrl(pagePath, 3600);
+            if (signErr) throw signErr;
+            const ABS_BASE = 'https://inibugusrzfihldvegrb.supabase.co/storage/v1';
+            const absoluteUrl = pageSigned.signedUrl.startsWith('http') ? pageSigned.signedUrl : `${ABS_BASE}${pageSigned.signedUrl}`;
+            imageUrls.push(absoluteUrl);
+            setUploadProgress(50 + (i + 1) * (20 / pageBlobs.length));
+          }
         invokeBody.imageUrls = imageUrls;
       } else {
         invokeBody.fileUrl = signedUrlData.signedUrl;
       }
 
-      setUploadProgress(70);
-      setUploadStage('Analyzing construction drawings...');
+        setUploadProgress(70);
+        setUploadStage('Analyzing construction drawings...');
 
-      // Call edge function to parse the document/images
-      const { data: parseData, error: parseError } = await supabase.functions.invoke('parse-line-items', {
-        body: invokeBody
-      });
-
-      if (parseError) throw parseError;
+        // Call edge function to parse the document/images with robust fallback
+        let parseData: any = null;
+        try {
+          const { data } = await supabase.functions.invoke('parse-line-items', {
+            body: invokeBody,
+            headers: { 'Content-Type': 'application/json' }
+          });
+          parseData = data;
+        } catch (e1: any) {
+          try {
+            const ABS_FUN_URL = 'https://inibugusrzfihldvegrb.supabase.co/functions/v1/parse-line-items';
+            const ABS_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImluaWJ1Z3VzcnpmaWhsZHZlZ3JiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY4NTg1ODUsImV4cCI6MjA3MjQzNDU4NX0.-EUl9WpiCqV1FjTzVTYLpGZVttcrbbfG6LS8AeRHpdQ';
+            const resp = await fetch(ABS_FUN_URL, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${ABS_ANON}`,
+              },
+              body: JSON.stringify(invokeBody)
+            });
+            const text = await resp.text();
+            try {
+              parseData = JSON.parse(text);
+            } catch (e2) {
+              throw new Error(text?.slice(0, 200) || 'Parser service returned a non-JSON response');
+            }
+          } catch (e3) {
+            throw e3;
+          }
+        }
 
       setUploadProgress(85);
       setUploadStage('Extracting line items...');
