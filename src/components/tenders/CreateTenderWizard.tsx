@@ -602,11 +602,6 @@ export const CreateTenderWizard = ({
                   </div>
 
                   <div>
-                    <p className="text-sm text-muted-foreground">Compliance Requirements:</p>
-                    <p className="font-medium">{complianceCount} items</p>
-                  </div>
-
-                  <div>
                     <p className="text-sm text-muted-foreground">Supporting Documents:</p>
                     <p className="font-medium">{attachedDocsCount} attached</p>
                   </div>

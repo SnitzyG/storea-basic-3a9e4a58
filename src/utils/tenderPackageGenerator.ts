@@ -327,10 +327,9 @@ const generateTenderPDF = async (tender: Tender): Promise<Blob> => {
 };
 
 const generateTenderExcel = async (tender: Tender): Promise<Blob> => {
-  // Prefer saved tender_line_items; fall back to construction_items/scope
   const XLSX = await import('xlsx');
 
-  // Try to load saved line items for this tender
+  // Fetch saved line items for this tender from Step 3
   let dbLineItems: Array<{
     category: string;
     item_description: string;
@@ -339,6 +338,7 @@ const generateTenderExcel = async (tender: Tender): Promise<Blob> => {
     unit_of_measure: string | null;
     line_number: number;
   }> = [];
+  
   try {
     const { data, error } = await supabase
       .from('tender_line_items')
@@ -348,7 +348,7 @@ const generateTenderExcel = async (tender: Tender): Promise<Blob> => {
     if (error) throw error;
     dbLineItems = data || [];
   } catch (e) {
-    console.warn('Could not load tender_line_items, falling back:', e);
+    console.warn('Could not load tender_line_items:', e);
   }
 
   const today = new Date().toLocaleDateString('en-AU', {
@@ -357,83 +357,88 @@ const generateTenderExcel = async (tender: Tender): Promise<Blob> => {
     day: 'numeric'
   });
 
-  // Header rows consistent with professional template
+  // Professional header section with tender details
   const headerRows: any[][] = [
+    ['TENDER PRICING SCHEDULE'],
     [''],
-    ['Residential Building Quotation'],
-    [tender.title],
-    [`Date: ${today}`],
+    ['Project Details'],
+    [`Project Title: ${tender.title || 'N/A'}`],
+    [`Project Address: ${(tender as any).project_address || 'N/A'}`],
+    [`Client Name: ${(tender as any).client_name || 'N/A'}`],
+    [`Tender Reference: ${(tender as any).tender_reference_no || 'N/A'}`],
+    [`Submission Deadline: ${tender.deadline ? new Date(tender.deadline).toLocaleDateString('en-AU') : 'N/A'}`],
     [''],
-    [`Title: ${tender.title}`],
-    ...(tender.deadline ? [[`Deadline: ${new Date(tender.deadline).toLocaleDateString()}`]] : []),
+    ['Budget & Timeline'],
+    [`Budget (AUD): ${tender.budget ? `$${tender.budget.toLocaleString()}` : 'N/A'}`],
+    [`Estimated Start Date: ${(tender as any).estimated_start_date ? new Date((tender as any).estimated_start_date).toLocaleDateString('en-AU') : 'N/A'}`],
+    [`Completion Weeks: ${(tender as any).completion_weeks || 'N/A'}`],
     [''],
-    [`Created: ${today}`],
+    [`Date Generated: ${today}`],
     [''],
-    ['Category', 'Item Description', 'Specification', 'Quantity', 'Unit', 'Rate', 'Total', 'Notes'],
+    ['LINE ITEMS FROM CONSTRUCTION DRAWINGS'],
+    ['Category', 'Item Description', 'Specification', 'Quantity', 'Unit', 'Rate (AUD)', 'Total (AUD)', 'Notes'],
   ];
 
-  // Build item rows
+  // Build item rows from Step 3 extracted data
   const itemRows: any[][] = [];
   if (dbLineItems.length > 0) {
     let currentCategory = '';
     dbLineItems.forEach((it) => {
       const cat = it.category || 'Uncategorized';
+      // Add category header row
       if (cat !== currentCategory) {
         itemRows.push([cat, '', '', '', '', '', '', '']);
         currentCategory = cat;
       }
+      // Add item detail row
       itemRows.push([
         '',
         it.item_description || '',
         it.specification || '',
         it.quantity ?? '',
         it.unit_of_measure || '',
-        '',
-        '',
-        ''
+        '', // Rate - to be filled by builder
+        '', // Total - will be calculated
+        ''  // Notes
       ]);
     });
-  } else if (Array.isArray(tender.construction_items) && tender.construction_items.length > 0) {
-    let currentSection = '';
-    tender.construction_items.forEach((item: any) => {
-      const section = item.section || 'General';
-      if (section !== currentSection) {
-        itemRows.push([section, '', '', '', '', '', '', '']);
-        currentSection = section;
-      }
-      itemRows.push(['', item.item || item.title || '', item.description || '', '', item.unit || '', '', '', '']);
-    });
-  } else if ((tender.requirements as any)?.scope) {
-    const scopeObj = (tender.requirements as any).scope as Record<string, string[]>;
-    const humanize = (key: string) => key.replace(/([A-Z])/g, ' $1').replace(/^./, c => c.toUpperCase());
-    Object.entries(scopeObj).forEach(([category, items]) => {
-      if (!items || items.length === 0) return;
-      itemRows.push([humanize(category), '', '', '', '', '', '', '']);
-      items.forEach((sel) => itemRows.push(['', sel, '', '', '', '', '', '']))
-    });
+  } else {
+    // Fallback if no line items extracted
+    itemRows.push(['No line items extracted', 'Please upload construction drawings in Step 3', '', '', '', '', '', '']);
   }
 
-  // Totals section
+  // Totals section with formulas
   const totalsRows: any[][] = [
-    ['', '', '', '', '', '', '', ''],
+    [''],
+    [''],
     ['', '', '', '', '', 'Subtotal:', '', ''],
     ['', '', '', '', '', 'GST (10%):', '', ''],
-    ['', '', '', '', '', 'Grand Total:', '', ''],
+    ['', '', '', '', '', 'Grand Total (AUD):', '', ''],
+    [''],
+    [''],
+    ['Builder Details'],
+    ['Company Name:', ''],
+    ['ABN:', ''],
+    ['Contact Person:', ''],
+    ['Email:', ''],
+    ['Phone:', ''],
+    [''],
+    ['Signature:', '', '', 'Date:', ''],
   ];
 
   const allRows = [...headerRows, ...itemRows, ...totalsRows];
   const ws = XLSX.utils.aoa_to_sheet(allRows);
 
-  // Column widths
+  // Enhanced column widths for better presentation
   ws['!cols'] = [
-    { wch: 25 },
-    { wch: 35 },
-    { wch: 45 },
-    { wch: 10 },
-    { wch: 10 },
-    { wch: 12 },
-    { wch: 12 },
-    { wch: 25 },
+    { wch: 28 },  // Category
+    { wch: 40 },  // Item Description
+    { wch: 50 },  // Specification
+    { wch: 12 },  // Quantity
+    { wch: 12 },  // Unit
+    { wch: 15 },  // Rate
+    { wch: 15 },  // Total
+    { wch: 30 },  // Notes
   ];
 
   // Formulas for line totals and summary
