@@ -154,8 +154,17 @@ const getTemplateWithData = (docName: string, projectData: any, tenderData: any)
       { id: '16', title: 'External Works and Landscaping', content: 'Site Works:\n- Remove all construction materials\n- Restore disturbed areas\n- Compact and level surfaces\n- Topsoil: [Depth] mm minimum\n\nPaving:\n- Concrete: [Specify thickness and finish]\n- Pavers: [Specify type, size, color]\n- Base: [Specify - crusher dust, road base]\n- Compaction: 95% MDD\n- Falls to drainage\n- Expansion joints at 3m centers\n\nDriveways:\n- Concrete: N25, 100mm thick\n- Mesh: SL82\n- Trowel finish\n- Control joints\n- Drainage to street or approved point\n\nRetaining Walls:\n- As per structural engineer details\n- Drainage behind wall\n- Waterproofing below ground\n- Capping as specified\n- Backfill with free-draining material\n\nFencing:\n- Type: [Specify - timber, Colorbond, etc.]\n- Height: [Specify]\n- Posts: [Material and spacing]\n- Gates: [Specify locations and type]\n- Comply with boundary requirements\n\nLandscaping:\n- Turf: [Specify type]\n- Planting: [As per landscape plan]\n- Mulch: [Specify type and depth]\n- Irrigation: [If specified]\n- Maintenance period: [X] weeks\n\nDrainage:\n- Surface drainage falls away from building\n- Agricultural drains where required\n- Connection to stormwater system\n- Erosion control measures' }
     ],
     'Technical Schedules': [
-      { id: '1', title: 'Section 1', content: 'Enter content here...' }
-    ]
+      { id: '1', title: 'Mechanical Services Specification', content: 'HVAC Systems:\n\nHeating:\n- Type: [Ducted/Split system/Hydronic]\n- Capacity: [kW]\n- Zoning: [Number] zones\n- Control: [Thermostat type and location]\n- Efficiency rating: [Star rating]\n- Brand/Model: [To be specified]\n\nCooling:\n- Type: [Reverse cycle/Evaporative/Refrigerated]\n- Capacity: [kW]\n- Coverage: [Areas serviced]\n- Refrigerant type: [R32/R410A]\n- Energy rating: [Stars]\n\nVentilation:\n- Fresh air supply: [L/s per person]\n- Exhaust fans: [Locations and capacities]\n- Compliance: AS 1668.2\n\nDuctwork:\n- Material: [Galvanized steel/Flexible]\n- Insulation: [Type and R-value]\n- Fire dampers: [Locations]\n\nControls and Automation:\n- Building Management System: [Yes/No]\n- Programmable thermostats\n- Zone controls\n- After-hours override' },
+      { id: '2', title: 'Electrical Services Specification', content: 'Power Distribution:\n\nMain Switchboard:\n- Location: [Specify]\n- Incoming supply: [Single/3-phase, Amperage]\n- Main switch: [Type and rating]\n- Circuit breakers: [Type]\n- RCD protection: As per AS/NZS 3000\n- Surge protection: [Type]\n\nSub-Boards:\n- Locations: [List all]\n- Ratings: [Specify for each]\n\nPower Outlets:\n- General purpose outlets (GPO): [Type and spacing]\n- Dedicated circuits: [Kitchen, laundry, etc.]\n- Data outlets: Cat 6 minimum\n- USB charging points: [Locations]\n- External outlets: Weather-proof\n\nLighting:\n- Type: LED throughout\n- Control: [Switch/Dimmer/Sensor]\n- Emergency lighting: Exit and path\n- External lighting: [Type and control]\n- Energy efficiency: [Lumens/Watt]\n\nCommunications:\n- Telephone points: [Number and locations]\n- Data cabling: Cat 6A structured cabling\n- TV/Antenna: [Locations]\n- NBN ready: Yes\n- Intercom: [Type if applicable]\n\nSolar PV (if applicable):\n- System size: [kW]\n- Panel type: [Specification]\n- Inverter: [Type and rating]\n- Battery storage: [If included]\n- Feed-in tariff ready' },
+      { id: '3', title: 'Hydraulic Services Specification', content: 'Water Supply:\n\nCold Water:\n- Connection: [Mains/Tank]\n- Pipe material: [Copper/PEX]\n- Pressure: [kPa range]\n- Isolating valves at all fixtures\n- Water meters: [Main and sub-meters]\n\nHot Water:\n- System type: [Electric/Gas/Solar/Heat pump]\n- Storage: [L capacity]\n- Delivery temperature: 60°C (storage), 50°C (outlets)\n- Tempering valves: All outlets\n- Energy efficiency: [Star rating]\n- Location: [Specify]\n\nDrainage:\n\nStorm Water:\n- Roof drainage: [Box gutter/Eaves gutter]\n- Downpipes: [Size and locations]\n- Disposal: [Soak/Tank/Sewer]\n- Inspection openings: As required\n\nSewerage:\n- Connection: [Sewer/Septic]\n- Pipe material: [PVC/uPVC]\n- Gradients: As per AS 3500\n- Inspection openings: [Locations]\n- Trade waste: [If applicable]\n\nFixtures and Fittings:\n- Toilets: WELS 4-star minimum\n- Taps: WELS 5-star minimum\n- Showers: WELS 3-star minimum\n- Basin mixers: [Type]\n- Kitchen sink mixer: [Type]\n\nRainwater Collection (if applicable):\n- Tank capacity: [L]\n- Material: [Polyethylene/Concrete/Steel]\n- First flush diverter: Yes\n- Pump: [Capacity if required]\n- Usage: [Toilet/Laundry/Garden]' },
+    ],
+    'Drawings': [
+      { id: '1', title: 'Drawing Upload Instructions', content: 'This section requires actual construction drawings to be uploaded from your document register.\n\nRequired Drawings:\n\n1. Site Plan:\n   - Survey plan with site boundaries\n   - Location of building on site\n   - Setbacks and easements\n   - Services connection points\n   - Access and driveways\n\n2. Architectural Plans:\n   - Floor plans (all levels)\n   - Elevations (all sides)\n   - Sections\n   - Details and schedules\n   - Door and window schedules\n\n3. Structural Drawings:\n   - Foundation plans\n   - Slab plans with reinforcement\n   - Framing plans\n   - Engineering details\n   - Structural certifications\n\n4. Services Drawings:\n   - Electrical plans and layout\n   - Plumbing plans and layout\n   - HVAC plans and layout\n   - Fire services (if applicable)\n\n5. Detail Drawings:\n   - Wall sections\n   - Construction details\n   - Joinery details\n   - Waterproofing details\n\nHow to Add Drawings:\n- Click "Add Document" button\n- Select drawings from your document register\n- Or upload new drawing files (PDF, DWG, or images)\n- Ensure all drawings are current revision\n- Include drawing numbers and revision dates\n\nNote: Tenderers require complete and coordinated drawings to provide accurate pricing.' }
+    ],
+    'Bills of Quantities': [
+      { id: '1', title: 'General Preliminaries', content: 'Item | Description | Quantity | Unit | Rate | Amount\n\nSite Establishment:\nSE001 | Site office and amenities | 1 | Item | $ | $\nSE002 | Temporary fencing and hoarding | [X] | LM | $ | $\nSE003 | Site signage | 2 | No | $ | $\nSE004 | Temporary power connection | 1 | Item | $ | $\nSE005 | Temporary water connection | 1 | Item | $ | $\nSE006 | Site access and hardstand | 1 | Item | $ | $\nSE007 | Waste management facilities | 1 | Item | $ | $\n\nProject Management:\nPM001 | Project Manager | [X] | Weeks | $ | $\nPM002 | Site Supervisor | [X] | Weeks | $ | $\nPM003 | Safety Officer | [X] | Weeks | $ | $\nPM004 | Administration support | [X] | Weeks | $ | $\n\nTemporary Works:\nTW001 | Scaffolding | [X] | M² | $ | $\nTW002 | Propping and shoring | 1 | Item | $ | $\nTW003 | Temporary protection | 1 | Item | $ | $\nTW004 | Weather protection | 1 | Item | $ | $\n\nInsurance and Bonds:\nIB001 | Contract works insurance | 1 | Item | $ | $\nIB002 | Public liability insurance | 1 | Item | $ | $\nIB003 | Performance bond | 1 | Item | $ | $\n\nSection Total: $' },
+      { id: '2', title: 'Demolition and Site Works', content: 'Item | Description | Quantity | Unit | Rate | Amount\n\nDemolition:\nD001 | Strip existing building | [X] | M² | $ | $\nD002 | Remove concrete slabs | [X] | M³ | $ | $\nD003 | Remove services | 1 | Item | $ | $\nD004 | Asbestos removal (if present) | [X] | M² | $ | $\nD005 | Salvage and store materials | 1 | Item | $ | $\nD006 | Waste removal and disposal | [X] | Tonnes | $ | $\n\nSite Clearance:\nSC001 | Clear vegetation | [X] | M² | $ | $\nSC002 | Remove trees | [X] | No | $ | $\nSC003 | Grub stumps | [X] | No | $ | $\nSC004 | Strip topsoil | [X] | M³ | $ | $\nSC005 | Stockpile topsoil | [X] | M³ | $ | $\n\nEarthworks:\nEW001 | Bulk excavation | [X] | M³ | $ | $\nEW002 | Remove unsuitable material | [X] | M³ | $ | $\nEW003 | Import fill material | [X] | M³ | $ | $\nEW004 | Compact to 95% standard | [X] | M³ | $ | $\nEW005 | Site leveling | [X] | M² | $ | $\nEW006 | Drainage and subsoil drainage | [X] | LM | $ | $\n\nSection Total: $' },
+    ],
   };
 
   return templates[docName] || [
@@ -163,7 +172,7 @@ const getTemplateWithData = (docName: string, projectData: any, tenderData: any)
   ];
 };
 
-export function DocumentCreatorDialog({
+export default function DocumentCreatorDialog({
   open,
   onOpenChange,
   documentName,
@@ -173,23 +182,23 @@ export function DocumentCreatorDialog({
   existingDocumentId,
   onDocumentSaved
 }: DocumentCreatorDialogProps) {
+  const [sections, setSections] = useState<DocumentSection[]>([]);
+  const [documentTitle, setDocumentTitle] = useState(documentName);
+  const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   const { profile } = useAuth();
-  const [sections, setSections] = useState<DocumentSection[]>([]);
-  const [documentTitle, setDocumentTitle] = useState('');
-  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (open) {
       if (existingDocumentId) {
         loadExistingDocument();
       } else {
-        // Initialize with template populated with project/tender data
-        setSections(getTemplateWithData(documentName, projectData, tenderData));
+        const template = getTemplateWithData(documentName, projectData, tenderData);
+        setSections(template);
         setDocumentTitle(documentName);
       }
     }
-  }, [open, existingDocumentId, documentName, projectData, tenderData]);
+  }, [open, documentName, existingDocumentId]);
 
   const loadExistingDocument = async () => {
     try {
@@ -249,7 +258,7 @@ export function DocumentCreatorDialog({
       const documentContent = JSON.stringify(sections);
       
       if (existingDocumentId) {
-        // Update existing document
+        // Update existing document - deadline_date is optional
         const { error } = await supabase
           .from('tender_package_documents')
           .update({
@@ -261,7 +270,7 @@ export function DocumentCreatorDialog({
 
         if (error) throw error;
       } else {
-        // Create new document
+        // Create new document - deadline_date is optional, will save as null if not provided
         const { data, error } = await supabase
           .from('tender_package_documents')
           .insert({

@@ -18,13 +18,13 @@ export const generateTenderPackage = async (tender: Tender) => {
     // Generate PDF for steps 1,3,4,5,6,7,8
     const pdfBlob = await generateTenderPDF(tender);
     
-    // Generate Excel for step 2 (construction items)
+    // Generate Excel workbook with multiple tabs
     const excelBlob = await generateTenderExcel(tender);
     
     // Create ZIP package
     const zip = new JSZip();
     zip.file(`${tender.title}_Details.pdf`, pdfBlob);
-    zip.file(`${tender.title}_Pricing_Template.xlsx`, excelBlob);
+    zip.file(`${tender.title}_Complete_Package.xlsx`, excelBlob);
     
     const zipBlob = await zip.generateAsync({ type: 'blob' });
     saveAs(zipBlob, `Tender_Package_${tender.title.replace(/[^a-z0-9]/gi, '_')}.zip`);
@@ -329,7 +329,7 @@ const generateTenderPDF = async (tender: Tender): Promise<Blob> => {
 const generateTenderExcel = async (tender: Tender): Promise<Blob> => {
   const XLSX = await import('xlsx');
 
-  // Fetch saved line items for this tender from Step 3
+  // Fetch saved line items and documents for this tender
   let dbLineItems: Array<{
     category: string;
     item_description: string;
@@ -337,6 +337,11 @@ const generateTenderExcel = async (tender: Tender): Promise<Blob> => {
     quantity: number | null;
     unit_of_measure: string | null;
     line_number: number;
+  }> = [];
+  
+  let tenderDocuments: Array<{
+    document_type: string;
+    document_content: string;
   }> = [];
   
   try {
@@ -349,6 +354,17 @@ const generateTenderExcel = async (tender: Tender): Promise<Blob> => {
     dbLineItems = data || [];
   } catch (e) {
     console.warn('Could not load tender_line_items:', e);
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from('tender_package_documents')
+      .select('document_type, document_content')
+      .eq('tender_id', tender.id);
+    if (error) throw error;
+    tenderDocuments = data || [];
+  } catch (e) {
+    console.warn('Could not load tender_package_documents:', e);
   }
 
   const today = new Date().toLocaleDateString('en-AU', {
@@ -427,10 +443,10 @@ const generateTenderExcel = async (tender: Tender): Promise<Blob> => {
   ];
 
   const allRows = [...headerRows, ...itemRows, ...totalsRows];
-  const ws = XLSX.utils.aoa_to_sheet(allRows);
+  const lineItemsSheet = XLSX.utils.aoa_to_sheet(allRows);
 
   // Enhanced column widths for better presentation
-  ws['!cols'] = [
+  lineItemsSheet['!cols'] = [
     { wch: 28 },  // Category
     { wch: 40 },  // Item Description
     { wch: 50 },  // Specification
@@ -449,7 +465,7 @@ const generateTenderExcel = async (tender: Tender): Promise<Blob> => {
     const totalCell = XLSX.utils.encode_cell({ r: i - 1, c: 6 }); // G column
     const qtyRef = XLSX.utils.encode_cell({ r: i - 1, c: 3 }); // D
     const rateRef = XLSX.utils.encode_cell({ r: i - 1, c: 5 }); // F
-    (ws as any)[totalCell] = {
+    (lineItemsSheet as any)[totalCell] = {
       f: `IF(AND(ISNUMBER(${qtyRef}),ISNUMBER(${rateRef})),${qtyRef}*${rateRef},"")`,
       t: 'n'
     };
@@ -463,28 +479,73 @@ const generateTenderExcel = async (tender: Tender): Promise<Blob> => {
   const subtotalCell = XLSX.utils.encode_cell({ r: subtotalRowR, c: 6 });
   const totalStart = XLSX.utils.encode_cell({ r: headerRows.length, c: 6 });
   const totalEnd = XLSX.utils.encode_cell({ r: headerRows.length + itemRows.length - 1, c: 6 });
-  (ws as any)[subtotalCell] = { f: `SUM(${totalStart}:${totalEnd})`, t: 'n', z: '$#,##0.00' };
+  (lineItemsSheet as any)[subtotalCell] = { f: `SUM(${totalStart}:${totalEnd})`, t: 'n', z: '$#,##0.00' };
 
   const gstCell = XLSX.utils.encode_cell({ r: gstRowR, c: 6 });
-  (ws as any)[gstCell] = { f: `${subtotalCell}*0.10`, t: 'n', z: '$#,##0.00' };
+  (lineItemsSheet as any)[gstCell] = { f: `${subtotalCell}*0.10`, t: 'n', z: '$#,##0.00' };
 
   const grandCell = XLSX.utils.encode_cell({ r: grandRowR, c: 6 });
-  (ws as any)[grandCell] = { f: `${subtotalCell}+${gstCell}`, t: 'n', z: '$#,##0.00' };
+  (lineItemsSheet as any)[grandCell] = { f: `${subtotalCell}+${gstCell}`, t: 'n', z: '$#,##0.00' };
 
   // Merge title cells and set some row heights
-  (ws as any)['!merges'] = [
-    { s: { r: 1, c: 0 }, e: { r: 1, c: 7 } },
+  (lineItemsSheet as any)['!merges'] = [
+    { s: { r: 0, c: 0 }, e: { r: 0, c: 7 } },
     { s: { r: 2, c: 0 }, e: { r: 2, c: 7 } },
   ];
-  (ws as any)['!rows'] = [
+  (lineItemsSheet as any)['!rows'] = [
     { hpt: 30 },
     { hpt: 25 },
     { hpt: 18 },
     { hpt: 18 },
   ];
 
+  // Create workbook
   const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, 'Quote Template');
+  XLSX.utils.book_append_sheet(wb, lineItemsSheet, 'Line Items');
+  
+  // Helper function to create document sheet from sections
+  const createDocumentSheet = (documentType: string, sections: any[]) => {
+    const docRows: any[][] = [
+      [documentType.toUpperCase()],
+      [''],
+      ['Section', 'Content'],
+    ];
+    
+    sections.forEach((section: any) => {
+      docRows.push([section.title, section.content]);
+      docRows.push(['', '']); // Empty row for spacing
+    });
+    
+    const ws = XLSX.utils.aoa_to_sheet(docRows);
+    ws['!cols'] = [
+      { wch: 40 },  // Section title
+      { wch: 100 }, // Content
+    ];
+    
+    return ws;
+  };
+  
+  // Add document tabs for each saved tender document
+  const documentTypeMapping: Record<string, string> = {
+    'General Conditions of Contract': 'General Conditions',
+    'Contract Schedules': 'Contract Schedules',
+    'Schedules of Monetary Sums': 'Monetary Sums',
+    'Tender Schedules': 'Tender Schedules',
+    'Technical Specifications': 'Tech Specs',
+    'Technical Schedules': 'Tech Schedules',
+    'Bills of Quantities': 'Bills of Quantities',
+  };
+  
+  tenderDocuments.forEach(doc => {
+    try {
+      const sections = JSON.parse(doc.document_content);
+      const sheetName = documentTypeMapping[doc.document_type] || doc.document_type.substring(0, 30);
+      const sheet = createDocumentSheet(doc.document_type, sections);
+      XLSX.utils.book_append_sheet(wb, sheet, sheetName);
+    } catch (e) {
+      console.warn(`Could not parse document ${doc.document_type}:`, e);
+    }
+  });
 
   const excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
   return new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });

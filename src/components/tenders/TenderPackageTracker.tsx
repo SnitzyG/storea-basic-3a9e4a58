@@ -14,7 +14,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { DocumentTemplateDialog } from './DocumentTemplateDialog';
-import { DocumentCreatorDialog } from './DocumentCreatorDialog';
+import DocumentCreatorDialog from './DocumentCreatorDialog';
 import {
   Dialog,
   DialogContent,
