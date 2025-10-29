@@ -74,13 +74,6 @@ serve(async (req) => {
     };
     const mimeType = mimeTypes[fileExt || 'pdf'] || 'application/pdf';
 
-    // We will pass the signed URL directly to the AI instead of inlining the file
-    const fullUrl = fileUrl.startsWith('http') ? fileUrl : `${Deno.env.get('SUPABASE_URL')}${fileUrl}`;
-
-    console.log('Sending to AI for analysis using URL...');
-
-    console.log('Sending to AI for analysis...');
-
     const systemPrompt = `You are a construction cost estimator analyzing architectural and construction drawings. 
 Your task is to carefully examine the provided construction drawing and extract ALL line items needed for construction.
 
@@ -106,22 +99,25 @@ Include everything you can identify from the drawing including materials, labor,
 Return a comprehensive bill of quantities.`;
 
     // Build multimodal content based on file type
-    const fullUrl = fileUrl.startsWith('http') ? fileUrl : `${Deno.env.get('SUPABASE_URL')}${fileUrl}`;
+    const signedUrl = fileUrl.startsWith('http') ? fileUrl : `${Deno.env.get('SUPABASE_URL')}${fileUrl}`;
     let userContent: any[] = [{ type: 'text', text: userPrompt }];
+    
     if (mimeType === 'application/pdf') {
       console.log('Fetching PDF for base64 encoding...');
-      const resp = await fetch(fullUrl);
+      const resp = await fetch(signedUrl);
       if (!resp.ok) {
         console.warn('PDF fetch failed, passing URL instead:', resp.status, resp.statusText);
-        userContent.push({ type: 'image_url', image_url: { url: fullUrl } });
+        userContent.push({ type: 'image_url', image_url: { url: signedUrl } });
       } else {
         const ab = await resp.arrayBuffer();
         const base64 = b64encode(new Uint8Array(ab));
         userContent.push({ type: 'image_url', image_url: { url: `data:${mimeType};base64,${base64}` } });
       }
     } else {
-      userContent.push({ type: 'image_url', image_url: { url: fullUrl } });
+      userContent.push({ type: 'image_url', image_url: { url: signedUrl } });
     }
+
+    console.log('Sending to AI for analysis...');
 
     // Call Lovable AI with vision capabilities
     const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
