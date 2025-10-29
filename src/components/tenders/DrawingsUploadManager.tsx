@@ -21,13 +21,12 @@ import workerSrc from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 (pdfjsLib as any).GlobalWorkerOptions.workerSrc = workerSrc;
 
 interface LineItem {
+  id: string;
   lineNumber: number;
   itemDescription: string;
   specification: string;
   unitOfMeasure: string;
   quantity: number;
-  unitPrice: number;
-  total: number;
   category: string;
 }
 
@@ -54,10 +53,24 @@ export const DrawingsUploadManager = ({ projectId, tenderId, onLineItemsImported
     itemDescription: true,
     specification: true,
     unitOfMeasure: true,
-    quantity: true,
-    unitPrice: true,
-    total: true
+    quantity: true
   });
+
+  // Standard line items included on every upload
+  const STANDARD_LINE_ITEMS = [
+    { category: 'Site Preparation', items: ['Site cut / excavation', 'Fill / leveling and compaction', 'Removal of debris / vegetation', 'Temporary fencing', 'Sediment control / silt fencing', 'Surveying and set-out costs', 'Soil testing (geotechnical report)'] },
+    { category: 'Foundations and Slab', items: ['Footings (strip or pier)', 'Concrete slab (waffle, raft, or conventional)', 'Reinforcement (steel mesh, bar chairs)', 'Vapour barrier', 'Termite protection', 'Edge insulation (if energy requirement)', 'Engineering certification'] },
+    { category: 'Structural Frame', items: ['Timber or steel frame supply and installation', 'Roof trusses and bracing', 'Wall framing', 'Load-bearing beams / lintels', 'Floor system (if double storey – joists, bearers, flooring sheets)'] },
+    { category: 'External Elements', items: ['Roof sheeting or tiles', 'Fascia, gutters, and downpipes', 'Wall cladding (brick veneer, render, weatherboard, etc.)', 'External doors and windows (including flyscreens and locks)', 'Eaves, soffits, and gable treatments', 'External painting or coating system'] },
+    { category: 'Services Rough-In', items: ['Electrical rough-in (power, lighting, switchboard)', 'Plumbing rough-in (hot/cold water, waste, gas)', 'HVAC / ducted system rough-in', 'NBN / data provisions', 'Meter installation (electricity, gas, water)'] },
+    { category: 'Internal Construction', items: ['Internal wall linings (plasterboard)', 'Cornices, architraves, skirting', 'Internal doors and hardware', 'Staircase (if applicable)', 'Insulation (walls, ceiling, underfloor)'] },
+    { category: 'Wet Areas', items: ['Waterproofing membranes', 'Tiling (floor and wall)', 'Sanitaryware (toilets, basins, baths, showers)', 'Tapware', 'Kitchen cabinetry and benchtops', 'Appliances (oven, cooktop, rangehood, dishwasher)', 'Laundry tub and cabinetry'] },
+    { category: 'Finishes', items: ['Internal painting (walls, ceilings, trims)', 'Floor coverings (tiles, carpet, vinyl, hybrid, etc.)', 'Wardrobes and shelving', 'Mirrors, towel rails, robe hooks', 'Light fittings and switches (often allowance or PC item)'] },
+    { category: 'External Works', items: ['Driveway and paths', 'Letterbox', 'Clothesline', 'Landscaping (turf, plants, mulch)', 'Fencing and gates', 'Crossover reinstatement (if damaged)', 'Stormwater drainage and connection to legal point of discharge'] },
+    { category: 'Permits & Compliance', items: ['Building permit and inspections', 'Energy rating report / compliance', 'Engineering and architectural drawings', 'Warranty insurance', 'Site management / supervision', 'Waste removal / site clean', 'Temporary power and water supply', "Builder's margin and contingency"] },
+    { category: 'Provisional Sums & PC Items', items: ['Floor tiles and wall tiles (per m² allowance)', 'Tapware and fittings (per item allowance)', 'Kitchen and bathroom fixtures (allowance-based)', 'Landscaping (provisional sum)', 'Site works (if soil conditions unknown)'] },
+    { category: 'Handover', items: ['Final clean', 'Occupancy permit', 'Handover inspection', 'Warranty documents and manuals', 'Keys and remotes', 'Defects liability period'] }
+  ];
 
   // Convert first few PDF pages to images for AI analysis
   const pdfToImages = async (file: File, maxPages = 5): Promise<Blob[]> => {
@@ -159,20 +172,37 @@ export const DrawingsUploadManager = ({ projectId, tenderId, onLineItemsImported
       setUploadProgress(85);
       setUploadStage('Extracting line items...');
 
-      // Transform parsed data into line items
-      const parsedItems: LineItem[] = parseData.lineItems.map((item: any, index: number) => ({
-        lineNumber: item.line_number ?? index + 1,
+      // Create standard line items
+      let lineNum = 1;
+      const standardItems: LineItem[] = [];
+      STANDARD_LINE_ITEMS.forEach(group => {
+        group.items.forEach(item => {
+          standardItems.push({
+            id: `std-${lineNum}`,
+            lineNumber: lineNum++,
+            itemDescription: item,
+            specification: '',
+            unitOfMeasure: 'item',
+            quantity: 1,
+            category: group.category
+          });
+        });
+      });
+
+      // Add any AI-extracted items
+      const aiItems: LineItem[] = parseData.lineItems?.map((item: any, index: number) => ({
+        id: `ai-${index}`,
+        lineNumber: lineNum++,
         itemDescription: item.item_description ?? '',
         specification: item.specification ?? item.description ?? item.notes ?? '',
-        unitOfMeasure: item.unit_of_measure ?? item.unit ?? 'ea',
-        quantity: Number(item.quantity ?? 0),
-        unitPrice: Number(item.unit_price ?? item.rate ?? 0),
-        total: Number(item.total ?? 0),
-        category: item.category ?? 'General'
-      }));
+        unitOfMeasure: item.unit_of_measure ?? item.unit ?? 'item',
+        quantity: Number(item.quantity ?? 1),
+        category: item.category ?? 'Additional Items'
+      })) || [];
 
-      setLineItems(parsedItems);
-      onLineItemsImported?.(parsedItems);
+      const allItems = [...standardItems, ...aiItems];
+      setLineItems(allItems);
+      onLineItemsImported?.(allItems);
 
       setUploadProgress(95);
       setUploadStage('Saving to database...');
@@ -182,15 +212,15 @@ export const DrawingsUploadManager = ({ projectId, tenderId, onLineItemsImported
         await supabase.from('tender_line_items').delete().eq('tender_id', tenderId);
         
         const { error: insertError } = await supabase.from('tender_line_items').insert(
-          parsedItems.map(item => ({
+          allItems.map(item => ({
             tender_id: tenderId,
             line_number: item.lineNumber,
             item_description: item.itemDescription,
             specification: item.specification,
             unit_of_measure: item.unitOfMeasure,
             quantity: item.quantity,
-            unit_price: item.unitPrice,
-            total: item.total,
+            unit_price: 0,
+            total: 0,
             category: item.category
           }))
         );
@@ -209,8 +239,8 @@ export const DrawingsUploadManager = ({ projectId, tenderId, onLineItemsImported
       setUploadStage('Complete!');
 
       toast({
-        title: 'Drawings parsed successfully',
-        description: `Extracted ${parsedItems.length} line items from the document`
+        title: 'Tender package created successfully',
+        description: `Created ${allItems.length} line items ready for tender`
       });
 
     } catch (error: any) {
@@ -227,6 +257,32 @@ export const DrawingsUploadManager = ({ projectId, tenderId, onLineItemsImported
 
   const toggleColumn = (column: keyof typeof visibleColumns) => {
     setVisibleColumns(prev => ({ ...prev, [column]: !prev[column] }));
+  };
+
+  const updateLineItem = (id: string, field: keyof LineItem, value: any) => {
+    setLineItems(prev => prev.map(item => 
+      item.id === id ? { ...item, [field]: value } : item
+    ));
+  };
+
+  const addLineItem = () => {
+    const newItem: LineItem = {
+      id: `custom-${Date.now()}`,
+      lineNumber: lineItems.length + 1,
+      itemDescription: 'New item',
+      specification: '',
+      unitOfMeasure: 'item',
+      quantity: 1,
+      category: 'Additional Items'
+    };
+    setLineItems(prev => [...prev, newItem]);
+  };
+
+  const deleteLineItem = (id: string) => {
+    setLineItems(prev => prev.filter(item => item.id !== id).map((item, idx) => ({
+      ...item,
+      lineNumber: idx + 1
+    })));
   };
 
   const getFilteredAndSortedItems = () => {
@@ -255,7 +311,6 @@ export const DrawingsUploadManager = ({ projectId, tenderId, onLineItemsImported
 
   const categories = ['all', ...Array.from(new Set(lineItems.map(item => item.category)))];
   const displayedItems = getFilteredAndSortedItems();
-  const totalValue = displayedItems.reduce((sum, item) => sum + item.total, 0);
 
   return (
     <>
@@ -318,10 +373,10 @@ export const DrawingsUploadManager = ({ projectId, tenderId, onLineItemsImported
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center justify-between">
-                <span>Line Items ({displayedItems.length})</span>
-                <Badge variant="outline" className="text-lg font-semibold">
-                  Total: ${totalValue.toLocaleString('en-AU', { minimumFractionDigits: 2 })}
-                </Badge>
+                <span>Tender Line Items ({displayedItems.length})</span>
+                <Button onClick={addLineItem} size="sm">
+                  Add Line Item
+                </Button>
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -397,48 +452,79 @@ export const DrawingsUploadManager = ({ projectId, tenderId, onLineItemsImported
                       {visibleColumns.itemDescription && <TableHead>Item Description</TableHead>}
                       {visibleColumns.specification && <TableHead>Specification/Notes</TableHead>}
                       {visibleColumns.unitOfMeasure && <TableHead className="w-32">Unit</TableHead>}
-                      {visibleColumns.quantity && <TableHead className="w-24 text-right">Quantity</TableHead>}
-                      {visibleColumns.unitPrice && <TableHead className="w-32 text-right">Unit Price</TableHead>}
-                      {visibleColumns.total && <TableHead className="w-32 text-right">Total</TableHead>}
+                      {visibleColumns.quantity && <TableHead className="w-32">Quantity</TableHead>}
+                      <TableHead className="w-20">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {displayedItems.map((item, index) => (
-                      <TableRow key={index}>
+                    {displayedItems.map((item) => (
+                      <TableRow key={item.id}>
                         {visibleColumns.lineNumber && (
                           <TableCell className="font-medium">{item.lineNumber}</TableCell>
                         )}
                         {visibleColumns.itemDescription && (
                           <TableCell>
-                            <div>
-                              <div className="font-medium">{item.itemDescription}</div>
-                              <Badge variant="secondary" className="text-xs mt-1">
-                                {item.category}
-                              </Badge>
+                            <div className="space-y-2">
+                              <Input
+                                value={item.itemDescription}
+                                onChange={(e) => updateLineItem(item.id, 'itemDescription', e.target.value)}
+                                className="font-medium"
+                              />
+                              <Select 
+                                value={item.category} 
+                                onValueChange={(v) => updateLineItem(item.id, 'category', v)}
+                              >
+                                <SelectTrigger className="w-full">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {STANDARD_LINE_ITEMS.map(group => (
+                                    <SelectItem key={group.category} value={group.category}>
+                                      {group.category}
+                                    </SelectItem>
+                                  ))}
+                                  <SelectItem value="Additional Items">Additional Items</SelectItem>
+                                </SelectContent>
+                              </Select>
                             </div>
                           </TableCell>
                         )}
                         {visibleColumns.specification && (
-                          <TableCell className="text-sm text-muted-foreground max-w-xs truncate">
-                            {item.specification}
+                          <TableCell>
+                            <Textarea
+                              value={item.specification}
+                              onChange={(e) => updateLineItem(item.id, 'specification', e.target.value)}
+                              className="min-h-[60px]"
+                              placeholder="Add specifications or notes..."
+                            />
                           </TableCell>
                         )}
                         {visibleColumns.unitOfMeasure && (
-                          <TableCell>{item.unitOfMeasure}</TableCell>
+                          <TableCell>
+                            <Input
+                              value={item.unitOfMeasure}
+                              onChange={(e) => updateLineItem(item.id, 'unitOfMeasure', e.target.value)}
+                            />
+                          </TableCell>
                         )}
                         {visibleColumns.quantity && (
-                          <TableCell className="text-right">{item.quantity.toLocaleString()}</TableCell>
-                        )}
-                        {visibleColumns.unitPrice && (
-                          <TableCell className="text-right">
-                            ${item.unitPrice.toLocaleString('en-AU', { minimumFractionDigits: 2 })}
+                          <TableCell>
+                            <Input
+                              type="number"
+                              value={item.quantity}
+                              onChange={(e) => updateLineItem(item.id, 'quantity', Number(e.target.value))}
+                            />
                           </TableCell>
                         )}
-                        {visibleColumns.total && (
-                          <TableCell className="text-right font-semibold">
-                            ${item.total.toLocaleString('en-AU', { minimumFractionDigits: 2 })}
-                          </TableCell>
-                        )}
+                        <TableCell>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            onClick={() => deleteLineItem(item.id)}
+                          >
+                            Delete
+                          </Button>
+                        </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
