@@ -518,29 +518,56 @@ const generateTenderExcel = async (tender: Tender): Promise<Blob> => {
       [''],
       ['Section', 'Content'],
     ];
-    
+
     sections.forEach((section: any) => {
-      docRows.push([section.title, section.content]);
-      docRows.push(['', '']); // Empty row for spacing
+      const title = section.title ?? '';
+      const rawContent = section.content ?? '';
+
+      // Section header row
+      docRows.push([title, '']);
+
+      // Split content into separate rows by newlines or bullet markers
+      const lines: string[] = Array.isArray(rawContent)
+        ? rawContent.flatMap((v: any) => String(v).split(/\r?\n/))
+        : String(rawContent)
+            .replace(/\r\n/g, '\n')
+            .split(/\n|(?:^|\s)•\s+/);
+
+      lines
+        .map((l) => l.trim())
+        .filter((l) => l.length > 0)
+        .forEach((line) => {
+          docRows.push(['', line]);
+        });
+
+      // Spacer row after each section
+      docRows.push(['', '']);
     });
-    
+
     const ws = XLSX.utils.aoa_to_sheet(docRows);
+
+    // Narrower, more readable columns
     ws['!cols'] = [
-      { wch: 25 },  // Section title
-      { wch: 80 },  // Content
+      { wch: 28 }, // Section title
+      { wch: 60 }, // Content lines
     ];
-    
-    // Enable text wrapping for all cells
+
+    // Merge the main title across both columns
+    (ws as any)['!merges'] = [
+      { s: { r: 0, c: 0 }, e: { r: 0, c: 1 } },
+    ];
+
+    // Ensure content rows are readable with top alignment (wrapping is fine per-cell)
     const range = XLSX.utils.decode_range(ws['!ref'] || 'A1');
     for (let R = range.s.r; R <= range.e.r; ++R) {
       for (let C = range.s.c; C <= range.e.c; ++C) {
-        const cellAddress = XLSX.utils.encode_cell({ r: R, c: C });
-        if (!ws[cellAddress]) continue;
-        if (!ws[cellAddress].s) ws[cellAddress].s = {};
-        ws[cellAddress].s.alignment = { wrapText: true, vertical: 'top' };
+        const addr = XLSX.utils.encode_cell({ r: R, c: C });
+        if (!ws[addr]) continue;
+        if (!ws[addr].s) (ws as any)[addr].s = {};
+        (ws as any)[addr].s.alignment = { wrapText: true, vertical: 'top' };
       }
     }
-    
+
     return ws;
   };
   
