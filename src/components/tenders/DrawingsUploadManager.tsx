@@ -77,15 +77,17 @@ export const DrawingsUploadManager = ({ projectId, onLineItemsImported }: Drawin
 
       if (uploadError) throw uploadError;
 
-      // Get public URL
-      const { data: { publicUrl } } = supabase.storage
+      // Get signed URL (valid for 1 hour) for private bucket access
+      const { data: signedUrlData, error: signedUrlError } = await supabase.storage
         .from('documents')
-        .getPublicUrl(filePath);
+        .createSignedUrl(filePath, 3600); // 1 hour expiry
+
+      if (signedUrlError) throw signedUrlError;
 
       // Call edge function to parse the document
       const { data: parseData, error: parseError } = await supabase.functions.invoke('parse-line-items', {
         body: {
-          fileUrl: publicUrl,
+          fileUrl: signedUrlData.signedUrl,
           fileName: file.name
         }
       });
