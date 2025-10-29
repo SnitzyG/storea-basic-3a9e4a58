@@ -517,7 +517,21 @@ export const CreateTenderWizard = ({
                 </CardHeader>
               </Card>
 
-              <TenderPackageTracker tenderId={tenderId || existingTender?.id} />
+              <TenderPackageTracker 
+                tenderId={tenderId || existingTender?.id}
+                projectData={{ name: title, address: projectAddress, budget }}
+                tenderData={{
+                  title,
+                  project_address: projectAddress,
+                  client_name: clientName,
+                  tender_reference_no: tenderReferenceNo,
+                  tender_id: tenderId,
+                  deadline: submissionDeadline ? `${submissionDeadline}T${submissionTime}:00` : undefined,
+                  budget: budget ? parseFloat(budget) : undefined,
+                  estimated_start_date: estimatedStartDate,
+                  completion_weeks: completionWeeks ? parseInt(completionWeeks) : undefined
+                }}
+              />
               {!tenderId && !existingTender?.id && (
                 <p className="text-sm text-muted-foreground mt-2">
                   Tip: Click “Save Draft” to create a tender ID before saving selected line items.

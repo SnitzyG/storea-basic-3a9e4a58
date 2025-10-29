@@ -14,6 +14,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { DocumentTemplateDialog } from './DocumentTemplateDialog';
+import { DocumentCreatorDialog } from './DocumentCreatorDialog';
 import {
   Dialog,
   DialogContent,
@@ -22,6 +23,7 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Badge as ProjectBadge } from '@/components/ui/badge';
 
 interface TenderDocument {
   id: number;
@@ -32,14 +34,17 @@ interface TenderDocument {
     name: string;
     path: string;
     size: number;
+    content?: string;
   } | null;
 }
 
 interface TenderPackageTrackerProps {
   tenderId?: string;
+  projectData?: any;
+  tenderData?: any;
 }
 
-export function TenderPackageTracker({ tenderId }: TenderPackageTrackerProps) {
+export function TenderPackageTracker({ tenderId, projectData, tenderData }: TenderPackageTrackerProps) {
   const { toast } = useToast();
   const { profile } = useAuth();
   const [documents, setDocuments] = useState<TenderDocument[]>([
@@ -60,7 +65,9 @@ export function TenderPackageTracker({ tenderId }: TenderPackageTrackerProps) {
   const [selectedTemplate, setSelectedTemplate] = useState<string>('');
   const [chooseDialogOpen, setChooseDialogOpen] = useState(false);
   const [selectedDocType, setSelectedDocType] = useState<number | null>(null);
-  const [previousDocuments, setPreviousDocuments] = useState<any[]>([]);
+  const [previousProjects, setPreviousProjects] = useState<any[]>([]);
+  const [creatorDialogOpen, setCreatorDialogOpen] = useState(false);
+  const [editingDocId, setEditingDocId] = useState<string | undefined>();
 
   const uploadedCount = documents.filter(doc => doc.file).length;
   const totalCount = documents.length;
@@ -95,7 +102,8 @@ export function TenderPackageTracker({ tenderId }: TenderPackageTrackerProps) {
                   id: existingDoc.id,
                   name: existingDoc.document_name,
                   path: existingDoc.file_path,
-                  size: existingDoc.file_size || 0
+                  size: existingDoc.file_size || 0,
+                  content: existingDoc.document_content
                 }
               };
             }
@@ -228,27 +236,66 @@ export function TenderPackageTracker({ tenderId }: TenderPackageTrackerProps) {
     setTemplateDialogOpen(true);
   };
 
-  const handleChooseDocument = async (docId: number, docName: string) => {
+  const handleCreateDocument = (docId: number, docName: string) => {
+    setSelectedDocType(docId);
+    setSelectedTemplate(docName);
+    setEditingDocId(undefined);
+    setCreatorDialogOpen(true);
+  };
+
+  const handleEditDocument = (docId: number, fileId: string) => {
+    const doc = documents.find(d => d.id === docId);
+    if (!doc) return;
+    
+    setSelectedDocType(docId);
+    setSelectedTemplate(doc.name);
+    setEditingDocId(fileId);
+    setCreatorDialogOpen(true);
+  };
+
+  const handleChooseFromProjects = async (docId: number, docName: string) => {
     setSelectedDocType(docId);
     
-    // Fetch previous documents of this type from other tenders
+    // Fetch projects with tenders that have this document type
     try {
-      const { data, error } = await supabase
+      const { data: tenderDocs, error } = await supabase
         .from('tender_package_documents')
-        .select('*, tenders:tender_id(project_name)')
+        .select(`
+          *,
+          tenders!inner(
+            id,
+            title,
+            project_id,
+            projects!inner(id, name)
+          )
+        `)
         .eq('document_type', docName)
-        .neq('tender_id', tenderId || '')
-        .order('created_at', { ascending: false });
+        .neq('tender_id', tenderId || '');
 
       if (error) throw error;
 
-      setPreviousDocuments(data || []);
+      // Group by project
+      const projectMap = new Map();
+      tenderDocs?.forEach(doc => {
+        const projectId = doc.tenders.project_id;
+        const projectName = doc.tenders.projects.name;
+        if (!projectMap.has(projectId)) {
+          projectMap.set(projectId, {
+            id: projectId,
+            name: projectName,
+            documents: []
+          });
+        }
+        projectMap.get(projectId).documents.push(doc);
+      });
+
+      setPreviousProjects(Array.from(projectMap.values()));
       setChooseDialogOpen(true);
     } catch (error: any) {
-      console.error('Error fetching previous documents:', error);
+      console.error('Error fetching previous projects:', error);
       toast({
         title: "Error",
-        description: "Failed to load previous documents",
+        description: "Failed to load previous projects",
         variant: "destructive"
       });
     }
@@ -257,69 +304,30 @@ export function TenderPackageTracker({ tenderId }: TenderPackageTrackerProps) {
   const handleSelectPreviousDocument = async (selectedDoc: any) => {
     if (!selectedDocType || !tenderId) return;
 
-    try {
-      const doc = documents.find(d => d.id === selectedDocType);
-      if (!doc) return;
+    // Open the document in the creator dialog for editing
+    setEditingDocId(selectedDoc.id);
+    setChooseDialogOpen(false);
+    setCreatorDialogOpen(true);
+  };
 
-      // Copy file in storage
-      const { data: fileData, error: downloadError } = await supabase.storage
-        .from('tender-packages')
-        .download(selectedDoc.file_path);
+  const handleDocumentSaved = (docData: any) => {
+    const doc = documents.find(d => d.id === selectedDocType);
+    if (!doc) return;
 
-      if (downloadError) throw downloadError;
-
-      const fileExt = selectedDoc.file_path.split('.').pop();
-      const newFileName = `${tenderId}/${doc.name.replace(/\s+/g, '_')}_${Date.now()}.${fileExt}`;
-      
-      const { error: uploadError } = await supabase.storage
-        .from('tender-packages')
-        .upload(newFileName, fileData);
-
-      if (uploadError) throw uploadError;
-
-      // Save to database
-      const { data: docData, error: docError } = await supabase
-        .from('tender_package_documents')
-        .insert({
-          tender_id: tenderId,
-          document_type: doc.name,
-          document_name: selectedDoc.document_name,
-          file_path: newFileName,
-          file_size: selectedDoc.file_size,
-          uploaded_by: profile?.user_id
-        })
-        .select()
-        .single();
-
-      if (docError) throw docError;
-
-      setDocuments(docs =>
-        docs.map(d =>
-          d.id === selectedDocType ? {
-            ...d,
-            file: {
-              id: docData.id,
-              name: selectedDoc.document_name,
-              path: newFileName,
-              size: selectedDoc.file_size
-            }
-          } : d
-        )
-      );
-
-      setChooseDialogOpen(false);
-      toast({
-        title: "Document added",
-        description: "Previous document has been added successfully."
-      });
-    } catch (error: any) {
-      console.error('Error selecting document:', error);
-      toast({
-        title: "Error",
-        description: error.message || "Failed to add document",
-        variant: "destructive"
-      });
-    }
+    setDocuments(docs =>
+      docs.map(d =>
+        d.id === selectedDocType ? {
+          ...d,
+          file: {
+            id: docData.id,
+            name: docData.document_name,
+            path: docData.file_path,
+            size: 0,
+            content: docData.document_content
+          }
+        } : d
+      )
+    );
   };
 
   const handleRemoveDocument = (id: number) => {
@@ -331,13 +339,7 @@ export function TenderPackageTracker({ tenderId }: TenderPackageTrackerProps) {
   };
 
   return (
-    <Card className="border-border/40">
-      <CardHeader className="bg-gradient-to-r from-primary/5 to-primary/10 border-b border-border/40">
-        <CardTitle className="text-2xl">Tender Package Tracker</CardTitle>
-        <CardDescription className="mt-2">
-          Upload required documents for the tender package
-        </CardDescription>
-      </CardHeader>
+    <Card className="border-border/40">{/* ... keep existing code */}
 
       <CardContent className="p-6">
         {/* Documents Table */}
@@ -379,12 +381,17 @@ export function TenderPackageTracker({ tenderId }: TenderPackageTrackerProps) {
                   <TableCell className="text-center">
                     {doc.file ? (
                       <div className="flex items-center justify-center gap-2">
-                        <div className="flex items-center gap-2 px-3 py-1 bg-primary/10 rounded">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleEditDocument(doc.id, doc.file!.id)}
+                          className="flex items-center gap-2 px-3 py-1 hover:bg-primary/10"
+                        >
                           <FileText className="h-4 w-4 text-primary" />
                           <span className="text-sm text-foreground truncate max-w-[120px]">
                             {doc.file.name}
                           </span>
-                        </div>
+                        </Button>
                         <Button
                           variant="ghost"
                           size="sm"
@@ -407,9 +414,9 @@ export function TenderPackageTracker({ tenderId }: TenderPackageTrackerProps) {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => handleShowTemplate(doc.name)}>
+                            <DropdownMenuItem onClick={() => handleCreateDocument(doc.id, doc.name)}>
                               <FilePlus className="h-4 w-4 mr-2" />
-                              Create (View Template)
+                              Create from Template
                             </DropdownMenuItem>
                             <DropdownMenuItem asChild>
                               <label htmlFor={`file-upload-${doc.id}`} className="cursor-pointer">
@@ -425,9 +432,9 @@ export function TenderPackageTracker({ tenderId }: TenderPackageTrackerProps) {
                                 />
                               </label>
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleChooseDocument(doc.id, doc.name)}>
+                            <DropdownMenuItem onClick={() => handleChooseFromProjects(doc.id, doc.name)}>
                               <FolderOpen className="h-4 w-4 mr-2" />
-                              Choose from Previous
+                              Choose from Previous Projects
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
@@ -450,44 +457,60 @@ export function TenderPackageTracker({ tenderId }: TenderPackageTrackerProps) {
         </div>
       </CardContent>
 
-      <DocumentTemplateDialog
-        open={templateDialogOpen}
-        onOpenChange={setTemplateDialogOpen}
+      <DocumentCreatorDialog
+        open={creatorDialogOpen}
+        onOpenChange={setCreatorDialogOpen}
         documentName={selectedTemplate}
+        tenderId={tenderId || ''}
+        projectData={projectData}
+        tenderData={tenderData}
+        existingDocumentId={editingDocId}
+        onDocumentSaved={handleDocumentSaved}
       />
 
       <Dialog open={chooseDialogOpen} onOpenChange={setChooseDialogOpen}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Choose from Previous Documents</DialogTitle>
+            <DialogTitle>Choose from Previous Projects</DialogTitle>
             <DialogDescription>
-              Select a document from previous tenders
+              Select a project to use its {selectedTemplate} document as a starting point
             </DialogDescription>
           </DialogHeader>
           
           <ScrollArea className="h-[400px]">
-            {previousDocuments.length === 0 ? (
+            {previousProjects.length === 0 ? (
               <p className="text-center text-muted-foreground py-8">
-                No previous documents of this type found
+                No previous projects with this document type found
               </p>
             ) : (
-              <div className="space-y-2">
-                {previousDocuments.map((doc) => (
-                  <div
-                    key={doc.id}
-                    className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 cursor-pointer"
-                    onClick={() => handleSelectPreviousDocument(doc)}
-                  >
-                    <div className="flex items-center gap-3">
-                      <FileText className="h-5 w-5 text-primary" />
+              <div className="space-y-3">
+                {previousProjects.map((project) => (
+                  <div key={project.id} className="border rounded-lg p-4">
+                    <div className="flex items-start justify-between mb-2">
                       <div>
-                        <p className="font-medium text-sm">{doc.document_name}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {doc.tenders?.project_name || 'Unknown Project'}
+                        <h4 className="font-semibold text-foreground">{project.name}</h4>
+                        <p className="text-sm text-muted-foreground mt-1">
+                          {project.documents.length} version{project.documents.length !== 1 ? 's' : ''} available
                         </p>
                       </div>
                     </div>
-                    <Badge variant="outline">Select</Badge>
+                    <div className="space-y-2 mt-3">
+                      {project.documents.map((doc: any) => (
+                        <div
+                          key={doc.id}
+                          className="flex items-center justify-between p-2 bg-muted/30 rounded cursor-pointer hover:bg-muted/50"
+                          onClick={() => handleSelectPreviousDocument(doc)}
+                        >
+                          <div className="flex items-center gap-2">
+                            <FileText className="h-4 w-4 text-primary" />
+                            <span className="text-sm">{doc.document_name}</span>
+                          </div>
+                          <ProjectBadge variant="outline" className="text-xs">
+                            Select & Edit
+                          </ProjectBadge>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 ))}
               </div>
