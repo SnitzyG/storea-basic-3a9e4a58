@@ -507,8 +507,28 @@ export const CreateTenderWizard = ({
             </div>
           )}
 
-          {/* Step 3: Upload Documents */}
+          {/* Step 3: Tender Package Tracker */}
           {step === 3 && (
+            <div className="space-y-6">
+              <Card className="bg-primary/5">
+                <CardHeader>
+                  <CardTitle className="text-base">Tender Package Tracker</CardTitle>
+                  <CardDescription>Upload required documents for the tender package</CardDescription>
+                </CardHeader>
+              </Card>
+
+              <TenderPackageTracker tenderId={tenderId || existingTender?.id} />
+              {!tenderId && !existingTender?.id && (
+                <p className="text-sm text-muted-foreground mt-2">
+                  Tip: Click “Save Draft” to create a tender ID before saving selected line items.
+                </p>
+              )}
+
+            </div>
+          )}
+
+          {/* Step 4: Upload Construction Drawings */}
+          {step === 4 && (
             <div className="space-y-6">
               <Card className="bg-primary/5">
                 <CardHeader>
@@ -521,26 +541,6 @@ export const CreateTenderWizard = ({
                 projectId={projectId}
                 tenderId={tenderId || existingTender?.id}
               />
-              {!tenderId && !existingTender?.id && (
-                <p className="text-sm text-muted-foreground mt-2">
-                  Tip: Click “Save Draft” to create a tender ID before saving selected line items.
-                </p>
-              )}
-
-            </div>
-          )}
-
-          {/* Step 4: Package Tracker */}
-          {step === 4 && (
-            <div className="space-y-6">
-              <Card className="bg-primary/5">
-                <CardHeader>
-                  <CardTitle className="text-base">Tender Package Tracker</CardTitle>
-                  <CardDescription>Upload required documents for the tender package</CardDescription>
-                </CardHeader>
-              </Card>
-
-              <TenderPackageTracker tenderId={tenderId || existingTender?.id} />
             </div>
           )}
 

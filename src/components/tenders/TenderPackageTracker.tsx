@@ -3,11 +3,25 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Progress } from '@/components/ui/progress';
-import { Upload, FileText, X } from 'lucide-react';
+import { Upload, FileText, X, FilePlus, FolderOpen, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { DocumentTemplateDialog } from './DocumentTemplateDialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface TenderDocument {
   id: number;
@@ -42,6 +56,11 @@ export function TenderPackageTracker({ tenderId }: TenderPackageTrackerProps) {
     { id: 11, name: 'Bills of Quantities', file: null, isConditional: true },
   ]);
   const [uploading, setUploading] = useState<number | null>(null);
+  const [templateDialogOpen, setTemplateDialogOpen] = useState(false);
+  const [selectedTemplate, setSelectedTemplate] = useState<string>('');
+  const [chooseDialogOpen, setChooseDialogOpen] = useState(false);
+  const [selectedDocType, setSelectedDocType] = useState<number | null>(null);
+  const [previousDocuments, setPreviousDocuments] = useState<any[]>([]);
 
   const uploadedCount = documents.filter(doc => doc.file).length;
   const totalCount = documents.length;
@@ -204,6 +223,113 @@ export function TenderPackageTracker({ tenderId }: TenderPackageTrackerProps) {
     }
   };
 
+  const handleShowTemplate = (docName: string) => {
+    setSelectedTemplate(docName);
+    setTemplateDialogOpen(true);
+  };
+
+  const handleChooseDocument = async (docId: number, docName: string) => {
+    setSelectedDocType(docId);
+    
+    // Fetch previous documents of this type from other tenders
+    try {
+      const { data, error } = await supabase
+        .from('tender_package_documents')
+        .select('*, tenders:tender_id(project_name)')
+        .eq('document_type', docName)
+        .neq('tender_id', tenderId || '')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      setPreviousDocuments(data || []);
+      setChooseDialogOpen(true);
+    } catch (error: any) {
+      console.error('Error fetching previous documents:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load previous documents",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleSelectPreviousDocument = async (selectedDoc: any) => {
+    if (!selectedDocType || !tenderId) return;
+
+    try {
+      const doc = documents.find(d => d.id === selectedDocType);
+      if (!doc) return;
+
+      // Copy file in storage
+      const { data: fileData, error: downloadError } = await supabase.storage
+        .from('tender-packages')
+        .download(selectedDoc.file_path);
+
+      if (downloadError) throw downloadError;
+
+      const fileExt = selectedDoc.file_path.split('.').pop();
+      const newFileName = `${tenderId}/${doc.name.replace(/\s+/g, '_')}_${Date.now()}.${fileExt}`;
+      
+      const { error: uploadError } = await supabase.storage
+        .from('tender-packages')
+        .upload(newFileName, fileData);
+
+      if (uploadError) throw uploadError;
+
+      // Save to database
+      const { data: docData, error: docError } = await supabase
+        .from('tender_package_documents')
+        .insert({
+          tender_id: tenderId,
+          document_type: doc.name,
+          document_name: selectedDoc.document_name,
+          file_path: newFileName,
+          file_size: selectedDoc.file_size,
+          uploaded_by: profile?.user_id
+        })
+        .select()
+        .single();
+
+      if (docError) throw docError;
+
+      setDocuments(docs =>
+        docs.map(d =>
+          d.id === selectedDocType ? {
+            ...d,
+            file: {
+              id: docData.id,
+              name: selectedDoc.document_name,
+              path: newFileName,
+              size: selectedDoc.file_size
+            }
+          } : d
+        )
+      );
+
+      setChooseDialogOpen(false);
+      toast({
+        title: "Document added",
+        description: "Previous document has been added successfully."
+      });
+    } catch (error: any) {
+      console.error('Error selecting document:', error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to add document",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleRemoveDocument = (id: number) => {
+    setDocuments(docs => docs.filter(d => d.id !== id));
+    toast({
+      title: "Document removed",
+      description: "Document has been removed from the list."
+    });
+  };
+
   return (
     <Card className="border-border/40">
       <CardHeader className="bg-gradient-to-r from-primary/5 to-primary/10 border-b border-border/40">
@@ -269,28 +395,51 @@ export function TenderPackageTracker({ tenderId }: TenderPackageTrackerProps) {
                         </Button>
                       </div>
                     ) : (
-                      <div className="flex justify-center">
-                        <label htmlFor={`file-upload-${doc.id}`}>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="cursor-pointer h-8 w-8 p-0"
-                            disabled={uploading === doc.id}
-                            asChild
-                          >
-                            <span>
-                              <Upload className="h-4 w-4" />
-                            </span>
-                          </Button>
-                          <input
-                            id={`file-upload-${doc.id}`}
-                            type="file"
-                            className="hidden"
-                            onChange={(e) => handleFileUpload(doc.id, e)}
-                            accept=".pdf,.doc,.docx,.xls,.xlsx"
-                            disabled={uploading === doc.id}
-                          />
-                        </label>
+                      <div className="flex justify-center gap-2">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              disabled={uploading === doc.id}
+                            >
+                              Add Document
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => handleShowTemplate(doc.name)}>
+                              <FilePlus className="h-4 w-4 mr-2" />
+                              Create (View Template)
+                            </DropdownMenuItem>
+                            <DropdownMenuItem asChild>
+                              <label htmlFor={`file-upload-${doc.id}`} className="cursor-pointer">
+                                <Upload className="h-4 w-4 mr-2" />
+                                Upload
+                                <input
+                                  id={`file-upload-${doc.id}`}
+                                  type="file"
+                                  className="hidden"
+                                  onChange={(e) => handleFileUpload(doc.id, e)}
+                                  accept=".pdf,.doc,.docx,.xls,.xlsx"
+                                  disabled={uploading === doc.id}
+                                />
+                              </label>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleChooseDocument(doc.id, doc.name)}>
+                              <FolderOpen className="h-4 w-4 mr-2" />
+                              Choose from Previous
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleRemoveDocument(doc.id)}
+                          className="h-8 w-8 p-0 hover:bg-destructive/10 hover:text-destructive"
+                          title="Remove this document from list"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
                       </div>
                     )}
                   </TableCell>
@@ -300,6 +449,52 @@ export function TenderPackageTracker({ tenderId }: TenderPackageTrackerProps) {
           </Table>
         </div>
       </CardContent>
+
+      <DocumentTemplateDialog
+        open={templateDialogOpen}
+        onOpenChange={setTemplateDialogOpen}
+        documentName={selectedTemplate}
+      />
+
+      <Dialog open={chooseDialogOpen} onOpenChange={setChooseDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Choose from Previous Documents</DialogTitle>
+            <DialogDescription>
+              Select a document from previous tenders
+            </DialogDescription>
+          </DialogHeader>
+          
+          <ScrollArea className="h-[400px]">
+            {previousDocuments.length === 0 ? (
+              <p className="text-center text-muted-foreground py-8">
+                No previous documents of this type found
+              </p>
+            ) : (
+              <div className="space-y-2">
+                {previousDocuments.map((doc) => (
+                  <div
+                    key={doc.id}
+                    className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 cursor-pointer"
+                    onClick={() => handleSelectPreviousDocument(doc)}
+                  >
+                    <div className="flex items-center gap-3">
+                      <FileText className="h-5 w-5 text-primary" />
+                      <div>
+                        <p className="font-medium text-sm">{doc.document_name}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {doc.tenders?.project_name || 'Unknown Project'}
+                        </p>
+                      </div>
+                    </div>
+                    <Badge variant="outline">Select</Badge>
+                  </div>
+                ))}
+              </div>
+            )}
+          </ScrollArea>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }
