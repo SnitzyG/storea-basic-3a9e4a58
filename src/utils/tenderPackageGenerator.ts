@@ -443,16 +443,27 @@ const generateTenderExcel = async (tender: Tender): Promise<Blob> => {
 
   // Enhanced column widths for better presentation
   lineItemsSheet['!cols'] = [
-    { wch: 10 },  // Item #
-    { wch: 20 },  // Category
-    { wch: 35 },  // Description
-    { wch: 40 },  // Specification
-    { wch: 10 },  // Qty
+    { wch: 8 },   // Item #
+    { wch: 15 },  // Category
+    { wch: 30 },  // Description
+    { wch: 35 },  // Specification
+    { wch: 8 },   // Qty
     { wch: 10 },  // Unit
-    { wch: 15 },  // Rate
-    { wch: 15 },  // Total
-    { wch: 25 },  // Notes
+    { wch: 12 },  // Rate
+    { wch: 12 },  // Total
+    { wch: 20 },  // Notes
   ];
+
+  // Enable text wrapping for all cells in line items sheet
+  const range = XLSX.utils.decode_range(lineItemsSheet['!ref'] || 'A1');
+  for (let R = range.s.r; R <= range.e.r; ++R) {
+    for (let C = range.s.c; C <= range.e.c; ++C) {
+      const cellAddress = XLSX.utils.encode_cell({ r: R, c: C });
+      if (!lineItemsSheet[cellAddress]) continue;
+      if (!lineItemsSheet[cellAddress].s) lineItemsSheet[cellAddress].s = {};
+      lineItemsSheet[cellAddress].s.alignment = { wrapText: true, vertical: 'top' };
+    }
+  }
 
   // Formulas for line totals and summary
   const startDataRow = headerRows.length + 1; // 1-based Excel row index for first item row
@@ -515,9 +526,20 @@ const generateTenderExcel = async (tender: Tender): Promise<Blob> => {
     
     const ws = XLSX.utils.aoa_to_sheet(docRows);
     ws['!cols'] = [
-      { wch: 40 },  // Section title
-      { wch: 100 }, // Content
+      { wch: 25 },  // Section title
+      { wch: 80 },  // Content
     ];
+    
+    // Enable text wrapping for all cells
+    const range = XLSX.utils.decode_range(ws['!ref'] || 'A1');
+    for (let R = range.s.r; R <= range.e.r; ++R) {
+      for (let C = range.s.c; C <= range.e.c; ++C) {
+        const cellAddress = XLSX.utils.encode_cell({ r: R, c: C });
+        if (!ws[cellAddress]) continue;
+        if (!ws[cellAddress].s) ws[cellAddress].s = {};
+        ws[cellAddress].s.alignment = { wrapText: true, vertical: 'top' };
+      }
+    }
     
     return ws;
   };
