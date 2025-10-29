@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from './use-toast';
+import { useToast } from '@/hooks/use-toast';
 
-interface TenderLineItem {
+export interface TenderLineItem {
   id: string;
   tender_id: string;
   line_number: number;
@@ -19,14 +19,18 @@ interface TenderLineItem {
 
 export const useTenderLineItems = (tenderId?: string) => {
   const [lineItems, setLineItems] = useState<TenderLineItem[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
   const fetchLineItems = async () => {
-    if (!tenderId) return;
-    
-    setLoading(true);
+    if (!tenderId) {
+      setLineItems([]);
+      setLoading(false);
+      return;
+    }
+
     try {
+      setLoading(true);
       const { data, error } = await supabase
         .from('tender_line_items')
         .select('*')
@@ -47,68 +51,6 @@ export const useTenderLineItems = (tenderId?: string) => {
     }
   };
 
-  const saveLineItems = async (tenderId: string, items: Omit<TenderLineItem, 'id' | 'tender_id' | 'created_at' | 'updated_at'>[]) => {
-    try {
-      // Delete existing line items for this tender
-      await supabase
-        .from('tender_line_items')
-        .delete()
-        .eq('tender_id', tenderId);
-
-      // Insert new line items
-      const { error } = await supabase
-        .from('tender_line_items')
-        .insert(
-          items.map(item => ({
-            tender_id: tenderId,
-            ...item
-          }))
-        );
-
-      if (error) throw error;
-
-      toast({
-        title: 'Success',
-        description: `${items.length} line items saved to tender`
-      });
-
-      // Refresh the list
-      await fetchLineItems();
-    } catch (error: any) {
-      console.error('Error saving tender line items:', error);
-      toast({
-        title: 'Error saving line items',
-        description: error.message,
-        variant: 'destructive'
-      });
-      throw error;
-    }
-  };
-
-  const deleteLineItem = async (itemId: string) => {
-    try {
-      const { error } = await supabase
-        .from('tender_line_items')
-        .delete()
-        .eq('id', itemId);
-
-      if (error) throw error;
-
-      toast({
-        title: 'Line item deleted'
-      });
-
-      await fetchLineItems();
-    } catch (error: any) {
-      console.error('Error deleting line item:', error);
-      toast({
-        title: 'Error deleting line item',
-        description: error.message,
-        variant: 'destructive'
-      });
-    }
-  };
-
   useEffect(() => {
     fetchLineItems();
   }, [tenderId]);
@@ -116,8 +58,6 @@ export const useTenderLineItems = (tenderId?: string) => {
   return {
     lineItems,
     loading,
-    saveLineItems,
-    deleteLineItem,
     refetch: fetchLineItems
   };
 };

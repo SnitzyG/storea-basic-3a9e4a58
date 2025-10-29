@@ -147,6 +147,7 @@ export const EnhancedTenderWizard = ({ open, onOpenChange, projectId, existingTe
   const totalSteps = 9; // Reduced from 10 to 9 (removed Risk Assessment step)
   const { toast } = useToast();
   const { createTender, updateTender } = useTenders();
+  const [currentTenderId, setCurrentTenderId] = useState<string | undefined>(existingTender?.id);
 
   // Project data
   const [projectData, setProjectData] = useState<any>(null);

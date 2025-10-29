@@ -3,11 +3,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
 import { useTenderLineItems } from '@/hooks/useTenderLineItems';
-import { Filter, ArrowUpDown, FileDown } from 'lucide-react';
+import { ArrowUpDown, Filter } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 
 interface TenderLineItemsDisplayProps {
@@ -36,10 +36,12 @@ export const TenderLineItemsDisplay = ({ tenderId }: TenderLineItemsDisplayProps
   const getFilteredAndSortedItems = () => {
     let filtered = lineItems;
     
+    // Filter by category
     if (selectedCategory !== 'all') {
       filtered = filtered.filter(item => item.category === selectedCategory);
     }
     
+    // Sort
     const sorted = [...filtered].sort((a, b) => {
       let comparison = 0;
       if (sortBy === 'line') {
@@ -55,22 +57,15 @@ export const TenderLineItemsDisplay = ({ tenderId }: TenderLineItemsDisplayProps
     return sorted;
   };
 
-  const categories = ['all', ...Array.from(new Set(lineItems.map(item => item.category)))];
-  const displayedItems = getFilteredAndSortedItems();
-  const totalValue = displayedItems.reduce((sum, item) => sum + Number(item.total), 0);
-
   if (loading) {
     return (
       <Card>
         <CardHeader>
           <CardTitle>Building Quote - Line Items</CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="space-y-2">
-            <Skeleton className="h-10 w-full" />
-            <Skeleton className="h-10 w-full" />
-            <Skeleton className="h-10 w-full" />
-          </div>
+        <CardContent className="space-y-4">
+          <Skeleton className="h-10 w-full" />
+          <Skeleton className="h-64 w-full" />
         </CardContent>
       </Card>
     );
@@ -83,16 +78,21 @@ export const TenderLineItemsDisplay = ({ tenderId }: TenderLineItemsDisplayProps
           <CardTitle>Building Quote - Line Items</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-sm text-muted-foreground">
-            No line items uploaded yet. Upload construction drawings in Step 2 to extract line items.
+          <p className="text-muted-foreground text-center py-8">
+            No line items yet. Upload drawings in Step 2 to extract line items.
           </p>
         </CardContent>
       </Card>
     );
   }
 
+  const categories = ['all', ...Array.from(new Set(lineItems.map(item => item.category)))];
+  const displayedItems = getFilteredAndSortedItems();
+  const totalValue = displayedItems.reduce((sum, item) => sum + Number(item.total), 0);
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
+      {/* Controls */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
@@ -103,7 +103,7 @@ export const TenderLineItemsDisplay = ({ tenderId }: TenderLineItemsDisplayProps
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          {/* Filters */}
+          {/* Filter and Sort */}
           <div className="flex items-center gap-4 flex-wrap">
             <div className="flex items-center gap-2">
               <Filter className="h-4 w-4" />
@@ -145,7 +145,7 @@ export const TenderLineItemsDisplay = ({ tenderId }: TenderLineItemsDisplayProps
             </div>
           </div>
 
-          {/* Column toggles */}
+          {/* Column Visibility */}
           <div className="flex flex-wrap gap-4">
             <Label className="font-semibold">Show/Hide Columns:</Label>
             {Object.entries(visibleColumns).map(([column, visible]) => (
@@ -155,7 +155,7 @@ export const TenderLineItemsDisplay = ({ tenderId }: TenderLineItemsDisplayProps
                   checked={visible}
                   onCheckedChange={() => toggleColumn(column as keyof typeof visibleColumns)}
                 />
-                <Label htmlFor={column} className="cursor-pointer font-normal">
+                <Label htmlFor={column} className="cursor-pointer font-normal text-sm">
                   {column.replace(/([A-Z])/g, ' $1').trim()}
                 </Label>
               </div>
@@ -197,7 +197,7 @@ export const TenderLineItemsDisplay = ({ tenderId }: TenderLineItemsDisplayProps
                       </TableCell>
                     )}
                     {visibleColumns.specification && (
-                      <TableCell className="text-sm text-muted-foreground max-w-xs truncate">
+                      <TableCell className="text-sm text-muted-foreground max-w-xs">
                         {item.specification}
                       </TableCell>
                     )}
@@ -211,7 +211,10 @@ export const TenderLineItemsDisplay = ({ tenderId }: TenderLineItemsDisplayProps
                     )}
                     {visibleColumns.unitPrice && (
                       <TableCell className="text-right">
-                        {item.unit_price ? `$${Number(item.unit_price).toLocaleString('en-AU', { minimumFractionDigits: 2 })}` : '-'}
+                        {item.unit_price 
+                          ? `$${Number(item.unit_price).toLocaleString('en-AU', { minimumFractionDigits: 2 })}`
+                          : '-'
+                        }
                       </TableCell>
                     )}
                     {visibleColumns.total && (
