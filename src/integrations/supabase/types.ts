@@ -2395,34 +2395,40 @@ export type Database = {
       tender_package_documents: {
         Row: {
           created_at: string | null
+          document_content: string | null
           document_name: string
           document_type: string
           file_path: string
           file_size: number | null
           id: string
           tender_id: string | null
+          updated_at: string | null
           uploaded_at: string | null
           uploaded_by: string | null
         }
         Insert: {
           created_at?: string | null
+          document_content?: string | null
           document_name: string
           document_type: string
           file_path: string
           file_size?: number | null
           id?: string
           tender_id?: string | null
+          updated_at?: string | null
           uploaded_at?: string | null
           uploaded_by?: string | null
         }
         Update: {
           created_at?: string | null
+          document_content?: string | null
           document_name?: string
           document_type?: string
           file_path?: string
           file_size?: number | null
           id?: string
           tender_id?: string | null
+          updated_at?: string | null
           uploaded_at?: string | null
           uploaded_by?: string | null
         }

@@ -339,8 +339,7 @@ export function TenderPackageTracker({ tenderId, projectData, tenderData }: Tend
   };
 
   return (
-    <Card className="border-border/40">{/* ... keep existing code */}
-
+    <Card className="border-border/40">
       <CardContent className="p-6">
         {/* Documents Table */}
         <div className="border rounded-lg overflow-hidden">
