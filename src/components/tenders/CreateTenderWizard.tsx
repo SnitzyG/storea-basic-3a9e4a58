@@ -536,11 +536,11 @@ export const CreateTenderWizard = ({
               <Card className="bg-primary/5">
                 <CardHeader>
                   <CardTitle className="text-base">Tender Package Tracker</CardTitle>
-                  <CardDescription>Track documents received from your architect</CardDescription>
+                  <CardDescription>Upload documents for your tender package</CardDescription>
                 </CardHeader>
               </Card>
 
-              <TenderPackageTracker />
+              <TenderPackageTracker tenderId={tenderId || existingTender?.id} />
             </div>
           )}
 
