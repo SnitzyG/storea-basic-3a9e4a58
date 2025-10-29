@@ -40,7 +40,7 @@ export const CreateTenderWizard = ({
   // Step 2: Budget & Timeline
   const [budget, setBudget] = useState('');
   const [estimatedStartDate, setEstimatedStartDate] = useState('');
-  const [completionWeeks, setCompletionWeeks] = useState('');
+  const [completionWeeks, setCompletionWeeks] = useState('36');
   const [calculatedCompletionDate, setCalculatedCompletionDate] = useState('');
   
   // Step 3: Documents
@@ -57,6 +57,13 @@ export const CreateTenderWizard = ({
 
   const totalSteps = 4;
   const progress = (step / totalSteps) * 100;
+
+  // Fetch project data and auto-populate on open
+  useEffect(() => {
+    if (open && projectId && !existingTender) {
+      fetchProjectData();
+    }
+  }, [open, projectId, existingTender]);
 
   // Calculate completion date when start date or weeks change
   useEffect(() => {
@@ -81,12 +88,74 @@ export const CreateTenderWizard = ({
       setTenderReferenceNo(existingTender.tender_reference_no || '');
       setBudget(existingTender.budget?.toString() || '');
       setEstimatedStartDate(existingTender.estimated_start_date?.split('T')[0] || '');
-      setCompletionWeeks(existingTender.completion_weeks?.toString() || '');
+      setCompletionWeeks(existingTender.completion_weeks?.toString() || '36');
       setSubmissionDeadline(existingTender.deadline?.split('T')[0] || '');
       setSubmissionTime(existingTender.deadline ? new Date(existingTender.deadline).toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' }) : '17:00');
       setSupportingDocuments(existingTender.supporting_documents || []);
     }
   }, [existingTender, open]);
+
+  const fetchProjectData = async () => {
+    try {
+      // Fetch project details
+      const { data: project, error: projectError } = await supabase
+        .from('projects')
+        .select('*')
+        .eq('id', projectId)
+        .single();
+
+      if (projectError) throw projectError;
+
+      // Fetch creator profile
+      const { data: creatorProfile } = await supabase
+        .from('profiles')
+        .select('name, company_id')
+        .eq('user_id', project.created_by)
+        .single();
+
+      // Fetch company if available
+      let companyName = 'COMPANY';
+      if (creatorProfile?.company_id) {
+        const { data: company } = await supabase
+          .from('companies')
+          .select('name')
+          .eq('id', creatorProfile.company_id)
+          .single();
+        
+        if (company) companyName = company.name;
+      }
+
+      // Auto-populate fields from project
+      setTitle(project.name || '');
+      setProjectAddress(project.address || '');
+      setBudget(project.budget?.toString() || '');
+      
+      // Extract client name from timeline or project creator
+      const timeline = project.timeline as any;
+      const homeownerData = timeline?.pending_homeowner;
+      setClientName(homeownerData?.name || creatorProfile?.name || '');
+
+      // Generate tender reference number: COMPANY-PROJECT-TEN-YEAR
+      const companyCode = companyName.substring(0, 3).toUpperCase();
+      const projectCode = project.name.substring(0, 3).toUpperCase().replace(/[^A-Z]/g, '');
+      const year = new Date().getFullYear();
+      setTenderReferenceNo(`${companyCode}-${projectCode}-TEN-${year}`);
+
+      // Set estimated start date from project timeline or direct field
+      const estimatedStart = timeline?.estimated_start_date || project.estimated_start_date;
+      if (estimatedStart) {
+        setEstimatedStartDate(estimatedStart);
+      }
+
+    } catch (error: any) {
+      console.error('Error fetching project data:', error);
+      toast({
+        title: "Error loading project",
+        description: error.message,
+        variant: "destructive"
+      });
+    }
+  };
 
   const handleSaveDraft = async () => {
     if (!title.trim()) {
@@ -255,7 +324,7 @@ export const CreateTenderWizard = ({
     setSubmissionTime('17:00');
     setBudget('');
     setEstimatedStartDate('');
-    setCompletionWeeks('');
+    setCompletionWeeks('36');
     setCalculatedCompletionDate('');
     setSupportingDocuments([]);
     setLoading(false);
