@@ -1,209 +1,49 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.57.0';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-interface LineItem {
-  item_name: string;
-  description?: string;
-  category: string;
-  quantity?: number;
-  unit?: string;
-  rate?: number;
-  total: number;
-  notes?: string;
-}
-
-const CATEGORIES = [
+const CONSTRUCTION_CATEGORIES = [
   'Preliminaries',
+  'Termite Protection',
   'Demolition',
-  'Excavation',
-  'Concrete',
-  'Steelwork',
+  'Concrete Works',
+  'Structural Steel',
+  'Masonry',
   'Carpentry',
+  'Façade Works',
   'Roofing',
-  'Windows & Doors',
   'Plumbing',
-  'Electrical',
   'Mechanical',
-  'Internal Finishes',
-  'External Works',
-  'General',
+  'Electrical',
+  'Lift',
+  'Plastering, Insulation & Sarking',
+  'Stair Works',
+  'Painting / Rendering',
+  'Joinery',
+  'Stone',
+  'Floor Finishes',
+  'Tiling',
+  'Shower Screens & Mirrors',
+  'Builders Clean',
+  'Caulking',
+  'External Landscape',
+  'Rooftop Terrace',
+  'Additional Budgets / Provisional Sums'
 ];
 
-function categorizeItem(itemName: string, description?: string): string {
-  const text = `${itemName} ${description || ''}`.toLowerCase();
-  
-  if (text.match(/prelim|setup|site establish|mobilization/i)) return 'Preliminaries';
-  if (text.match(/demol|strip|remove/i)) return 'Demolition';
-  if (text.match(/excavat|earth|dig/i)) return 'Excavation';
-  if (text.match(/concrete|pour|slab|foundation/i)) return 'Concrete';
-  if (text.match(/steel|frame|structural/i)) return 'Steelwork';
-  if (text.match(/carp|timber|framing|joinery/i)) return 'Carpentry';
-  if (text.match(/roof|tile|sheet/i)) return 'Roofing';
-  if (text.match(/window|door|glazing/i)) return 'Windows & Doors';
-  if (text.match(/plumb|pipe|drainage/i)) return 'Plumbing';
-  if (text.match(/electric|wiring|light|power/i)) return 'Electrical';
-  if (text.match(/hvac|mechanical|air condition|heating/i)) return 'Mechanical';
-  if (text.match(/finish|paint|plaster|gypsum|floor|tile/i)) return 'Internal Finishes';
-  if (text.match(/landscape|paving|external|driveway|fence/i)) return 'External Works';
-  
-  return 'General';
-}
-
-function extractLineItems(content: string): LineItem[] {
-  const lines = content.split('\n');
-  const lineItems: LineItem[] = [];
-  
-  // Look for tabular data with columns: Section, Item, Description, Quantity, Unit, Rate, Total, Notes
-  const numberPattern = /[\d,]+(?:\.\d{2})?/;
-  
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i].trim();
-    if (!line || line.length < 10) continue;
-    
-    // Split by multiple spaces or tabs to detect columns
-    const parts = line.split(/\s{2,}|\t+/).map(p => p.trim()).filter(p => p);
-    
-    if (parts.length >= 4) {
-      // Potential line item row detected
-      let section = '';
-      let itemName = '';
-      let description = '';
-      let quantity: number | undefined;
-      let unit = '';
-      let rate: number | undefined;
-      let total = 0;
-      let notes = '';
-      
-      // Try to parse the structure
-      if (parts.length >= 7) {
-        // Full format: Section | Item | Description | Quantity | Unit | Rate | Total | Notes
-        section = parts[0];
-        itemName = parts[1];
-        description = parts[2];
-        
-        const qtyStr = parts[3].replace(/[^0-9.]/g, '');
-        if (qtyStr) quantity = parseFloat(qtyStr);
-        
-        unit = parts[4];
-        
-        const rateStr = parts[5].replace(/[^0-9.]/g, '');
-        if (rateStr) rate = parseFloat(rateStr);
-        
-        const totalStr = parts[6].replace(/[^0-9.]/g, '');
-        if (totalStr) total = parseFloat(totalStr);
-        
-        if (parts.length > 7) notes = parts.slice(7).join(' ');
-      } else if (parts.length >= 3) {
-        // Simplified format: try to identify columns
-        let currentIdx = 0;
-        
-        // First column is likely section or item
-        const firstCol = parts[currentIdx++];
-        if (firstCol.match(/^[A-Za-z\s]+$/)) {
-          section = firstCol;
-          if (currentIdx < parts.length) itemName = parts[currentIdx++];
-        } else {
-          itemName = firstCol;
-        }
-        
-        // Look for numeric columns
-        while (currentIdx < parts.length) {
-          const col = parts[currentIdx];
-          const numMatch = col.match(numberPattern);
-          
-          if (numMatch && col.replace(/[^0-9.]/g, '')) {
-            const num = parseFloat(col.replace(/[^0-9.]/g, ''));
-            if (num > 0) {
-              // Determine if it's quantity, rate, or total
-              if (!quantity && num < 10000) {
-                quantity = num;
-              } else if (!rate && num < 100000) {
-                rate = num;
-              } else if (!total) {
-                total = num;
-              }
-            }
-          } else if (!description && !col.match(/^\d/)) {
-            description = col;
-          } else if (!unit && col.length < 10 && !col.match(/^\d/)) {
-            unit = col;
-          }
-          
-          currentIdx++;
-        }
-      }
-      
-      // Validate and add item
-      if (itemName && itemName.length > 2 && total > 0) {
-        const category = section ? section : categorizeItem(itemName, description);
-        
-        lineItems.push({
-          item_name: itemName,
-          description: description || undefined,
-          category,
-          quantity,
-          unit: unit || undefined,
-          rate,
-          total,
-          notes: notes || undefined,
-        });
-      }
-    }
-  }
-  
-  // If no items found with the structured approach, fall back to simple extraction
-  if (lineItems.length === 0) {
-    const budgetPatterns = [
-      /\$?[\d,]+(?:\.\d{2})?/g,
-    ];
-    
-    for (let i = 0; i < lines.length; i++) {
-      const line = lines[i].trim();
-      if (!line) continue;
-      
-      const matches = line.match(budgetPatterns[0]);
-      if (matches && matches.length > 0) {
-        const lastMatch = matches[matches.length - 1];
-        const amount = parseFloat(lastMatch.replace(/[$,]/g, ''));
-        
-        if (amount > 0 && amount < 10000000) {
-          const textBeforeAmount = line.substring(0, line.lastIndexOf(lastMatch)).trim();
-          const parts = textBeforeAmount.split(/\s{2,}|\t+/).filter(p => p.trim());
-          
-          if (parts.length > 0) {
-            const itemName = parts[parts.length - 1];
-            const category = parts.length > 1 ? parts[0] : categorizeItem(itemName);
-            
-            if (itemName && itemName.length > 3) {
-              lineItems.push({
-                item_name: itemName,
-                category,
-                total: amount,
-              });
-            }
-          }
-        }
-      }
-    }
-  }
-  
-  // Remove duplicates
-  const uniqueItems: LineItem[] = [];
-  for (const item of lineItems) {
-    const isDuplicate = uniqueItems.some(existing => 
-      existing.item_name.toLowerCase() === item.item_name.toLowerCase()
-    );
-    
-    if (!isDuplicate) {
-      uniqueItems.push(item);
-    }
-  }
-  
-  return uniqueItems;
+interface LineItem {
+  line_number: number;
+  item_description: string;
+  specification: string;
+  unit_of_measure: string;
+  quantity: number;
+  unit_price: number;
+  total: number;
+  category: string;
 }
 
 serve(async (req) => {
@@ -215,41 +55,177 @@ serve(async (req) => {
   try {
     const { fileUrl, fileName } = await req.json();
     
-    console.log('Parsing document:', fileName);
+    console.log('Analyzing construction drawing:', fileName);
     
-    // Fetch the document
-    const fileResponse = await fetch(fileUrl);
-    if (!fileResponse.ok) {
-      throw new Error('Failed to fetch document');
+    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+    if (!LOVABLE_API_KEY) {
+      throw new Error('LOVABLE_API_KEY not configured');
     }
+
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    // Download the file from storage
+    const urlParts = fileUrl.split('/');
+    const bucket = urlParts[urlParts.length - 3];
+    const path = decodeURIComponent(urlParts.slice(-2).join('/'));
     
-    const fileBuffer = await fileResponse.arrayBuffer();
+    const { data: fileData, error: downloadError } = await supabase.storage
+      .from(bucket)
+      .download(path);
+
+    if (downloadError) {
+      console.error('Download error:', downloadError);
+      throw new Error('Failed to download file from storage');
+    }
+
+    // Convert file to base64 for AI analysis
+    const arrayBuffer = await fileData.arrayBuffer();
+    const bytes = new Uint8Array(arrayBuffer);
+    const base64 = btoa(String.fromCharCode(...bytes));
+    
+    // Determine MIME type
     const fileExt = fileName.toLowerCase().split('.').pop();
-    
-    let textContent = '';
-    
-    // Parse based on file type
-    if (fileExt === 'pdf') {
-      // For PDF, we'll need to extract text - simplified approach
-      // In production, you'd use a proper PDF parsing library
-      textContent = new TextDecoder().decode(fileBuffer);
-    } else if (fileExt === 'xlsx' || fileExt === 'xls') {
-      // For Excel, extract text representation
-      textContent = new TextDecoder().decode(fileBuffer);
-    } else if (fileExt === 'docx' || fileExt === 'doc') {
-      // For Word documents, extract text
-      textContent = new TextDecoder().decode(fileBuffer);
-    } else {
-      throw new Error('Unsupported file type');
+    const mimeTypes: Record<string, string> = {
+      'pdf': 'application/pdf',
+      'png': 'image/png',
+      'jpg': 'image/jpeg',
+      'jpeg': 'image/jpeg',
+      'webp': 'image/webp'
+    };
+    const mimeType = mimeTypes[fileExt || 'pdf'] || 'application/pdf';
+
+    console.log('Sending to AI for analysis...');
+
+    const systemPrompt = `You are a construction cost estimator analyzing architectural and construction drawings. 
+Your task is to carefully examine the provided construction drawing and extract ALL line items needed for construction.
+
+For each item you identify, provide:
+- A sequential line number
+- Clear item description
+- Detailed specification
+- Unit of measure (e.g., m², m³, m, no., sum)
+- Estimated quantity based on the drawing
+- Estimated unit price (use Australian construction rates)
+- Total cost (quantity × unit price)
+- Category from the approved list
+
+IMPORTANT: 
+- Be thorough and extract ALL visible construction items from the drawing
+- Use standard Australian construction terminology
+- Provide realistic quantity estimates based on what you can see
+- Use current Australian market rates for pricing
+- Categories MUST be from this exact list: ${CONSTRUCTION_CATEGORIES.join(', ')}`;
+
+    const userPrompt = `Please analyze this construction drawing thoroughly and extract ALL line items needed for the project. 
+Include everything you can identify from the drawing including materials, labor, and equipment.
+Return a comprehensive bill of quantities.`;
+
+    // Call Lovable AI with vision capabilities
+    const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'google/gemini-2.5-pro', // Using Pro for better accuracy with construction drawings
+        messages: [
+          { 
+            role: 'system', 
+            content: systemPrompt 
+          },
+          { 
+            role: 'user', 
+            content: [
+              { type: 'text', text: userPrompt },
+              { 
+                type: 'image_url',
+                image_url: {
+                  url: `data:${mimeType};base64,${base64}`
+                }
+              }
+            ]
+          }
+        ],
+        tools: [
+          {
+            type: 'function',
+            function: {
+              name: 'extract_line_items',
+              description: 'Extract construction line items from the drawing',
+              parameters: {
+                type: 'object',
+                properties: {
+                  line_items: {
+                    type: 'array',
+                    items: {
+                      type: 'object',
+                      properties: {
+                        line_number: { type: 'number' },
+                        item_description: { type: 'string' },
+                        specification: { type: 'string' },
+                        unit_of_measure: { type: 'string' },
+                        quantity: { type: 'number' },
+                        unit_price: { type: 'number' },
+                        total: { type: 'number' },
+                        category: { 
+                          type: 'string',
+                          enum: CONSTRUCTION_CATEGORIES
+                        }
+                      },
+                      required: ['line_number', 'item_description', 'specification', 'unit_of_measure', 'quantity', 'unit_price', 'total', 'category'],
+                      additionalProperties: false
+                    }
+                  }
+                },
+                required: ['line_items'],
+                additionalProperties: false
+              }
+            }
+          }
+        ],
+        tool_choice: { type: 'function', function: { name: 'extract_line_items' } }
+      }),
+    });
+
+    if (!aiResponse.ok) {
+      const errorText = await aiResponse.text();
+      console.error('AI API error:', aiResponse.status, errorText);
+      
+      if (aiResponse.status === 429) {
+        return new Response(
+          JSON.stringify({ error: 'Rate limit exceeded. Please try again later.' }),
+          { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      
+      if (aiResponse.status === 402) {
+        return new Response(
+          JSON.stringify({ error: 'AI credits depleted. Please add credits to continue.' }),
+          { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      
+      throw new Error(`AI API error: ${aiResponse.status}`);
     }
-    
-    console.log('Extracted text length:', textContent.length);
-    
-    // Extract line items from content
-    const lineItems = extractLineItems(textContent);
-    
-    console.log('Found line items:', lineItems.length);
-    
+
+    const aiData = await aiResponse.json();
+    console.log('AI response received');
+
+    // Extract line items from tool call
+    const toolCall = aiData.choices?.[0]?.message?.tool_calls?.[0];
+    if (!toolCall || !toolCall.function?.arguments) {
+      console.error('No tool call in response:', JSON.stringify(aiData));
+      throw new Error('AI did not return structured line items');
+    }
+
+    const parsedArgs = JSON.parse(toolCall.function.arguments);
+    const lineItems: LineItem[] = parsedArgs.line_items || [];
+
+    console.log(`Extracted ${lineItems.length} line items from drawing`);
+
     return new Response(
       JSON.stringify({ lineItems }),
       { 
@@ -260,7 +236,10 @@ serve(async (req) => {
   } catch (error) {
     console.error('Error parsing line items:', error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ 
+        error: error instanceof Error ? error.message : 'Unknown error',
+        lineItems: [] // Return empty array as fallback
+      }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 500,
