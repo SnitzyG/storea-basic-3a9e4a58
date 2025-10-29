@@ -214,17 +214,6 @@ export function TenderPackageTracker({ tenderId }: TenderPackageTrackerProps) {
       </CardHeader>
 
       <CardContent className="p-6">
-        {/* Progress Section */}
-        <div className="bg-muted/30 rounded-lg p-6 mb-6 border border-border/40">
-          <div className="flex items-center justify-between mb-3">
-            <span className="font-semibold text-foreground">
-              Progress: {uploadedCount} of {totalCount} items uploaded
-            </span>
-            <span className="font-semibold text-primary">{progressPercentage}%</span>
-          </div>
-          <Progress value={progressPercentage} className="h-2" />
-        </div>
-
         {/* Documents Table */}
         <div className="border rounded-lg overflow-hidden">
           <Table>
@@ -309,34 +298,6 @@ export function TenderPackageTracker({ tenderId }: TenderPackageTrackerProps) {
               ))}
             </TableBody>
           </Table>
-        </div>
-
-        {/* Summary Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6 pt-6 border-t border-border/40">
-          <Card className="bg-muted/30 border-border/40">
-            <CardContent className="p-6 text-center">
-              <p className="text-xs uppercase text-muted-foreground font-semibold mb-2">
-                Uploaded
-              </p>
-              <p className="text-4xl font-bold text-primary">{uploadedCount}</p>
-            </CardContent>
-          </Card>
-          <Card className="bg-muted/30 border-border/40">
-            <CardContent className="p-6 text-center">
-              <p className="text-xs uppercase text-muted-foreground font-semibold mb-2">
-                Remaining
-              </p>
-              <p className="text-4xl font-bold text-primary">{totalCount - uploadedCount}</p>
-            </CardContent>
-          </Card>
-          <Card className="bg-muted/30 border-border/40">
-            <CardContent className="p-6 text-center">
-              <p className="text-xs uppercase text-muted-foreground font-semibold mb-2">
-                Overall Progress
-              </p>
-              <p className="text-4xl font-bold text-primary">{progressPercentage}%</p>
-            </CardContent>
-          </Card>
         </div>
       </CardContent>
     </Card>
