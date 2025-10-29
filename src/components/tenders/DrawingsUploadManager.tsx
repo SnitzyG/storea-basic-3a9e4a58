@@ -231,7 +231,7 @@ export const DrawingsUploadManager = ({ projectId, tenderId, onLineItemsImported
       });
 
       // Add any AI-extracted items
-      const aiItems: LineItem[] = parseData.lineItems?.map((item: any, index: number) => ({
+      const aiItems: LineItem[] = (parseData?.lineItems || []).map((item: any, index: number) => ({
         id: `ai-${index}`,
         lineNumber: lineNum++,
         itemDescription: item.item_description ?? '',
@@ -239,7 +239,7 @@ export const DrawingsUploadManager = ({ projectId, tenderId, onLineItemsImported
         unitOfMeasure: item.unit_of_measure ?? item.unit ?? 'item',
         quantity: Number(item.quantity ?? 1),
         category: item.category ?? 'Additional Items'
-      })) || [];
+      }));
 
       const allItems = [...standardItems, ...aiItems];
       setLineItems(allItems);
