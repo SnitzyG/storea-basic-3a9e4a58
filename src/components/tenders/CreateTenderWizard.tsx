@@ -337,6 +337,18 @@ export const CreateTenderWizard = ({
   const tomorrow = new Date();
   tomorrow.setDate(tomorrow.getDate() + 1);
   const minDeadline = tomorrow.toISOString().split('T')[0];
+  
+  // Set default deadline to 2 weeks from today
+  const twoWeeksFromNow = new Date();
+  twoWeeksFromNow.setDate(twoWeeksFromNow.getDate() + 14);
+  const defaultDeadline = twoWeeksFromNow.toISOString().split('T')[0];
+  
+  // Set default deadline on mount if not already set
+  React.useEffect(() => {
+    if (!submissionDeadline && !existingTender) {
+      setSubmissionDeadline(defaultDeadline);
+    }
+  }, []);
 
   const toggleDocument = (docId: string) => {
     setSupportingDocuments(prev => 

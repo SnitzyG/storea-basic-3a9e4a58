@@ -20,6 +20,7 @@ import { BidsReceivedSection } from '@/components/tenders/BidsReceivedSection';
 import { TenderComparisonDashboard } from '@/components/tenders/TenderComparisonDashboard';
 import { generateTenderPackage } from '@/utils/tenderPackageGenerator';
 import { toast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 const Tenders = () => {
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
@@ -297,7 +298,39 @@ const Tenders = () => {
                           </div>
                         </TableCell>
                         <TableCell className="text-sm px-4 py-3 text-foreground/90">
-                          {getStatusBadge(tender.status)}
+                          {tender.status === 'draft' && userRole === 'architect' ? (
+                            <select
+                              value={tender.status}
+                              onChange={async (e) => {
+                                const newStatus = e.target.value as 'draft' | 'open' | 'closed' | 'awarded';
+                                const { error } = await supabase
+                                  .from('tenders')
+                                  .update({ status: newStatus })
+                                  .eq('id', tender.id);
+                                if (error) {
+                                  toast({
+                                    title: "Error",
+                                    description: "Failed to update tender status",
+                                    variant: "destructive"
+                                  });
+                                } else {
+                                  toast({
+                                    title: "Status Updated",
+                                    description: "Tender status has been updated"
+                                  });
+                                  window.location.reload();
+                                }
+                              }}
+                              className="text-xs px-2 py-1 rounded border bg-gray-100 text-gray-800"
+                            >
+                              <option value="draft">DRAFT</option>
+                              <option value="open">OPEN</option>
+                              <option value="closed">CLOSED</option>
+                              <option value="awarded">AWARDED</option>
+                            </select>
+                          ) : (
+                            getStatusBadge(tender.status)
+                          )}
                         </TableCell>
                         <TableCell className="text-sm px-4 py-3 text-foreground/90">
                           <div className="space-y-1">

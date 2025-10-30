@@ -47,19 +47,41 @@ interface TenderPackageTrackerProps {
 export function TenderPackageTracker({ tenderId, projectData, tenderData }: TenderPackageTrackerProps) {
   const { toast } = useToast();
   const { profile } = useAuth();
-  const [documents, setDocuments] = useState<TenderDocument[]>([
-    { id: 1, name: 'Notice to Tenderers', file: null },
-    { id: 2, name: 'Conditions of Tendering', file: null },
-    { id: 3, name: 'General Conditions of Contract', file: null },
-    { id: 4, name: 'Contract Schedules', file: null },
-    { id: 5, name: 'Tender Form', file: null },
-    { id: 6, name: 'Schedules of Monetary Sums', file: null, isConditional: true },
-    { id: 7, name: 'Tender Schedules', file: null },
-    { id: 8, name: 'Technical Specifications', file: null },
-    { id: 9, name: 'Technical Schedules', file: null },
-    { id: 10, name: 'Drawings', file: null },
-    { id: 11, name: 'Bills of Quantities', file: null, isConditional: true },
-  ]);
+  // Document structure based on new requirements
+  const DOCUMENT_STRUCTURE = [
+    { category: 'Tender Form', documents: ['Tender form'] },
+    { category: 'Architectural Drawings', documents: ['Tender Issue'] },
+    { category: 'Before You Dig (BYD)', documents: ['Response Form'] },
+    { category: 'Energy Report', documents: ['Certificate', 'Summary of Report'] },
+    { category: 'Interior', documents: ['Tender Package', 'Fixtures and Fittings Schedule', 'Finishes Schedule'] },
+    { category: 'Planning', documents: ['Approved Permit', 'Permit Cover Letter', 'Endorsed Plans - Conditional Plans Approval', 'Endorsed Plans - Endorsed Plans'] },
+    { category: 'Property Information', documents: ['Building or Land Information Details'] },
+    { category: 'Scope of Works', documents: ['Scope of Works'] },
+    { category: 'Sewer', documents: ['Property Sewage Plans'] },
+    { category: 'Soil Report', documents: ['Soil Test', 'Footing Exposure'] },
+    { category: 'Stormwater', documents: ['Legal Point of Discharge Plan', 'Legal Point of Discharge Letter'] },
+    { category: 'Structural', documents: ['Structural Drawings'] },
+    { category: 'Survey', documents: ['Elevation Views', 'Existing Conditions', 'Site Photos'] },
+    { category: 'Title Information', documents: ['Title Search', 'LANDATA Search'] },
+  ];
+
+  // Initialize documents from structure
+  const initializeDocuments = (): TenderDocument[] => {
+    let docId = 1;
+    const docs: TenderDocument[] = [];
+    DOCUMENT_STRUCTURE.forEach(cat => {
+      cat.documents.forEach(docName => {
+        docs.push({
+          id: docId++,
+          name: `${cat.category} - ${docName}`,
+          file: null
+        });
+      });
+    });
+    return docs;
+  };
+
+  const [documents, setDocuments] = useState<TenderDocument[]>(initializeDocuments());
   const [uploading, setUploading] = useState<number | null>(null);
   const [templateDialogOpen, setTemplateDialogOpen] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<string>('');
@@ -68,6 +90,9 @@ export function TenderPackageTracker({ tenderId, projectData, tenderData }: Tend
   const [previousProjects, setPreviousProjects] = useState<any[]>([]);
   const [creatorDialogOpen, setCreatorDialogOpen] = useState(false);
   const [editingDocId, setEditingDocId] = useState<string | undefined>();
+  const [showDocRegisterDialog, setShowDocRegisterDialog] = useState(false);
+  const [selectedDocForRegister, setSelectedDocForRegister] = useState<number | null>(null);
+  const [projectDocuments, setProjectDocuments] = useState<any[]>([]);
 
   const uploadedCount = documents.filter(doc => doc.file).length;
   const totalCount = documents.length;
@@ -338,6 +363,85 @@ export function TenderPackageTracker({ tenderId, projectData, tenderData }: Tend
     });
   };
 
+  const handleSelectFromRegister = async (docId: number) => {
+    setSelectedDocForRegister(docId);
+    
+    // Fetch project documents
+    try {
+      const { data, error } = await supabase
+        .from('documents')
+        .select('*')
+        .eq('project_id', tenderData?.project_id || projectData?.id);
+
+      if (error) throw error;
+
+      setProjectDocuments(data || []);
+      setShowDocRegisterDialog(true);
+    } catch (error: any) {
+      console.error('Error fetching documents:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load documents from register",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleDocumentFromRegisterSelected = async (selectedDocId: string) => {
+    if (!selectedDocForRegister || !tenderId) return;
+
+    try {
+      const projectDoc = projectDocuments.find(d => d.id === selectedDocId);
+      if (!projectDoc) return;
+
+      const doc = documents.find(d => d.id === selectedDocForRegister);
+      if (!doc) return;
+
+      // Save reference to database
+      const { data: docData, error } = await supabase
+        .from('tender_package_documents')
+        .insert({
+          tender_id: tenderId,
+          document_type: doc.name,
+          document_name: projectDoc.name,
+          file_path: projectDoc.file_path,
+          file_size: projectDoc.file_size,
+          uploaded_by: profile?.user_id
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      setDocuments(docs =>
+        docs.map(d =>
+          d.id === selectedDocForRegister ? {
+            ...d,
+            file: {
+              id: docData.id,
+              name: projectDoc.name,
+              path: projectDoc.file_path,
+              size: projectDoc.file_size || 0
+            }
+          } : d
+        )
+      );
+
+      setShowDocRegisterDialog(false);
+      toast({
+        title: "Document added",
+        description: `${projectDoc.name} added from document register`
+      });
+    } catch (error: any) {
+      console.error('Error:', error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to add document",
+        variant: "destructive"
+      });
+    }
+  };
+
   return (
     <Card className="border-border/40">
       <CardContent className="p-6">
@@ -431,9 +535,13 @@ export function TenderPackageTracker({ tenderId, projectData, tenderData }: Tend
                                 />
                               </label>
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleChooseFromProjects(doc.id, doc.name)}>
+                             <DropdownMenuItem onClick={() => handleChooseFromProjects(doc.id, doc.name)}>
                               <FolderOpen className="h-4 w-4 mr-2" />
                               Choose from Previous Projects
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleSelectFromRegister(doc.id)}>
+                              <FileText className="h-4 w-4 mr-2" />
+                              From Document Register
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
@@ -509,6 +617,55 @@ export function TenderPackageTracker({ tenderId, projectData, tenderData }: Tend
                           </ProjectBadge>
                         </div>
                       ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </ScrollArea>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showDocRegisterDialog} onOpenChange={setShowDocRegisterDialog}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Select from Document Register</DialogTitle>
+            <DialogDescription>
+              Choose a document from your project's document register
+            </DialogDescription>
+          </DialogHeader>
+          
+          <ScrollArea className="h-[400px]">
+            {projectDocuments.length === 0 ? (
+              <p className="text-center text-muted-foreground py-8">
+                No documents available in the register
+              </p>
+            ) : (
+              <div className="space-y-3">
+                {projectDocuments.map((doc) => (
+                  <div 
+                    key={doc.id} 
+                    className="border rounded-lg p-4 hover:bg-muted/50 cursor-pointer transition-colors"
+                    onClick={() => handleDocumentFromRegisterSelected(doc.id)}
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-start gap-3">
+                        <FileText className="h-5 w-5 text-primary mt-1" />
+                        <div>
+                          <h4 className="font-semibold text-foreground">{doc.name}</h4>
+                          <p className="text-sm text-muted-foreground mt-1">
+                            {doc.category || 'Uncategorized'} • {doc.file_type}
+                          </p>
+                          {doc.file_size && (
+                            <p className="text-xs text-muted-foreground mt-1">
+                              {(doc.file_size / 1024).toFixed(2)} KB
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                      <Button size="sm" variant="outline">
+                        Select
+                      </Button>
                     </div>
                   </div>
                 ))}
