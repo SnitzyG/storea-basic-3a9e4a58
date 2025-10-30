@@ -27,7 +27,8 @@ import { Badge as ProjectBadge } from '@/components/ui/badge';
 
 interface TenderDocument {
   id: number;
-  name: string;
+  folder: string;
+  document: string;
   isConditional?: boolean;
   file?: {
     id: string;
@@ -65,6 +66,8 @@ export function TenderPackageTracker({ tenderId, projectData, tenderData }: Tend
     { category: 'Title Information', documents: ['Title Search', 'LANDATA Search'] },
   ];
 
+  const [removedDocIds, setRemovedDocIds] = useState<number[]>([]);
+
   // Initialize documents from structure
   const initializeDocuments = (): TenderDocument[] => {
     let docId = 1;
@@ -73,7 +76,8 @@ export function TenderPackageTracker({ tenderId, projectData, tenderData }: Tend
       cat.documents.forEach(docName => {
         docs.push({
           id: docId++,
-          name: `${cat.category} - ${docName}`,
+          folder: cat.category,
+          document: docName,
           file: null
         });
       });
@@ -109,17 +113,28 @@ export function TenderPackageTracker({ tenderId, projectData, tenderData }: Tend
     if (!tenderId) return;
 
     try {
-      const { data, error } = await supabase
-        .from('tender_package_documents')
-        .select('*')
-        .eq('tender_id', tenderId);
+      // Load documents and removed IDs
+      const [docsResult, removedResult] = await Promise.all([
+        supabase
+          .from('tender_package_documents')
+          .select('*')
+          .eq('tender_id', tenderId),
+        supabase
+          .from('tender_package_removed_docs')
+          .select('document_id')
+          .eq('tender_id', tenderId)
+      ]);
 
-      if (error) throw error;
+      if (docsResult.error) throw docsResult.error;
 
-      if (data) {
+      const removedIds = (removedResult.data || []).map(r => r.document_id);
+      setRemovedDocIds(removedIds);
+
+      if (docsResult.data) {
         setDocuments(prevDocs =>
           prevDocs.map(doc => {
-            const existingDoc = data.find(d => d.document_type === doc.name);
+            const docKey = `${doc.folder} - ${doc.document}`;
+            const existingDoc = docsResult.data.find(d => d.document_type === docKey);
             if (existingDoc) {
               return {
                 ...doc,
@@ -160,9 +175,11 @@ export function TenderPackageTracker({ tenderId, projectData, tenderData }: Tend
       const doc = documents.find(d => d.id === id);
       if (!doc) return;
 
+      const docKey = `${doc.folder} - ${doc.document}`;
+
       // Upload file to Supabase Storage
       const fileExt = file.name.split('.').pop();
-      const fileName = `${tenderId}/${doc.name.replace(/\s+/g, '_')}_${Date.now()}.${fileExt}`;
+      const fileName = `${tenderId}/${docKey.replace(/\s+/g, '_')}_${Date.now()}.${fileExt}`;
       
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from('tender-packages')
@@ -175,7 +192,7 @@ export function TenderPackageTracker({ tenderId, projectData, tenderData }: Tend
         .from('tender_package_documents')
         .insert({
           tender_id: tenderId,
-          document_type: doc.name,
+          document_type: docKey,
           document_name: file.name,
           file_path: fileName,
           file_size: file.size,
@@ -355,23 +372,54 @@ export function TenderPackageTracker({ tenderId, projectData, tenderData }: Tend
     );
   };
 
-  const handleRemoveDocument = (id: number) => {
-    setDocuments(docs => docs.filter(d => d.id !== id));
-    toast({
-      title: "Document removed",
-      description: "Document has been removed from the list."
-    });
+  const handleRemoveDocument = async (id: number) => {
+    if (!tenderId) return;
+
+    try {
+      // Save to database that this doc is removed
+      await supabase
+        .from('tender_package_removed_docs')
+        .upsert({
+          tender_id: tenderId,
+          document_id: id
+        });
+
+      setRemovedDocIds(prev => [...prev, id]);
+      
+      toast({
+        title: "Document removed",
+        description: "Document has been removed from the list."
+      });
+    } catch (error: any) {
+      console.error('Error removing document:', error);
+      toast({
+        title: "Error",
+        description: "Failed to remove document",
+        variant: "destructive"
+      });
+    }
   };
 
   const handleSelectFromRegister = async (docId: number) => {
     setSelectedDocForRegister(docId);
     
-    // Fetch project documents
+    // Fetch project documents - ensure we have a valid project_id
+    const projectId = tenderData?.project_id || projectData?.id;
+    
+    if (!projectId) {
+      toast({
+        title: "Error",
+        description: "No project selected",
+        variant: "destructive"
+      });
+      return;
+    }
+
     try {
       const { data, error } = await supabase
         .from('documents')
         .select('*')
-        .eq('project_id', tenderData?.project_id || projectData?.id);
+        .eq('project_id', projectId);
 
       if (error) throw error;
 
@@ -397,12 +445,14 @@ export function TenderPackageTracker({ tenderId, projectData, tenderData }: Tend
       const doc = documents.find(d => d.id === selectedDocForRegister);
       if (!doc) return;
 
+      const docKey = `${doc.folder} - ${doc.document}`;
+
       // Save reference to database
       const { data: docData, error } = await supabase
         .from('tender_package_documents')
         .insert({
           tender_id: tenderId,
-          document_type: doc.name,
+          document_type: docKey,
           document_name: projectDoc.name,
           file_path: projectDoc.file_path,
           file_size: projectDoc.file_size,
