@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Upload, FileText, X, FilePlus, FolderOpen, Trash2 } from 'lucide-react';
+import { Upload, FileText, X, FilePlus, FolderOpen, Trash2, Plus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -27,8 +27,10 @@ import { Badge as ProjectBadge } from '@/components/ui/badge';
 
 interface TenderDocument {
   id: number;
-  name: string;
+  folder: string;
+  document: string;
   isConditional?: boolean;
+  removed?: boolean;
   file?: {
     id: string;
     name: string;
@@ -73,8 +75,10 @@ export function TenderPackageTracker({ tenderId, projectData, tenderData }: Tend
       cat.documents.forEach(docName => {
         docs.push({
           id: docId++,
-          name: `${cat.category} - ${docName}`,
-          file: null
+          folder: cat.category,
+          document: docName,
+          file: null,
+          removed: false
         });
       });
     });
@@ -117,24 +121,25 @@ export function TenderPackageTracker({ tenderId, projectData, tenderData }: Tend
       if (error) throw error;
 
       if (data) {
-        setDocuments(prevDocs =>
-          prevDocs.map(doc => {
-            const existingDoc = data.find(d => d.document_type === doc.name);
-            if (existingDoc) {
-              return {
-                ...doc,
-                file: {
-                  id: existingDoc.id,
-                  name: existingDoc.document_name,
-                  path: existingDoc.file_path,
-                  size: existingDoc.file_size || 0,
-                  content: existingDoc.document_content
-                }
-              };
-            }
-            return doc;
-          })
-        );
+        const updatedDocs = initializeDocuments().map(doc => {
+          const docKey = `${doc.folder} - ${doc.document}`;
+          const existingDoc = data.find(d => d.document_type === docKey);
+          
+          if (existingDoc) {
+            return {
+              ...doc,
+              file: {
+                id: existingDoc.id,
+                name: existingDoc.document_name,
+                path: existingDoc.file_path,
+                size: existingDoc.file_size || 0,
+                content: existingDoc.document_content
+              }
+            };
+          }
+          return doc;
+        });
+        setDocuments(updatedDocs);
       }
     } catch (error) {
       console.error('Error loading documents:', error);
@@ -162,7 +167,8 @@ export function TenderPackageTracker({ tenderId, projectData, tenderData }: Tend
 
       // Upload file to Supabase Storage
       const fileExt = file.name.split('.').pop();
-      const fileName = `${tenderId}/${doc.name.replace(/\s+/g, '_')}_${Date.now()}.${fileExt}`;
+      const docKey = `${doc.folder} - ${doc.document}`;
+      const fileName = `${tenderId}/${docKey.replace(/\s+/g, '_')}_${Date.now()}.${fileExt}`;
       
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from('tender-packages')
@@ -175,7 +181,7 @@ export function TenderPackageTracker({ tenderId, projectData, tenderData }: Tend
         .from('tender_package_documents')
         .insert({
           tender_id: tenderId,
-          document_type: doc.name,
+          document_type: docKey,
           document_name: file.name,
           file_path: fileName,
           file_size: file.size,
@@ -273,13 +279,14 @@ export function TenderPackageTracker({ tenderId, projectData, tenderData }: Tend
     if (!doc) return;
     
     setSelectedDocType(docId);
-    setSelectedTemplate(doc.name);
+    setSelectedTemplate(`${doc.folder} - ${doc.document}`);
     setEditingDocId(fileId);
     setCreatorDialogOpen(true);
   };
 
   const handleChooseFromProjects = async (docId: number, docName: string) => {
     setSelectedDocType(docId);
+    setSelectedTemplate(docName);
     
     // Fetch projects with tenders that have this document type
     try {
@@ -356,7 +363,10 @@ export function TenderPackageTracker({ tenderId, projectData, tenderData }: Tend
   };
 
   const handleRemoveDocument = (id: number) => {
-    setDocuments(docs => docs.filter(d => d.id !== id));
+    setDocuments(docs => 
+      docs.map(d => d.id === id ? { ...d, removed: true } : d)
+    );
+    
     toast({
       title: "Document removed",
       description: "Document has been removed from the list."
@@ -368,10 +378,16 @@ export function TenderPackageTracker({ tenderId, projectData, tenderData }: Tend
     
     // Fetch project documents
     try {
+      const projectId = tenderData?.project_id || projectData?.id;
+      
+      if (!projectId) {
+        throw new Error('No project ID found');
+      }
+
       const { data, error } = await supabase
         .from('documents')
         .select('*')
-        .eq('project_id', tenderData?.project_id || projectData?.id);
+        .eq('project_id', projectId);
 
       if (error) throw error;
 
@@ -397,12 +413,14 @@ export function TenderPackageTracker({ tenderId, projectData, tenderData }: Tend
       const doc = documents.find(d => d.id === selectedDocForRegister);
       if (!doc) return;
 
+      const docKey = `${doc.folder} - ${doc.document}`;
+
       // Save reference to database
       const { data: docData, error } = await supabase
         .from('tender_package_documents')
         .insert({
           tender_id: tenderId,
-          document_type: doc.name,
+          document_type: docKey,
           document_name: projectDoc.name,
           file_path: projectDoc.file_path,
           file_size: projectDoc.file_size,
@@ -451,18 +469,22 @@ export function TenderPackageTracker({ tenderId, projectData, tenderData }: Tend
             <TableHeader>
               <TableRow className="bg-muted/50 hover:bg-muted/50">
                 <TableHead className="w-16">Item</TableHead>
-                <TableHead>Document Name</TableHead>
+                <TableHead>Folder</TableHead>
+                <TableHead>Document</TableHead>
                 <TableHead className="w-32 text-center">Status</TableHead>
-                <TableHead className="w-48 text-center">File Preview</TableHead>
+                <TableHead className="w-48 text-center">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {documents.map((doc) => (
+              {documents.filter(doc => !doc.removed).map((doc) => (
                 <TableRow key={doc.id} className="hover:bg-muted/20">
                   <TableCell className="font-semibold text-primary">{doc.id}</TableCell>
                   <TableCell>
+                    <span className="font-medium">{doc.folder}</span>
+                  </TableCell>
+                  <TableCell>
                     <div className="flex items-center gap-2">
-                      <span className="font-medium">{doc.name}</span>
+                      <span className="font-medium">{doc.document}</span>
                       {doc.isConditional && (
                         <Badge variant="outline" className="bg-orange-50 text-orange-700 border-orange-200">
                           Conditional
@@ -509,15 +531,16 @@ export function TenderPackageTracker({ tenderId, projectData, tenderData }: Tend
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <Button
-                              variant="outline"
+                              variant="ghost"
                               size="sm"
                               disabled={uploading === doc.id}
+                              className="h-8 w-8 p-0"
                             >
-                              Add Document
+                              <Plus className="h-4 w-4" />
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => handleCreateDocument(doc.id, doc.name)}>
+                            <DropdownMenuItem onClick={() => handleCreateDocument(doc.id, `${doc.folder} - ${doc.document}`)}>
                               <FilePlus className="h-4 w-4 mr-2" />
                               Create from Template
                             </DropdownMenuItem>
@@ -535,7 +558,7 @@ export function TenderPackageTracker({ tenderId, projectData, tenderData }: Tend
                                 />
                               </label>
                             </DropdownMenuItem>
-                             <DropdownMenuItem onClick={() => handleChooseFromProjects(doc.id, doc.name)}>
+                             <DropdownMenuItem onClick={() => handleChooseFromProjects(doc.id, `${doc.folder} - ${doc.document}`)}>
                               <FolderOpen className="h-4 w-4 mr-2" />
                               Choose from Previous Projects
                             </DropdownMenuItem>
