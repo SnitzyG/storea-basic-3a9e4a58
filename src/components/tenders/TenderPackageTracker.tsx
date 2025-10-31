@@ -382,6 +382,13 @@ export function TenderPackageTracker({ tenderId, projectData, tenderData }: Tend
     try {
       const projectId = tenderData?.project_id || projectData?.id || selectedProject?.id;
       
+      console.log('Loading documents for project:', {
+        tenderProjectId: tenderData?.project_id,
+        projectDataId: projectData?.id,
+        selectedProjectId: selectedProject?.id,
+        finalProjectId: projectId
+      });
+      
       if (!projectId) {
         toast({
           title: 'Select a project',
@@ -396,7 +403,17 @@ export function TenderPackageTracker({ tenderId, projectData, tenderData }: Tend
         .select('*')
         .eq('project_id', projectId);
 
+      console.log('Documents query result:', { data, error, count: data?.length });
+
       if (error) throw error;
+
+      if (!data || data.length === 0) {
+        toast({
+          title: "No documents found",
+          description: `No documents found for project ID: ${projectId}. Please upload documents to the Documents tab first.`,
+          variant: "destructive"
+        });
+      }
 
       setProjectDocuments(data || []);
       setShowDocRegisterDialog(true);
@@ -404,7 +421,7 @@ export function TenderPackageTracker({ tenderId, projectData, tenderData }: Tend
       console.error('Error fetching documents:', error);
       toast({
         title: "Error",
-        description: "Failed to load documents from register",
+        description: error.message || "Failed to load documents from register",
         variant: "destructive"
       });
     }
