@@ -24,6 +24,7 @@ import {
 } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge as ProjectBadge } from '@/components/ui/badge';
+import { useProjectSelection } from '@/context/ProjectSelectionContext';
 
 interface TenderDocument {
   id: number;
@@ -49,6 +50,7 @@ interface TenderPackageTrackerProps {
 export function TenderPackageTracker({ tenderId, projectData, tenderData }: TenderPackageTrackerProps) {
   const { toast } = useToast();
   const { profile } = useAuth();
+  const { selectedProject } = useProjectSelection();
   // Document structure based on new requirements
   const DOCUMENT_STRUCTURE = [
     { category: 'Tender Form', documents: ['Tender form'] },
@@ -378,10 +380,15 @@ export function TenderPackageTracker({ tenderId, projectData, tenderData }: Tend
     
     // Fetch project documents
     try {
-      const projectId = tenderData?.project_id || projectData?.id;
+      const projectId = tenderData?.project_id || projectData?.id || selectedProject?.id;
       
       if (!projectId) {
-        throw new Error('No project ID found');
+        toast({
+          title: 'Select a project',
+          description: 'Please select a project to load its document register.',
+          variant: 'destructive'
+        });
+        return;
       }
 
       const { data, error } = await supabase
