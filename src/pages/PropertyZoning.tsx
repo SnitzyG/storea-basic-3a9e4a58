@@ -1,4 +1,29 @@
-import { useState } from "react";
+// Generate Planning Report PDF
+  const generatePlanningReport = async (streetNumber: string, streetName: string, suburb: string, postcode: string) => {
+    try {
+      toast.loading("Generating planning report...");
+
+      const fullAddress = `${streetNumber} ${streetName}, ${suburb} VIC ${postcode}`;
+      
+      // Format: ADDRESS-SUBURB-(IDXXXXXXX)-Vicplan-Planning-Property-Report.pdf
+      const reportName = `${streetNumber}-${streetName.replace(/\s+/g, '-')}-${suburb}-(ID${Date.now()})-Vicplan-Planning-Property-Report.pdf`;
+      
+      // VicPlan Planning Report URL
+      // This is a dummy implementation - in production you'd generate actual PDF
+      const reportUrl = `https://www.planning.vic.gov.au/planning-report?address=${encodeURIComponent(fullAddress)}`;
+
+      toast.success("Planning Report Ready!", {
+        description: "Opening VicPlan planning report...",
+      });
+
+      // Open VicPlan to generate report
+      window.open(`https://mapshare.vic.gov.au/vicplan/?search=${encodeURIComponent(fullAddress)}`, "_blank");
+
+    } catch (err) {
+      console.error("Report generation error:", err);
+      toast.error("Failed to generate report");
+    }
+  };import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -25,14 +50,10 @@ const PropertyZoning = () => {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState("byda");
 
-  // BYDA State
-  const [bydaAddress, setBydaAddress] = useState("");
-  const [bydaEmail, setBydaEmail] = useState("");
-  const [bydaPhone, setBydaPhone] = useState("");
-  const [bydaProjectId, setBydaProjectId] = useState("");
-  const [isLoadingBYDA, setIsLoadingBYDA] = useState(false);
-  const [bydaResult, setBydaResult] = useState<BYDAEnquiry | null>(null);
-  const [bydaSaved, setBydaSaved] = useState(false);
+  const [streetNumber, setStreetNumber] = useState("");
+  const [streetName, setStreetName] = useState("");
+  const [suburb, setSuburb] = useState("");
+  const [postcode, setPostcode] = useState("");
 
   // Geocoding helper
   const geocodeAddress = async (addressText: string): Promise<{ lat: number; lon: number } | null> => {
@@ -59,8 +80,8 @@ const PropertyZoning = () => {
 
   // Submit BYDA Enquiry - DUMMY DATA
   const submitBYDAEnquiry = async () => {
-    if (!bydaAddress.trim()) {
-      toast.error("Error", { description: "Please enter an address" });
+    if (!streetNumber || !streetName || !suburb || !postcode) {
+      toast.error("Error", { description: "Please complete the address" });
       return;
     }
     if (!bydaEmail.trim()) {
@@ -78,9 +99,10 @@ const PropertyZoning = () => {
 
       // Create dummy enquiry result
       const jobId = `BYDA-${Date.now()}`;
+      const fullAddress = `${streetNumber} ${streetName}, ${suburb} VIC ${postcode}`;
       const enquiry: BYDAEnquiry = {
         jobId,
-        address: bydaAddress.trim(),
+        address: fullAddress,
         latitude: -37.8136,
         longitude: 144.9631,
         contactEmail: bydaEmail.trim(),
@@ -131,7 +153,10 @@ const PropertyZoning = () => {
   };
 
   const handleNewBYDASearch = () => {
-    setBydaAddress("");
+    setStreetNumber("");
+    setStreetName("");
+    setSuburb("");
+    setPostcode("");
     setBydaEmail("");
     setBydaPhone("");
     setBydaProjectId("");
@@ -290,6 +315,8 @@ const PropertyZoning = () => {
                       <Label htmlFor="streetNumber">Street Number *</Label>
                       <Input
                         id="streetNumber"
+                        value={streetNumber}
+                        onChange={(e) => setStreetNumber(e.target.value)}
                         placeholder="e.g., 22"
                         disabled={isLoadingBYDA}
                       />
@@ -298,6 +325,8 @@ const PropertyZoning = () => {
                       <Label htmlFor="streetName">Street Name *</Label>
                       <Input
                         id="streetName"
+                        value={streetName}
+                        onChange={(e) => setStreetName(e.target.value)}
                         placeholder="e.g., Pardoner Rd"
                         disabled={isLoadingBYDA}
                       />
@@ -309,6 +338,8 @@ const PropertyZoning = () => {
                       <Label htmlFor="suburb">Suburb *</Label>
                       <Input
                         id="suburb"
+                        value={suburb}
+                        onChange={(e) => setSuburb(e.target.value)}
                         placeholder="e.g., Rye"
                         disabled={isLoadingBYDA}
                       />
@@ -317,6 +348,8 @@ const PropertyZoning = () => {
                       <Label htmlFor="postcode">Postcode *</Label>
                       <Input
                         id="postcode"
+                        value={postcode}
+                        onChange={(e) => setPostcode(e.target.value)}
                         placeholder="e.g., 3941"
                         disabled={isLoadingBYDA}
                       />
@@ -336,8 +369,38 @@ const PropertyZoning = () => {
                   <div className="bg-blue-50 p-3 rounded text-sm">
                     <p className="font-medium">Full Address:</p>
                     <p className="text-primary font-semibold">
-                      22 Pardoner Rd, Rye VIC 3941
+                      {streetNumber && streetName && suburb && postcode
+                        ? `${streetNumber} ${streetName}, ${suburb} VIC ${postcode}`
+                        : "Complete all fields to see full address"}
                     </p>
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row gap-3 pt-4">
+                    <Button
+                      onClick={() => generatePlanningReport(streetNumber, streetName, suburb, postcode)}
+                      disabled={!streetNumber || !streetName || !suburb || !postcode || isLoadingBYDA}
+                      className="flex-1"
+                      variant="outline"
+                    >
+                      📄 Generate Planning Report
+                    </Button>
+                    <Button
+                      onClick={submitBYDAEnquiry}
+                      disabled={!streetNumber || !streetName || !suburb || !postcode || !bydaEmail.trim() || isLoadingBYDA}
+                      className="flex-1"
+                    >
+                      {isLoadingBYDA ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Submitting...
+                        </>
+                      ) : (
+                        <>
+                          <Zap className="mr-2 h-4 w-4" />
+                          Submit BYDA Enquiry
+                        </>
+                      )}
+                    </Button>
                   </div>
                 </div>
 
