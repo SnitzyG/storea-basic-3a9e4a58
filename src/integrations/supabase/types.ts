@@ -1704,6 +1704,51 @@ export type Database = {
           },
         ]
       }
+      property_zoning: {
+        Row: {
+          address: string
+          api_called_at: string | null
+          building_coverage: string | null
+          created_at: string | null
+          full_response: Json | null
+          height_limit: string | null
+          id: string
+          overlays: string[] | null
+          planning_scheme: string | null
+          project_id: string | null
+          user_id: string | null
+          zone: string | null
+        }
+        Insert: {
+          address: string
+          api_called_at?: string | null
+          building_coverage?: string | null
+          created_at?: string | null
+          full_response?: Json | null
+          height_limit?: string | null
+          id?: string
+          overlays?: string[] | null
+          planning_scheme?: string | null
+          project_id?: string | null
+          user_id?: string | null
+          zone?: string | null
+        }
+        Update: {
+          address?: string
+          api_called_at?: string | null
+          building_coverage?: string | null
+          created_at?: string | null
+          full_response?: Json | null
+          height_limit?: string | null
+          id?: string
+          overlays?: string[] | null
+          planning_scheme?: string | null
+          project_id?: string | null
+          user_id?: string | null
+          zone?: string | null
+        }
+        Relationships: []
+      }
       rfi_activities: {
         Row: {
           action: string
