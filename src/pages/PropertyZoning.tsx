@@ -8,16 +8,15 @@ export default function PropertyZoning() {
   const [postcode, setPostcode] = React.useState("");
 
   // Open VicPlan map with pre-filled search
-  const openVicPlan = () => {
+  const openVicPlanMap = () => {
     if (!streetNumber || !streetName || !suburb || !postcode) {
-      alert("Please complete all address fields before continuing.");
+      alert("Please complete all address fields.");
       return;
     }
 
     const fullAddress = `${streetNumber} ${streetName}, ${suburb} VIC ${postcode}`;
     const vicPlanUrl = `https://mapshare.vic.gov.au/vicplan/?search=${encodeURIComponent(fullAddress)}`;
 
-    // Open in new tab
     window.open(vicPlanUrl, "_blank");
   };
 
@@ -58,7 +57,7 @@ export default function PropertyZoning() {
 
       <div className="mt-6">
         <button
-          onClick={openVicPlan}
+          onClick={openVicPlanMap}
           className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
         >
           🔍 View Planning Report in VicPlan
@@ -66,7 +65,7 @@ export default function PropertyZoning() {
       </div>
 
       <p className="mt-4 text-sm text-gray-600">
-        This will open the VicPlan map with your address pre-filled. From there, click "Planning Property Report" to generate the official PDF.
+        This will open VicPlan with your address pre-filled. From there, click "Planning Property Report" to generate the official PDF.
       </p>
     </div>
   );
