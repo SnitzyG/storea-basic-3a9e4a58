@@ -38,7 +38,10 @@ interface ZoningData {
   zoneCode: string;
   overlays: string[];
   lgaName: string;
-  rawResponse: VicmapResponse;
+  rawResponse: {
+    zones: VicmapResponse;
+    overlays: VicmapResponse;
+  };
 }
 
 const PropertyZoning = () => {
@@ -99,51 +102,69 @@ const PropertyZoning = () => {
       const params = new URLSearchParams({
         geometry,
         geometryType: "esriGeometryPoint",
-        layers: "1,2",
-        tolerance: "1",
+        layers: "all",
+        tolerance: "5",
         imageDisplay: "400,300,96",
         returnGeometry: "true",
         f: "json",
       });
 
-      const url = `https://plan-gis.mapshare.vic.gov.au/arcgis/rest/services/Planning/Vicplan_PlanningSchemeZones/MapServer/identify?${params.toString()}`;
+      // Query zones
+      const zonesUrl = `https://plan-gis.mapshare.vic.gov.au/arcgis/rest/services/Planning/Vicplan_PlanningSchemeZones/MapServer/identify?${params.toString()}`;
+      
+      const zonesResponse = await fetch(zonesUrl);
 
-      const response = await fetch(url);
-
-      if (!response.ok) {
-        throw new Error(`Vicmap API error: ${response.statusText}`);
+      if (!zonesResponse.ok) {
+        throw new Error(`Vicmap Zones API error: ${zonesResponse.statusText}`);
       }
 
-      const data: VicmapResponse = await response.json();
+      const zonesData: VicmapResponse = await zonesResponse.json();
 
-      if (!data.results || data.results.length === 0) {
-        throw new Error("No planning information found for this location");
+      // Query overlays
+      const overlaysUrl = `https://plan-gis.mapshare.vic.gov.au/arcgis/rest/services/Planning/Vicplan_PlanningSchemeOverlays/MapServer/identify?${params.toString()}`;
+      
+      const overlaysResponse = await fetch(overlaysUrl);
+
+      if (!overlaysResponse.ok) {
+        throw new Error(`Vicmap Overlays API error: ${overlaysResponse.statusText}`);
       }
 
+      const overlaysData: VicmapResponse = await overlaysResponse.json();
+
+      // Process zones results
       let zone = "";
       let zoneCode = "";
       let lgaName = "";
-      const overlays: string[] = [];
 
-      // Process results
-      for (const result of data.results) {
-        if (result.layerId === 1 || result.layerName.includes("Zone")) {
-          // This is a zone layer
+      if (zonesData.results && zonesData.results.length > 0) {
+        for (const result of zonesData.results) {
           const attrs = result.attributes;
-          zone = attrs.ZONE_NAME ? attrs.ZONE_NAME.toString() : zone;
-          zoneCode = attrs.ZONE_CODE ? attrs.ZONE_CODE.toString() : zoneCode;
-          lgaName = attrs.LGA_NAME ? attrs.LGA_NAME.toString() : lgaName;
-        } else if (result.layerId === 2 || result.layerName.includes("Overlay")) {
-          // This is an overlay layer
-          const overlayName = result.attributes.OVERLAY_NAME || result.attributes.OVERLAY_TYPE;
-          if (overlayName) {
+          
+          // Look for zone information in any result
+          if (attrs.ZONE_NAME) {
+            zone = attrs.ZONE_NAME.toString();
+            zoneCode = attrs.ZONE_CODE ? attrs.ZONE_CODE.toString() : "";
+            lgaName = attrs.LGA_NAME ? attrs.LGA_NAME.toString() : "";
+            break;
+          }
+        }
+      }
+
+      // Process overlays results
+      const overlays: string[] = [];
+      if (overlaysData.results && overlaysData.results.length > 0) {
+        for (const result of overlaysData.results) {
+          const attrs = result.attributes;
+          const overlayName = attrs.OVERLAY_NAME || attrs.OVERLAY_TYPE;
+          
+          if (overlayName && !overlays.includes(overlayName.toString())) {
             overlays.push(overlayName.toString());
           }
         }
       }
 
       if (!zone) {
-        throw new Error("Could not determine planning zone for this location");
+        throw new Error("Could not determine planning zone for this location. Please try a different address.");
       }
 
       return {
@@ -152,9 +173,12 @@ const PropertyZoning = () => {
         longitude,
         zone,
         zoneCode,
-        overlays: [...new Set(overlays)], // Remove duplicates
+        overlays,
         lgaName,
-        rawResponse: data,
+        rawResponse: {
+          zones: zonesData,
+          overlays: overlaysData,
+        },
       };
     } catch (err) {
       console.error("Vicmap API error:", err);
@@ -476,13 +500,17 @@ const PropertyZoning = () => {
         </CardHeader>
         <CardContent className="text-sm text-muted-foreground space-y-2">
           <p>
-            This tool uses <strong>Vicmap Planning</strong> data from the Victorian Government to retrieve accurate zoning and overlay information.
+            This tool queries <strong>Vicmap Planning</strong> from the Victorian Government using two separate map services:
           </p>
+          <ul className="list-disc list-inside space-y-1">
+            <li>Planning Scheme Zones (Vicplan_PlanningSchemeZones)</li>
+            <li>Planning Scheme Overlays (Vicplan_PlanningSchemeOverlays)</li>
+          </ul>
           <p>
             Address lookup is performed using <strong>OpenStreetMap Nominatim</strong> geocoding service.
           </p>
           <p>
-            Data is current as of the last Vicmap update. For official queries, contact your local council planning department.
+            For official queries, contact your local council planning department or visit VicPlan at https://vicplan.vic.gov.au
           </p>
         </CardContent>
       </Card>
