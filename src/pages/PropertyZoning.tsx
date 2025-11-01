@@ -1,492 +1,115 @@
-// Generate Planning Report PDF
-  const generatePlanningReport = async (streetNumber: string, streetName: string, suburb: string, postcode: string) => {
-    try {
-      toast.loading("Generating planning report...");
-
-      const fullAddress = `${streetNumber} ${streetName}, ${suburb} VIC ${postcode}`;
-      
-      // Format: ADDRESS-SUBURB-(IDXXXXXXX)-Vicplan-Planning-Property-Report.pdf
-      const reportName = `${streetNumber}-${streetName.replace(/\s+/g, '-')}-${suburb}-(ID${Date.now()})-Vicplan-Planning-Property-Report.pdf`;
-      
-      // VicPlan Planning Report URL
-      // This is a dummy implementation - in production you'd generate actual PDF
-      const reportUrl = `https://www.planning.vic.gov.au/planning-report?address=${encodeURIComponent(fullAddress)}`;
-
-      toast.success("Planning Report Ready!", {
-        description: "Opening VicPlan planning report...",
-      });
-
-      // Open VicPlan to generate report
-      window.open(`https://mapshare.vic.gov.au/vicplan/?search=${encodeURIComponent(fullAddress)}`, "_blank");
-
-    } catch (err) {
-      console.error("Report generation error:", err);
-      toast.error("Failed to generate report");
-    }
-  };import { useState } from "react";
-import { useAuth } from "@/hooks/useAuth";
-import { supabase } from "@/integrations/supabase/client";
+import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Badge } from "@/components/ui/badge";
-import { MapPin, Zap, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-
-interface BYDAEnquiry {
-  jobId: string;
-  address: string;
-  latitude: number;
-  longitude: number;
-  contactEmail: string;
-  submittedAt: string;
-  status: string;
-}
 
 const PropertyZoning = () => {
-  const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState("byda");
-
   const [streetNumber, setStreetNumber] = useState("");
   const [streetName, setStreetName] = useState("");
   const [suburb, setSuburb] = useState("");
   const [postcode, setPostcode] = useState("");
 
-  // Geocoding helper
-  const geocodeAddress = async (addressText: string): Promise<{ lat: number; lon: number } | null> => {
+  // Generate Planning Report PDF (opens VicPlan)
+  const generatePlanningReport = async (
+    streetNumber: string,
+    streetName: string,
+    suburb: string,
+    postcode: string
+  ) => {
     try {
-      const encodedAddress = encodeURIComponent(addressText.trim());
-      const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodedAddress}&countrycodes=au&limit=1`
-      );
+      toast.loading("Generating planning report...");
 
-      if (!response.ok) return null;
-
-      const data = await response.json();
-      if (!data || data.length === 0) return null;
-
-      return {
-        lat: parseFloat(data[0].lat.toString()),
-        lon: parseFloat(data[0].lon.toString()),
-      };
-    } catch (err) {
-      console.error("Geocoding error:", err);
-      return null;
-    }
-  };
-
-  // Submit BYDA Enquiry - DUMMY DATA
-  const submitBYDAEnquiry = async () => {
-    if (!streetNumber || !streetName || !suburb || !postcode) {
-      toast.error("Error", { description: "Please complete the address" });
-      return;
-    }
-    if (!bydaEmail.trim()) {
-      toast.error("Error", { description: "Please enter your email" });
-      return;
-    }
-
-    setIsLoadingBYDA(true);
-
-    try {
-      toast.loading("Processing enquiry...");
-
-      // Simulate processing delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      // Create dummy enquiry result
-      const jobId = `BYDA-${Date.now()}`;
       const fullAddress = `${streetNumber} ${streetName}, ${suburb} VIC ${postcode}`;
-      const enquiry: BYDAEnquiry = {
-        jobId,
-        address: fullAddress,
-        latitude: -37.8136,
-        longitude: 144.9631,
-        contactEmail: bydaEmail.trim(),
-        submittedAt: new Date().toISOString(),
-        status: "Submitted to BYDA - Awaiting responses (2-3 business days)",
-      };
+      const reportName = `${streetNumber}-${streetName.replace(/\s+/g, '-')}-${suburb}-(ID${Date.now()})-Vicplan-Planning-Property-Report.pdf`;
 
-      setBydaResult(enquiry);
-      toast.success("BYDA Enquiry Created!", {
-        description: `Job ID: ${jobId}`,
-      });
-    } catch (err) {
-      console.error("BYDA error:", err);
-      toast.error("Failed to create enquiry");
-    } finally {
-      setIsLoadingBYDA(false);
-    }
-  };
-
-  // Save BYDA result to database
-  const saveBYDAToProject = async () => {
-    if (!bydaResult || !user) {
-      toast.error("Cannot save");
-      return;
-    }
-
-    try {
-      const { error: saveError } = await supabase.from("byda_enquiries").insert({
-        user_id: user.id,
-        project_id: bydaProjectId.trim() || null,
-        job_id: bydaResult.jobId,
-        address: bydaResult.address,
-        latitude: bydaResult.latitude,
-        longitude: bydaResult.longitude,
-        contact_email: bydaResult.contactEmail,
-        status: bydaResult.status,
-        submitted_at: bydaResult.submittedAt,
+      toast.success("Planning Report Ready!", {
+        description: "Opening VicPlan planning report...",
       });
 
-      if (saveError) throw saveError;
-
-      setBydaSaved(true);
-      toast.success("✓ BYDA enquiry saved to project!");
+      // Open VicPlan map for report
+      window.open(
+        `https://mapshare.vic.gov.au/vicplan/?search=${encodeURIComponent(fullAddress)}`,
+        "_blank"
+      );
     } catch (err) {
-      console.error("Error saving:", err);
-      toast.error("Failed to save enquiry");
+      console.error("Report generation error:", err);
+      toast.error("Failed to generate report");
     }
-  };
-
-  const handleNewBYDASearch = () => {
-    setStreetNumber("");
-    setStreetName("");
-    setSuburb("");
-    setPostcode("");
-    setBydaEmail("");
-    setBydaPhone("");
-    setBydaProjectId("");
-    setBydaResult(null);
-    setBydaSaved(false);
   };
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-4xl">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Property Search</h1>
-        <p className="text-muted-foreground">
-          Get information about utilities and underground services at your property
-        </p>
-      </div>
+    <div className="container mx-auto px-4 py-8 max-w-3xl">
+      <Card>
+        <CardHeader>
+          <CardTitle>Generate Planning Report</CardTitle>
+          <CardDescription>
+            Create a planning report from VicPlan for your selected property.
+          </CardDescription>
+        </CardHeader>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-1">
-          <TabsTrigger value="byda">Before You Dig (BYDA) - Underground Utilities</TabsTrigger>
-        </TabsList>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="streetNumber">Street Number *</Label>
+              <Input
+                id="streetNumber"
+                value={streetNumber}
+                onChange={(e) => setStreetNumber(e.target.value)}
+                placeholder="e.g., 22"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="streetName">Street Name *</Label>
+              <Input
+                id="streetName"
+                value={streetName}
+                onChange={(e) => setStreetName(e.target.value)}
+                placeholder="e.g., Pardoner Rd"
+              />
+            </div>
+          </div>
 
-        {/* BYDA Tab */}
-        <TabsContent value="byda" className="space-y-6">
-          {bydaResult ? (
-            // BYDA Results
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <CheckCircle2 className="h-5 w-5 text-green-600" />
-                  BYDA Enquiry Submitted
-                </CardTitle>
-                <CardDescription>{bydaResult.address}</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                {/* Job ID */}
-                <div className="bg-blue-50 p-4 rounded-lg">
-                  <p className="text-sm font-medium">Job ID</p>
-                  <p className="text-lg font-bold text-primary">{bydaResult.jobId}</p>
-                </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="suburb">Suburb *</Label>
+              <Input
+                id="suburb"
+                value={suburb}
+                onChange={(e) => setSuburb(e.target.value)}
+                placeholder="e.g., Rye"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="postcode">Postcode *</Label>
+              <Input
+                id="postcode"
+                value={postcode}
+                onChange={(e) => setPostcode(e.target.value)}
+                placeholder="e.g., 3941"
+              />
+            </div>
+          </div>
 
-                {/* Status */}
-                <div className="bg-amber-50 p-4 rounded-lg border border-amber-200">
-                  <div className="flex items-start gap-2">
-                    <AlertCircle className="h-5 w-5 text-amber-600 mt-0.5" />
-                    <div>
-                      <p className="font-medium text-amber-900">Status</p>
-                      <p className="text-sm text-amber-800">{bydaResult.status}</p>
-                    </div>
-                  </div>
-                </div>
+          <div className="bg-blue-50 p-3 rounded text-sm">
+            <p className="font-medium">Full Address:</p>
+            <p className="text-primary font-semibold">
+              {streetNumber && streetName && suburb && postcode
+                ? `${streetNumber} ${streetName}, ${suburb} VIC ${postcode}`
+                : "Complete all fields to see full address"}
+            </p>
+          </div>
 
-                {/* Coordinates */}
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-sm font-medium">Latitude</p>
-                    <p className="text-sm">{bydaResult.latitude.toFixed(6)}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium">Longitude</p>
-                    <p className="text-sm">{bydaResult.longitude.toFixed(6)}</p>
-                  </div>
-                </div>
-
-                {/* Email */}
-                <div className="bg-slate-50 p-4 rounded-lg">
-                  <p className="text-sm font-medium">Contact Email</p>
-                  <p className="text-sm">{bydaResult.contactEmail}</p>
-                  <p className="text-xs text-muted-foreground mt-2">
-                    Responses will be sent to this email
-                  </p>
-                </div>
-
-                {/* Info Alert */}
-                <Alert>
-                  <Zap className="h-4 w-4" />
-                  <AlertTitle>What Happens Next</AlertTitle>
-                  <AlertDescription className="mt-2 space-y-1 text-sm">
-                    <p>• Underground utility providers will respond to your enquiry</p>
-                    <p>• Responses arrive within 2-3 business days</p>
-                    <p>• You'll receive location maps and safety information</p>
-                    <p>• Before digging or construction, wait for all responses</p>
-                  </AlertDescription>
-                </Alert>
-
-                {/* Project ID */}
-                <div className="space-y-2">
-                  <Label htmlFor="bydaProjectId">Project ID (Optional)</Label>
-                  <Input
-                    id="bydaProjectId"
-                    value={bydaProjectId}
-                    onChange={(e) => setBydaProjectId(e.target.value)}
-                    placeholder="e.g., Project 001"
-                  />
-                </div>
-
-                {/* Action Buttons */}
-                <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t">
-                  <Button
-                    onClick={saveBYDAToProject}
-                    disabled={bydaSaved}
-                    className="flex-1"
-                  >
-                    {bydaSaved ? (
-                      <>
-                        <CheckCircle2 className="mr-2 h-4 w-4" />
-                        Saved
-                      </>
-                    ) : (
-                      "Save to Project"
-                    )}
-                  </Button>
-
-                  <Button
-                    onClick={handleNewBYDASearch}
-                    variant="secondary"
-                    className="flex-1"
-                  >
-                    New Enquiry
-                  </Button>
-                </div>
-
-                {bydaSaved && (
-                  <Alert className="bg-green-50 border-green-200">
-                    <CheckCircle2 className="h-4 w-4 text-green-600" />
-                    <AlertTitle className="text-green-900">Saved!</AlertTitle>
-                    <AlertDescription className="text-green-800">
-                      BYDA enquiry saved to your project.
-                    </AlertDescription>
-                  </Alert>
-                )}
-              </CardContent>
-            </Card>
-          ) : (
-            // BYDA Form
-            <Card>
-              <CardHeader>
-                <CardTitle>Before You Dig (BYDA) Enquiry</CardTitle>
-                <CardDescription>
-                  Check for underground utilities before digging or construction
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <Alert className="bg-blue-50 border-blue-200">
-                  <MapPin className="h-4 w-4" />
-                  <AlertTitle>What is BYDA?</AlertTitle>
-                  <AlertDescription className="text-sm">
-                    Before You Dig enquiries notify utility providers (electricity, gas, water, 
-                    telecommunications) about planned work. They respond with underground asset 
-                    locations to help keep your site safe.
-                  </AlertDescription>
-                </Alert>
-
-                <div className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="streetNumber">Street Number *</Label>
-                      <Input
-                        id="streetNumber"
-                        value={streetNumber}
-                        onChange={(e) => setStreetNumber(e.target.value)}
-                        placeholder="e.g., 22"
-                        disabled={isLoadingBYDA}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="streetName">Street Name *</Label>
-                      <Input
-                        id="streetName"
-                        value={streetName}
-                        onChange={(e) => setStreetName(e.target.value)}
-                        placeholder="e.g., Pardoner Rd"
-                        disabled={isLoadingBYDA}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="suburb">Suburb *</Label>
-                      <Input
-                        id="suburb"
-                        value={suburb}
-                        onChange={(e) => setSuburb(e.target.value)}
-                        placeholder="e.g., Rye"
-                        disabled={isLoadingBYDA}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="postcode">Postcode *</Label>
-                      <Input
-                        id="postcode"
-                        value={postcode}
-                        onChange={(e) => setPostcode(e.target.value)}
-                        placeholder="e.g., 3941"
-                        disabled={isLoadingBYDA}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="state">State *</Label>
-                    <Input
-                      id="state"
-                      value="VIC"
-                      disabled
-                      className="bg-gray-100"
-                    />
-                  </div>
-
-                  <div className="bg-blue-50 p-3 rounded text-sm">
-                    <p className="font-medium">Full Address:</p>
-                    <p className="text-primary font-semibold">
-                      {streetNumber && streetName && suburb && postcode
-                        ? `${streetNumber} ${streetName}, ${suburb} VIC ${postcode}`
-                        : "Complete all fields to see full address"}
-                    </p>
-                  </div>
-
-                  <div className="flex flex-col sm:flex-row gap-3 pt-4">
-                    <Button
-                      onClick={() => generatePlanningReport(streetNumber, streetName, suburb, postcode)}
-                      disabled={!streetNumber || !streetName || !suburb || !postcode || isLoadingBYDA}
-                      className="flex-1"
-                      variant="outline"
-                    >
-                      📄 Generate Planning Report
-                    </Button>
-                    <Button
-                      onClick={submitBYDAEnquiry}
-                      disabled={!streetNumber || !streetName || !suburb || !postcode || !bydaEmail.trim() || isLoadingBYDA}
-                      className="flex-1"
-                    >
-                      {isLoadingBYDA ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Submitting...
-                        </>
-                      ) : (
-                        <>
-                          <Zap className="mr-2 h-4 w-4" />
-                          Submit BYDA Enquiry
-                        </>
-                      )}
-                    </Button>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="bydaEmail">Email Address *</Label>
-                    <Input
-                      id="bydaEmail"
-                      type="email"
-                      value={bydaEmail}
-                      onChange={(e) => setBydaEmail(e.target.value)}
-                      placeholder="your@email.com"
-                      disabled={isLoadingBYDA}
-                    />
-                    <p className="text-xs text-muted-foreground">
-                      Where responses will be sent
-                    </p>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="bydaPhone">Phone Number</Label>
-                    <Input
-                      id="bydaPhone"
-                      type="tel"
-                      value={bydaPhone}
-                      onChange={(e) => setBydaPhone(e.target.value)}
-                      placeholder="0412345678"
-                      disabled={isLoadingBYDA}
-                    />
-                    <p className="text-xs text-muted-foreground">
-                      Optional contact number
-                    </p>
-                  </div>
-                </div>
-
-                <Button
-                  onClick={submitBYDAEnquiry}
-                  disabled={!bydaAddress.trim() || !bydaEmail.trim() || isLoadingBYDA}
-                  className="w-full"
-                  size="lg"
-                >
-                  {isLoadingBYDA ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Submitting...
-                    </>
-                  ) : (
-                    <>
-                      <Zap className="mr-2 h-4 w-4" />
-                      Submit BYDA Enquiry
-                    </>
-                  )}
-                </Button>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Info Card */}
-          <Card className="bg-blue-50 border-blue-200">
-            <CardHeader>
-              <CardTitle className="text-base">BYDA Information</CardTitle>
-            </CardHeader>
-            <CardContent className="text-sm text-muted-foreground space-y-2">
-              <p>
-                <strong>Free service:</strong> BYDA provides 1,000 free enquiries per year for members
-              </p>
-              <p>
-                <strong>Response time:</strong> 2-3 business days typically
-              </p>
-              <p>
-                <strong>Coverage:</strong> All major utility providers in Australia
-              </p>
-              <p>
-                <a
-                  href="https://www.byda.com.au/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-primary hover:underline"
-                >
-                  Visit BYDA.com.au for more information →
-                </a>
-              </p>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+          <Button
+            onClick={() => generatePlanningReport(streetNumber, streetName, suburb, postcode)}
+            disabled={!streetNumber || !streetName || !suburb || !postcode}
+            className="w-full mt-4"
+          >
+            📄 Generate Planning Report
+          </Button>
+        </CardContent>
+      </Card>
     </div>
   );
 };
