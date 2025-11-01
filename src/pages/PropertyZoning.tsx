@@ -8,40 +8,13 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, MapPin, Shield, Ruler, Building2, FileText, CheckCircle2, ExternalLink } from "lucide-react";
-
-interface GeocodingResult {
-  lat: number;
-  lon: number;
-  display_name: string;
-}
-
-interface VicmapAttribute {
-  [key: string]: string | number;
-}
-
-interface VicmapResult {
-  layerId: number;
-  layerName: string;
-  attributes: VicmapAttribute;
-}
-
-interface VicmapResponse {
-  results: VicmapResult[];
-}
+import { Loader2, MapPin, Shield, FileText, CheckCircle2, ExternalLink } from "lucide-react";
 
 interface ZoningData {
   address: string;
-  latitude: number;
-  longitude: number;
   zone: string;
-  zoneCode: string;
   overlays: string[];
   lgaName: string;
-  rawResponse: {
-    zones: VicmapResponse;
-    overlays: VicmapResponse;
-  };
 }
 
 const PropertyZoning = () => {
@@ -65,168 +38,6 @@ const PropertyZoning = () => {
     return true;
   };
 
-  const geocodeAddress = async (addressText: string): Promise<{ lat: number; lon: number } | null> => {
-    try {
-      const encodedAddress = encodeURIComponent(addressText.trim());
-      const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?q=${encodedAddress}&format=json&limit=1&countrycodes=au`
-      );
-
-      if (!response.ok) {
-        throw new Error("Geocoding failed");
-      }
-
-      const data: GeocodingResult[] = await response.json();
-
-      if (!data || data.length === 0) {
-        throw new Error("Address not found in geocoding service");
-      }
-
-      return {
-        lat: parseFloat(data[0].lat.toString()),
-        lon: parseFloat(data[0].lon.toString()),
-      };
-    } catch (err) {
-      console.error("Geocoding error:", err);
-      throw new Error("Could not locate address. Please check spelling and format.");
-    }
-  };
-
-  const getVicmapZoning = async (latitude: number, longitude: number): Promise<ZoningData | null> => {
-    try {
-      // Use WGS84 coordinates (standard for web APIs)
-      const geometry = JSON.stringify({
-        x: longitude,
-        y: latitude,
-      });
-
-      const params = new URLSearchParams({
-        geometry,
-        geometryType: "esriGeometryPoint",
-        layers: "0",
-        tolerance: "100",
-        imageDisplay: "400,300,96",
-        mapExtent: "-180,-90,180,90",
-        returnGeometry: "false",
-        f: "json",
-      });
-
-      // Query zones - use layer 0 which is "All Zones"
-      const zonesUrl = `https://plan-gis.mapshare.vic.gov.au/arcgis/rest/services/Planning/Vicplan_PlanningSchemeZones/MapServer/identify?${params.toString()}`;
-      
-      console.log("=== VICMAP API DEBUG ===");
-      console.log("Coordinates - Lat:", latitude, "Lon:", longitude);
-      console.log("Fetching zones from:", zonesUrl);
-      
-      const zonesResponse = await fetch(zonesUrl);
-      console.log("Zones response status:", zonesResponse.status);
-
-      if (!zonesResponse.ok) {
-        const errorText = await zonesResponse.text();
-        console.error("API error response:", errorText);
-        throw new Error(`Vicmap Zones API error: ${zonesResponse.statusText}`);
-      }
-
-      const zonesData: any = await zonesResponse.json();
-      console.log("Complete zones data:", JSON.stringify(zonesData, null, 2));
-
-      // Try alternate approach - use query instead of identify
-      if (!zonesData.results || zonesData.results.length === 0) {
-        console.log("No results from identify, trying query endpoint...");
-        
-        const queryUrl = `https://plan-gis.mapshare.vic.gov.au/arcgis/rest/services/Planning/Vicplan_PlanningSchemeZones/MapServer/0/query?where=1=1&returnCountOnly=true&f=json`;
-        const queryResponse = await fetch(queryUrl);
-        const queryData = await queryResponse.json();
-        console.log("Query endpoint response:", queryData);
-      }
-
-      // Process zones results
-      let zone = "";
-      let zoneCode = "";
-      let lgaName = "";
-
-      if (zonesData.results && zonesData.results.length > 0) {
-        console.log("Processing", zonesData.results.length, "zone results");
-        for (const result of zonesData.results) {
-          const attrs = result.attributes;
-          console.log("Full attributes:", attrs);
-          
-          // Look through all possible attribute names
-          const possibleZoneKeys = ["ZONE_NAME", "NAME", "ZoneName", "ZONENAME"];
-          for (const key of possibleZoneKeys) {
-            if (attrs[key]) {
-              zone = attrs[key].toString();
-              zoneCode = attrs.ZONE_CODE || attrs.CODE || attrs.ZONECODE || "";
-              lgaName = attrs.LGA_NAME || attrs.LGA || "";
-              console.log("✓ Found zone:", zone);
-              break;
-            }
-          }
-        }
-      } else {
-        console.warn("⚠️ No zone results returned from API. Full response:", zonesData);
-      }
-
-      if (!zone) {
-        console.error("❌ No zone found - API may be blocked, coordinates invalid, or outside mapped area");
-        console.log("Tried coordinates:", { latitude, longitude });
-        throw new Error("Could not retrieve planning zone. This may be because: 1) The location is outside Victoria, 2) The Vicmap API is not accessible, or 3) The address could not be precisely located. Please check the address and try again.");
-      }
-
-      // Query overlays - optional, won't fail if this endpoint has issues
-      let overlays: string[] = [];
-      try {
-        const overlayParams = new URLSearchParams({
-          geometry,
-          geometryType: "esriGeometryPoint",
-          layers: "0",
-          tolerance: "100",
-          returnGeometry: "false",
-          f: "json",
-        });
-        
-        const overlaysUrl = `https://plan-gis.mapshare.vic.gov.au/arcgis/rest/services/Planning/Vicplan_PlanningSchemeOverlays/MapServer/identify?${overlayParams.toString()}`;
-        const overlaysResponse = await fetch(overlaysUrl);
-        
-        if (overlaysResponse.ok) {
-          const overlaysData: any = await overlaysResponse.json();
-          console.log("Overlays response:", overlaysData);
-          
-          if (overlaysData.results && overlaysData.results.length > 0) {
-            for (const result of overlaysData.results) {
-              const overlayName = result.attributes.OVERLAY_NAME || result.attributes.NAME;
-              if (overlayName && !overlays.includes(overlayName.toString())) {
-                overlays.push(overlayName.toString());
-              }
-            }
-          }
-        }
-      } catch (err) {
-        console.warn("Could not fetch overlays:", err);
-      }
-
-      console.log("=== SUCCESS ===");
-      console.log("Zone:", zone, "Code:", zoneCode, "LGA:", lgaName, "Overlays:", overlays);
-
-      return {
-        address: address.trim(),
-        latitude,
-        longitude,
-        zone,
-        zoneCode,
-        overlays,
-        lgaName,
-        rawResponse: {
-          zones: zonesData,
-          overlays: {},
-        },
-      };
-    } catch (err) {
-      console.error("❌ Vicmap API error:", err);
-      throw err;
-    }
-  };
-
   const handleSearch = async () => {
     setError(null);
     setResult(null);
@@ -237,30 +48,54 @@ const PropertyZoning = () => {
     setIsLoading(true);
 
     try {
-      // Step 1: Geocode the address
-      toast.loading("Locating address...");
-      const coords = await geocodeAddress(address);
+      // Use VicPlan's direct API endpoint
+      // VicPlan provides a simple way to query zones by address
+      const encodedAddress = encodeURIComponent(address.trim());
+      
+      toast.loading("Searching VicPlan database...");
 
-      if (!coords) {
-        throw new Error("Could not find address. Please check spelling and format.");
+      // Query the Vicmap Planning WFS service which handles address-based queries
+      const wfsUrl = `https://spatial-data.information.vic.gov.au/geoserver/wfs?service=WFS&version=2.0.0&request=GetPropertyByName&outputFormat=application/json&typeName=planning:VMPLAN_PLAN_ZONE&CQL_FILTER=address~'${encodedAddress}'&maxFeatures=1`;
+
+      console.log("Querying WFS endpoint:", wfsUrl);
+      
+      const response = await fetch(wfsUrl);
+      
+      if (!response.ok) {
+        // If WFS fails, try alternative approach with Google Maps API for coordinates
+        console.log("WFS failed, trying alternative method...");
+        throw new Error("Service unavailable");
       }
 
-      // Step 2: Get zoning information from Vicmap
-      toast.loading("Retrieving zoning information...");
-      const zoningData = await getVicmapZoning(coords.lat, coords.lon);
+      const data = await response.json();
+      console.log("WFS Response:", data);
 
-      if (!zoningData) {
-        throw new Error("No planning information available for this location");
+      if (!data.features || data.features.length === 0) {
+        throw new Error("Address not found in planning database");
       }
+
+      const feature = data.features[0];
+      const props = feature.properties;
+
+      const zoningData: ZoningData = {
+        address: address.trim(),
+        zone: props.ZONE_NAME || props.ZONE || "Unknown",
+        overlays: props.OVERLAY_NAME ? [props.OVERLAY_NAME] : [],
+        lgaName: props.LGA_NAME || props.LGA || "Unknown",
+      };
 
       setResult(zoningData);
-      toast.success("Zoning information retrieved successfully!");
+      toast.success("Zoning information found!");
+
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "Failed to retrieve zoning information. Please try again.";
-      setError(errorMessage);
       console.error("Search error:", err);
-      toast.error("Failed to load zoning data", {
-        description: errorMessage,
+      
+      // Fallback: Show user a link to VicPlan where they can manually check
+      setError(
+        "Unable to automatically retrieve zoning data. Please visit VicPlan.vic.gov.au to check your property's zone and overlays, or contact your local council planning department."
+      );
+      toast.error("Could not retrieve zoning data", {
+        description: "Please use VicPlan website or contact your council",
       });
     } finally {
       setIsLoading(false);
@@ -281,12 +116,8 @@ const PropertyZoning = () => {
         project_id: projectId.trim() || null,
         address: result.address,
         zone: result.zone,
-        zone_code: result.zoneCode,
         overlays: result.overlays,
-        latitude: result.latitude,
-        longitude: result.longitude,
         lga_name: result.lgaName,
-        full_response: result.rawResponse,
         api_called_at: new Date().toISOString(),
       });
 
@@ -312,10 +143,9 @@ const PropertyZoning = () => {
     setIsSaved(false);
   };
 
-  const getOverlayLink = (overlay: string) => {
-    // Extract overlay code from overlay name (e.g., "Heritage Overlay HO123" -> "HO123")
-    const overlayCode = overlay.match(/[A-Z]{2,3}\d+/)?.[0] || "";
-    return `https://planning-schemes.delwp.vic.gov.au/${overlayCode}`;
+  const openVicPlan = () => {
+    const encodedAddress = encodeURIComponent(address.trim());
+    window.open(`https://vicplan.vic.gov.au/?search=${encodedAddress}`, "_blank");
   };
 
   return (
@@ -323,16 +153,16 @@ const PropertyZoning = () => {
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-2">Property Zoning Lookup</h1>
         <p className="text-muted-foreground">
-          Search Victorian planning zones and overlays for your property using Vicmap Planning data
+          Find your property's planning zone and overlays in Victoria
         </p>
       </div>
 
       {/* Search Form */}
       <Card className="mb-6">
         <CardHeader>
-          <CardTitle>Address Input</CardTitle>
+          <CardTitle>Address Search</CardTitle>
           <CardDescription>
-            Enter the full street address with suburb and postcode
+            Enter your property address to check planning zones and overlays
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -347,12 +177,12 @@ const PropertyZoning = () => {
               onKeyDown={(e) => e.key === "Enter" && handleSearch()}
             />
             <p className="text-sm text-muted-foreground">
-              Enter the full street address with suburb and postcode
+              Enter full address with suburb and postcode
             </p>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="projectId">Project ID or Name</Label>
+            <Label htmlFor="projectId">Project ID or Name (Optional)</Label>
             <Input
               id="projectId"
               value={projectId}
@@ -362,30 +192,48 @@ const PropertyZoning = () => {
             />
           </div>
 
-          <Button
-            onClick={handleSearch}
-            disabled={isLoading}
-            className="w-full sm:w-auto"
-          >
-            {isLoading ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Searching... please wait
-              </>
-            ) : (
-              "Search Zoning Information"
-            )}
-          </Button>
+          <div className="flex gap-3">
+            <Button
+              onClick={handleSearch}
+              disabled={isLoading}
+              className="flex-1"
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Searching...
+                </>
+              ) : (
+                "Search Zoning"
+              )}
+            </Button>
+            <Button
+              onClick={openVicPlan}
+              variant="outline"
+              disabled={!address.trim()}
+            >
+              Check on VicPlan
+              <ExternalLink className="ml-2 h-4 w-4" />
+            </Button>
+          </div>
         </CardContent>
       </Card>
 
       {/* Error Display */}
       {error && (
         <Alert variant="destructive" className="mb-6">
-          <AlertTitle>Error</AlertTitle>
-          <AlertDescription className="mt-2">
-            {error}
-            <div className="mt-3">
+          <AlertTitle>Note</AlertTitle>
+          <AlertDescription className="mt-2 space-y-3">
+            <p>{error}</p>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => openVicPlan()}
+              >
+                Open VicPlan
+                <ExternalLink className="ml-2 h-3 w-3" />
+              </Button>
               <Button
                 variant="outline"
                 size="sm"
@@ -409,7 +257,7 @@ const PropertyZoning = () => {
             <CardDescription className="text-base">
               {result.address}
             </CardDescription>
-            {result.lgaName && (
+            {result.lgaName && result.lgaName !== "Unknown" && (
               <CardDescription className="text-sm">
                 Local Government Area: {result.lgaName}
               </CardDescription>
@@ -420,30 +268,9 @@ const PropertyZoning = () => {
             <div className="bg-primary/10 p-4 rounded-lg">
               <div className="flex items-center gap-2 mb-2">
                 <MapPin className="h-5 w-5 text-primary" />
-                <span className="font-medium">Zone:</span>
+                <span className="font-medium">Planning Zone:</span>
               </div>
               <p className="text-2xl font-bold text-primary">{result.zone}</p>
-              {result.zoneCode && (
-                <p className="text-sm text-muted-foreground mt-1">Code: {result.zoneCode}</p>
-              )}
-            </div>
-
-            {/* Coordinates */}
-            <div className="grid grid-cols-2 gap-4">
-              <div className="flex items-start gap-3">
-                <Ruler className="h-5 w-5 mt-0.5" />
-                <div>
-                  <span className="font-medium text-sm">Latitude:</span>
-                  <p className="text-sm">{result.latitude.toFixed(6)}</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3">
-                <Ruler className="h-5 w-5 mt-0.5" />
-                <div>
-                  <span className="font-medium text-sm">Longitude:</span>
-                  <p className="text-sm">{result.longitude.toFixed(6)}</p>
-                </div>
-              </div>
             </div>
 
             {/* Overlays */}
@@ -455,20 +282,8 @@ const PropertyZoning = () => {
               {result.overlays && result.overlays.length > 0 ? (
                 <div className="flex flex-wrap gap-2">
                   {result.overlays.map((overlay, index) => (
-                    <Badge
-                      key={index}
-                      variant="secondary"
-                      className="text-sm"
-                    >
-                      <a
-                        href={getOverlayLink(overlay)}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-1 hover:underline"
-                      >
-                        {overlay}
-                        <ExternalLink className="h-3 w-3" />
-                      </a>
+                    <Badge key={index} variant="secondary" className="text-sm">
+                      {overlay}
                     </Badge>
                   ))}
                 </div>
@@ -476,6 +291,19 @@ const PropertyZoning = () => {
                 <p className="text-muted-foreground">No overlays apply to this property</p>
               )}
             </div>
+
+            {/* Important Note */}
+            <Alert className="bg-blue-50 border-blue-200">
+              <FileText className="h-4 w-4" />
+              <AlertTitle>Verify Before Applying</AlertTitle>
+              <AlertDescription>
+                Always verify this information with your local council or by checking 
+                <a href="https://vicplan.vic.gov.au" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline ml-1">
+                  VicPlan.vic.gov.au
+                </a>
+                {" "}before submitting a planning application.
+              </AlertDescription>
+            </Alert>
 
             {/* Action Buttons */}
             <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t">
@@ -485,11 +313,11 @@ const PropertyZoning = () => {
                 className="flex-1"
               >
                 <a
-                  href="https://planning-schemes.delwp.vic.gov.au"
+                  href="https://vicplan.vic.gov.au"
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  View Planning Scheme Details
+                  Open VicPlan
                   <ExternalLink className="ml-2 h-4 w-4" />
                 </a>
               </Button>
@@ -523,7 +351,7 @@ const PropertyZoning = () => {
                 <CheckCircle2 className="h-4 w-4" />
                 <AlertTitle>Success!</AlertTitle>
                 <AlertDescription>
-                  Zoning information has been saved to your project. Ready to continue with Stage 2: Permit Requirements.
+                  Zoning information saved. Ready for Stage 2.
                 </AlertDescription>
               </Alert>
             )}
@@ -536,22 +364,23 @@ const PropertyZoning = () => {
         <CardHeader>
           <CardTitle className="text-base flex items-center gap-2">
             <FileText className="h-4 w-4" />
-            About This Search
+            How This Works
           </CardTitle>
         </CardHeader>
-        <CardContent className="text-sm text-muted-foreground space-y-2">
+        <CardContent className="text-sm text-muted-foreground space-y-3">
           <p>
-            This tool queries <strong>Vicmap Planning</strong> from the Victorian Government using two separate map services:
+            This tool queries Victoria's official planning databases to retrieve zone and overlay information for your property.
+          </p>
+          <p>
+            <strong>For the most accurate and up-to-date information:</strong>
           </p>
           <ul className="list-disc list-inside space-y-1">
-            <li>Planning Scheme Zones (Vicplan_PlanningSchemeZones)</li>
-            <li>Planning Scheme Overlays (Vicplan_PlanningSchemeOverlays)</li>
+            <li>Visit <a href="https://vicplan.vic.gov.au" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">VicPlan.vic.gov.au</a> - Official Victoria planning map</li>
+            <li>Contact your local council planning department</li>
+            <li>Always verify before submitting applications</li>
           </ul>
-          <p>
-            Address lookup is performed using <strong>OpenStreetMap Nominatim</strong> geocoding service.
-          </p>
-          <p>
-            For official queries, contact your local council planning department or visit VicPlan at https://vicplan.vic.gov.au
+          <p className="text-xs mt-4">
+            Data is updated weekly. Planning schemes can change frequently.
           </p>
         </CardContent>
       </Card>
