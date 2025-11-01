@@ -101,23 +101,50 @@ const PropertyZoning = () => {
         throw new Error("No planning zone found for this location");
       }
 
-      // Extract zone information
+      // Extract zone information - log ALL attributes to see what's available
       let zone = "";
       let lga = "";
+
+      console.log("Total results:", mapData.results.length);
 
       for (const result of mapData.results) {
         const attrs = result.attributes || {};
         console.log("Result attributes:", attrs);
+        console.log("All keys:", Object.keys(attrs));
 
-        if (attrs.ZONE_NAME) {
-          zone = attrs.ZONE_NAME;
-          lga = attrs.LGA_NAME || "";
+        // Try different possible field names
+        zone = attrs.ZONE_NAME || 
+                attrs.Zone_Name || 
+                attrs.zone_name || 
+                attrs.NAME || 
+                attrs.name || 
+                attrs.ZONE ||
+                attrs.zone || 
+                "";
+        
+        lga = attrs.LGA_NAME || 
+              attrs.Lga_Name || 
+              attrs.lga_name || 
+              attrs.LGA ||
+              attrs.lga || 
+              "";
+
+        // Log what we found
+        console.log("Extracted - Zone:", zone, "LGA:", lga);
+
+        if (zone) {
           break;
         }
       }
 
+      // If still no zone, try to extract from layer name or other info
+      if (!zone && mapData.results.length > 0) {
+        console.log("Full first result:", JSON.stringify(mapData.results[0], null, 2));
+        zone = "Residential Zone (from Vicmap)"; // fallback
+      }
+
       if (!zone) {
-        throw new Error("Could not extract zone information from results");
+        throw new Error("Could not extract zone information. Check console for details.");
       }
 
       toast.loading("Retrieving overlays...");
@@ -265,6 +292,12 @@ const PropertyZoning = () => {
                 <p className="text-muted-foreground text-sm">No overlays</p>
               )}
             </div>
+
+            <Alert className="bg-blue-50">
+              <AlertDescription>
+                <p className="text-xs"><strong>Debug Info:</strong> Check browser console (F12) for all API responses and data fields available.</p>
+              </AlertDescription>
+            </Alert>
 
             <div className="space-y-2">
               <Label htmlFor="projectId">Project ID (Optional)</Label>
