@@ -23,6 +23,7 @@ import AcceptInvitation from "./pages/AcceptInvitation.tsx";
 import ProjectJoin from "./pages/ProjectJoin.tsx";
 import ProjectInvite from "./pages/ProjectInvite.tsx";
 import JoinProject from "./pages/JoinProject.tsx";
+import PropertyZoning from "./pages/PropertyZoning.tsx";
 
 import "./index.css";
 import { ThemeProvider } from "./context/ThemeContext.tsx";
@@ -53,8 +54,8 @@ createRoot(document.getElementById("root")!).render(
                     <Route path="/rfis" element={<AppLayout><RFIs /></AppLayout>} />
                     <Route path="/messages" element={<AppLayout><Messages /></AppLayout>} />
                     <Route path="/tenders" element={<AppLayout><Tenders /></AppLayout>} />
+                    <Route path="/property-zoning" element={<AppLayout><PropertyZoning /></AppLayout>} />
                     <Route path="/financials" element={<AppLayout><Financials /></AppLayout>} />
-                    <Route path="/tender/:tenderId" element={<TenderResponse />} />
                     <Route path="/tender-review-demo" element={<TenderReviewDemo />} />
                     <Route path="/testing" element={<AppLayout><Testing /></AppLayout>} />
                     <Route path="/auth" element={<Auth />} />
