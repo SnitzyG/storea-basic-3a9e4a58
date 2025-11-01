@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Shield, FileText, CheckCircle2, ExternalLink, ArrowLeft } from "lucide-react";
+import { MapPin, Shield, FileText, CheckCircle2, ExternalLink, Loader2 } from "lucide-react";
 
 interface ZoningData {
   address: string;
@@ -29,7 +29,7 @@ const PropertyZoning = () => {
   const [overlayInput, setOverlayInput] = useState("");
   const [result, setResult] = useState<ZoningData | null>(null);
   const [isSaved, setIsSaved] = useState(false);
-  const [showVicPlan, setShowVicPlan] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const addOverlay = () => {
     if (overlayInput.trim() && !overlays.includes(overlayInput.trim())) {
@@ -54,13 +54,14 @@ const PropertyZoning = () => {
     return true;
   };
 
-  const handleSearch = () => {
-    if (!address.trim()) {
-      toast.error("Error", { description: "Please enter a property address" });
-      return;
-    }
-    // Show VicPlan iframe with address pre-filled
-    setShowVicPlan(true);
+  const handleOpenVicPlan = () => {
+    // Open VicPlan in new window
+    const vicplanUrl = `https://mapshare.vic.gov.au/vicplan/`;
+    window.open(vicplanUrl, "vicplan", "width=1200,height=800");
+    
+    toast.info("VicPlan opened", {
+      description: "Search for your property and note the zone and overlays, then come back here to enter the details.",
+    });
   };
 
   const handleSubmit = () => {
@@ -75,7 +76,6 @@ const PropertyZoning = () => {
     };
 
     setResult(zoningData);
-    setShowVicPlan(false);
     toast.success("Zone information ready to save");
   };
 
@@ -124,7 +124,6 @@ const PropertyZoning = () => {
     setLgaName("");
     setResult(null);
     setIsSaved(false);
-    setShowVicPlan(false);
   };
 
   const commonZones = [
@@ -154,7 +153,7 @@ const PropertyZoning = () => {
   ];
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-5xl">
+    <div className="container mx-auto px-4 py-8 max-w-4xl">
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-2">Property Zoning Lookup</h1>
         <p className="text-muted-foreground">
@@ -286,46 +285,67 @@ const PropertyZoning = () => {
             )}
           </CardContent>
         </Card>
-      ) : showVicPlan ? (
-        // VicPlan embedded view
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <MapPin className="h-5 w-5 text-primary" />
-              VicPlan Map - {address}
-            </CardTitle>
-            <CardDescription>
-              Search for your property on the map below and note the zone and overlay information
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {/* VicPlan Embedded */}
-            <div className="w-full h-96 bg-gray-100 rounded-lg border overflow-hidden">
-              <iframe
-                title="VicPlan"
-                src="https://mapshare.vic.gov.au/vicplan/"
-                width="100%"
-                height="100%"
-                style={{ border: "none" }}
-                allowFullScreen
-              />
-            </div>
+      ) : (
+        // Input view
+        <div className="space-y-6">
+          {/* Address Input Card */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Step 1: Enter Your Address</CardTitle>
+              <CardDescription>
+                Enter your property address
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="address">Property Address *</Label>
+                <Input
+                  id="address"
+                  value={address}
+                  onChange={(e) => setAddress(e.target.value)}
+                  placeholder="e.g., 384 Barkly Street, Elwood VIC 3184"
+                  onKeyDown={(e) => e.key === "Enter" && handleOpenVicPlan()}
+                />
+                <p className="text-sm text-muted-foreground">
+                  Enter your full address with suburb and postcode
+                </p>
+              </div>
 
-            <Alert className="bg-blue-50 border-blue-200">
-              <FileText className="h-4 w-4" />
-              <AlertTitle>Instructions</AlertTitle>
-              <AlertDescription>
-                <ol className="list-decimal list-inside space-y-1 mt-2">
-                  <li>Use the search box in the top-left to search for: <strong>{address}</strong></li>
-                  <li>Click on your property to see zone details</li>
-                  <li>Note the planning zone and any overlays</li>
-                  <li>Return here and enter the information below</li>
-                </ol>
-              </AlertDescription>
-            </Alert>
+              <Button 
+                onClick={handleOpenVicPlan} 
+                disabled={!address.trim()}
+                className="w-full" 
+                size="lg"
+              >
+                <ExternalLink className="mr-2 h-4 w-4" />
+                Search on VicPlan
+              </Button>
+            </CardContent>
+          </Card>
 
-            {/* Form to enter data */}
-            <div className="space-y-4 pt-4 border-t">
+          {/* Zone Entry Card */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Step 2: Enter Zone Information</CardTitle>
+              <CardDescription>
+                From VicPlan, enter the planning zone and overlay details for {address || "your property"}
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <Alert className="bg-amber-50 border-amber-200">
+                <FileText className="h-4 w-4" />
+                <AlertTitle>Instructions</AlertTitle>
+                <AlertDescription className="mt-2">
+                  <ol className="list-decimal list-inside space-y-1 text-sm">
+                    <li>Click "Search on VicPlan" above</li>
+                    <li>Search for your address in the map</li>
+                    <li>Click on your property to see details</li>
+                    <li>Note the Planning Zone and any Overlays</li>
+                    <li>Come back and enter the details below</li>
+                  </ol>
+                </AlertDescription>
+              </Alert>
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Zone */}
                 <div className="space-y-2">
@@ -426,71 +446,36 @@ const PropertyZoning = () => {
                 </div>
               </div>
 
-              {/* Submit Buttons */}
-              <div className="flex gap-3 pt-4">
-                <Button onClick={handleSubmit} className="flex-1">
-                  <CheckCircle2 className="mr-2 h-4 w-4" />
-                  Continue
-                </Button>
-                <Button onClick={() => setShowVicPlan(false)} variant="secondary" className="flex-1">
-                  <ArrowLeft className="mr-2 h-4 w-4" />
-                  Back
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      ) : (
-        // Initial search view
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle>Enter Property Address</CardTitle>
-            <CardDescription>
-              Enter your address and we'll open VicPlan to look up your planning zone
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="address">Property Address *</Label>
-              <Input
-                id="address"
-                value={address}
-                onChange={(e) => setAddress(e.target.value)}
-                placeholder="e.g., 384 Barkly Street, Elwood VIC 3184"
-                onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-              />
-              <p className="text-sm text-muted-foreground">
-                Enter your full address with suburb and postcode
-              </p>
-            </div>
-
-            <Button onClick={handleSearch} className="w-full" size="lg">
-              <MapPin className="mr-2 h-4 w-4" />
-              Search VicPlan Map
-            </Button>
-          </CardContent>
-        </Card>
+              {/* Continue Button */}
+              <Button onClick={handleSubmit} className="w-full" size="lg">
+                <CheckCircle2 className="mr-2 h-4 w-4" />
+                Continue to Review
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
       )}
 
       {/* Info Card */}
-      <Card className="bg-blue-50 border-blue-200">
+      <Card className="bg-blue-50 border-blue-200 mt-6">
         <CardHeader>
           <CardTitle className="text-base flex items-center gap-2">
             <FileText className="h-4 w-4" />
-            How This Works
+            About This Tool
           </CardTitle>
         </CardHeader>
         <CardContent className="text-sm text-muted-foreground space-y-3">
-          <ol className="list-decimal list-inside space-y-2">
-            <li>Enter your property address</li>
-            <li>VicPlan map opens with your address pre-loaded</li>
-            <li>Search for your property on the map</li>
-            <li>Check the zone and overlay information displayed</li>
-            <li>Enter the details below the map</li>
+          <p>
+            This tool helps you record your property's planning zone and overlays from Victoria's official planning data.
+          </p>
+          <ol className="list-decimal list-inside space-y-1">
+            <li>Enter your address</li>
+            <li>Look it up on VicPlan MapShare</li>
+            <li>Enter the zone and overlay information</li>
             <li>Save to your project</li>
           </ol>
           <p className="text-xs mt-4">
-            <strong>Data source:</strong> VicPlan MapShare
+            <strong>Data source:</strong> <a href="https://mapshare.vic.gov.au/vicplan/" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">VicPlan MapShare</a>
           </p>
         </CardContent>
       </Card>
