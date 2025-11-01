@@ -10,29 +10,12 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { MapPin, Shield, FileText, CheckCircle2, Loader2 } from "lucide-react";
 
-interface PropertyDiscoveryResult {
-  properties: Array<{
-    propertyId: string;
-    address: string;
-    volumeFolio?: string;
-  }>;
-}
-
-interface TitleDiscoveryResult {
-  title?: {
-    volumeFolio: string;
-    propertyDescription: string;
-  };
-}
-
 interface ZoningData {
   address: string;
   zone: string;
   zoneCode: string;
   overlays: string[];
   lgaName: string;
-  volumeFolio?: string;
-  propertyId?: string;
 }
 
 const PropertyZoning = () => {
@@ -47,7 +30,7 @@ const PropertyZoning = () => {
   const [result, setResult] = useState<ZoningData | null>(null);
   const [isSaved, setIsSaved] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [propertyDetails, setPropertyDetails] = useState<any>(null);
+  const [locationFound, setLocationFound] = useState(false);
 
   const addOverlay = () => {
     if (overlayInput.trim() && !overlays.includes(overlayInput.trim())) {
@@ -99,7 +82,7 @@ const PropertyZoning = () => {
     }
   };
 
-  const getVicmapZoning = async (latitude: number, longitude: number): Promise<{ zone: string; zoneCode: string; overlays: string[] } | null> => {
+  const getVicmapZoning = async (latitude: number, longitude: number): Promise<{ zone: string; zoneCode: string; overlays: string[]; lga: string } | null> => {
     try {
       const geometry = JSON.stringify({
         x: longitude,
@@ -124,11 +107,13 @@ const PropertyZoning = () => {
 
       let zone = "";
       let zoneCode = "";
+      let lga = "";
 
       if (zonesData.results && zonesData.results.length > 0) {
         const attrs = zonesData.results[0].attributes;
         zone = attrs.ZONE_NAME || "";
         zoneCode = attrs.ZONE_CODE || "";
+        lga = attrs.LGA_NAME || "";
       }
 
       // Query overlays
@@ -151,14 +136,14 @@ const PropertyZoning = () => {
         return null;
       }
 
-      return { zone, zoneCode, overlays };
+      return { zone, zoneCode, overlays, lga };
     } catch (err) {
       console.error("Vicmap API error:", err);
       return null;
     }
   };
 
-  const searchLANDATA = async () => {
+  const searchAddress = async () => {
     if (!address.trim()) {
       toast.error("Error", { description: "Please enter a property address" });
       return;
@@ -167,69 +152,39 @@ const PropertyZoning = () => {
     setIsLoading(true);
 
     try {
-      toast.loading("Searching LANDATA for property...");
+      toast.loading("Locating address...");
 
-      // Step 1: Search for property using LANDATA Property Discovery API
-      const propertySearchUrl = `https://discover.data.vic.gov.au/geoserver/wfs?service=WFS&version=2.0.0&request=GetFeature&typeNames=PROPERTY&outputFormat=application/json&CQL_FILTER=ADDRESS%20LIKE%20%27${encodeURIComponent(address)}%25%27&maxFeatures=5`;
-
-      console.log("Searching LANDATA property:", address);
-
-      const propertyResponse = await fetch(propertySearchUrl);
-
-      if (!propertyResponse.ok) {
-        throw new Error("LANDATA search failed");
-      }
-
-      const propertyData = await propertyResponse.json();
-      console.log("Property search results:", propertyData);
-
-      if (!propertyData.features || propertyData.features.length === 0) {
-        throw new Error("Property not found in LANDATA. Please check the address spelling.");
-      }
-
-      const property = propertyData.features[0];
-      const props = property.properties;
-
-      // Step 2: Geocode address to get coordinates
-      toast.loading("Getting coordinates...");
+      // Step 1: Geocode address
       const coords = await geocodeAddress(address);
 
       if (!coords) {
-        throw new Error("Could not locate coordinates for address");
+        throw new Error("Could not find address. Please check the spelling and ensure it includes suburb and postcode.");
       }
 
-      // Step 3: Get planning zone from Vicmap
-      toast.loading("Retrieving planning zone from Vicmap...");
+      toast.loading("Retrieving planning zone...");
+
+      // Step 2: Get planning zone from Vicmap
       const vicmapData = await getVicmapZoning(coords.lat, coords.lon);
 
-      if (vicmapData) {
-        setZone(vicmapData.zone);
-        setZoneCode(vicmapData.zoneCode);
-        setOverlays(vicmapData.overlays);
+      if (!vicmapData) {
+        throw new Error("Could not retrieve planning zone. The location may be outside mapped areas or the service may be temporarily unavailable.");
       }
 
-      setPropertyDetails({
-        address: props.ADDRESS || address,
-        volumeFolio: props.VOLUME_FOLIO || props.VOL_FOLIO,
-        propertyId: props.PROPERTY_ID,
-        lga: props.LGA_NAME || props.MUNICIPALITY,
+      // Auto-fill the form
+      setZone(vicmapData.zone);
+      setZoneCode(vicmapData.zoneCode);
+      setOverlays(vicmapData.overlays);
+      setLgaName(vicmapData.lga);
+      setLocationFound(true);
+
+      toast.success("Planning zone found!", {
+        description: `Zone: ${vicmapData.zone}${vicmapData.overlays.length > 0 ? ` + ${vicmapData.overlays.length} overlay(s)` : ""}`,
       });
-
-      setLgaName(props.LGA_NAME || props.MUNICIPALITY || "");
-
-      if (vicmapData) {
-        toast.success("Property found with planning zone!", {
-          description: `Zone: ${vicmapData.zone}`,
-        });
-      } else {
-        toast.success("Property found! Please verify the zone information.", {
-          description: props.ADDRESS || address,
-        });
-      }
     } catch (err) {
       console.error("Search error:", err);
-      const errorMessage = err instanceof Error ? err.message : "Could not search";
-      toast.error("Search failed", { description: errorMessage });
+      const errorMessage = err instanceof Error ? err.message : "Search failed";
+      toast.error("Could not retrieve zone", { description: errorMessage });
+      setLocationFound(false);
     } finally {
       setIsLoading(false);
     }
@@ -239,13 +194,11 @@ const PropertyZoning = () => {
     if (!validateForm()) return;
 
     const zoningData: ZoningData = {
-      address: propertyDetails?.address || address.trim(),
+      address: address.trim(),
       zone: zone.trim(),
       zoneCode: zoneCode.trim(),
       overlays,
-      lgaName: lgaName.trim() || propertyDetails?.lga || "",
-      volumeFolio: propertyDetails?.volumeFolio,
-      propertyId: propertyDetails?.propertyId,
+      lgaName: lgaName.trim(),
     };
 
     setResult(zoningData);
@@ -297,7 +250,7 @@ const PropertyZoning = () => {
     setLgaName("");
     setResult(null);
     setIsSaved(false);
-    setPropertyDetails(null);
+    setLocationFound(false);
   };
 
   const commonZones = [
@@ -331,7 +284,7 @@ const PropertyZoning = () => {
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-2">Property Zoning Lookup</h1>
         <p className="text-muted-foreground">
-          Find and record your property's planning zone and overlays
+          Find your property's planning zone and overlays automatically
         </p>
       </div>
 
@@ -360,27 +313,16 @@ const PropertyZoning = () => {
               )}
             </div>
 
-            {/* Property Details */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {result.lgaName && (
-                <div className="flex items-start gap-3">
-                  <FileText className="h-5 w-5 mt-0.5 text-muted-foreground" />
-                  <div>
-                    <span className="font-medium text-sm">Local Government Area:</span>
-                    <p className="text-sm">{result.lgaName}</p>
-                  </div>
+            {/* LGA */}
+            {result.lgaName && (
+              <div className="flex items-start gap-3">
+                <FileText className="h-5 w-5 mt-0.5 text-muted-foreground" />
+                <div>
+                  <span className="font-medium text-sm">Local Government Area:</span>
+                  <p className="text-sm">{result.lgaName}</p>
                 </div>
-              )}
-              {result.volumeFolio && (
-                <div className="flex items-start gap-3">
-                  <FileText className="h-5 w-5 mt-0.5 text-muted-foreground" />
-                  <div>
-                    <span className="font-medium text-sm">Volume/Folio:</span>
-                    <p className="text-sm">{result.volumeFolio}</p>
-                  </div>
-                </div>
-              )}
-            </div>
+              </div>
+            )}
 
             {/* Overlays */}
             <div>
@@ -464,23 +406,15 @@ const PropertyZoning = () => {
       ) : (
         // Input view
         <div className="space-y-6">
-          {/* LANDATA Search Card */}
+          {/* Search Card */}
           <Card>
             <CardHeader>
-              <CardTitle>Step 1: Search Property in LANDATA</CardTitle>
+              <CardTitle>Search Property Address</CardTitle>
               <CardDescription>
-                Search Victoria's official land registry using LANDATA
+                Enter your property address to automatically retrieve planning zone information
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <Alert className="bg-blue-50 border-blue-200">
-                <FileText className="h-4 w-4" />
-                <AlertTitle>LANDATA Search</AlertTitle>
-                <AlertDescription>
-                  LANDATA is Victoria's official land title and property registry. We'll search for your property to verify ownership and get property details.
-                </AlertDescription>
-              </Alert>
-
               <div className="space-y-2">
                 <Label htmlFor="address">Property Address *</Label>
                 <Input
@@ -489,7 +423,7 @@ const PropertyZoning = () => {
                   onChange={(e) => setAddress(e.target.value)}
                   placeholder="e.g., 384 Barkly Street, Elwood VIC 3184"
                   disabled={isLoading}
-                  onKeyDown={(e) => e.key === "Enter" && searchLANDATA()}
+                  onKeyDown={(e) => e.key === "Enter" && searchAddress()}
                 />
                 <p className="text-sm text-muted-foreground">
                   Enter your full address with suburb and postcode
@@ -497,7 +431,7 @@ const PropertyZoning = () => {
               </div>
 
               <Button
-                onClick={searchLANDATA}
+                onClick={searchAddress}
                 disabled={!address.trim() || isLoading}
                 className="w-full"
                 size="lg"
@@ -505,61 +439,36 @@ const PropertyZoning = () => {
                 {isLoading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Searching LANDATA...
+                    Searching...
                   </>
                 ) : (
                   <>
                     <MapPin className="mr-2 h-4 w-4" />
-                    Search Property
+                    Search & Auto-Fill
                   </>
                 )}
               </Button>
-
-              {propertyDetails && (
-                <>
-                  <Alert className="bg-green-50 border-green-200">
-                    <CheckCircle2 className="h-4 w-4 text-green-600" />
-                    <AlertTitle className="text-green-900">Property Found!</AlertTitle>
-                    <AlertDescription className="text-green-800 mt-2">
-                      <p><strong>Address:</strong> {propertyDetails.address}</p>
-                      {propertyDetails.volumeFolio && <p><strong>Volume/Folio:</strong> {propertyDetails.volumeFolio}</p>}
-                      {propertyDetails.lga && <p><strong>LGA:</strong> {propertyDetails.lga}</p>}
-                    </AlertDescription>
-                  </Alert>
-
-                  {zone && (
-                    <Alert className="bg-blue-50 border-blue-200">
-                      <CheckCircle2 className="h-4 w-4 text-blue-600" />
-                      <AlertTitle className="text-blue-900">Planning Zone Retrieved!</AlertTitle>
-                      <AlertDescription className="text-blue-800 mt-2">
-                        <p><strong>Zone:</strong> {zone}</p>
-                        {zoneCode && <p><strong>Zone Code:</strong> {zoneCode}</p>}
-                        {overlays.length > 0 && (
-                          <p><strong>Overlays:</strong> {overlays.join(", ")}</p>
-                        )}
-                      </AlertDescription>
-                    </Alert>
-                  )}
-                </>
-              )}
             </CardContent>
           </Card>
 
-          {/* Zone Entry Card */}
-          {propertyDetails && (
+          {/* Zone Details Card */}
+          {locationFound && (
             <Card>
               <CardHeader>
-                <CardTitle>Step 2: Enter Planning Zone Information</CardTitle>
+                <CardTitle>Zone Information Found</CardTitle>
                 <CardDescription>
-                  Now enter the planning zone and overlays for {propertyDetails.address}
+                  Review and edit the automatically retrieved information
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <Alert className="bg-amber-50 border-amber-200">
-                  <FileText className="h-4 w-4" />
-                  <AlertTitle>Next Step</AlertTitle>
-                  <AlertDescription className="mt-2">
-                    Contact your local council or visit their planning portal to find your property's planning zone and overlays. Then enter the details below.
+                <Alert className="bg-green-50 border-green-200">
+                  <CheckCircle2 className="h-4 w-4 text-green-600" />
+                  <AlertTitle className="text-green-900">Zone Retrieved!</AlertTitle>
+                  <AlertDescription className="text-green-800 mt-2">
+                    <p><strong>Zone:</strong> {zone}</p>
+                    {zoneCode && <p><strong>Zone Code:</strong> {zoneCode}</p>}
+                    {lgaName && <p><strong>LGA:</strong> {lgaName}</p>}
+                    {overlays.length > 0 && <p><strong>Overlays:</strong> {overlays.join(", ")}</p>}
                   </AlertDescription>
                 </Alert>
 
@@ -599,8 +508,7 @@ const PropertyZoning = () => {
                       id="lga"
                       value={lgaName}
                       onChange={(e) => setLgaName(e.target.value)}
-                      placeholder={propertyDetails.lga || "e.g., Port Phillip"}
-                      defaultValue={propertyDetails.lga}
+                      placeholder="e.g., Port Phillip"
                     />
                   </div>
                 </div>
@@ -680,21 +588,20 @@ const PropertyZoning = () => {
         <CardHeader>
           <CardTitle className="text-base flex items-center gap-2">
             <FileText className="h-4 w-4" />
-            About This Tool
+            How This Works
           </CardTitle>
         </CardHeader>
         <CardContent className="text-sm text-muted-foreground space-y-3">
-          <p>
-            This tool uses <strong>LANDATA</strong> (Victoria's official land registry) to verify your property and retrieve property details.
-          </p>
           <ol className="list-decimal list-inside space-y-1">
             <li>Enter your property address</li>
-            <li>System searches LANDATA to verify property exists</li>
-            <li>You enter the planning zone and overlay information</li>
-            <li>All data is saved to your project</li>
+            <li>System automatically locates your address</li>
+            <li>System queries Vicmap Planning to get your zone and overlays</li>
+            <li>Zone information is auto-filled in the form</li>
+            <li>Review and edit if needed</li>
+            <li>Save to your project</li>
           </ol>
           <p className="text-xs mt-4">
-            <strong>Data sources:</strong> LANDATA (property details) + Your local council (planning zone)
+            <strong>Data source:</strong> Vicmap Planning (mapshare.vic.gov.au)
           </p>
         </CardContent>
       </Card>
