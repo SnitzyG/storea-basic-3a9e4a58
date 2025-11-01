@@ -94,6 +94,7 @@ const PropertyZoning = () => {
 
   const getVicmapZoning = async (latitude: number, longitude: number): Promise<ZoningData | null> => {
     try {
+      // Use WGS84 coordinates (standard for web APIs)
       const geometry = JSON.stringify({
         x: longitude,
         y: latitude,
@@ -102,34 +103,42 @@ const PropertyZoning = () => {
       const params = new URLSearchParams({
         geometry,
         geometryType: "esriGeometryPoint",
-        layers: "all",
-        tolerance: "5",
+        layers: "0",
+        tolerance: "100",
         imageDisplay: "400,300,96",
-        returnGeometry: "true",
+        mapExtent: "-180,-90,180,90",
+        returnGeometry: "false",
         f: "json",
       });
 
-      // Query zones
+      // Query zones - use layer 0 which is "All Zones"
       const zonesUrl = `https://plan-gis.mapshare.vic.gov.au/arcgis/rest/services/Planning/Vicplan_PlanningSchemeZones/MapServer/identify?${params.toString()}`;
       
+      console.log("=== VICMAP API DEBUG ===");
+      console.log("Coordinates - Lat:", latitude, "Lon:", longitude);
+      console.log("Fetching zones from:", zonesUrl);
+      
       const zonesResponse = await fetch(zonesUrl);
+      console.log("Zones response status:", zonesResponse.status);
 
       if (!zonesResponse.ok) {
+        const errorText = await zonesResponse.text();
+        console.error("API error response:", errorText);
         throw new Error(`Vicmap Zones API error: ${zonesResponse.statusText}`);
       }
 
-      const zonesData: VicmapResponse = await zonesResponse.json();
+      const zonesData: any = await zonesResponse.json();
+      console.log("Complete zones data:", JSON.stringify(zonesData, null, 2));
 
-      // Query overlays
-      const overlaysUrl = `https://plan-gis.mapshare.vic.gov.au/arcgis/rest/services/Planning/Vicplan_PlanningSchemeOverlays/MapServer/identify?${params.toString()}`;
-      
-      const overlaysResponse = await fetch(overlaysUrl);
-
-      if (!overlaysResponse.ok) {
-        throw new Error(`Vicmap Overlays API error: ${overlaysResponse.statusText}`);
+      // Try alternate approach - use query instead of identify
+      if (!zonesData.results || zonesData.results.length === 0) {
+        console.log("No results from identify, trying query endpoint...");
+        
+        const queryUrl = `https://plan-gis.mapshare.vic.gov.au/arcgis/rest/services/Planning/Vicplan_PlanningSchemeZones/MapServer/0/query?where=1=1&returnCountOnly=true&f=json`;
+        const queryResponse = await fetch(queryUrl);
+        const queryData = await queryResponse.json();
+        console.log("Query endpoint response:", queryData);
       }
-
-      const overlaysData: VicmapResponse = await overlaysResponse.json();
 
       // Process zones results
       let zone = "";
@@ -137,35 +146,67 @@ const PropertyZoning = () => {
       let lgaName = "";
 
       if (zonesData.results && zonesData.results.length > 0) {
+        console.log("Processing", zonesData.results.length, "zone results");
         for (const result of zonesData.results) {
           const attrs = result.attributes;
+          console.log("Full attributes:", attrs);
           
-          // Look for zone information in any result
-          if (attrs.ZONE_NAME) {
-            zone = attrs.ZONE_NAME.toString();
-            zoneCode = attrs.ZONE_CODE ? attrs.ZONE_CODE.toString() : "";
-            lgaName = attrs.LGA_NAME ? attrs.LGA_NAME.toString() : "";
-            break;
+          // Look through all possible attribute names
+          const possibleZoneKeys = ["ZONE_NAME", "NAME", "ZoneName", "ZONENAME"];
+          for (const key of possibleZoneKeys) {
+            if (attrs[key]) {
+              zone = attrs[key].toString();
+              zoneCode = attrs.ZONE_CODE || attrs.CODE || attrs.ZONECODE || "";
+              lgaName = attrs.LGA_NAME || attrs.LGA || "";
+              console.log("✓ Found zone:", zone);
+              break;
+            }
           }
         }
-      }
-
-      // Process overlays results
-      const overlays: string[] = [];
-      if (overlaysData.results && overlaysData.results.length > 0) {
-        for (const result of overlaysData.results) {
-          const attrs = result.attributes;
-          const overlayName = attrs.OVERLAY_NAME || attrs.OVERLAY_TYPE;
-          
-          if (overlayName && !overlays.includes(overlayName.toString())) {
-            overlays.push(overlayName.toString());
-          }
-        }
+      } else {
+        console.warn("⚠️ No zone results returned from API. Full response:", zonesData);
       }
 
       if (!zone) {
-        throw new Error("Could not determine planning zone for this location. Please try a different address.");
+        console.error("❌ No zone found - API may be blocked, coordinates invalid, or outside mapped area");
+        console.log("Tried coordinates:", { latitude, longitude });
+        throw new Error("Could not retrieve planning zone. This may be because: 1) The location is outside Victoria, 2) The Vicmap API is not accessible, or 3) The address could not be precisely located. Please check the address and try again.");
       }
+
+      // Query overlays - optional, won't fail if this endpoint has issues
+      let overlays: string[] = [];
+      try {
+        const overlayParams = new URLSearchParams({
+          geometry,
+          geometryType: "esriGeometryPoint",
+          layers: "0",
+          tolerance: "100",
+          returnGeometry: "false",
+          f: "json",
+        });
+        
+        const overlaysUrl = `https://plan-gis.mapshare.vic.gov.au/arcgis/rest/services/Planning/Vicplan_PlanningSchemeOverlays/MapServer/identify?${overlayParams.toString()}`;
+        const overlaysResponse = await fetch(overlaysUrl);
+        
+        if (overlaysResponse.ok) {
+          const overlaysData: any = await overlaysResponse.json();
+          console.log("Overlays response:", overlaysData);
+          
+          if (overlaysData.results && overlaysData.results.length > 0) {
+            for (const result of overlaysData.results) {
+              const overlayName = result.attributes.OVERLAY_NAME || result.attributes.NAME;
+              if (overlayName && !overlays.includes(overlayName.toString())) {
+                overlays.push(overlayName.toString());
+              }
+            }
+          }
+        }
+      } catch (err) {
+        console.warn("Could not fetch overlays:", err);
+      }
+
+      console.log("=== SUCCESS ===");
+      console.log("Zone:", zone, "Code:", zoneCode, "LGA:", lgaName, "Overlays:", overlays);
 
       return {
         address: address.trim(),
@@ -177,11 +218,11 @@ const PropertyZoning = () => {
         lgaName,
         rawResponse: {
           zones: zonesData,
-          overlays: overlaysData,
+          overlays: {},
         },
       };
     } catch (err) {
-      console.error("Vicmap API error:", err);
+      console.error("❌ Vicmap API error:", err);
       throw err;
     }
   };
