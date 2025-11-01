@@ -284,19 +284,61 @@ const PropertyZoning = () => {
                   </AlertDescription>
                 </Alert>
 
-                <div className="space-y-2">
-                  <Label htmlFor="bydaAddress">Property Address *</Label>
-                  <Input
-                    id="bydaAddress"
-                    value={bydaAddress}
-                    onChange={(e) => setBydaAddress(e.target.value)}
-                    placeholder="e.g., 384 Barkly Street, Elwood VIC 3184"
-                    disabled={isLoadingBYDA}
-                    onKeyDown={(e) => e.key === "Enter" && submitBYDAEnquiry()}
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Enter full address with suburb and postcode
-                  </p>
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="streetNumber">Street Number *</Label>
+                      <Input
+                        id="streetNumber"
+                        placeholder="e.g., 22"
+                        disabled={isLoadingBYDA}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="streetName">Street Name *</Label>
+                      <Input
+                        id="streetName"
+                        placeholder="e.g., Pardoner Rd"
+                        disabled={isLoadingBYDA}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="suburb">Suburb *</Label>
+                      <Input
+                        id="suburb"
+                        placeholder="e.g., Rye"
+                        disabled={isLoadingBYDA}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="postcode">Postcode *</Label>
+                      <Input
+                        id="postcode"
+                        placeholder="e.g., 3941"
+                        disabled={isLoadingBYDA}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="state">State *</Label>
+                    <Input
+                      id="state"
+                      value="VIC"
+                      disabled
+                      className="bg-gray-100"
+                    />
+                  </div>
+
+                  <div className="bg-blue-50 p-3 rounded text-sm">
+                    <p className="font-medium">Full Address:</p>
+                    <p className="text-primary font-semibold">
+                      22 Pardoner Rd, Rye VIC 3941
+                    </p>
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
