@@ -8,8 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, MapPin, Shield, FileText, CheckCircle2, ExternalLink, ArrowRight } from "lucide-react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { MapPin, Shield, FileText, CheckCircle2, ExternalLink, ArrowLeft } from "lucide-react";
 
 interface ZoningData {
   address: string;
@@ -25,12 +24,23 @@ const PropertyZoning = () => {
   const [projectId, setProjectId] = useState("");
   const [zone, setZone] = useState("");
   const [zoneCode, setZoneCode] = useState("");
-  const [overlayInput, setOverlayInput] = useState("");
   const [overlays, setOverlays] = useState<string[]>([]);
   const [lgaName, setLgaName] = useState("");
+  const [overlayInput, setOverlayInput] = useState("");
   const [result, setResult] = useState<ZoningData | null>(null);
   const [isSaved, setIsSaved] = useState(false);
-  const [activeTab, setActiveTab] = useState("manual");
+  const [showVicPlan, setShowVicPlan] = useState(false);
+
+  const addOverlay = () => {
+    if (overlayInput.trim() && !overlays.includes(overlayInput.trim())) {
+      setOverlays([...overlays, overlayInput.trim()]);
+      setOverlayInput("");
+    }
+  };
+
+  const removeOverlay = (index: number) => {
+    setOverlays(overlays.filter((_, i) => i !== index));
+  };
 
   const validateForm = (): boolean => {
     if (!address.trim()) {
@@ -44,15 +54,13 @@ const PropertyZoning = () => {
     return true;
   };
 
-  const addOverlay = () => {
-    if (overlayInput.trim() && !overlays.includes(overlayInput.trim())) {
-      setOverlays([...overlays, overlayInput.trim()]);
-      setOverlayInput("");
+  const handleSearch = () => {
+    if (!address.trim()) {
+      toast.error("Error", { description: "Please enter a property address" });
+      return;
     }
-  };
-
-  const removeOverlay = (index: number) => {
-    setOverlays(overlays.filter((_, i) => i !== index));
+    // Show VicPlan iframe with address pre-filled
+    setShowVicPlan(true);
   };
 
   const handleSubmit = () => {
@@ -67,6 +75,7 @@ const PropertyZoning = () => {
     };
 
     setResult(zoningData);
+    setShowVicPlan(false);
     toast.success("Zone information ready to save");
   };
 
@@ -115,12 +124,7 @@ const PropertyZoning = () => {
     setLgaName("");
     setResult(null);
     setIsSaved(false);
-    setActiveTab("manual");
-  };
-
-  const openVicPlan = () => {
-    // VicPlan MapShare doesn't support URL parameters, so just open the main page
-    window.open(`https://mapshare.vic.gov.au/vicplan/`, "_blank");
+    setShowVicPlan(false);
   };
 
   const commonZones = [
@@ -150,7 +154,7 @@ const PropertyZoning = () => {
   ];
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-4xl">
+    <div className="container mx-auto px-4 py-8 max-w-5xl">
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-2">Property Zoning Lookup</h1>
         <p className="text-muted-foreground">
@@ -218,7 +222,7 @@ const PropertyZoning = () => {
               <FileText className="h-4 w-4" />
               <AlertTitle>Always Verify</AlertTitle>
               <AlertDescription>
-                Always verify this information with your local council or on{" "}
+                Always verify this information on{" "}
                 <a
                   href="https://mapshare.vic.gov.au/vicplan/"
                   target="_blank"
@@ -282,64 +286,62 @@ const PropertyZoning = () => {
             )}
           </CardContent>
         </Card>
-      ) : (
-        // Input view
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-6">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="manual">Manual Entry</TabsTrigger>
-            <TabsTrigger value="vicplan">VicPlan Guide</TabsTrigger>
-          </TabsList>
+      ) : showVicPlan ? (
+        // VicPlan embedded view
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <MapPin className="h-5 w-5 text-primary" />
+              VicPlan Map - {address}
+            </CardTitle>
+            <CardDescription>
+              Search for your property on the map below and note the zone and overlay information
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {/* VicPlan Embedded */}
+            <div className="w-full h-96 bg-gray-100 rounded-lg border overflow-hidden">
+              <iframe
+                title="VicPlan"
+                src="https://mapshare.vic.gov.au/vicplan/"
+                width="100%"
+                height="100%"
+                style={{ border: "none" }}
+                allowFullScreen
+              />
+            </div>
 
-          <TabsContent value="manual" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Enter Zoning Information</CardTitle>
-                <CardDescription>
-                  Enter your property details and planning zone information
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {/* Address */}
-                <div className="space-y-2">
-                  <Label htmlFor="address">Property Address *</Label>
-                  <Input
-                    id="address"
-                    value={address}
-                    onChange={(e) => setAddress(e.target.value)}
-                    placeholder="e.g., 384 Barkly Street, Elwood VIC 3184"
-                  />
-                </div>
+            <Alert className="bg-blue-50 border-blue-200">
+              <FileText className="h-4 w-4" />
+              <AlertTitle>Instructions</AlertTitle>
+              <AlertDescription>
+                <ol className="list-decimal list-inside space-y-1 mt-2">
+                  <li>Use the search box in the top-left to search for: <strong>{address}</strong></li>
+                  <li>Click on your property to see zone details</li>
+                  <li>Note the planning zone and any overlays</li>
+                  <li>Return here and enter the information below</li>
+                </ol>
+              </AlertDescription>
+            </Alert>
 
-                {/* Zone Selection */}
+            {/* Form to enter data */}
+            <div className="space-y-4 pt-4 border-t">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Zone */}
                 <div className="space-y-2">
                   <Label htmlFor="zone">Planning Zone *</Label>
-                  <div className="flex gap-2">
-                    <Input
-                      id="zone"
-                      value={zone}
-                      onChange={(e) => setZone(e.target.value)}
-                      placeholder="e.g., Residential Zone 1"
-                      list="zone-suggestions"
-                    />
-                  </div>
+                  <Input
+                    id="zone"
+                    value={zone}
+                    onChange={(e) => setZone(e.target.value)}
+                    placeholder="e.g., Residential Zone 1"
+                    list="zone-suggestions"
+                  />
                   <datalist id="zone-suggestions">
                     {commonZones.map((z) => (
                       <option key={z} value={z} />
                     ))}
                   </datalist>
-                  <div className="flex flex-wrap gap-2">
-                    {commonZones.map((z) => (
-                      <Button
-                        key={z}
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setZone(z)}
-                        className="text-xs"
-                      >
-                        {z}
-                      </Button>
-                    ))}
-                  </div>
                 </div>
 
                 {/* Zone Code */}
@@ -349,7 +351,7 @@ const PropertyZoning = () => {
                     id="zoneCode"
                     value={zoneCode}
                     onChange={(e) => setZoneCode(e.target.value)}
-                    placeholder="e.g., RZ1, NRZ, VCZ"
+                    placeholder="e.g., RZ1, NRZ"
                   />
                 </div>
 
@@ -360,131 +362,114 @@ const PropertyZoning = () => {
                     id="lga"
                     value={lgaName}
                     onChange={(e) => setLgaName(e.target.value)}
-                    placeholder="e.g., Port Phillip, City of Melbourne"
+                    placeholder="e.g., Port Phillip"
                   />
                 </div>
+              </div>
 
-                {/* Overlays */}
-                <div className="space-y-2">
-                  <Label>Planning Overlays (Optional)</Label>
-                  <div className="flex gap-2">
-                    <Input
-                      value={overlayInput}
-                      onChange={(e) => setOverlayInput(e.target.value)}
-                      placeholder="e.g., Heritage Overlay"
-                      onKeyDown={(e) => e.key === "Enter" && addOverlay()}
-                      list="overlay-suggestions"
-                    />
-                    <Button onClick={addOverlay} variant="outline">
-                      Add
-                    </Button>
-                  </div>
-                  <datalist id="overlay-suggestions">
-                    {commonOverlays.map((o) => (
-                      <option key={o} value={o} />
-                    ))}
-                  </datalist>
-
-                  {overlays.length > 0 && (
-                    <div className="space-y-2">
-                      <p className="text-sm font-medium">Selected overlays:</p>
-                      <div className="flex flex-wrap gap-2">
-                        {overlays.map((overlay, index) => (
-                          <Badge key={index} variant="secondary" className="text-sm">
-                            {overlay}
-                            <button
-                              onClick={() => removeOverlay(index)}
-                              className="ml-1 hover:text-destructive"
-                            >
-                              ×
-                            </button>
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  <div className="flex flex-wrap gap-2">
-                    {commonOverlays.map((o) => (
-                      <Button
-                        key={o}
-                        variant="outline"
-                        size="sm"
-                        onClick={() => {
-                          if (!overlays.includes(o)) {
-                            setOverlays([...overlays, o]);
-                          }
-                        }}
-                        className="text-xs"
-                      >
-                        {o}
-                      </Button>
-                    ))}
-                  </div>
+              {/* Overlays */}
+              <div className="space-y-2">
+                <Label>Planning Overlays (Optional)</Label>
+                <div className="flex gap-2">
+                  <Input
+                    value={overlayInput}
+                    onChange={(e) => setOverlayInput(e.target.value)}
+                    placeholder="e.g., Heritage Overlay"
+                    onKeyDown={(e) => e.key === "Enter" && addOverlay()}
+                    list="overlay-suggestions"
+                  />
+                  <Button onClick={addOverlay} variant="outline">
+                    Add
+                  </Button>
                 </div>
+                <datalist id="overlay-suggestions">
+                  {commonOverlays.map((o) => (
+                    <option key={o} value={o} />
+                  ))}
+                </datalist>
 
-                {/* Submit Button */}
-                <Button onClick={handleSubmit} className="w-full">
-                  <ArrowRight className="mr-2 h-4 w-4" />
+                {overlays.length > 0 && (
+                  <div className="space-y-2">
+                    <p className="text-sm font-medium">Selected overlays:</p>
+                    <div className="flex flex-wrap gap-2">
+                      {overlays.map((overlay, index) => (
+                        <Badge key={index} variant="secondary" className="text-sm">
+                          {overlay}
+                          <button
+                            onClick={() => removeOverlay(index)}
+                            className="ml-1 hover:text-destructive"
+                          >
+                            ×
+                          </button>
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <div className="flex flex-wrap gap-2">
+                  {commonOverlays.map((o) => (
+                    <Button
+                      key={o}
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        if (!overlays.includes(o)) {
+                          setOverlays([...overlays, o]);
+                        }
+                      }}
+                      className="text-xs"
+                    >
+                      {o}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Submit Buttons */}
+              <div className="flex gap-3 pt-4">
+                <Button onClick={handleSubmit} className="flex-1">
+                  <CheckCircle2 className="mr-2 h-4 w-4" />
                   Continue
                 </Button>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="vicplan" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Look Up on VicPlan</CardTitle>
-                <CardDescription>
-                  Follow these steps to find your planning zone
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <Alert>
-                  <FileText className="h-4 w-4" />
-                  <AlertTitle>Step-by-Step Guide</AlertTitle>
-                  <AlertDescription className="mt-3 space-y-3">
-                    <ol className="list-decimal list-inside space-y-2">
-                      <li><strong>Enter your address below</strong> and click "Open VicPlan"</li>
-                      <li><strong>Search for your property</strong> on the VicPlan map</li>
-                      <li><strong>Click on your property</strong> to see zone details</li>
-                      <li><strong>Note the following:</strong>
-                        <ul className="list-disc list-inside ml-4 mt-1">
-                          <li>Zone name (e.g., "Residential Zone 1")</li>
-                          <li>Zone code (e.g., "RZ1")</li>
-                          <li>Any overlays that apply</li>
-                          <li>Local council name</li>
-                        </ul>
-                      </li>
-                      <li><strong>Return here</strong> and enter the information in the "Manual Entry" tab</li>
-                    </ol>
-                  </AlertDescription>
-                </Alert>
-
-                <div className="space-y-2">
-                  <Label htmlFor="address2">Property Address</Label>
-                  <Input
-                    id="address2"
-                    value={address}
-                    onChange={(e) => setAddress(e.target.value)}
-                    placeholder="e.g., 384 Barkly Street, Elwood VIC 3184"
-                    onKeyDown={(e) => e.key === "Enter" && openVicPlan()}
-                  />
-                </div>
-
-                <Button onClick={openVicPlan} disabled={!address.trim()} className="w-full">
-                  <ExternalLink className="mr-2 h-4 w-4" />
-                  Open VicPlan Map
+                <Button onClick={() => setShowVicPlan(false)} variant="secondary" className="flex-1">
+                  <ArrowLeft className="mr-2 h-4 w-4" />
+                  Back
                 </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      ) : (
+        // Initial search view
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle>Enter Property Address</CardTitle>
+            <CardDescription>
+              Enter your address and we'll open VicPlan to look up your planning zone
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="address">Property Address *</Label>
+              <Input
+                id="address"
+                value={address}
+                onChange={(e) => setAddress(e.target.value)}
+                placeholder="e.g., 384 Barkly Street, Elwood VIC 3184"
+                onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+              />
+              <p className="text-sm text-muted-foreground">
+                Enter your full address with suburb and postcode
+              </p>
+            </div>
 
-                <Button onClick={() => setActiveTab("manual")} variant="secondary" className="w-full">
-                  Ready to Enter Data
-                </Button>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
+            <Button onClick={handleSearch} className="w-full" size="lg">
+              <MapPin className="mr-2 h-4 w-4" />
+              Search VicPlan Map
+            </Button>
+          </CardContent>
+        </Card>
       )}
 
       {/* Info Card */}
@@ -492,32 +477,20 @@ const PropertyZoning = () => {
         <CardHeader>
           <CardTitle className="text-base flex items-center gap-2">
             <FileText className="h-4 w-4" />
-            About This Tool
+            How This Works
           </CardTitle>
         </CardHeader>
         <CardContent className="text-sm text-muted-foreground space-y-3">
-          <p>
-            This tool helps you record your property's planning zone and overlays from Victoria's official planning data.
-          </p>
-          <p>
-            <strong>You can:</strong>
-          </p>
-          <ul className="list-disc list-inside space-y-1">
-            <li>Manually enter zone information you've looked up</li>
-            <li>Get guided help using VicPlan's official map</li>
-            <li>Save information to your project for later stages</li>
-          </ul>
+          <ol className="list-decimal list-inside space-y-2">
+            <li>Enter your property address</li>
+            <li>VicPlan map opens with your address pre-loaded</li>
+            <li>Search for your property on the map</li>
+            <li>Check the zone and overlay information displayed</li>
+            <li>Enter the details below the map</li>
+            <li>Save to your project</li>
+          </ol>
           <p className="text-xs mt-4">
-            <strong>Important:</strong> Always verify zone information on{" "}
-            <a
-              href="https://mapshare.vic.gov.au/vicplan/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-primary hover:underline font-medium"
-            >
-              mapshare.vic.gov.au/vicplan/
-            </a>
-            {" "}or with your local council before submitting applications.
+            <strong>Data source:</strong> VicPlan MapShare
           </p>
         </CardContent>
       </Card>
