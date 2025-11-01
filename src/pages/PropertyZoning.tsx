@@ -119,8 +119,8 @@ const PropertyZoning = () => {
   };
 
   const openVicPlan = () => {
-    const encodedAddress = encodeURIComponent(address.trim() || "Victoria Australia");
-    window.open(`https://mapshare.vic.gov.au/vicplan/?search=${encodedAddress}`, "_blank");
+    // VicPlan MapShare doesn't support URL parameters, so just open the main page
+    window.open(`https://mapshare.vic.gov.au/vicplan/`, "_blank");
   };
 
   const commonZones = [
