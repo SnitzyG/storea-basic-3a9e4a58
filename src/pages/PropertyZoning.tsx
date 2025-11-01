@@ -57,7 +57,7 @@ const PropertyZoning = () => {
     }
   };
 
-  // Submit BYDA Enquiry
+  // Submit BYDA Enquiry - DUMMY DATA
   const submitBYDAEnquiry = async () => {
     if (!bydaAddress.trim()) {
       toast.error("Error", { description: "Please enter an address" });
@@ -71,39 +71,30 @@ const PropertyZoning = () => {
     setIsLoadingBYDA(true);
 
     try {
-      toast.loading("Locating address...");
+      toast.loading("Processing enquiry...");
 
-      // Step 1: Geocode address
-      const coords = await geocodeAddress(bydaAddress);
-      if (!coords) {
-        throw new Error("Could not locate address. Please check spelling.");
-      }
+      // Simulate processing delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
 
-      toast.loading("Submitting BYDA enquiry...");
-
-      // Step 2: Submit to BYDA
-      // Note: This is a simplified example. In production, you'd need proper BYDA API credentials
-      // For now, we'll create a local record that simulates a BYDA submission
-      
+      // Create dummy enquiry result
       const jobId = `BYDA-${Date.now()}`;
       const enquiry: BYDAEnquiry = {
         jobId,
         address: bydaAddress.trim(),
-        latitude: coords.lat,
-        longitude: coords.lon,
+        latitude: -37.8136,
+        longitude: 144.9631,
         contactEmail: bydaEmail.trim(),
         submittedAt: new Date().toISOString(),
         status: "Submitted to BYDA - Awaiting responses (2-3 business days)",
       };
 
       setBydaResult(enquiry);
-      toast.success("BYDA Enquiry Submitted!", {
-        description: `Job ID: ${jobId}. You'll receive responses at ${bydaEmail}`,
+      toast.success("BYDA Enquiry Created!", {
+        description: `Job ID: ${jobId}`,
       });
     } catch (err) {
       console.error("BYDA error:", err);
-      const errorMessage = err instanceof Error ? err.message : "Failed to submit enquiry";
-      toast.error("Submission failed", { description: errorMessage });
+      toast.error("Failed to create enquiry");
     } finally {
       setIsLoadingBYDA(false);
     }
