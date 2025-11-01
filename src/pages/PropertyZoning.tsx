@@ -120,7 +120,7 @@ const PropertyZoning = () => {
 
   const openVicPlan = () => {
     const encodedAddress = encodeURIComponent(address.trim() || "Victoria Australia");
-    window.open(`https://vicplan.vic.gov.au/?search=${encodedAddress}`, "_blank");
+    window.open(`https://mapshare.vic.gov.au/vicplan/?search=${encodedAddress}`, "_blank");
   };
 
   const commonZones = [
@@ -218,9 +218,14 @@ const PropertyZoning = () => {
               <FileText className="h-4 w-4" />
               <AlertTitle>Always Verify</AlertTitle>
               <AlertDescription>
-                Always verify this information with your local council or by checking 
-                <a href="https://vicplan.vic.gov.au" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline ml-1">
-                  VicPlan.vic.gov.au
+                Always verify this information with your local council or on{" "}
+                <a
+                  href="https://mapshare.vic.gov.au/vicplan/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary hover:underline font-medium"
+                >
+                  VicPlan MapShare
                 </a>
                 {" "}before submitting a planning application.
               </AlertDescription>
@@ -379,7 +384,7 @@ const PropertyZoning = () => {
                       <option key={o} value={o} />
                     ))}
                   </datalist>
-                  
+
                   {overlays.length > 0 && (
                     <div className="space-y-2">
                       <p className="text-sm font-medium">Selected overlays:</p>
@@ -503,7 +508,16 @@ const PropertyZoning = () => {
             <li>Save information to your project for later stages</li>
           </ul>
           <p className="text-xs mt-4">
-            <strong>Important:</strong> Always verify zone information on <a href="https://vicplan.vic.gov.au" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">VicPlan.vic.gov.au</a> or with your local council before submitting applications.
+            <strong>Important:</strong> Always verify zone information on{" "}
+            <a
+              href="https://mapshare.vic.gov.au/vicplan/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-primary hover:underline font-medium"
+            >
+              mapshare.vic.gov.au/vicplan/
+            </a>
+            {" "}or with your local council before submitting applications.
           </p>
         </CardContent>
       </Card>
