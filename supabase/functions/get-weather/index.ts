@@ -29,6 +29,39 @@ const australianCities: { [key: string]: { lat: number; lon: number; name: strin
   "portsea": { lat: -38.3167, lon: 144.7167, name: "Portsea, VIC" }
 };
 
+// Retry helper function with exponential backoff
+async function fetchWithRetry(url: string, options: RequestInit = {}, maxRetries = 3): Promise<Response> {
+  let lastError: Error | null = null;
+  
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
+      
+      const response = await fetch(url, {
+        ...options,
+        signal: controller.signal,
+      });
+      
+      clearTimeout(timeoutId);
+      return response;
+    } catch (error) {
+      lastError = error as Error;
+      console.log(`Fetch attempt ${attempt + 1} failed:`, error);
+      
+      // Don't retry on last attempt
+      if (attempt < maxRetries - 1) {
+        // Exponential backoff: 1s, 2s, 4s
+        const delay = Math.pow(2, attempt) * 1000;
+        console.log(`Retrying in ${delay}ms...`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
+    }
+  }
+  
+  throw lastError || new Error('Max retries exceeded');
+}
+
 async function getCoordinates(location: string): Promise<{ lat: number; lon: number; displayName: string } | null> {
   const locationKey = location.toLowerCase().trim();
   
@@ -41,9 +74,9 @@ async function getCoordinates(location: string): Promise<{ lat: number; lon: num
   // If not in our predefined list, try geocoding with Nominatim (free)
   try {
     const geocodeUrl = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(location + ', Victoria, Australia')}&format=json&limit=1`;
-    const response = await fetch(geocodeUrl, {
+    const response = await fetchWithRetry(geocodeUrl, {
       headers: { 'User-Agent': 'STOREALite-Weather-App' }
-    });
+    }, 2);
     
     if (response.ok) {
       const data = await response.json();
@@ -90,14 +123,19 @@ serve(async (req: Request) => {
 
     console.log(`Getting weather for: ${coordinates.displayName} (${coordinates.lat}, ${coordinates.lon})`);
 
-    // Use Open-Meteo API (free, no API key required)
+    // Use Open-Meteo API (free, no API key required) with retry logic
     const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${coordinates.lat}&longitude=${coordinates.lon}&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m,precipitation&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum&timezone=Australia/Melbourne&forecast_days=7`;
     
-    const weatherResponse = await fetch(weatherUrl);
+    console.log('Fetching weather data...');
+    const weatherResponse = await fetchWithRetry(weatherUrl, {}, 3);
     
     if (!weatherResponse.ok) {
+      const errorText = await weatherResponse.text();
+      console.error('Open-Meteo API error:', weatherResponse.status, errorText);
       throw new Error(`Open-Meteo API error: ${weatherResponse.status}`);
     }
+    
+    console.log('Weather data fetched successfully');
 
     const weatherData = await weatherResponse.json();
 
