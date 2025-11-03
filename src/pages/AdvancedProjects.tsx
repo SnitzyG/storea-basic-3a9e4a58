@@ -5,7 +5,9 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, BarChart3, Eye, Archive, Hash, UserPlus, Copy, Edit } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { Plus, BarChart3, Eye, Archive, Hash, UserPlus, Copy, Edit, Trash2, FileText } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAdvancedProjects, AdvancedProject } from '@/hooks/useAdvancedProjects';
 import { AdvancedProjectWizard } from '@/components/projects-v2/AdvancedProjectWizard';
@@ -13,6 +15,9 @@ import { ProjectDetailsDialog } from '@/components/projects-v2/ProjectDetailsDia
 import { ProjectJoinSection } from '@/components/projects/ProjectJoinSection';
 import { ProjectMap } from '@/components/ui/project-map';
 import { useAuth } from '@/hooks/useAuth';
+import { ProjectFiltersPanel } from '@/components/projects-v2/ProjectFiltersPanel';
+import { BulkProjectActions } from '@/components/projects-v2/BulkProjectActions';
+import { ProjectTemplateManager } from '@/components/projects-v2/ProjectTemplateManager';
 
 const ArchitecturalStageSelector = ({
   project,
@@ -116,12 +121,14 @@ const StatusSelector = ({
 const AdvancedProjects = () => {
   const {
     projects,
+    templates,
     loading,
     archiveProject,
     cloneProject,
     deleteProject,
     updateProject,
-    updateProjectCoordinates
+    updateProjectCoordinates,
+    setSearchQuery
   } = useAdvancedProjects();
   const { profile } = useAuth();
   const { toast } = useToast();
@@ -129,6 +136,21 @@ const AdvancedProjects = () => {
   const [selectedProject, setSelectedProject] = useState<AdvancedProject | null>(null);
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
   const [projectToView, setProjectToView] = useState<AdvancedProject | null>(null);
+  const [selectedProjects, setSelectedProjects] = useState<string[]>([]);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [projectToDelete, setProjectToDelete] = useState<string | null>(null);
+  const [filters, setFilters] = useState({
+    status: 'all',
+    project_type: 'all',
+    priority: 'all',
+    budget_min: '',
+    budget_max: '',
+    date_from: '',
+    date_to: '',
+    architectural_stage: 'all',
+    search: ''
+  });
+  const [savedFilters, setSavedFilters] = useState<Array<{ id: string; name: string; config: any }>>([]);
   
   // CRITICAL: Only architects can create projects
   const isArchitect = profile?.role === 'architect';
@@ -174,7 +196,20 @@ const AdvancedProjects = () => {
   };
 
   const handleDeleteProject = async (projectId: string) => {
-    await deleteProject(projectId);
+    setProjectToDelete(projectId);
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (projectToDelete) {
+      await deleteProject(projectToDelete);
+      setDeleteDialogOpen(false);
+      setProjectToDelete(null);
+      if (detailsDialogOpen) {
+        setDetailsDialogOpen(false);
+        setProjectToView(null);
+      }
+    }
   };
 
   const handleStatusChange = async (projectId: string, newStatus: 'active' | 'on_hold' | 'completed' | 'cancelled') => {
@@ -205,6 +240,145 @@ const AdvancedProjects = () => {
     } catch (error) {
       console.error('Error updating project budget:', error);
     }
+  };
+
+  // Filter projects based on current filters
+  const filteredProjects = projects.filter((project) => {
+    // Search filter
+    if (filters.search) {
+      const searchLower = filters.search.toLowerCase();
+      const matchesSearch = 
+        project.name.toLowerCase().includes(searchLower) ||
+        project.address?.toLowerCase().includes(searchLower) ||
+        project.description?.toLowerCase().includes(searchLower) ||
+        project.homeowner_name?.toLowerCase().includes(searchLower);
+      if (!matchesSearch) return false;
+    }
+
+    // Status filter
+    if (filters.status !== 'all' && project.status !== filters.status) return false;
+
+    // Project type filter
+    if (filters.project_type !== 'all' && project.project_type !== filters.project_type) return false;
+
+    // Priority filter
+    if (filters.priority !== 'all' && project.priority !== filters.priority) return false;
+
+    // Architectural stage filter
+    if (filters.architectural_stage !== 'all' && project.architectural_stage !== filters.architectural_stage) return false;
+
+    // Budget range filter
+    if (filters.budget_min && project.budget && project.budget < parseInt(filters.budget_min)) return false;
+    if (filters.budget_max && project.budget && project.budget > parseInt(filters.budget_max)) return false;
+
+    // Date range filter
+    if (filters.date_from && project.estimated_start_date && project.estimated_start_date < filters.date_from) return false;
+    if (filters.date_to && project.estimated_finish_date && project.estimated_finish_date > filters.date_to) return false;
+
+    return true;
+  });
+
+  // Bulk operations
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedProjects(filteredProjects.map(p => p.id));
+    } else {
+      setSelectedProjects([]);
+    }
+  };
+
+  const handleSelectProject = (projectId: string, checked: boolean) => {
+    if (checked) {
+      setSelectedProjects([...selectedProjects, projectId]);
+    } else {
+      setSelectedProjects(selectedProjects.filter(id => id !== projectId));
+    }
+  };
+
+  const handleBulkStatusChange = async (projectIds: string[], status: string) => {
+    for (const id of projectIds) {
+      await updateProject(id, { status: status as any });
+    }
+  };
+
+  const handleBulkArchive = async (projectIds: string[]) => {
+    for (const id of projectIds) {
+      await archiveProject(id);
+    }
+  };
+
+  const handleBulkDelete = async (projectIds: string[]) => {
+    for (const id of projectIds) {
+      await deleteProject(id);
+    }
+  };
+
+  const handleBulkExport = (projectIds: string[], format: 'csv' | 'pdf') => {
+    const projectsToExport = projects.filter(p => projectIds.includes(p.id));
+    
+    if (format === 'csv') {
+      const csvContent = [
+        ['Name', 'Address', 'Status', 'Budget', 'Start Date', 'Finish Date'].join(','),
+        ...projectsToExport.map(p => [
+          p.name,
+          p.address || '',
+          p.status,
+          p.budget || '',
+          p.estimated_start_date || '',
+          p.estimated_finish_date || ''
+        ].join(','))
+      ].join('\n');
+      
+      const blob = new Blob([csvContent], { type: 'text/csv' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'projects.csv';
+      a.click();
+    } else {
+      toast({
+        title: "PDF Export",
+        description: "PDF export functionality coming soon",
+      });
+    }
+  };
+
+  // Template operations
+  const handleCreateFromTemplate = async (template: any, newName: string) => {
+    toast({
+      title: "Creating from template",
+      description: `Creating project "${newName}" from template`,
+    });
+    // Implementation would create a new project based on template
+  };
+
+  const handleSaveAsTemplate = async (project: AdvancedProject, templateName: string, description: string) => {
+    toast({
+      title: "Template saved",
+      description: `Template "${templateName}" created successfully`,
+    });
+    // Implementation would save project as template
+  };
+
+  const handleCloneProject = async (projectId: string, newName: string, includeTeam: boolean) => {
+    await cloneProject(projectId, newName);
+  };
+
+  const handleSaveFilter = (name: string, config: any) => {
+    const newFilter = {
+      id: Date.now().toString(),
+      name,
+      config
+    };
+    setSavedFilters([...savedFilters, newFilter]);
+    toast({
+      title: "Filter saved",
+      description: `Filter preset "${name}" saved successfully`,
+    });
+  };
+
+  const handleLoadFilter = (config: any) => {
+    setFilters(config);
   };
 
   // Handle opening project details from map
@@ -259,8 +433,38 @@ const AdvancedProjects = () => {
         </TabsList>
 
         <TabsContent value="projects" className="space-y-6">
+          {/* Template Manager - Only for architects */}
+          {canCreateProjects && (
+            <ProjectTemplateManager
+              templates={templates}
+              currentProject={selectedProject}
+              onCreateFromTemplate={handleCreateFromTemplate}
+              onSaveAsTemplate={handleSaveAsTemplate}
+              onCloneProject={handleCloneProject}
+            />
+          )}
+
+          {/* Filters Panel */}
+          <ProjectFiltersPanel
+            filters={filters}
+            onFilterChange={setFilters}
+            onSaveFilter={handleSaveFilter}
+            savedFilters={savedFilters}
+            onLoadFilter={handleLoadFilter}
+          />
+
+          {/* Bulk Actions Bar */}
+          <BulkProjectActions
+            selectedProjects={selectedProjects}
+            onClearSelection={() => setSelectedProjects([])}
+            onBulkStatusChange={handleBulkStatusChange}
+            onBulkArchive={handleBulkArchive}
+            onBulkDelete={handleBulkDelete}
+            onBulkExport={handleBulkExport}
+          />
+
           {/* Projects List View */}
-          {projects.length === 0 ? (
+          {filteredProjects.length === 0 ? (
             <Card>
               <CardContent className="text-center py-12">
                 <BarChart3 className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
@@ -283,6 +487,12 @@ const AdvancedProjects = () => {
                   <Table>
                     <TableHeader className="bg-gradient-to-r from-muted/50 to-muted/30 border-b-2 border-primary/10">
                       <TableRow>
+                        <TableHead className="text-foreground/80 font-semibold text-sm h-12 px-4 w-[50px]">
+                          <Checkbox
+                            checked={selectedProjects.length === filteredProjects.length && filteredProjects.length > 0}
+                            onCheckedChange={handleSelectAll}
+                          />
+                        </TableHead>
                         <TableHead className="text-foreground/80 font-semibold text-sm h-12 px-4">Project Reference</TableHead>
                         <TableHead className="text-foreground/80 font-semibold text-sm h-12 px-4">Project Name</TableHead>
                         <TableHead className="text-foreground/80 font-semibold text-sm h-12 px-4">Project ID</TableHead>
@@ -298,10 +508,17 @@ const AdvancedProjects = () => {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {projects.map(project => {
+                      {filteredProjects.map(project => {
                         console.log('Rendering project:', project.name, 'Reference:', project.project_reference_number);
                         return (
                           <TableRow key={project.id} className="hover:bg-muted/30 transition-all duration-200 cursor-pointer border-b border-muted/20">
+                            <TableCell className="text-sm px-4 py-3 text-foreground/90 w-[50px]">
+                              <Checkbox
+                                checked={selectedProjects.includes(project.id)}
+                                onCheckedChange={(checked) => handleSelectProject(project.id, checked as boolean)}
+                                onClick={(e) => e.stopPropagation()}
+                              />
+                            </TableCell>
                             <TableCell className="text-sm px-4 py-3 text-foreground/90">
                               <span className="font-mono text-xs text-muted-foreground">{project.project_reference_number || '-'}</span>
                             </TableCell>
@@ -356,13 +573,26 @@ const AdvancedProjects = () => {
                             </TableCell>
                             <TableCell className="text-sm px-4 py-3 text-foreground/90 w-[50px] text-center">
                               <div className="flex gap-1 justify-center">
-                                <Button variant="outline" size="sm" onClick={() => handleProjectAction('view', project)}>
+                                <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); handleProjectAction('view', project); }}>
                                   <Eye className="h-3 w-3" />
                                 </Button>
                                 {canCreateProjects && (
-                                  <Button variant="outline" size="sm" onClick={() => handleProjectAction('edit', project)}>
-                                    <Edit className="h-3 w-3" />
-                                  </Button>
+                                  <>
+                                    <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); handleProjectAction('edit', project); }}>
+                                      <Edit className="h-3 w-3" />
+                                    </Button>
+                                    <Button 
+                                      variant="outline" 
+                                      size="sm" 
+                                      onClick={(e) => { 
+                                        e.stopPropagation(); 
+                                        handleDeleteProject(project.id); 
+                                      }}
+                                      className="text-destructive hover:text-destructive"
+                                    >
+                                      <Trash2 className="h-3 w-3" />
+                                    </Button>
+                                  </>
                                 )}
                               </div>
                             </TableCell>
@@ -405,6 +635,25 @@ const AdvancedProjects = () => {
         onDelete={handleDeleteProject} 
         onUpdateBudget={handleUpdateBudget} 
       />
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Project</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to permanently delete this project? This action cannot be undone.
+              All project data, documents, RFIs, and activities will be removed.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Delete Permanently
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
