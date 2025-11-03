@@ -108,67 +108,6 @@ export const ProjectTemplateManager: React.FC<ProjectTemplateManagerProps> = ({
     <div className="space-y-4">
       {/* Template Actions */}
       <div className="flex gap-2">
-        {/* Create from Template */}
-        <Dialog open={isTemplateDialogOpen} onOpenChange={setIsTemplateDialogOpen}>
-          <DialogTrigger asChild>
-            <Button variant="outline">
-              <FileText className="h-4 w-4 mr-2" />
-              Use Template
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-2xl">
-            <DialogHeader>
-              <DialogTitle>Create Project from Template</DialogTitle>
-              <DialogDescription>
-                Select a template to quickly create a new project with pre-configured settings
-              </DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4 max-h-[300px] overflow-y-auto">
-                {templates.map((template) => (
-                  <Card
-                    key={template.id}
-                    className={`cursor-pointer transition-all ${
-                      selectedTemplate?.id === template.id
-                        ? 'border-primary ring-2 ring-primary/20'
-                        : 'hover:border-primary/50'
-                    }`}
-                    onClick={() => setSelectedTemplate(template)}
-                  >
-                    <CardHeader className="p-4">
-                      <CardTitle className="text-sm">{template.name}</CardTitle>
-                      <CardDescription className="text-xs">
-                        {template.description}
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent className="p-4 pt-0">
-                      <Badge variant="secondary" className="text-xs">
-                        {template.project_type}
-                      </Badge>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-              <div className="space-y-2">
-                <Label>New Project Name</Label>
-                <Input
-                  placeholder="Enter project name..."
-                  value={newProjectName}
-                  onChange={(e) => setNewProjectName(e.target.value)}
-                />
-              </div>
-            </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setIsTemplateDialogOpen(false)}>
-                Cancel
-              </Button>
-              <Button onClick={handleCreateFromTemplate}>
-                Create Project
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-
         {/* Save as Template */}
         {currentProject && (
           <Dialog open={isSaveTemplateDialogOpen} onOpenChange={setIsSaveTemplateDialogOpen}>
