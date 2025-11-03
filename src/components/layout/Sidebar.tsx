@@ -1,6 +1,6 @@
 import { cn } from '@/lib/utils';
 import { useLocation, Link } from 'react-router-dom';
-import { BarChart3, FolderOpen, FileStack, MessageSquare, HelpCircle, Briefcase, TestTube, DollarSign, MapPin } from 'lucide-react';
+import { BarChart3, FolderOpen, FileStack, MessageSquare, HelpCircle, Briefcase, TestTube, DollarSign, CalendarDays, CheckSquare } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { useTabNotifications } from '@/hooks/useTabNotifications';
 import { StorealiteLogo } from '@/components/ui/storealite-logo';
@@ -52,10 +52,15 @@ export const Sidebar = ({
       icon: Briefcase,
       path: '/tenders'
     }, {
-      id: 'property-zoning',
-      label: 'Property Zoning',
-      icon: MapPin,
-      path: '/property-zoning'
+      id: 'calendar',
+      label: 'Calendar',
+      icon: CalendarDays,
+      path: '/calendar'
+    }, {
+      id: 'todo-list',
+      label: 'To-Do List',
+      icon: CheckSquare,
+      path: '/todo-list'
     }, {
       id: 'financials',
       label: 'Financials',
