@@ -26,6 +26,11 @@ export interface Message {
   attachments?: any;
   created_at: string;
   updated_at: string;
+  is_deleted?: boolean;
+  edited_at?: string | null;
+  parent_message_id?: string | null;
+  quoted_content?: string | null;
+  scheduled_at?: string | null;
 }
 
 export interface MessageParticipant {

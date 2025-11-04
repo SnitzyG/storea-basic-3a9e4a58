@@ -1051,6 +1051,30 @@ export type Database = {
           },
         ]
       }
+      message_templates: {
+        Row: {
+          content: string
+          created_at: string | null
+          id: string
+          name: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string | null
+          id?: string
+          name: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string | null
+          id?: string
+          name?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       message_threads: {
         Row: {
           created_at: string
@@ -1062,6 +1086,7 @@ export type Database = {
           project_id: string
           status: string | null
           title: string
+          topics: Json | null
           updated_at: string
         }
         Insert: {
@@ -1074,6 +1099,7 @@ export type Database = {
           project_id: string
           status?: string | null
           title: string
+          topics?: Json | null
           updated_at?: string
         }
         Update: {
@@ -1086,6 +1112,7 @@ export type Database = {
           project_id?: string
           status?: string | null
           title?: string
+          topics?: Json | null
           updated_at?: string
         }
         Relationships: [
@@ -1103,10 +1130,15 @@ export type Database = {
           attachments: Json | null
           content: string
           created_at: string
+          edited_at: string | null
           id: string
           inquiry_status: string | null
+          is_deleted: boolean | null
           message_type: string | null
+          parent_message_id: string | null
           project_id: string
+          quoted_content: string | null
+          scheduled_at: string | null
           sender_id: string
           thread_id: string | null
           updated_at: string
@@ -1115,10 +1147,15 @@ export type Database = {
           attachments?: Json | null
           content: string
           created_at?: string
+          edited_at?: string | null
           id?: string
           inquiry_status?: string | null
+          is_deleted?: boolean | null
           message_type?: string | null
+          parent_message_id?: string | null
           project_id: string
+          quoted_content?: string | null
+          scheduled_at?: string | null
           sender_id: string
           thread_id?: string | null
           updated_at?: string
@@ -1127,15 +1164,27 @@ export type Database = {
           attachments?: Json | null
           content?: string
           created_at?: string
+          edited_at?: string | null
           id?: string
           inquiry_status?: string | null
+          is_deleted?: boolean | null
           message_type?: string | null
+          parent_message_id?: string | null
           project_id?: string
+          quoted_content?: string | null
+          scheduled_at?: string | null
           sender_id?: string
           thread_id?: string | null
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "messages_parent_message_id_fkey"
+            columns: ["parent_message_id"]
+            isOneToOne: false
+            referencedRelation: "messages"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "messages_project_id_fkey"
             columns: ["project_id"]
@@ -1713,11 +1762,15 @@ export type Database = {
           full_response: Json | null
           height_limit: string | null
           id: string
+          latitude: number | null
+          lga_name: string | null
+          longitude: number | null
           overlays: string[] | null
           planning_scheme: string | null
           project_id: string | null
           user_id: string | null
           zone: string | null
+          zone_code: string | null
         }
         Insert: {
           address: string
@@ -1727,11 +1780,15 @@ export type Database = {
           full_response?: Json | null
           height_limit?: string | null
           id?: string
+          latitude?: number | null
+          lga_name?: string | null
+          longitude?: number | null
           overlays?: string[] | null
           planning_scheme?: string | null
           project_id?: string | null
           user_id?: string | null
           zone?: string | null
+          zone_code?: string | null
         }
         Update: {
           address?: string
@@ -1741,11 +1798,15 @@ export type Database = {
           full_response?: Json | null
           height_limit?: string | null
           id?: string
+          latitude?: number | null
+          lga_name?: string | null
+          longitude?: number | null
           overlays?: string[] | null
           planning_scheme?: string | null
           project_id?: string | null
           user_id?: string | null
           zone?: string | null
+          zone_code?: string | null
         }
         Relationships: []
       }
@@ -2743,6 +2804,30 @@ export type Database = {
           priority?: string | null
           project_id?: string | null
           updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_mutes: {
+        Row: {
+          created_at: string | null
+          id: string
+          muted_until: string | null
+          muted_user_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          muted_until?: string | null
+          muted_user_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          muted_until?: string | null
+          muted_user_id?: string
           user_id?: string
         }
         Relationships: []

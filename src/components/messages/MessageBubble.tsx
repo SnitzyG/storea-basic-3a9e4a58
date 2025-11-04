@@ -1,10 +1,14 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Message } from '@/hooks/useMessages';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { Check, CheckCheck, MoreVertical, Edit, Trash2 } from 'lucide-react';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Button } from '@/components/ui/button';
 
 interface MessageBubbleProps {
   message: Message;
@@ -12,6 +16,9 @@ interface MessageBubbleProps {
   senderName?: string;
   showAvatar?: boolean;
   isConsecutive?: boolean;
+  readBy?: { user_id: string; name: string; read_at: string }[];
+  onEdit?: (messageId: string) => void;
+  onDelete?: (messageId: string) => void;
 }
 
 export const MessageBubble: React.FC<MessageBubbleProps> = ({
@@ -19,8 +26,17 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
   isOwnMessage,
   senderName = 'Unknown',
   showAvatar = true,
-  isConsecutive = false
+  isConsecutive = false,
+  readBy = [],
+  onEdit,
+  onDelete
 }) => {
+  const [showActions, setShowActions] = useState(false);
+  
+  const canEdit = isOwnMessage && !message.is_deleted;
+  const canDelete = isOwnMessage && !message.is_deleted;
+  const isDeleted = message.is_deleted;
+  const isEdited = message.edited_at != null;
   const getInitials = (name: string) => {
     return name
       .split(' ')
@@ -34,13 +50,21 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
     return format(new Date(timestamp), 'HH:mm');
   };
 
+  const readByText = readBy.length > 0 
+    ? `Read by: ${readBy.map(r => r.name).join(', ')}`
+    : 'Delivered';
+
   return (
-    <div className={cn(
-      "group px-2 py-1",
-      isConsecutive ? "py-0.5" : "py-2"
-    )}>
+    <div 
+      className={cn(
+        "group px-2 py-1",
+        isConsecutive ? "py-0.5" : "py-2"
+      )}
+      onMouseEnter={() => setShowActions(true)}
+      onMouseLeave={() => setShowActions(false)}
+    >
       <div className={cn(
-        "flex gap-2 max-w-full",
+        "flex gap-2 max-w-full relative",
         isOwnMessage ? "justify-end" : "justify-start"
       )}>
         {!isOwnMessage && showAvatar && !isConsecutive && (
@@ -71,10 +95,14 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
             "rounded-2xl px-4 py-2 break-words shadow-sm relative",
             isOwnMessage
               ? "bg-primary text-primary-foreground rounded-br-md"
-              : "bg-background border border-border rounded-bl-md"
+              : "bg-background border border-border rounded-bl-md",
+            isDeleted && "opacity-60"
           )}>
-            <p className="text-sm whitespace-pre-wrap leading-relaxed">
-              {message.content}
+            <p className={cn(
+              "text-sm whitespace-pre-wrap leading-relaxed",
+              isDeleted && "italic"
+            )}>
+              {isDeleted ? '[This message was deleted]' : message.content}
             </p>
             
             {message.attachments && message.attachments.length > 0 && (
@@ -120,24 +148,84 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
               </div>
             )}
             
-            {/* WhatsApp-style timestamp */}
-            <div className={cn(
-              "text-xs mt-1 flex items-center gap-1",
-              isOwnMessage ? "text-primary-foreground/70 justify-end" : "text-muted-foreground"
-            )}>
-              <span>{formatTime(message.created_at)}</span>
-              {isOwnMessage && (
-                <div className="flex">
-                  <div className="w-3 h-3 opacity-70">
-                    <svg viewBox="0 0 16 15" className="fill-current">
-                      <path d="M15.01 3.316l-.478-.372a.365.365 0 0 0-.51.063L8.666 9.879a.32.32 0 0 1-.484.033l-.358-.325a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l1.32 1.266c.143.14.361.125.484-.033l6.272-8.048a.366.366 0 0 0-.063-.51zm-4.1 0l-.478-.372a.365.365 0 0 0-.51.063L4.566 9.879a.32.32 0 0 1-.484.033L1.891 7.769a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l3.61 3.463c.143.14.361.125.484-.033l6.272-8.048a.365.365 0 0 0-.063-.51z"/>
-                    </svg>
-                  </div>
+            {!isDeleted && (
+              <>
+                {/* Edited indicator */}
+                {isEdited && (
+                  <span className={cn(
+                    "text-xs mt-1 block",
+                    isOwnMessage ? "text-primary-foreground/60" : "text-muted-foreground"
+                  )}>
+                    [edited {format(new Date(message.edited_at!), 'HH:mm')}]
+                  </span>
+                )}
+
+                {/* Timestamp with read receipts */}
+                <div className={cn(
+                  "text-xs mt-1 flex items-center gap-1",
+                  isOwnMessage ? "text-primary-foreground/70 justify-end" : "text-muted-foreground"
+                )}>
+                  <span>{formatTime(message.created_at)}</span>
+                  {isOwnMessage && (
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <div className="flex cursor-help">
+                            {readBy.length > 0 ? (
+                              <CheckCheck className={cn(
+                                "w-4 h-4",
+                                readBy.length > 0 ? "text-blue-400" : "text-primary-foreground/70"
+                              )} />
+                            ) : (
+                              <Check className="w-4 h-4 text-primary-foreground/70" />
+                            )}
+                          </div>
+                        </TooltipTrigger>
+                        <TooltipContent side="left">
+                          <p className="text-xs">{readByText}</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  )}
                 </div>
-              )}
-            </div>
+              </>
+            )}
           </div>
         </div>
+
+        {/* Message Actions */}
+        {!isDeleted && (canEdit || canDelete) && showActions && (
+          <div className={cn(
+            "flex-shrink-0 self-start mt-2",
+            isOwnMessage && "order-first"
+          )}>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                >
+                  <MoreVertical className="h-3 w-3" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align={isOwnMessage ? "start" : "end"}>
+                {canEdit && onEdit && (
+                  <DropdownMenuItem onClick={() => onEdit(message.id)}>
+                    <Edit className="h-3 w-3 mr-2" />
+                    Edit
+                  </DropdownMenuItem>
+                )}
+                {canDelete && onDelete && (
+                  <DropdownMenuItem onClick={() => onDelete(message.id)} className="text-destructive">
+                    <Trash2 className="h-3 w-3 mr-2" />
+                    Delete
+                  </DropdownMenuItem>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        )}
       </div>
     </div>
   );
