@@ -590,6 +590,38 @@ export const useMessages = (projectId?: string) => {
     await updateThread(threadId, { is_archived: false });
   };
 
+  const editMessage = async (messageId: string, newContent: string) => {
+    try {
+      const { error } = await supabase
+        .from('messages')
+        .update({ content: newContent, edited_at: new Date().toISOString() })
+        .eq('id', messageId);
+
+      if (error) throw error;
+      await fetchMessages(currentThread || undefined);
+      toast({ title: "Success", description: "Message edited" });
+    } catch (error) {
+      console.error('Error editing message:', error);
+      toast({ title: "Error", description: "Failed to edit message", variant: "destructive" });
+    }
+  };
+
+  const deleteMessage = async (messageId: string) => {
+    try {
+      const { error } = await supabase
+        .from('messages')
+        .update({ is_deleted: true, content: '[This message was deleted]' })
+        .eq('id', messageId);
+
+      if (error) throw error;
+      await fetchMessages(currentThread || undefined);
+      toast({ title: "Success", description: "Message deleted" });
+    } catch (error) {
+      console.error('Error deleting message:', error);
+      toast({ title: "Error", description: "Failed to delete message", variant: "destructive" });
+    }
+  };
+
   return {
     threads,
     messages,
@@ -610,6 +642,8 @@ export const useMessages = (projectId?: string) => {
     pinThread,
     unpinThread,
     archiveThread,
-    unarchiveThread
+    unarchiveThread,
+    editMessage,
+    deleteMessage
   };
 };
