@@ -12,9 +12,10 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
-import { CalendarDays, Plus, Clock, CheckCircle2, ChevronLeft, ChevronRight, Download, Users, Paperclip, Edit, Trash2, X, FileText } from 'lucide-react';
-import { format, isSameDay, startOfMonth, endOfMonth, eachDayOfInterval, startOfWeek, endOfWeek, addWeeks, subWeeks, getWeek, startOfYear } from 'date-fns';
+import { CalendarDays, Plus, Clock, CheckCircle2, ChevronLeft, ChevronRight, Download, Users, Paperclip, Edit, Trash2, X, FileText, List, MapPin, Video } from 'lucide-react';
+import { format, isSameDay, startOfMonth, endOfMonth, eachDayOfInterval, startOfWeek, endOfWeek, addWeeks, subWeeks, getWeek, startOfYear, addDays, parseISO } from 'date-fns';
 import { useTodos } from '@/hooks/useTodos';
+import { useCalendarEvents, CalendarEvent } from '@/hooks/useCalendarEvents';
 import { useToast } from '@/hooks/use-toast';
 import { useDocuments } from '@/hooks/useDocuments';
 import { useRFIs } from '@/hooks/useRFIs';
@@ -24,11 +25,15 @@ import jsPDF from 'jspdf';
 import { cn } from '@/lib/utils';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Filter } from 'lucide-react';
+import { CategoryFilter } from './CategoryFilter';
+import { AgendaView } from './AgendaView';
+import { ConflictWarning } from './ConflictWarning';
+import { CATEGORY_OPTIONS, getCategoryColor, getCategoryLabel, detectConflicts } from '@/lib/calendarUtils';
 
 export const CalendarWidget = ({ selectedProjectFilter }: { selectedProjectFilter: string }) => {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [currentMonth, setCurrentMonth] = useState(new Date());
-  const [viewMode, setViewMode] = useState<'month' | 'week'>('month');
+  const [viewMode, setViewMode] = useState<'month' | 'week' | 'agenda'>('month');
   const [currentWeek, setCurrentWeek] = useState(new Date());
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
@@ -36,7 +41,12 @@ export const CalendarWidget = ({ selectedProjectFilter }: { selectedProjectFilte
   const [newEventTitle, setNewEventTitle] = useState('');
   const [newEventDescription, setNewEventDescription] = useState('');
   const [newEventTime, setNewEventTime] = useState('');
+  const [newEventEndTime, setNewEventEndTime] = useState('');
   const [newEventPriority, setNewEventPriority] = useState<'low' | 'medium' | 'high'>('medium');
+  const [newEventCategory, setNewEventCategory] = useState<string>('general');
+  const [newEventLocation, setNewEventLocation] = useState('');
+  const [newEventMeetingLink, setNewEventMeetingLink] = useState('');
+  const [newEventReminder, setNewEventReminder] = useState<number | undefined>(undefined);
   const [isMeeting, setIsMeeting] = useState(false);
   const [exportFormat, setExportFormat] = useState<'day' | 'week' | 'fortnight' | 'month'>('week');
   const [attachedDocument, setAttachedDocument] = useState<string>('');
@@ -44,11 +54,17 @@ export const CalendarWidget = ({ selectedProjectFilter }: { selectedProjectFilte
   const [attachedMessage, setAttachedMessage] = useState<string>('');
   const [relatedType, setRelatedType] = useState<'document' | 'rfi' | 'message' | ''>('');
   const [eventDate, setEventDate] = useState<Date | undefined>(new Date());
-  const [editingEvent, setEditingEvent] = useState<any>(null);
+  const [editingEvent, setEditingEvent] = useState<CalendarEvent | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [selectedCategories, setSelectedCategories] = useState<string[]>(CATEGORY_OPTIONS.map(c => c.value));
+  const [conflictDialogOpen, setConflictDialogOpen] = useState(false);
+  const [pendingEventData, setPendingEventData] = useState<any>(null);
+  const [conflictingEvents, setConflictingEvents] = useState<CalendarEvent[]>([]);
+  const [agendaDays, setAgendaDays] = useState(7);
   
   const { selectedProject, availableProjects } = useProjectSelection();
   const { todos, addTodo, updateTodo, deleteTodo } = useTodos(selectedProjectFilter === 'all' ? undefined : selectedProjectFilter);
+  const { events, loading, createEvent, updateEvent, deleteEvent } = useCalendarEvents(selectedProjectFilter === 'all' ? undefined : selectedProjectFilter);
   const { documents } = useDocuments(selectedProject?.id);
   const { rfis } = useRFIs();
   const { messages } = useMessages();
@@ -59,6 +75,31 @@ export const CalendarWidget = ({ selectedProjectFilter }: { selectedProjectFilte
     return todos.filter(todo => 
       todo.due_date && isSameDay(new Date(todo.due_date), date)
     );
+  };
+
+  // Get events for a specific date with category filtering
+  const getEventsForDate = (date: Date) => {
+    return events.filter(event => {
+      const eventDate = parseISO(event.start_datetime);
+      const matchesDate = isSameDay(eventDate, date);
+      const matchesCategory = selectedCategories.includes(event.category || 'general');
+      return matchesDate && matchesCategory;
+    });
+  };
+
+  // Get upcoming events for agenda view
+  const getUpcomingEvents = () => {
+    const now = new Date();
+    const endDate = addDays(now, agendaDays);
+    
+    return events
+      .filter(event => {
+        const eventDate = parseISO(event.start_datetime);
+        const matchesDateRange = eventDate >= now && eventDate <= endDate;
+        const matchesCategory = selectedCategories.includes(event.category || 'general');
+        return matchesDateRange && matchesCategory;
+      })
+      .sort((a, b) => parseISO(a.start_datetime).getTime() - parseISO(b.start_datetime).getTime());
   };
 
   const navigateMonth = (direction: 'prev' | 'next') => {
@@ -299,37 +340,41 @@ export const CalendarWidget = ({ selectedProjectFilter }: { selectedProjectFilte
     if (!eventDate || !newEventTitle.trim()) return;
 
     try {
-      let eventContent = isMeeting 
-        ? `Meeting: ${newEventTitle}${newEventDescription ? ` - ${newEventDescription}` : ''}`
-        : `${newEventTitle}${newEventDescription ? ` - ${newEventDescription}` : ''}`;
-
-      // Add related information based on type
-      if (relatedType === 'document' && attachedDocument) {
-        const doc = documents.find(d => d.id === attachedDocument);
-        if (doc) {
-          eventContent += ` [Document: ${doc.name}]`;
-        }
-      } else if (relatedType === 'rfi' && attachedRFI) {
-        const rfi = rfis.find(r => r.id === attachedRFI);
-        if (rfi) {
-          eventContent += ` [RFI: ${rfi.rfi_number || rfi.subject || 'Untitled'}]`;
-        }
-      } else if (relatedType === 'message' && attachedMessage) {
-        const message = messages.find(m => m.id === attachedMessage);
-        if (message) {
-          eventContent += ` [Message: ${message.content.substring(0, 50)}...]`;
-        }
-      }
-
-      const finalEventDate = newEventTime 
+      // Build event data
+      const startTime = newEventTime 
         ? new Date(`${eventDate.toDateString()} ${newEventTime}`)
         : eventDate;
+      
+      const endTime = newEventEndTime && newEventTime
+        ? new Date(`${eventDate.toDateString()} ${newEventEndTime}`)
+        : undefined;
 
-      await addTodo(
-        eventContent,
-        newEventPriority,
-        finalEventDate.toISOString()
-      );
+      const eventData = {
+        project_id: selectedProjectFilter === 'all' ? undefined : selectedProjectFilter,
+        title: newEventTitle,
+        description: newEventDescription || undefined,
+        start_datetime: startTime.toISOString(),
+        end_datetime: endTime?.toISOString(),
+        priority: newEventPriority,
+        is_meeting: isMeeting,
+        category: newEventCategory,
+        location: newEventLocation || undefined,
+        meeting_link: newEventMeetingLink || undefined,
+        reminder_minutes: newEventReminder,
+      };
+
+      // Check for conflicts
+      const conflictInfo = detectConflicts(eventData, events);
+      
+      if (conflictInfo.hasConflict) {
+        setPendingEventData(eventData);
+        setConflictingEvents(conflictInfo.conflictingEvents);
+        setConflictDialogOpen(true);
+        return;
+      }
+
+      // No conflicts, create event
+      await createEvent(eventData);
       
       // Reset form
       resetForm();
@@ -347,11 +392,38 @@ export const CalendarWidget = ({ selectedProjectFilter }: { selectedProjectFilte
     }
   };
 
+  const proceedWithConflict = async () => {
+    if (!pendingEventData) return;
+    
+    try {
+      await createEvent(pendingEventData);
+      resetForm();
+      setConflictDialogOpen(false);
+      setPendingEventData(null);
+      
+      toast({
+        title: "Event created",
+        description: "Event created despite conflicts",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to create event",
+        variant: "destructive",
+      });
+    }
+  };
+
   const resetForm = () => {
     setNewEventTitle('');
     setNewEventDescription('');
     setNewEventTime('');
+    setNewEventEndTime('');
     setNewEventPriority('medium');
+    setNewEventCategory('general');
+    setNewEventLocation('');
+    setNewEventMeetingLink('');
+    setNewEventReminder(undefined);
     setIsMeeting(false);
     setAttachedDocument('');
     setAttachedRFI('');
@@ -359,27 +431,57 @@ export const CalendarWidget = ({ selectedProjectFilter }: { selectedProjectFilte
     setRelatedType('');
     setEventDate(selectedDate);
     setIsDialogOpen(false);
+    setEditingEvent(null);
   };
 
-  const handleEditEvent = (todo: any) => {
-    setEditingEvent(todo);
-    setNewEventTitle(todo.content.replace(/^Meeting: |^Task: /, '').split(' - ')[0]);
-    setNewEventDescription(todo.content.includes(' - ') ? todo.content.split(' - ')[1] : '');
-    setNewEventPriority(todo.priority || 'medium');
+  const handleEditEvent = (event: CalendarEvent) => {
+    setEditingEvent(event);
+    setNewEventTitle(event.title);
+    setNewEventDescription(event.description || '');
+    setNewEventPriority(event.priority);
+    setNewEventCategory(event.category || 'general');
+    setNewEventLocation(event.location || '');
+    setNewEventMeetingLink(event.meeting_link || '');
+    setNewEventReminder(event.reminder_minutes);
+    setIsMeeting(event.is_meeting);
+    
+    const startDate = parseISO(event.start_datetime);
+    setEventDate(startDate);
+    setNewEventTime(format(startDate, 'HH:mm'));
+    
+    if (event.end_datetime) {
+      setNewEventEndTime(format(parseISO(event.end_datetime), 'HH:mm'));
+    }
+    
     setIsEditDialogOpen(true);
   };
 
   const handleUpdateEvent = async () => {
-    if (!editingEvent || !newEventTitle.trim()) return;
+    if (!editingEvent || !newEventTitle.trim() || !eventDate) return;
 
     try {
-      await updateTodo(editingEvent.id, {
-        content: `${newEventTitle}${newEventDescription ? ` - ${newEventDescription}` : ''}`,
-        priority: newEventPriority
+      const startTime = newEventTime 
+        ? new Date(`${eventDate.toDateString()} ${newEventTime}`)
+        : eventDate;
+      
+      const endTime = newEventEndTime && newEventTime
+        ? new Date(`${eventDate.toDateString()} ${newEventEndTime}`)
+        : undefined;
+
+      await updateEvent(editingEvent.id, {
+        title: newEventTitle,
+        description: newEventDescription || undefined,
+        start_datetime: startTime.toISOString(),
+        end_datetime: endTime?.toISOString(),
+        priority: newEventPriority,
+        is_meeting: isMeeting,
+        category: newEventCategory,
+        location: newEventLocation || undefined,
+        meeting_link: newEventMeetingLink || undefined,
+        reminder_minutes: newEventReminder,
       });
       
       setIsEditDialogOpen(false);
-      setEditingEvent(null);
       resetForm();
       
       toast({
@@ -395,9 +497,9 @@ export const CalendarWidget = ({ selectedProjectFilter }: { selectedProjectFilte
     }
   };
 
-  const handleDeleteEvent = async (todoId: string) => {
+  const handleDeleteEvent = async (eventId: string) => {
     try {
-      await deleteTodo(todoId);
+      await deleteEvent(eventId);
       toast({
         title: "Event deleted",
         description: "Event has been successfully removed",
@@ -411,11 +513,29 @@ export const CalendarWidget = ({ selectedProjectFilter }: { selectedProjectFilte
     }
   };
 
+  const handleStatusChange = async (eventId: string, status: CalendarEvent['status']) => {
+    try {
+      await updateEvent(eventId, { status });
+      toast({
+        title: "Status updated",
+        description: `Event marked as ${status}`,
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update status",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleExport = () => {
     generatePDF();
   };
 
   const selectedDateTodos = selectedDate ? getTodosForDate(selectedDate) : [];
+  const selectedDateEvents = selectedDate ? getEventsForDate(selectedDate) : [];
+  const upcomingEvents = getUpcomingEvents();
 
   return (
     <>
@@ -427,21 +547,40 @@ export const CalendarWidget = ({ selectedProjectFilter }: { selectedProjectFilte
                 <CalendarDays className="h-4 w-4 text-primary" />
                 Calendar
               </CardTitle>
-              <div className="flex items-center gap-2">
-                <Label htmlFor="view-mode" className="text-xs text-muted-foreground">
+              <div className="flex items-center gap-1">
+                <Button
+                  variant={viewMode === 'week' ? 'secondary' : 'ghost'}
+                  size="sm"
+                  className="h-7 px-2 text-xs"
+                  onClick={() => setViewMode('week')}
+                >
                   Week
-                </Label>
-                <Switch
-                  id="view-mode"
-                  checked={viewMode === 'month'}
-                  onCheckedChange={(checked) => setViewMode(checked ? 'month' : 'week')}
-                />
-                <Label htmlFor="view-mode" className="text-xs text-muted-foreground">
+                </Button>
+                <Button
+                  variant={viewMode === 'month' ? 'secondary' : 'ghost'}
+                  size="sm"
+                  className="h-7 px-2 text-xs"
+                  onClick={() => setViewMode('month')}
+                >
                   Month
-                </Label>
+                </Button>
+                <Button
+                  variant={viewMode === 'agenda' ? 'secondary' : 'ghost'}
+                  size="sm"
+                  className="h-7 px-2 text-xs gap-1"
+                  onClick={() => setViewMode('agenda')}
+                >
+                  <List className="h-3 w-3" />
+                  Agenda
+                </Button>
               </div>
             </div>
             <div className="flex items-center gap-1">
+              <CategoryFilter
+                selectedCategories={selectedCategories}
+                onCategoryChange={setSelectedCategories}
+              />
+              
               <Dialog open={isExportDialogOpen} onOpenChange={setIsExportDialogOpen}>
                 <DialogTrigger asChild>
                   <Button variant="ghost" size="sm" className="h-7 w-7 p-0">
@@ -517,14 +656,44 @@ export const CalendarWidget = ({ selectedProjectFilter }: { selectedProjectFilte
                         />
                       </div>
 
+                      <div className="grid grid-cols-2 gap-2">
+                        <div className="space-y-2">
+                          <Label htmlFor="event-time">Start Time</Label>
+                          <Input
+                            id="event-time"
+                            type="time"
+                            value={newEventTime}
+                            onChange={(e) => setNewEventTime(e.target.value)}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="event-end-time">End Time</Label>
+                          <Input
+                            id="event-end-time"
+                            type="time"
+                            value={newEventEndTime}
+                            onChange={(e) => setNewEventEndTime(e.target.value)}
+                          />
+                        </div>
+                      </div>
+
                       <div className="space-y-2">
-                        <Label htmlFor="event-time">Time</Label>
-                        <Input
-                          id="event-time"
-                          type="time"
-                          value={newEventTime}
-                          onChange={(e) => setNewEventTime(e.target.value)}
-                        />
+                        <Label htmlFor="event-category">Category</Label>
+                        <Select value={newEventCategory} onValueChange={setNewEventCategory}>
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {CATEGORY_OPTIONS.map((cat) => (
+                              <SelectItem key={cat.value} value={cat.value}>
+                                <div className="flex items-center gap-2">
+                                  <div className="h-3 w-3 rounded-full" style={{ backgroundColor: cat.color }} />
+                                  {cat.label}
+                                </div>
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                       </div>
 
                       <div className="space-y-2">
@@ -548,6 +717,49 @@ export const CalendarWidget = ({ selectedProjectFilter }: { selectedProjectFilte
                           onCheckedChange={(checked) => setIsMeeting(checked as boolean)}
                         />
                         <Label htmlFor="is-meeting">This is a meeting</Label>
+                      </div>
+
+                      {isMeeting && (
+                        <>
+                          <div className="space-y-2">
+                            <Label htmlFor="event-location">Location</Label>
+                            <Input
+                              id="event-location"
+                              value={newEventLocation}
+                              onChange={(e) => setNewEventLocation(e.target.value)}
+                              placeholder="Meeting location or room"
+                            />
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label htmlFor="event-meeting-link">Meeting Link</Label>
+                            <Input
+                              id="event-meeting-link"
+                              value={newEventMeetingLink}
+                              onChange={(e) => setNewEventMeetingLink(e.target.value)}
+                              placeholder="Zoom, Teams, Google Meet link..."
+                            />
+                          </div>
+                        </>
+                      )}
+
+                      <div className="space-y-2">
+                        <Label htmlFor="event-reminder">Reminder</Label>
+                        <Select 
+                          value={newEventReminder?.toString() || 'none'} 
+                          onValueChange={(v) => setNewEventReminder(v === 'none' ? undefined : parseInt(v))}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="No reminder" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="none">No reminder</SelectItem>
+                            <SelectItem value="15">15 minutes before</SelectItem>
+                            <SelectItem value="30">30 minutes before</SelectItem>
+                            <SelectItem value="60">1 hour before</SelectItem>
+                            <SelectItem value="1440">1 day before</SelectItem>
+                          </SelectContent>
+                        </Select>
                       </div>
 
                       <div className="space-y-2">
@@ -742,45 +954,53 @@ export const CalendarWidget = ({ selectedProjectFilter }: { selectedProjectFilte
         </CardHeader>
 
         <CardContent className="flex-1 p-3 overflow-hidden">
-          <div className="flex flex-col h-full">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={() => viewMode === 'month' ? navigateMonth('prev') : navigateWeek('prev')}
-                  className="h-7 w-7 p-0"
-                >
-                  <ChevronLeft className="h-3 w-3" />
-                </Button>
-                <div className="text-center">
-                  {viewMode === 'month' ? (
-                    <h3 className="text-sm font-medium">
-                      {format(currentMonth, 'MMMM yyyy')}
-                    </h3>
-                  ) : (
-                    <div className="text-sm">
-                      <div className="font-medium">
-                        Week {getWeekLabel(currentWeek).weekNumber}
+          {viewMode === 'agenda' ? (
+            <AgendaView
+              events={upcomingEvents}
+              onEdit={handleEditEvent}
+              onDelete={handleDeleteEvent}
+              onStatusChange={handleStatusChange}
+            />
+          ) : (
+            <div className="flex flex-col h-full">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => viewMode === 'month' ? navigateMonth('prev') : navigateWeek('prev')}
+                    className="h-7 w-7 p-0"
+                  >
+                    <ChevronLeft className="h-3 w-3" />
+                  </Button>
+                  <div className="text-center">
+                    {viewMode === 'month' ? (
+                      <h3 className="text-sm font-medium">
+                        {format(currentMonth, 'MMMM yyyy')}
+                      </h3>
+                    ) : (
+                      <div className="text-sm">
+                        <div className="font-medium">
+                          Week {getWeekLabel(currentWeek).weekNumber}
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          {getWeekLabel(currentWeek).dateRange}
+                        </div>
                       </div>
-                      <div className="text-xs text-muted-foreground">
-                        {getWeekLabel(currentWeek).dateRange}
-                      </div>
-                    </div>
-                  )}
+                    )}
+                  </div>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => viewMode === 'month' ? navigateMonth('next') : navigateWeek('next')}
+                    className="h-7 w-7 p-0"
+                  >
+                    <ChevronRight className="h-3 w-3" />
+                  </Button>
                 </div>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={() => viewMode === 'month' ? navigateMonth('next') : navigateWeek('next')}
-                  className="h-7 w-7 p-0"
-                >
-                  <ChevronRight className="h-3 w-3" />
-                </Button>
               </div>
-            </div>
-            
-            <div className="flex-1 overflow-hidden">
+              
+              <div className="flex-1 overflow-hidden">
               <div className="h-full flex flex-col border rounded-lg">
                 {/* Days of week header */}
                 <div className="grid grid-cols-7 gap-px bg-border p-1 rounded-t-lg">
@@ -911,35 +1131,34 @@ export const CalendarWidget = ({ selectedProjectFilter }: { selectedProjectFilte
             </div>
 
             {/* Events List for Selected Date */}
-            {selectedDate && selectedDateTodos.length > 0 && (
+            {selectedDate && selectedDateEvents.length > 0 && (
               <div className="mt-4 p-3 bg-muted/30 rounded-lg border">
                 <div className="flex items-center justify-between mb-2">
                   <h4 className="text-sm font-medium">
                     Events for {format(selectedDate, 'MMM d, yyyy')}
                   </h4>
                   <Badge variant="secondary" className="text-xs">
-                    {selectedDateTodos.length} event{selectedDateTodos.length !== 1 ? 's' : ''}
+                    {selectedDateEvents.length} event{selectedDateEvents.length !== 1 ? 's' : ''}
                   </Badge>
                 </div>
                 <ScrollArea className="max-h-32">
                   <div className="space-y-2">
-                    {selectedDateTodos.map((todo) => (
-                      <div key={todo.id} className="flex items-center justify-between p-2 bg-background rounded border text-sm">
+                    {selectedDateEvents.map((event) => (
+                      <div key={event.id} className="flex items-center justify-between p-2 bg-background rounded border text-sm">
                         <div className="flex items-center gap-2">
-                          <div className={`w-2 h-2 rounded-full ${
-                            todo.priority === 'high' ? 'bg-destructive' :
-                            todo.priority === 'medium' ? 'bg-yellow-500' : 
-                            'bg-green-500'
-                          }`} />
-                          <span className="font-medium text-sm">{todo.content.split(' - ')[0]}</span>
-                          {todo.completed && <CheckCircle2 className="h-3 w-3 text-green-600" />}
+                          <div 
+                            className="w-2 h-2 rounded-full"
+                            style={{ backgroundColor: getCategoryColor(event.category || 'general') }}
+                          />
+                          <span className="font-medium text-sm">{event.title}</span>
+                          {event.status === 'completed' && <CheckCircle2 className="h-3 w-3 text-green-600" />}
                         </div>
                         <div className="flex items-center gap-1">
                           <Button
                             variant="ghost"
                             size="sm"
                             className="h-6 w-6 p-0"
-                            onClick={() => handleEditEvent(todo)}
+                            onClick={() => handleEditEvent(event)}
                           >
                             <Edit className="h-3 w-3" />
                           </Button>
@@ -947,7 +1166,7 @@ export const CalendarWidget = ({ selectedProjectFilter }: { selectedProjectFilte
                             variant="ghost"
                             size="sm"
                             className="h-6 w-6 p-0 text-destructive"
-                            onClick={() => handleDeleteEvent(todo.id)}
+                            onClick={() => handleDeleteEvent(event.id)}
                           >
                             <Trash2 className="h-3 w-3" />
                           </Button>
@@ -958,9 +1177,18 @@ export const CalendarWidget = ({ selectedProjectFilter }: { selectedProjectFilte
                 </ScrollArea>
               </div>
             )}
-          </div>
+            </div>
+          )}
         </CardContent>
       </Card>
+      
+      {/* Conflict Warning Dialog */}
+      <ConflictWarning
+        open={conflictDialogOpen}
+        onOpenChange={setConflictDialogOpen}
+        conflictingEvents={conflictingEvents}
+        onProceed={proceedWithConflict}
+      />
 
       {/* Day Details Dialog */}
       <Dialog open={isDayDetailsOpen} onOpenChange={setIsDayDetailsOpen}>
@@ -973,37 +1201,35 @@ export const CalendarWidget = ({ selectedProjectFilter }: { selectedProjectFilte
           </DialogHeader>
           <ScrollArea className="max-h-[60vh] pr-4">
             <div className="space-y-4 pt-4">
-              {selectedDate && selectedDateTodos.length > 0 ? (
+              {selectedDate && selectedDateEvents.length > 0 ? (
                 <>
                   <div className="flex items-center justify-between">
                     <Badge variant="secondary" className="text-sm">
-                      {selectedDateTodos.length} event{selectedDateTodos.length !== 1 ? 's' : ''}
+                      {selectedDateEvents.length} event{selectedDateEvents.length !== 1 ? 's' : ''}
                     </Badge>
                   </div>
                   <div className="space-y-3">
-                    {selectedDateTodos.map((todo) => {
-                      const isMeeting = todo.content.includes('Meeting:');
-                      const eventTime = todo.due_date ? format(new Date(todo.due_date), 'h:mm a') : 'All Day';
+                    {selectedDateEvents.map((event) => {
+                      const eventTime = format(parseISO(event.start_datetime), 'h:mm a');
                       
                       return (
-                        <div key={todo.id} className="p-4 border rounded-lg space-y-2">
+                        <div key={event.id} className="p-4 border rounded-lg space-y-2">
                           <div className="flex items-start justify-between">
                             <div className="flex items-center gap-3 flex-1">
-                              <div className={`w-3 h-3 rounded-full flex-shrink-0 ${
-                                todo.priority === 'high' ? 'bg-destructive' :
-                                todo.priority === 'medium' ? 'bg-yellow-500' : 
-                                'bg-green-500'
-                              }`} />
+                              <div 
+                                className="w-3 h-3 rounded-full flex-shrink-0"
+                                style={{ backgroundColor: getCategoryColor(event.category || 'general') }}
+                              />
                               <div className="flex-1">
                                 <div className="flex items-center gap-2">
                                   <h4 className="font-medium text-sm">
-                                    {isMeeting ? '🤝' : '📌'} {todo.content.split(' - ')[0].replace('Meeting: ', '')}
+                                    {event.is_meeting ? '🤝' : '📌'} {event.title}
                                   </h4>
-                                  {todo.completed && <CheckCircle2 className="h-4 w-4 text-green-600" />}
+                                  {event.status === 'completed' && <CheckCircle2 className="h-4 w-4 text-green-600" />}
                                 </div>
-                                {todo.content.includes(' - ') && (
+                                {event.description && (
                                   <p className="text-sm text-muted-foreground mt-1">
-                                    {todo.content.split(' - ').slice(1).join(' - ')}
+                                    {event.description}
                                   </p>
                                 )}
                                 <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
@@ -1012,12 +1238,18 @@ export const CalendarWidget = ({ selectedProjectFilter }: { selectedProjectFilte
                                     {eventTime}
                                   </span>
                                   <span className="capitalize">
-                                    {todo.priority} priority
+                                    {event.priority} priority
                                   </span>
-                                  {isMeeting && (
+                                  {event.is_meeting && (
                                     <span className="flex items-center gap-1">
                                       <Users className="h-3 w-3" />
                                       Meeting
+                                    </span>
+                                  )}
+                                  {event.location && (
+                                    <span className="flex items-center gap-1">
+                                      <MapPin className="h-3 w-3" />
+                                      {event.location}
                                     </span>
                                   )}
                                 </div>
@@ -1030,7 +1262,7 @@ export const CalendarWidget = ({ selectedProjectFilter }: { selectedProjectFilte
                                 className="h-8 w-8 p-0"
                                 onClick={() => {
                                   setIsDayDetailsOpen(false);
-                                  handleEditEvent(todo);
+                                  handleEditEvent(event);
                                 }}
                               >
                                 <Edit className="h-3 w-3" />
@@ -1039,7 +1271,7 @@ export const CalendarWidget = ({ selectedProjectFilter }: { selectedProjectFilte
                                 variant="ghost"
                                 size="sm"
                                 className="h-8 w-8 p-0 text-destructive"
-                                onClick={() => handleDeleteEvent(todo.id)}
+                                onClick={() => handleDeleteEvent(event.id)}
                               >
                                 <Trash2 className="h-3 w-3" />
                               </Button>
