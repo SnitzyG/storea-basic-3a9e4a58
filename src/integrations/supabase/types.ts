@@ -86,6 +86,7 @@ export type Database = {
       calendar_events: {
         Row: {
           attendees: Json | null
+          category: string | null
           created_at: string
           created_by: string
           description: string | null
@@ -93,8 +94,11 @@ export type Database = {
           external_attendees: string[] | null
           id: string
           is_meeting: boolean | null
+          location: string | null
+          meeting_link: string | null
           priority: string | null
           project_id: string | null
+          reminder_minutes: number | null
           start_datetime: string
           status: string | null
           title: string
@@ -102,6 +106,7 @@ export type Database = {
         }
         Insert: {
           attendees?: Json | null
+          category?: string | null
           created_at?: string
           created_by: string
           description?: string | null
@@ -109,8 +114,11 @@ export type Database = {
           external_attendees?: string[] | null
           id?: string
           is_meeting?: boolean | null
+          location?: string | null
+          meeting_link?: string | null
           priority?: string | null
           project_id?: string | null
+          reminder_minutes?: number | null
           start_datetime: string
           status?: string | null
           title: string
@@ -118,6 +126,7 @@ export type Database = {
         }
         Update: {
           attendees?: Json | null
+          category?: string | null
           created_at?: string
           created_by?: string
           description?: string | null
@@ -125,8 +134,11 @@ export type Database = {
           external_attendees?: string[] | null
           id?: string
           is_meeting?: boolean | null
+          location?: string | null
+          meeting_link?: string | null
           priority?: string | null
           project_id?: string | null
+          reminder_minutes?: number | null
           start_datetime?: string
           status?: string | null
           title?: string
@@ -897,6 +909,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      event_templates: {
+        Row: {
+          category: string | null
+          created_at: string | null
+          description_template: string | null
+          id: string
+          is_meeting: boolean | null
+          name: string
+          priority: string | null
+          reminder_minutes: number | null
+          title_template: string | null
+          user_id: string
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string | null
+          description_template?: string | null
+          id?: string
+          is_meeting?: boolean | null
+          name: string
+          priority?: string | null
+          reminder_minutes?: number | null
+          title_template?: string | null
+          user_id: string
+        }
+        Update: {
+          category?: string | null
+          created_at?: string | null
+          description_template?: string | null
+          id?: string
+          is_meeting?: boolean | null
+          name?: string
+          priority?: string | null
+          reminder_minutes?: number | null
+          title_template?: string | null
+          user_id?: string
+        }
+        Relationships: []
       }
       invitations: {
         Row: {

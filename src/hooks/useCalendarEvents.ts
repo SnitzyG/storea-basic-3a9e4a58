@@ -15,6 +15,10 @@ export interface CalendarEvent {
   is_meeting: boolean;
   attendees: any[];
   external_attendees?: string[];
+  category?: string;
+  location?: string;
+  meeting_link?: string;
+  reminder_minutes?: number;
   created_by: string;
   created_at: string;
   updated_at: string;
