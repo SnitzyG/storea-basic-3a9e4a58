@@ -18,16 +18,21 @@ import { useProjectSelection } from '@/context/ProjectSelectionContext';
 import { supabase } from '@/integrations/supabase/client';
 import { ThreadCard } from '@/components/messages/ThreadCard';
 import { CreateThreadDialog } from '@/components/messages/CreateThreadDialog';
-import { MessageBubble } from '@/components/messages/MessageBubble';
+import { EnhancedMessageBubble } from '@/components/messages/EnhancedMessageBubble';
+import { MessageSearch } from '@/components/messages/MessageSearch';
 import { MessageInput } from '@/components/messages/MessageInput';
 import { TypingIndicator } from '@/components/messages/TypingIndicator';
 import { cn } from '@/lib/utils';
+import { useToast } from '@/hooks/use-toast';
 
 const Messages = () => {
   const [searchTerm, setSearchTerm] = useState('');
+  const [showMessageSearch, setShowMessageSearch] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState<'connected' | 'disconnected'>('connected');
+  const [readReceipts, setReadReceipts] = useState<Record<string, Array<{ user_id: string; name: string; read_at: string }>>>({});
   const { selectedProject } = useProjectSelection();
   const { profile } = useAuth();
+  const { toast } = useToast();
   const { projects } = useProjects();
   const { teamMembers: projectUsers, refreshTeam } = useProjectTeam(selectedProject?.id || '');
   const { createRFI } = useRFIs();
@@ -66,8 +71,51 @@ const Messages = () => {
     pinThread,
     unpinThread,
     archiveThread,
-    unarchiveThread
+    unarchiveThread,
+    editMessage,
+    deleteMessage
   } = useMessages(selectedProject?.id);
+
+  // Fetch read receipts for messages
+  useEffect(() => {
+    const fetchReadReceipts = async () => {
+      if (!currentThread || messages.length === 0) return;
+      
+      try {
+        const messageIds = messages.map(m => m.id);
+        const { data, error } = await supabase
+          .from('message_participants')
+          .select(`
+            message_id,
+            user_id,
+            read_at,
+            profiles:user_id (name)
+          `)
+          .in('message_id', messageIds)
+          .not('read_at', 'is', null);
+
+        if (error) throw error;
+
+        const receiptsMap: Record<string, Array<{ user_id: string; name: string; read_at: string }>> = {};
+        data?.forEach((receipt: any) => {
+          if (!receiptsMap[receipt.message_id]) {
+            receiptsMap[receipt.message_id] = [];
+          }
+          receiptsMap[receipt.message_id].push({
+            user_id: receipt.user_id,
+            name: receipt.profiles?.name || 'Unknown',
+            read_at: receipt.read_at
+          });
+        });
+
+        setReadReceipts(receiptsMap);
+      } catch (error) {
+        console.error('Error fetching read receipts:', error);
+      }
+    };
+
+    fetchReadReceipts();
+  }, [currentThread, messages]);
 
   useEffect(() => {
     const targetUserId = sessionStorage.getItem('targetUserId');
@@ -207,6 +255,46 @@ const Messages = () => {
       new Date(currentMsg.created_at).getTime() - new Date(previousMsg.created_at).getTime() < 300000;
   };
 
+  const handleEditMessage = async (messageId: string) => {
+    const message = messages.find(m => m.id === messageId);
+    if (!message) return;
+
+    const newContent = prompt('Edit message:', message.content);
+    if (newContent && newContent.trim() && newContent !== message.content) {
+      try {
+        await editMessage(messageId, newContent);
+        toast({
+          title: "Message edited",
+          description: "Your message has been updated",
+        });
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: "Failed to edit message",
+          variant: "destructive",
+        });
+      }
+    }
+  };
+
+  const handleDeleteMessage = async (messageId: string) => {
+    if (confirm('Are you sure you want to delete this message?')) {
+      try {
+        await deleteMessage(messageId);
+        toast({
+          title: "Message deleted",
+          description: "The message has been removed",
+        });
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: "Failed to delete message",
+          variant: "destructive",
+        });
+      }
+    }
+  };
+
   if (projects.length === 0) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background px-4">
@@ -305,14 +393,19 @@ const Messages = () => {
                       const isOwnMessage = message.sender_id === profile?.user_id;
                       const showAvatar = !isConsecutive;
                       return (
-                        <MessageBubble 
-                          key={message.id} 
-                          message={message} 
-                          isOwnMessage={isOwnMessage} 
-                          showAvatar={showAvatar} 
-                          senderName={projectUsers.find(u => u.user_id === message.sender_id)?.user_profile?.name || 'Unknown'} 
-                          isConsecutive={isConsecutive}
-                        />
+                        <React.Fragment key={message.id}>
+                          <EnhancedMessageBubble 
+                            message={message} 
+                            isOwnMessage={isOwnMessage} 
+                            showAvatar={showAvatar} 
+                            senderName={projectUsers.find(u => u.user_id === message.sender_id)?.user_profile?.name || 'Unknown'} 
+                            isConsecutive={isConsecutive}
+                            readBy={readReceipts[message.id] || []}
+                            onEdit={isOwnMessage ? handleEditMessage : undefined}
+                            onDelete={isOwnMessage ? handleDeleteMessage : undefined}
+                          />
+                          <div id={`message-${message.id}`} className="h-0" />
+                        </React.Fragment>
                       );
                     })
                   )}
@@ -368,17 +461,48 @@ const Messages = () => {
             </div>
           </div>
 
-          <div className="p-2 border-b border-border">
+          <div className="p-2 border-b border-border space-y-2">
             <div className="relative">
               <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-muted-foreground h-3 w-3" />
               <Input 
-                placeholder="Search messages..." 
+                placeholder="Search threads..." 
                 value={searchTerm} 
                 onChange={e => setSearchTerm(e.target.value)} 
                 className="pl-8 h-8 bg-muted/50 border-border rounded-full text-xs" 
               />
             </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="w-full h-7 text-xs"
+              onClick={() => setShowMessageSearch(!showMessageSearch)}
+            >
+              <Search className="h-3 w-3 mr-2" />
+              {showMessageSearch ? 'Hide' : 'Search'} Messages
+            </Button>
           </div>
+
+          {showMessageSearch && (
+            <div className="border-b border-border">
+              <MessageSearch
+                messages={messages}
+                projectUsers={projectUsers}
+                onMessageClick={(messageId) => {
+                  // Find the message and its thread
+                  const message = messages.find(m => m.id === messageId);
+                  if (message && message.thread_id) {
+                    setCurrentThread(message.thread_id);
+                    setShowMessageSearch(false);
+                    // Scroll to message after a short delay
+                    setTimeout(() => {
+                      const msgElement = document.getElementById(`message-${messageId}`);
+                      msgElement?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }, 100);
+                  }
+                }}
+              />
+            </div>
+          )}
 
           <div className="flex-1 overflow-hidden">
             <ScrollArea className="h-full">
