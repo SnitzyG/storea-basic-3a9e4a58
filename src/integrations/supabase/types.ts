@@ -1334,6 +1334,9 @@ export type Database = {
       }
       profiles: {
         Row: {
+          approved: boolean | null
+          approved_at: string | null
+          approved_by: string | null
           avatar_url: string | null
           company_address: string | null
           company_id: string | null
@@ -1353,6 +1356,9 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          approved?: boolean | null
+          approved_at?: string | null
+          approved_by?: string | null
           avatar_url?: string | null
           company_address?: string | null
           company_id?: string | null
@@ -1372,6 +1378,9 @@ export type Database = {
           user_id: string
         }
         Update: {
+          approved?: boolean | null
+          approved_at?: string | null
+          approved_by?: string | null
           avatar_url?: string | null
           company_address?: string | null
           company_id?: string | null
@@ -2883,6 +2892,27 @@ export type Database = {
         }
         Relationships: []
       }
+      user_roles: {
+        Row: {
+          created_at: string | null
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -2892,6 +2922,7 @@ export type Database = {
         Args: { invitation_token_param: string; user_id_param: string }
         Returns: Json
       }
+      approve_user: { Args: { target_user_id: string }; Returns: Json }
       cleanup_expired_invitations: { Args: never; Returns: undefined }
       create_document_supersede: {
         Args: {
@@ -2941,6 +2972,13 @@ export type Database = {
           }
       generate_unique_project_id: { Args: never; Returns: string }
       generate_unique_tender_id: { Args: never; Returns: string }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
       is_project_architect: {
         Args: { project_id: string; user_id: string }
         Returns: boolean
@@ -2974,6 +3012,7 @@ export type Database = {
       }
     }
     Enums: {
+      app_role: "admin" | "user"
       document_status: "For Tender" | "For Information" | "For Construction"
       priority_level: "low" | "medium" | "high" | "critical"
       project_status:
@@ -3126,6 +3165,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      app_role: ["admin", "user"],
       document_status: ["For Tender", "For Information", "For Construction"],
       priority_level: ["low", "medium", "high", "critical"],
       project_status: [

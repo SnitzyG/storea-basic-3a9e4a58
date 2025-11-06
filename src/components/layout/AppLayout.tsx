@@ -4,6 +4,7 @@ import { Navigate } from 'react-router-dom';
 import { Sidebar } from './Sidebar';
 import { Header } from './Header';
 import { ProjectSelectionProvider } from '@/context/ProjectSelectionContext';
+import { supabase } from '@/integrations/supabase/client';
 interface AppLayoutProps {
   children: React.ReactNode;
 }
@@ -44,6 +45,33 @@ export const AppLayout = ({
             <p className="text-sm text-muted-foreground">
               Can't find the email? Check your spam folder or contact support.
             </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Block access if user not approved
+  if (profile && !profile.approved) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background px-4">
+        <div className="w-full max-w-md text-center">
+          <div className="bg-card border rounded-lg p-6 space-y-4">
+            <div className="w-16 h-16 mx-auto rounded-full bg-primary/10 flex items-center justify-center">
+              <svg className="w-8 h-8 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <h2 className="text-2xl font-bold">Account Pending Approval</h2>
+            <p className="text-muted-foreground">
+              Your account is awaiting administrator approval. You'll receive an email once approved.
+            </p>
+            <button
+              onClick={() => supabase.auth.signOut()}
+              className="mt-4 px-4 py-2 bg-secondary text-secondary-foreground rounded-md hover:bg-secondary/80"
+            >
+              Sign Out
+            </button>
           </div>
         </div>
       </div>

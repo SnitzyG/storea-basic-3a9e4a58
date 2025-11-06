@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AppLayout } from "@/components/layout/AppLayout";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
+import UserApproval from "./pages/UserApproval";
 import Dashboard from "./pages/Dashboard";
 import Projects from "./pages/Projects";
 import Documents from "./pages/Documents";
@@ -81,6 +82,11 @@ const App = () => (
           <Route path="/testing" element={
             <AppLayout>
               <Testing />
+            </AppLayout>
+          } />
+          <Route path="/admin/user-approval" element={
+            <AppLayout>
+              <UserApproval />
             </AppLayout>
           } />
           <Route path="/tender/:tenderId" element={<TenderResponse />} />

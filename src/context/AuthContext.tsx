@@ -15,6 +15,9 @@ export interface Profile {
   company_position?: string;
   company_address?: string;
   company_logo_url?: string;
+  approved?: boolean;
+  approved_at?: string;
+  approved_by?: string;
 }
 
 interface AuthContextType {
