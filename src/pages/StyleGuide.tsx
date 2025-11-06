@@ -3,11 +3,174 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { StorealiteLogo } from '@/components/ui/storealite-logo';
-import { Building2, Users, FileText, Calendar, CheckSquare, MessageSquare, DollarSign, ClipboardList } from 'lucide-react';
+import { Building2, Users, FileText, Calendar, CheckSquare, MessageSquare, DollarSign, ClipboardList, Download } from 'lucide-react';
 import { useTheme } from '@/context/ThemeContext';
+import { jsPDF } from 'jspdf';
+import { toast } from '@/hooks/use-toast';
 
 export default function StyleGuide() {
   const { theme, toggleTheme } = useTheme();
+
+  const downloadStyleGuide = () => {
+    try {
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      let yPosition = 20;
+      const pageHeight = pdf.internal.pageSize.height;
+      const margin = 20;
+      const maxWidth = 170;
+
+      // Helper to add new page if needed
+      const checkPageBreak = (requiredSpace: number) => {
+        if (yPosition + requiredSpace > pageHeight - margin) {
+          pdf.addPage();
+          yPosition = 20;
+        }
+      };
+
+      // Title
+      pdf.setFontSize(24);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('STOREA Brand Style Guide', margin, yPosition);
+      yPosition += 15;
+
+      pdf.setFontSize(10);
+      pdf.setFont('helvetica', 'normal');
+      pdf.text('Comprehensive design system for STOREA construction management platform', margin, yPosition);
+      yPosition += 15;
+
+      // Brand Identity
+      checkPageBreak(30);
+      pdf.setFontSize(16);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('Brand Identity', margin, yPosition);
+      yPosition += 10;
+
+      pdf.setFontSize(10);
+      pdf.setFont('helvetica', 'normal');
+      const brandText = [
+        'Primary Theme: Professional Navy & Gold',
+        'Typography: Outfit (sans-serif), Montserrat (display)',
+        'Approach: Clean, Modern, Construction-focused'
+      ];
+      brandText.forEach(text => {
+        pdf.text(text, margin, yPosition);
+        yPosition += 7;
+      });
+      yPosition += 10;
+
+      // Color Palette
+      colorCategories.forEach(category => {
+        checkPageBreak(40);
+        pdf.setFontSize(14);
+        pdf.setFont('helvetica', 'bold');
+        pdf.text(category.name, margin, yPosition);
+        yPosition += 8;
+
+        pdf.setFontSize(9);
+        pdf.setFont('helvetica', 'normal');
+        
+        category.colors.forEach(color => {
+          checkPageBreak(12);
+          pdf.setFont('helvetica', 'bold');
+          pdf.text(color.name, margin + 5, yPosition);
+          pdf.setFont('helvetica', 'normal');
+          pdf.text(`${color.var}`, margin + 60, yPosition);
+          pdf.text(`Light: ${color.light}`, margin + 5, yPosition + 5);
+          pdf.text(`Dark: ${color.dark}`, margin + 5, yPosition + 10);
+          yPosition += 15;
+        });
+        yPosition += 5;
+      });
+
+      // Typography
+      checkPageBreak(50);
+      pdf.setFontSize(16);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('Typography', margin, yPosition);
+      yPosition += 10;
+
+      const typographyInfo = [
+        { name: 'Heading 1', desc: 'Montserrat Bold, 48px - Hero sections' },
+        { name: 'Heading 2', desc: 'Montserrat Bold, 36px - Section headings' },
+        { name: 'Heading 3', desc: 'Montserrat SemiBold, 30px - Subsections' },
+        { name: 'Heading 4', desc: 'Outfit SemiBold, 24px - Card titles' },
+        { name: 'Body Text', desc: 'Outfit Regular, 16px - Main content' },
+        { name: 'Caption', desc: 'Outfit Regular, 14px/12px - Secondary info' }
+      ];
+
+      pdf.setFontSize(10);
+      typographyInfo.forEach(item => {
+        checkPageBreak(10);
+        pdf.setFont('helvetica', 'bold');
+        pdf.text(item.name, margin + 5, yPosition);
+        pdf.setFont('helvetica', 'normal');
+        pdf.text(item.desc, margin + 40, yPosition);
+        yPosition += 8;
+      });
+      yPosition += 10;
+
+      // Usage Guidelines
+      checkPageBreak(50);
+      pdf.setFontSize(16);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('Usage Guidelines', margin, yPosition);
+      yPosition += 10;
+
+      const guidelines = [
+        { title: 'Primary (Navy/Gold)', text: 'Use for main actions, CTAs, and brand elements' },
+        { title: 'Secondary', text: 'For alternative actions and less prominent UI elements' },
+        { title: 'Accent (Gold)', text: 'Highlight important information and premium features' },
+        { title: 'Destructive (Red)', text: 'Only for delete, remove, or error actions' }
+      ];
+
+      pdf.setFontSize(10);
+      guidelines.forEach(guideline => {
+        checkPageBreak(15);
+        pdf.setFont('helvetica', 'bold');
+        pdf.text(guideline.title, margin + 5, yPosition);
+        yPosition += 5;
+        pdf.setFont('helvetica', 'normal');
+        const lines = pdf.splitTextToSize(guideline.text, maxWidth - 10);
+        pdf.text(lines, margin + 5, yPosition);
+        yPosition += lines.length * 5 + 5;
+      });
+
+      // Accessibility
+      checkPageBreak(30);
+      pdf.setFontSize(14);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('Accessibility Standards', margin, yPosition);
+      yPosition += 10;
+
+      pdf.setFontSize(10);
+      pdf.setFont('helvetica', 'normal');
+      const a11yText = [
+        'All text meets WCAG AA standards (4.5:1 for normal, 3:1 for large)',
+        'All interactive elements have visible focus rings',
+        'Never rely on color alone to convey information'
+      ];
+      a11yText.forEach(text => {
+        checkPageBreak(10);
+        const lines = pdf.splitTextToSize(text, maxWidth);
+        pdf.text(lines, margin + 5, yPosition);
+        yPosition += lines.length * 5 + 3;
+      });
+
+      // Save the PDF
+      pdf.save('STOREA-Style-Guide.pdf');
+      toast({
+        title: "Style Guide Downloaded",
+        description: "The PDF has been saved to your downloads folder.",
+      });
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      toast({
+        title: "Download Failed",
+        description: "There was an error generating the PDF. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
 
   const colorCategories = [
     {
@@ -105,9 +268,15 @@ export default function StyleGuide() {
                 Comprehensive design system for STOREA construction management platform
               </p>
             </div>
-            <Button onClick={toggleTheme} variant="outline">
-              Toggle {theme === 'light' ? 'Dark' : 'Light'} Mode
-            </Button>
+            <div className="flex gap-3">
+              <Button onClick={downloadStyleGuide} variant="default">
+                <Download className="mr-2 h-4 w-4" />
+                Download PDF
+              </Button>
+              <Button onClick={toggleTheme} variant="outline">
+                Toggle {theme === 'light' ? 'Dark' : 'Light'} Mode
+              </Button>
+            </div>
           </div>
         </div>
       </div>
