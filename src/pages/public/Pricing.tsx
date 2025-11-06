@@ -54,11 +54,8 @@ const Pricing = () => {
     <PublicLayout>
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-20">
         <div className="max-w-4xl mx-auto text-center mb-16">
-          <h1 className="text-5xl md:text-6xl font-bold mb-6">
-            Simple,{' '}
-            <span className="bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
-              Transparent Pricing
-            </span>
+          <h1 className="text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent">
+            Simple, Transparent Pricing
           </h1>
           
           <p className="text-xl text-muted-foreground">
@@ -72,8 +69,8 @@ const Pricing = () => {
           ))}
         </div>
 
-        <div className="max-w-2xl mx-auto text-center bg-muted/30 rounded-2xl p-8">
-          <h3 className="text-2xl font-semibold mb-3">Need something custom?</h3>
+        <div className="max-w-2xl mx-auto text-center bg-gradient-to-br from-primary/5 to-primary-glow/10 rounded-2xl p-8 border border-primary/20 shadow-glow">
+          <h3 className="text-2xl font-semibold mb-3 bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent">Need something custom?</h3>
           <p className="text-muted-foreground mb-6">
             Contact us for enterprise pricing and custom solutions tailored to your organization's needs.
           </p>

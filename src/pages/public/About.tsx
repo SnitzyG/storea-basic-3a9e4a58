@@ -30,36 +30,36 @@ const About = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-16">
-            <Card>
+            <Card className="hover:shadow-glow transition-all duration-300">
               <CardContent className="pt-6 text-center">
-                <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mx-auto mb-4">
-                  <Target className="h-6 w-6 text-primary" />
+                <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-primary to-primary-glow flex items-center justify-center mx-auto mb-4">
+                  <Target className="h-6 w-6 text-white" />
                 </div>
-                <h3 className="text-xl font-semibold mb-2">Our Mission</h3>
+                <h3 className="text-xl font-semibold mb-2 bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent">Our Mission</h3>
                 <p className="text-muted-foreground">
                   Empower construction teams with tools that make complex projects simple to manage.
                 </p>
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="hover:shadow-glow transition-all duration-300">
               <CardContent className="pt-6 text-center">
-                <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mx-auto mb-4">
-                  <Lightbulb className="h-6 w-6 text-primary" />
+                <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-primary to-primary-glow flex items-center justify-center mx-auto mb-4">
+                  <Lightbulb className="h-6 w-6 text-white" />
                 </div>
-                <h3 className="text-xl font-semibold mb-2">Our Vision</h3>
+                <h3 className="text-xl font-semibold mb-2 bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent">Our Vision</h3>
                 <p className="text-muted-foreground">
                   A world where every construction project is delivered efficiently and collaboratively.
                 </p>
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="hover:shadow-glow transition-all duration-300">
               <CardContent className="pt-6 text-center">
-                <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mx-auto mb-4">
-                  <Users className="h-6 w-6 text-primary" />
+                <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-primary to-primary-glow flex items-center justify-center mx-auto mb-4">
+                  <Users className="h-6 w-6 text-white" />
                 </div>
-                <h3 className="text-xl font-semibold mb-2">Our Values</h3>
+                <h3 className="text-xl font-semibold mb-2 bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent">Our Values</h3>
                 <p className="text-muted-foreground">
                   Transparency, collaboration, and continuous improvement in everything we do.
                 </p>
