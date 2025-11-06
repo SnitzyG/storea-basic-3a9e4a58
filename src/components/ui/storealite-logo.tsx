@@ -1,6 +1,6 @@
 // STOREA Logo Component - Clean Text Design
 
-interface StorealiteLogoProps {
+interface StoreaLogoProps {
   variant?: 'full' | 'text-only' | 'icon-only';
   className?: string;
 }
@@ -8,9 +8,9 @@ interface StorealiteLogoProps {
 export const StorealiteLogo = ({ 
   variant = 'text-only',
   className = ''
-}: StorealiteLogoProps) => {
+}: StoreaLogoProps) => {
   const logoStyle = {
-    background: 'linear-gradient(135deg, #ada8ff 0%, #fbfbfb 100%)',
+    background: 'linear-gradient(135deg, hsl(215, 45%, 25%) 0%, hsl(215, 45%, 35%) 100%)',
     WebkitBackgroundClip: 'text',
     WebkitTextFillColor: 'transparent',
     backgroundClip: 'text',

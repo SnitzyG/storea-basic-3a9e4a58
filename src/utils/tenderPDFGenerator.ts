@@ -670,7 +670,7 @@ export const generateTenderPDF = (tender: TenderPDFData) => {
       doc.setFontSize(9);
       doc.setFont('helvetica', 'bold');
       doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-      doc.text('STOREALite', 15, pageHeight - 10);
+      doc.text('STOREA', 15, pageHeight - 10);
       
       doc.setFont('helvetica', 'normal');
       doc.setTextColor(128, 128, 128);
