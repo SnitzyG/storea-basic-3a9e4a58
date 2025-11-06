@@ -54,24 +54,13 @@ export default function AdminAuth() {
         return;
       }
 
-      // Check if user is approved
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('approved')
-        .eq('user_id', user.id)
-        .single();
-
-      if (profileError) throw profileError;
-
-      if (!profile?.approved) {
-        await supabase.auth.signOut();
-        toast({
-          title: 'Account Not Approved',
-          description: 'Your account needs to be approved before accessing admin features',
-          variant: 'destructive',
-        });
-        return;
-      }
+      // Admins can access even if profile is not yet approved
+      toast({
+        title: 'Welcome Admin',
+        description: 'Successfully logged in to admin dashboard',
+      });
+      navigate('/admin/dashboard');
+      return;
 
       // Success - navigate to admin dashboard
       toast({

@@ -86,11 +86,7 @@ const App = () => (
             </AppLayout>
           } />
           <Route path="/admin/login" element={<AdminAuth />} />
-          <Route path="/admin/dashboard" element={
-            <AppLayout>
-              <Admin />
-            </AppLayout>
-          } />
+          <Route path="/admin/dashboard" element={<Admin />} />
           <Route path="/admin" element={<AdminAuth />} />
           <Route path="/tender/:tenderId" element={<TenderResponse />} />
           <Route path="/tender-review-demo" element={<TenderReviewDemo />} />
