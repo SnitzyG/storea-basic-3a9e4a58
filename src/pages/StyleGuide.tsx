@@ -120,6 +120,7 @@ export default function StyleGuide() {
                   <li>Buttons & CTAs</li>
                   <li>Form Elements & Validation</li>
                   <li>Badges & Status Indicators</li>
+                  <li>Animations & Micro-interactions</li>
                   <li>Navigation Components</li>
                   <li>Content Components</li>
                   <li>Feedback & Loading States</li>
@@ -601,9 +602,457 @@ export default function StyleGuide() {
             </Card>
           </section>
 
-          {/* 8. Cards & Content */}
+          {/* 8. Animations & Micro-interactions */}
+          <section id="animations">
+            <h2 className="text-3xl font-bold mb-6">8. Animations & Micro-interactions</h2>
+            
+            <div className="space-y-6">
+              {/* Animation Timing Standards */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Animation Timing Standards</CardTitle>
+                  <CardDescription>Consistent timing creates predictable, professional interactions</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="overflow-x-auto">
+                    <table className="w-full border-collapse">
+                      <thead>
+                        <tr className="border-b">
+                          <th className="text-left p-3">Type</th>
+                          <th className="text-left p-3">Duration</th>
+                          <th className="text-left p-3">Use Case</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr className="border-b">
+                          <td className="p-3 font-medium">Quick Feedback</td>
+                          <td className="p-3"><code className="text-xs">100-150ms</code></td>
+                          <td className="p-3 text-sm text-muted-foreground">Button click, toggle, immediate feedback</td>
+                        </tr>
+                        <tr className="border-b">
+                          <td className="p-3 font-medium">Standard Transition</td>
+                          <td className="p-3"><code className="text-xs">200ms</code></td>
+                          <td className="p-3 text-sm text-muted-foreground">Page load, modal open, general transitions</td>
+                        </tr>
+                        <tr className="border-b">
+                          <td className="p-3 font-medium">Deliberate Motion</td>
+                          <td className="p-3"><code className="text-xs">300-400ms</code></td>
+                          <td className="p-3 text-sm text-muted-foreground">Collapse/expand, reveal, drawer open</td>
+                        </tr>
+                        <tr>
+                          <td className="p-3 font-medium">Slow Animation</td>
+                          <td className="p-3"><code className="text-xs">500ms+</code></td>
+                          <td className="p-3 text-sm text-muted-foreground">Complex sequences, hero sections</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Easing Functions */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Animation Easing Functions</CardTitle>
+                  <CardDescription>Easing creates natural, organic motion</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="grid md:grid-cols-2 gap-4">
+                      <div className="p-4 border rounded-lg">
+                        <h4 className="font-medium mb-2">ease-in</h4>
+                        <code className="text-xs bg-muted px-2 py-1 rounded block mb-2">cubic-bezier(0.4, 0, 1, 1)</code>
+                        <p className="text-sm text-muted-foreground">Start slow, accelerate. Use for exits.</p>
+                      </div>
+                      <div className="p-4 border rounded-lg">
+                        <h4 className="font-medium mb-2">ease-out</h4>
+                        <code className="text-xs bg-muted px-2 py-1 rounded block mb-2">cubic-bezier(0, 0, 0.2, 1)</code>
+                        <p className="text-sm text-muted-foreground">Start fast, decelerate. Use for entrances.</p>
+                      </div>
+                      <div className="p-4 border rounded-lg">
+                        <h4 className="font-medium mb-2">ease-in-out</h4>
+                        <code className="text-xs bg-muted px-2 py-1 rounded block mb-2">cubic-bezier(0.4, 0, 0.2, 1)</code>
+                        <p className="text-sm text-muted-foreground">Smooth throughout. Use for transitions.</p>
+                      </div>
+                      <div className="p-4 border rounded-lg">
+                        <h4 className="font-medium mb-2">linear</h4>
+                        <code className="text-xs bg-muted px-2 py-1 rounded block mb-2">No easing</code>
+                        <p className="text-sm text-muted-foreground">Constant speed. Use for spinners, loading bars.</p>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Hover Effects */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Hover Effects</CardTitle>
+                  <CardDescription>Interactive feedback on hover</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-6">
+                    <div>
+                      <h4 className="font-semibold mb-3">Button Hover</h4>
+                      <Button className="transition-opacity duration-150 hover:opacity-90">
+                        Hover Me
+                      </Button>
+                      <p className="text-xs text-muted-foreground mt-2">
+                        Opacity 90%, 150ms ease • All button variants
+                      </p>
+                    </div>
+
+                    <div>
+                      <h4 className="font-semibold mb-3">Link Hover</h4>
+                      <a href="#" className="text-primary hover:text-accent transition-colors duration-150 underline">
+                        Hover Link Example
+                      </a>
+                      <p className="text-xs text-muted-foreground mt-2">
+                        Color change to Terracotta, 150ms ease
+                      </p>
+                    </div>
+
+                    <div>
+                      <h4 className="font-semibold mb-3">Card Hover</h4>
+                      <div className="p-4 border rounded-lg transition-all duration-200 hover:shadow-elegant hover:scale-[1.02] cursor-pointer">
+                        <p className="text-sm">Hover over this card</p>
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-2">
+                        Shadow elevation + scale 1.02, 200ms ease
+                      </p>
+                    </div>
+
+                    <div>
+                      <h4 className="font-semibold mb-3">Icon Hover</h4>
+                      <div className="inline-flex items-center justify-center w-10 h-10 rounded-md border transition-all duration-150 hover:scale-110 hover:text-accent cursor-pointer">
+                        <Check className="h-5 w-5" />
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-2">
+                        Color change + scale 1.1, 150ms ease
+                      </p>
+                    </div>
+
+                    <div>
+                      <h4 className="font-semibold mb-3">Table Row Hover</h4>
+                      <div className="border rounded-lg overflow-hidden">
+                        <table className="w-full">
+                          <tbody>
+                            <tr className="transition-colors duration-150 hover:bg-muted cursor-pointer">
+                              <td className="p-3">Row 1</td>
+                              <td className="p-3">Data</td>
+                            </tr>
+                            <tr className="transition-colors duration-150 hover:bg-muted cursor-pointer">
+                              <td className="p-3">Row 2</td>
+                              <td className="p-3">Data</td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-2">
+                        Beige background, 150ms ease
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Focus States */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Focus States</CardTitle>
+                  <CardDescription>Keyboard navigation and accessibility</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="grid md:grid-cols-2 gap-4">
+                      <div>
+                        <h4 className="font-medium mb-3">Ring Style</h4>
+                        <Button className="focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2">
+                          Tab to Focus
+                        </Button>
+                        <p className="text-xs text-muted-foreground mt-2">
+                          3px solid Terracotta • 2px offset from element
+                        </p>
+                      </div>
+                      <div>
+                        <h4 className="font-medium mb-3">Input Focus</h4>
+                        <Input placeholder="Click or tab to focus" />
+                        <p className="text-xs text-muted-foreground mt-2">
+                          Terracotta ring + Forest Green border
+                        </p>
+                      </div>
+                    </div>
+                    <div className="p-4 bg-muted rounded-lg">
+                      <h4 className="font-semibold mb-2">Focus Requirements</h4>
+                      <ul className="text-sm space-y-1 text-muted-foreground">
+                        <li>• Always visible, high contrast</li>
+                        <li>• Fade in animation: 100ms</li>
+                        <li>• Keyboard focus: Always visible (never remove outline)</li>
+                        <li>• Mouse focus: Optional, determined by focus-visible</li>
+                      </ul>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Click/Press Feedback */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Click/Press Feedback</CardTitle>
+                  <CardDescription>Tactile response on interaction</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div>
+                      <h4 className="font-medium mb-3">Button Press</h4>
+                      <Button className="active:scale-[0.98] transition-transform duration-50">
+                        Click Me
+                      </Button>
+                      <p className="text-xs text-muted-foreground mt-2">
+                        Scale down 0.98, 50ms
+                      </p>
+                    </div>
+                    <div>
+                      <h4 className="font-medium mb-3">Checkbox Click</h4>
+                      <div className="flex items-center gap-2">
+                        <Checkbox id="anim-check" className="transition-transform active:scale-110 duration-150" />
+                        <Label htmlFor="anim-check">Click to toggle</Label>
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-2">
+                        Scale 1.1 then 1.0, 150ms
+                      </p>
+                    </div>
+                    <div className="p-4 bg-muted rounded-lg">
+                      <h4 className="font-semibold mb-2">Haptic Feedback</h4>
+                      <p className="text-sm text-muted-foreground">
+                        Vibrate on mobile (optional) - Use for confirmations and important actions
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Loading Animations */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Loading Animations</CardTitle>
+                  <CardDescription>Progress indicators and loading states</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-6">
+                    <div>
+                      <h4 className="font-medium mb-3">Spinner</h4>
+                      <div className="flex items-center gap-4">
+                        <div className="h-8 w-8 animate-spin rounded-full border-4 border-muted border-t-primary"></div>
+                        <div className="h-6 w-6 animate-spin rounded-full border-4 border-muted border-t-primary"></div>
+                        <div className="h-4 w-4 animate-spin rounded-full border-2 border-muted border-t-primary"></div>
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-2">
+                        Rotating 360°, 1.5s linear infinite
+                      </p>
+                    </div>
+
+                    <div>
+                      <h4 className="font-medium mb-3">Shimmer (Skeleton)</h4>
+                      <div className="space-y-3">
+                        <div className="h-4 w-full bg-gradient-to-r from-muted via-muted/50 to-muted animate-[shimmer_1.5s_ease-in-out_infinite] rounded"></div>
+                        <div className="h-4 w-3/4 bg-gradient-to-r from-muted via-muted/50 to-muted animate-[shimmer_1.5s_ease-in-out_infinite] rounded"></div>
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-2">
+                        Left-to-right gradient, 1.5s ease-in-out infinite • Subtle 60% opacity
+                      </p>
+                    </div>
+
+                    <div>
+                      <h4 className="font-medium mb-3">Pulse</h4>
+                      <div className="flex items-center gap-3">
+                        <div className="h-2 w-2 rounded-full bg-primary animate-pulse"></div>
+                        <div className="h-2 w-2 rounded-full bg-primary animate-pulse animation-delay-200"></div>
+                        <div className="h-2 w-2 rounded-full bg-primary animate-pulse animation-delay-400"></div>
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-2">
+                        Opacity 0.5 to 1.0, 2s ease-in-out infinite
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Reveal Animations */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Reveal Animations (Entrance)</CardTitle>
+                  <CardDescription>Elements appearing on screen</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="overflow-x-auto">
+                      <table className="w-full border-collapse">
+                        <thead>
+                          <tr className="border-b">
+                            <th className="text-left p-3">Animation</th>
+                            <th className="text-left p-3">Transform</th>
+                            <th className="text-left p-3">Duration</th>
+                            <th className="text-left p-3">Easing</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr className="border-b">
+                            <td className="p-3 font-medium">Fade In</td>
+                            <td className="p-3"><code className="text-xs">Opacity 0 → 1</code></td>
+                            <td className="p-3"><code className="text-xs">200ms</code></td>
+                            <td className="p-3"><code className="text-xs">ease-out</code></td>
+                          </tr>
+                          <tr className="border-b">
+                            <td className="p-3 font-medium">Slide In (Top)</td>
+                            <td className="p-3"><code className="text-xs">translateY(-20px) → (0, 0)</code></td>
+                            <td className="p-3"><code className="text-xs">200ms</code></td>
+                            <td className="p-3"><code className="text-xs">ease-out</code></td>
+                          </tr>
+                          <tr className="border-b">
+                            <td className="p-3 font-medium">Slide In (Left)</td>
+                            <td className="p-3"><code className="text-xs">translateX(-20px) → (0, 0)</code></td>
+                            <td className="p-3"><code className="text-xs">200ms</code></td>
+                            <td className="p-3"><code className="text-xs">ease-out</code></td>
+                          </tr>
+                          <tr className="border-b">
+                            <td className="p-3 font-medium">Scale In</td>
+                            <td className="p-3"><code className="text-xs">scale(0.95) → 1</code></td>
+                            <td className="p-3"><code className="text-xs">200ms</code></td>
+                            <td className="p-3"><code className="text-xs">ease-out</code></td>
+                          </tr>
+                          <tr>
+                            <td className="p-3 font-medium">Combined</td>
+                            <td className="p-3"><code className="text-xs">Fade + Slide</code></td>
+                            <td className="p-3"><code className="text-xs">200ms</code></td>
+                            <td className="p-3"><code className="text-xs">ease-out</code></td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      Use for modal entrances, popover appearances, page content reveals
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Exit Animations */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Exit Animations</CardTitle>
+                  <CardDescription>Elements leaving the screen</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="overflow-x-auto">
+                      <table className="w-full border-collapse">
+                        <thead>
+                          <tr className="border-b">
+                            <th className="text-left p-3">Animation</th>
+                            <th className="text-left p-3">Transform</th>
+                            <th className="text-left p-3">Duration</th>
+                            <th className="text-left p-3">Easing</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr className="border-b">
+                            <td className="p-3 font-medium">Fade Out</td>
+                            <td className="p-3"><code className="text-xs">Opacity 1 → 0</code></td>
+                            <td className="p-3"><code className="text-xs">150ms</code></td>
+                            <td className="p-3"><code className="text-xs">ease-in</code></td>
+                          </tr>
+                          <tr className="border-b">
+                            <td className="p-3 font-medium">Slide Out (Bottom)</td>
+                            <td className="p-3"><code className="text-xs">translateY(0, 0) → (0, 20px)</code></td>
+                            <td className="p-3"><code className="text-xs">150ms</code></td>
+                            <td className="p-3"><code className="text-xs">ease-in</code></td>
+                          </tr>
+                          <tr>
+                            <td className="p-3 font-medium">Scale Out</td>
+                            <td className="p-3"><code className="text-xs">scale(1) → 0.95</code></td>
+                            <td className="p-3"><code className="text-xs">150ms</code></td>
+                            <td className="p-3"><code className="text-xs">ease-in</code></td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      Exit animations are faster (150ms) than entrances (200ms) for snappy feel
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Stagger Effects */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Stagger Effects</CardTitle>
+                  <CardDescription>Sequential animations for lists and groups</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <p className="text-sm text-muted-foreground">
+                      Apply animations with 50ms delay per item for sequential reveal
+                    </p>
+                    <div className="space-y-2">
+                      <div className="p-3 bg-muted rounded animate-fade-in">Item 1</div>
+                      <div className="p-3 bg-muted rounded animate-fade-in animation-delay-100">Item 2</div>
+                      <div className="p-3 bg-muted rounded animate-fade-in animation-delay-200">Item 3</div>
+                      <div className="p-3 bg-muted rounded animate-fade-in animation-delay-300">Item 4</div>
+                    </div>
+                    <div className="p-4 bg-accent-subtle rounded-lg mt-4">
+                      <h4 className="font-semibold mb-2">Implementation</h4>
+                      <code className="text-xs block bg-background p-3 rounded overflow-x-auto">
+                        {`// CSS: animation-delay: calc(50ms * var(--item-index))`}
+                      </code>
+                      <p className="text-xs text-muted-foreground mt-2">
+                        Use for: Card grids, list items, navigation menus, table rows
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Best Practices */}
+              <Card className="border-accent">
+                <CardContent className="pt-6">
+                  <div className="flex items-start gap-4">
+                    <Info className="h-6 w-6 text-accent flex-shrink-0 mt-1" />
+                    <div>
+                      <h3 className="font-semibold mb-3">Animation Best Practices</h3>
+                      <ul className="space-y-2 text-sm text-muted-foreground">
+                        <li className="flex items-start gap-2">
+                          <Check className="h-4 w-4 text-[hsl(var(--construction-success))] mt-0.5 flex-shrink-0" />
+                          <span><strong>Be consistent:</strong> Use the same timing and easing for similar interactions</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <Check className="h-4 w-4 text-[hsl(var(--construction-success))] mt-0.5 flex-shrink-0" />
+                          <span><strong>Keep it subtle:</strong> Animations should enhance, not distract</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <Check className="h-4 w-4 text-[hsl(var(--construction-success))] mt-0.5 flex-shrink-0" />
+                          <span><strong>Respect motion preferences:</strong> Honor prefers-reduced-motion settings</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <Check className="h-4 w-4 text-[hsl(var(--construction-success))] mt-0.5 flex-shrink-0" />
+                          <span><strong>Performance first:</strong> Use transform and opacity for 60fps animations</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <Check className="h-4 w-4 text-[hsl(var(--construction-success))] mt-0.5 flex-shrink-0" />
+                          <span><strong>Test on mobile:</strong> Ensure animations feel natural on touch devices</span>
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </section>
+
+          {/* 9. Cards & Content */}
           <section id="cards">
-            <h2 className="text-3xl font-bold mb-6">8. Content Components - Cards</h2>
+            <h2 className="text-3xl font-bold mb-6">9. Content Components - Cards</h2>
             <div className="grid md:grid-cols-2 gap-6">
               <Card>
                 <CardHeader>
@@ -632,9 +1081,9 @@ export default function StyleGuide() {
             </div>
           </section>
 
-          {/* 9. Accessibility */}
+          {/* 10. Accessibility */}
           <section id="accessibility">
-            <h2 className="text-3xl font-bold mb-6">9. Accessibility & Implementation</h2>
+            <h2 className="text-3xl font-bold mb-6">10. Accessibility & Implementation</h2>
             <Card>
               <CardContent className="pt-6 space-y-6">
                 <div>
