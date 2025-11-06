@@ -1,4 +1,5 @@
 // STOREA Logo Component - Clean Text Design
+import { Link } from 'react-router-dom';
 
 interface StoreaLogoProps {
   variant?: 'full' | 'text-only' | 'icon-only';
@@ -22,22 +23,24 @@ export const StorealiteLogo = ({
 
   if (variant === 'icon-only') {
     return (
-      <div className={`inline-flex items-center justify-center ${className}`}>
+      <Link to="/" className={`inline-flex items-center justify-center ${className}`}>
         <span style={{ 
           ...logoStyle,
           fontSize: '2rem'
         }}>
           S
         </span>
-      </div>
+      </Link>
     );
   }
 
   return (
-    <h1 className={`inline-block ${className}`}>
-      <span style={logoStyle}>
-        STOREA
-      </span>
-    </h1>
+    <Link to="/" className={`inline-block ${className}`}>
+      <h1>
+        <span style={logoStyle}>
+          STOREA
+        </span>
+      </h1>
+    </Link>
   );
 };
