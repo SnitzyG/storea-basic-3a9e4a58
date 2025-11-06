@@ -5,12 +5,13 @@ import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { CompanyAvatar } from '@/components/ui/company-avatar';
 import { useAuth } from '@/hooks/useAuth';
-import { LogOut, User as UserIcon } from 'lucide-react';
+import { LogOut, User as UserIcon, Shield } from 'lucide-react';
 import { useTheme } from '@/context/ThemeContext';
 import { NotificationCenter } from '@/components/notifications/NotificationCenter';
 import { ProjectSelector } from './ProjectSelector';
 import { ManageProfileDialog } from '@/components/profile/ManageProfileDialog';
 import { supabase } from '@/integrations/supabase/client';
+import { Badge } from '@/components/ui/badge';
 
 interface HeaderProps {
   user: User;
@@ -22,6 +23,7 @@ export const Header = ({
   profile
 }: HeaderProps) => {
   const [companyName, setCompanyName] = useState<string | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   const {
     signOut
   } = useAuth();
@@ -29,6 +31,27 @@ export const Header = ({
     theme,
     toggleTheme
   } = useTheme();
+
+  // Check admin role
+  useEffect(() => {
+    const checkAdmin = async () => {
+      if (!user) {
+        setIsAdmin(false);
+        return;
+      }
+      try {
+        const { data } = await supabase.rpc('has_role', {
+          _user_id: user.id,
+          _role: 'admin',
+        });
+        setIsAdmin(Boolean(data));
+      } catch (error) {
+        console.error('Error checking admin:', error);
+        setIsAdmin(false);
+      }
+    };
+    checkAdmin();
+  }, [user]);
 
   // Fetch company name if profile has company_id
   useEffect(() => {
@@ -89,9 +112,17 @@ export const Header = ({
             <DropdownMenuLabel className="font-normal">
               <div className="flex flex-col space-y-1">
                 <p className="text-sm font-medium leading-none">{profile?.name || user.email || 'User'}</p>
-                <p className="text-xs leading-none text-muted-foreground">
-                  {user.email}
-                </p>
+                <div className="flex items-center gap-2">
+                  <p className="text-xs leading-none text-muted-foreground">
+                    {user.email}
+                  </p>
+                  {isAdmin && (
+                    <Badge variant="default" className="text-[10px] px-1.5 py-0 h-4 bg-gradient-to-r from-primary to-primary-glow">
+                      <Shield className="h-2.5 w-2.5 mr-0.5" />
+                      Admin
+                    </Badge>
+                  )}
+                </div>
                 <p className="text-xs leading-none text-muted-foreground capitalize">
                   {(profile?.role ?? 'member')}
                 </p>

@@ -1,10 +1,35 @@
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Menu, X } from 'lucide-react';
-import { useState } from 'react';
+import { Menu, X, Shield } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
+import { Badge } from '@/components/ui/badge';
 
 export const NavBar = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const { user } = useAuth();
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    const checkAdmin = async () => {
+      if (!user) {
+        setIsAdmin(false);
+        return;
+      }
+      try {
+        const { data } = await supabase.rpc('has_role', {
+          _user_id: user.id,
+          _role: 'admin',
+        });
+        setIsAdmin(Boolean(data));
+      } catch (error) {
+        console.error('Error checking admin:', error);
+        setIsAdmin(false);
+      }
+    };
+    checkAdmin();
+  }, [user]);
 
   return (
     <nav className="sticky top-0 z-50 bg-background/80 backdrop-blur-lg border-b border-border">
@@ -30,6 +55,12 @@ export const NavBar = () => {
             <Link to="/contact" className="text-foreground/80 hover:text-foreground transition-colors">
               Contact
             </Link>
+            {isAdmin && (
+              <Link to="/admin/dashboard" className="flex items-center gap-1.5 text-foreground/80 hover:text-foreground transition-colors">
+                <Shield className="h-4 w-4" />
+                <span>Admin</span>
+              </Link>
+            )}
             <div className="flex items-center gap-3">
               <Link to="/auth">
                 <Button variant="ghost">Login</Button>
@@ -80,6 +111,16 @@ export const NavBar = () => {
             >
               Contact
             </Link>
+            {isAdmin && (
+              <Link 
+                to="/admin/dashboard" 
+                className="flex items-center gap-1.5 py-2 text-foreground/80 hover:text-foreground transition-colors"
+                onClick={() => setIsOpen(false)}
+              >
+                <Shield className="h-4 w-4" />
+                <span>Admin</span>
+              </Link>
+            )}
             <div className="pt-3 space-y-2">
               <Link to="/auth" onClick={() => setIsOpen(false)}>
                 <Button variant="ghost" className="w-full">Login</Button>
