@@ -1,4 +1,4 @@
-import { Shield, Users, Settings, BarChart3, Mail } from 'lucide-react';
+import { Shield, Users, Settings, BarChart3, Mail, Palette } from 'lucide-react';
 import { NavLink, useLocation } from 'react-router-dom';
 import {
   Sidebar,
@@ -17,6 +17,7 @@ const adminNavItems = [
   { title: 'Dashboard', url: '/admin/dashboard', icon: BarChart3 },
   { title: 'User Approvals', url: '/admin/approvals', icon: Users },
   { title: 'Email Monitoring', url: '/admin/emails', icon: Mail },
+  { title: 'Style Guide', url: '/admin/style-guide', icon: Palette },
   { title: 'Settings', url: '/admin/settings', icon: Settings },
 ];
 
