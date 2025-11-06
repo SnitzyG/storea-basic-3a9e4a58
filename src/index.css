@@ -9,7 +9,7 @@ All colors MUST be HSL.
 @layer base {
   :root {
     /* STOREA Brand Colors - Light Mode */
-    /* Refined palette: Dune, Black, Blue Haze, Bon Jour, White */
+    /* Official palette from Style Guide: Dune, Blue Haze, Bon Jour, White, Black */
     
     --background: 0 0% 100%; /* White #FFFFFF */
     --foreground: 6 8% 17%; /* Dune #2E2827 */
@@ -20,32 +20,32 @@ All colors MUST be HSL.
     --popover: 0 0% 100%; /* White #FFFFFF */
     --popover-foreground: 6 8% 17%; /* Dune #2E2827 */
 
-    /* Primary Colors - Dune */
-    --primary: 6 8% 17%; /* Dune #2E2827 */
+    /* Primary Colors - Dune #2E2827 */
+    --primary: 6 8% 17%; /* Dune #2E2827 - HSL(6 8% 17%) */
     --primary-foreground: 0 0% 100%; /* White #FFFFFF */
-    --primary-glow: 252 24% 84%; /* Blue Haze #D0CCE0 */
+    --primary-glow: 252 24% 84%; /* Blue Haze for hover states */
 
-    /* Secondary Colors - Blue Haze */
-    --secondary: 252 24% 84%; /* Blue Haze #D0CCE0 */
+    /* Secondary Colors - Blue Haze #D0CCE0 */
+    --secondary: 252 24% 84%; /* Blue Haze #D0CCE0 - HSL(252 24% 84%) */
     --secondary-foreground: 6 8% 17%; /* Dune #2E2827 */
 
-    /* Muted Colors - Bon Jour */
-    --muted: 0 6% 90%; /* Bon Jour #E8E4E4 */
-    --muted-foreground: 0 0% 42%; /* Gray #6B7280 */
+    /* Muted Colors - Bon Jour #E8E4E4 */
+    --muted: 0 6% 90%; /* Bon Jour #E8E4E4 - HSL(0 6% 90%) */
+    --muted-foreground: 0 0% 42%; /* Gray for low contrast text */
 
-    /* Accent Colors - Blue Haze */
-    --accent: 252 24% 84%; /* Blue Haze #D0CCE0 */
+    /* Accent Colors - Blue Haze #D0CCE0 */
+    --accent: 252 24% 84%; /* Blue Haze #D0CCE0 - HSL(252 24% 84%) */
     --accent-foreground: 6 8% 17%; /* Dune #2E2827 */
-    --accent-subtle: 252 24% 95%; /* Light Blue Haze */
+    --accent-subtle: 252 24% 95%; /* Light Blue Haze tint */
 
-    /* Destructive */
-    --destructive: 0 86% 50%; /* Red #DC2626 */
+    /* Destructive - Red #DC2626 */
+    --destructive: 0 86% 50%; /* Red #DC2626 - HSL(0 86% 50%) */
     --destructive-foreground: 0 0% 100%; /* White #FFFFFF */
 
     /* UI Elements */
     --border: 0 6% 90%; /* Bon Jour #E8E4E4 */
     --input: 0 6% 90%; /* Bon Jour #E8E4E4 */
-    --ring: 252 24% 70%; /* Blue Haze Focus Ring */
+    --ring: 252 24% 70%; /* Blue Haze Focus Ring (3px solid) */
 
     --radius: 0.5rem;
 
@@ -60,19 +60,17 @@ All colors MUST be HSL.
     --sidebar-ring: 252 24% 70%;
 
     /* Construction-Specific Status Colors */
-    --construction-warning: 38 92% 50%; /* Amber #F59E0B */
-    --construction-success: 160 84% 39%; /* Green #10B981 */
-    --construction-info: 217 91% 60%; /* Blue #3B82F6 */
+    --construction-warning: 38 92% 50%; /* Amber #F59E0B - HSL(38 92% 50%) */
+    --construction-success: 160 84% 39%; /* Green #10B981 - HSL(160 84% 39%) */
+    --construction-info: 217 91% 60%; /* Blue #3B82F6 - HSL(217 91% 60%) */
     
     /* Role-specific colors */
     --role-architect: 252 24% 84%; /* Blue Haze */
     --role-builder: 160 84% 39%; /* Success Green */
     --role-homeowner: 265 55% 50%; /* Purple */
     --role-contractor: 6 8% 17%; /* Dune */
-
-    /* Removed gradients - not used */
     
-    /* Shadows with subtle tint */
+    /* Shadows - Subtle, no color tint */
     --shadow-elegant: 0 10px 30px -10px hsl(6 8% 17% / 0.15);
     --shadow-glow: 0 0 40px hsl(252 24% 84% / 0.4);
     
