@@ -28,9 +28,16 @@ export const HeroSection = () => {
         </div>
 
         <div className="mt-16 rounded-2xl border border-border bg-card p-2 shadow-glow">
-          <div className="aspect-video rounded-xl bg-gradient-to-br from-primary/10 to-primary-glow/20 flex items-center justify-center">
-            <p className="text-muted-foreground">App Screenshot/Demo</p>
-          </div>
+          <video 
+            className="aspect-video rounded-xl w-full"
+            autoPlay 
+            loop 
+            muted 
+            playsInline
+          >
+            <source src="/demo-video.mov" type="video/quicktime" />
+            Your browser does not support the video tag.
+          </video>
         </div>
       </div>
     </section>
