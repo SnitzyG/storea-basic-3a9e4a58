@@ -26,6 +26,14 @@ import JoinProject from "./pages/JoinProject.tsx";
 import Calendar from "./pages/Calendar.tsx";
 import TodoList from "./pages/TodoList.tsx";
 
+// Admin pages
+import AdminAuth from "./pages/AdminAuth.tsx";
+import AdminIndex from "./pages/AdminIndex.tsx";
+import AdminDashboard from "./pages/AdminDashboard.tsx";
+import AdminApprovals from "./pages/AdminApprovals.tsx";
+import AdminEmails from "./pages/AdminEmails.tsx";
+import AdminSettings from "./pages/AdminSettings.tsx";
+
 // Public marketing pages
 import Home from "./pages/public/Home.tsx";
 import About from "./pages/public/About.tsx";
@@ -84,6 +92,14 @@ createRoot(document.getElementById("root")!).render(
                     <Route path="/projects/:projectId/join" element={<ProjectJoin />} />
                     <Route path="/invite/:token" element={<ProjectInvite />} />
                     <Route path="/join/:token" element={<JoinProject />} />
+                    
+                    {/* Admin pages */}
+                    <Route path="/admin/login" element={<AdminAuth />} />
+                    <Route path="/admin" element={<AdminIndex />} />
+                    <Route path="/admin/dashboard" element={<AdminDashboard />} />
+                    <Route path="/admin/approvals" element={<AdminApprovals />} />
+                    <Route path="/admin/emails" element={<AdminEmails />} />
+                    <Route path="/admin/settings" element={<AdminSettings />} />
                     
                     <Route path="*" element={<NotFound />} />
                   </Routes>
