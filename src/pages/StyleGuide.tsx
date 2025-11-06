@@ -7,6 +7,7 @@ import { Building2, Users, FileText, Calendar, CheckSquare, MessageSquare, Dolla
 import { useTheme } from '@/context/ThemeContext';
 import { jsPDF } from 'jspdf';
 import { toast } from '@/hooks/use-toast';
+import { AdminLayout } from '@/components/admin/AdminLayout';
 
 export default function StyleGuide() {
   const { theme, toggleTheme } = useTheme();
@@ -256,7 +257,8 @@ export default function StyleGuide() {
   ];
 
   return (
-    <div className="min-h-screen bg-background">
+    <AdminLayout>
+      <div className="min-h-screen bg-background">
       {/* Header */}
       <div className="border-b bg-card">
         <div className="container mx-auto px-6 py-8">
@@ -706,5 +708,6 @@ export default function StyleGuide() {
         </section>
       </div>
     </div>
+    </AdminLayout>
   );
 }
