@@ -1,8 +1,87 @@
+import { useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Shield, Users, Mail, Activity } from 'lucide-react';
 import { AdminLayout } from '@/components/admin/AdminLayout';
+import { supabase } from '@/integrations/supabase/client';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { useToast } from '@/hooks/use-toast';
 
 export default function AdminDashboard() {
+  const [stats, setStats] = useState({
+    totalUsers: 0,
+    pendingApprovals: 0,
+    activeSessions: 0,
+  });
+  const [loading, setLoading] = useState(true);
+  const [grantEmail, setGrantEmail] = useState('');
+  const [granting, setGranting] = useState(false);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    fetchStats();
+  }, []);
+
+  const fetchStats = async () => {
+    try {
+      // Get total users
+      const { count: totalUsers } = await supabase
+        .from('profiles')
+        .select('*', { count: 'exact', head: true });
+
+      // Get pending approvals
+      const { count: pendingApprovals } = await supabase
+        .from('profiles')
+        .select('*', { count: 'exact', head: true })
+        .eq('approved', false);
+
+      setStats({
+        totalUsers: totalUsers || 0,
+        pendingApprovals: pendingApprovals || 0,
+        activeSessions: 0, // Would need auth.sessions access
+      });
+    } catch (error) {
+      console.error('Error fetching stats:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGrantAdmin = async () => {
+    if (!grantEmail.trim()) {
+      toast({
+        title: 'Error',
+        description: 'Please enter an email address',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setGranting(true);
+    try {
+      const { data, error } = await supabase.rpc('grant_admin_by_email', {
+        target_email: grantEmail.trim(),
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: 'Success',
+        description: (data as any)?.message || 'Admin role granted successfully',
+      });
+      setGrantEmail('');
+      fetchStats(); // Refresh stats
+    } catch (error: any) {
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to grant admin role',
+        variant: 'destructive',
+      });
+    } finally {
+      setGranting(false);
+    }
+  };
+
   return (
     <AdminLayout>
       <div className="space-y-6">
@@ -23,7 +102,9 @@ export default function AdminDashboard() {
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">0</div>
+              <div className="text-2xl font-bold">
+                {loading ? '...' : stats.totalUsers}
+              </div>
               <p className="text-xs text-muted-foreground">Registered users</p>
             </CardContent>
           </Card>
@@ -34,7 +115,9 @@ export default function AdminDashboard() {
               <Shield className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">0</div>
+              <div className="text-2xl font-bold">
+                {loading ? '...' : stats.pendingApprovals}
+              </div>
               <p className="text-xs text-muted-foreground">Awaiting approval</p>
             </CardContent>
           </Card>
@@ -45,7 +128,7 @@ export default function AdminDashboard() {
               <Activity className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">0</div>
+              <div className="text-2xl font-bold">{stats.activeSessions}</div>
               <p className="text-xs text-muted-foreground">Currently active</p>
             </CardContent>
           </Card>
@@ -61,6 +144,31 @@ export default function AdminDashboard() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Grant Admin Section */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Grant Admin Access</CardTitle>
+            <CardDescription>Assign admin role to a user by email</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex gap-2">
+              <Input
+                type="email"
+                placeholder="user@example.com"
+                value={grantEmail}
+                onChange={(e) => setGrantEmail(e.target.value)}
+                disabled={granting}
+              />
+              <Button onClick={handleGrantAdmin} disabled={granting}>
+                {granting ? 'Granting...' : 'Grant Admin'}
+              </Button>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              This will grant admin privileges and approve the user's account immediately.
+            </p>
+          </CardContent>
+        </Card>
 
         {/* Quick Actions */}
         <Card>

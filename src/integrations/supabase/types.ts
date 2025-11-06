@@ -2972,6 +2972,7 @@ export type Database = {
           }
       generate_unique_project_id: { Args: never; Returns: string }
       generate_unique_tender_id: { Args: never; Returns: string }
+      grant_admin_by_email: { Args: { target_email: string }; Returns: Json }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -2996,6 +2997,7 @@ export type Database = {
         Returns: undefined
       }
       migrate_existing_documents: { Args: never; Returns: undefined }
+      revoke_admin_by_email: { Args: { target_email: string }; Returns: Json }
       toggle_document_lock: {
         Args: { group_id: string; should_lock: boolean }
         Returns: Json
