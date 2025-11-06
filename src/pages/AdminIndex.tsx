@@ -31,12 +31,13 @@ export default function AdminIndex() {
 
   if (authLoading || checking) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="animate-pulse text-muted-foreground">Loading...</div>
       </div>
     );
   }
 
+  // Route to dashboard if admin, otherwise to login
   if (user && isAdmin) return <Navigate to="/admin/dashboard" replace />;
   return <Navigate to="/admin/login" replace />;
 }
