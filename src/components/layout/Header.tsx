@@ -124,7 +124,7 @@ export const Header = ({
                   )}
                 </div>
                 <p className="text-xs leading-none text-muted-foreground capitalize">
-                  {(profile?.role ?? 'member')}
+                  Role: {isAdmin ? 'Admin' : (profile?.role ?? 'member')}
                 </p>
                 {companyName && (
                   <p className="text-xs leading-none text-muted-foreground pt-1 border-t border-border/50 mt-2">
