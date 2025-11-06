@@ -26,6 +26,13 @@ import JoinProject from "./pages/JoinProject.tsx";
 import Calendar from "./pages/Calendar.tsx";
 import TodoList from "./pages/TodoList.tsx";
 
+// Public marketing pages
+import Home from "./pages/public/Home.tsx";
+import About from "./pages/public/About.tsx";
+import Features from "./pages/public/Features.tsx";
+import Pricing from "./pages/public/Pricing.tsx";
+import Contact from "./pages/public/Contact.tsx";
+
 import "./index.css";
 import { ThemeProvider } from "./context/ThemeContext.tsx";
 import { ErrorBoundary } from "./components/ui/error-boundary.tsx";
@@ -48,7 +55,18 @@ createRoot(document.getElementById("root")!).render(
                 <Sonner />
                 <BrowserRouter>
                   <Routes>
-                    <Route path="/" element={<AppLayout><Index /></AppLayout>} />
+                    {/* Public marketing pages */}
+                    <Route path="/" element={<Home />} />
+                    <Route path="/about" element={<About />} />
+                    <Route path="/features" element={<Features />} />
+                    <Route path="/pricing" element={<Pricing />} />
+                    <Route path="/contact" element={<Contact />} />
+                    
+                    {/* Auth pages */}
+                    <Route path="/auth" element={<Auth />} />
+                    
+                    {/* App pages (authenticated) */}
+                    <Route path="/app" element={<AppLayout><Index /></AppLayout>} />
                     <Route path="/dashboard" element={<AppLayout><Dashboard /></AppLayout>} />
                     <Route path="/projects" element={<AppLayout><Projects /></AppLayout>} />
                     <Route path="/documents" element={<AppLayout><Documents /></AppLayout>} />
@@ -60,10 +78,11 @@ createRoot(document.getElementById("root")!).render(
                     <Route path="/financials" element={<AppLayout><Financials /></AppLayout>} />
                     <Route path="/tender-review-demo" element={<TenderReviewDemo />} />
                     <Route path="/testing" element={<AppLayout><Testing /></AppLayout>} />
-                    <Route path="/auth" element={<Auth />} />
+                    
+                    {/* Invitation and join pages */}
                     <Route path="/accept-invitation" element={<AcceptInvitation />} />
-        <Route path="/projects/:projectId/join" element={<ProjectJoin />} />
-        <Route path="/invite/:token" element={<ProjectInvite />} />
+                    <Route path="/projects/:projectId/join" element={<ProjectJoin />} />
+                    <Route path="/invite/:token" element={<ProjectInvite />} />
                     <Route path="/join/:token" element={<JoinProject />} />
                     
                     <Route path="*" element={<NotFound />} />
