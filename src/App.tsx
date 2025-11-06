@@ -7,7 +7,10 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AppLayout } from "@/components/layout/AppLayout";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
-import Admin from "./pages/Admin";
+import AdminDashboard from "./pages/AdminDashboard";
+import AdminApprovals from "./pages/AdminApprovals";
+import AdminEmails from "./pages/AdminEmails";
+import AdminSettings from "./pages/AdminSettings";
 import AdminAuth from "./pages/AdminAuth";
 import Dashboard from "./pages/Dashboard";
 import Projects from "./pages/Projects";
@@ -86,8 +89,11 @@ const App = () => (
             </AppLayout>
           } />
           <Route path="/admin/login" element={<AdminAuth />} />
-          <Route path="/admin/dashboard" element={<Admin />} />
           <Route path="/admin" element={<AdminAuth />} />
+          <Route path="/admin/dashboard" element={<AdminDashboard />} />
+          <Route path="/admin/approvals" element={<AdminApprovals />} />
+          <Route path="/admin/emails" element={<AdminEmails />} />
+          <Route path="/admin/settings" element={<AdminSettings />} />
           <Route path="/tender/:tenderId" element={<TenderResponse />} />
           <Route path="/tender-review-demo" element={<TenderReviewDemo />} />
           <Route path="/accept-invitation" element={<AcceptInvitation />} />
