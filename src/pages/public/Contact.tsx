@@ -25,7 +25,7 @@ const Contact = () => {
               <Mail className="h-6 w-6 text-primary" />
             </div>
             <h3 className="font-semibold mb-2">Email Us</h3>
-            <p className="text-muted-foreground">support@storeali.com</p>
+            <p className="text-muted-foreground">support@storea.com</p>
           </div>
 
           <div className="text-center p-6">
@@ -33,7 +33,7 @@ const Contact = () => {
               <Phone className="h-6 w-6 text-primary" />
             </div>
             <h3 className="font-semibold mb-2">Call Us</h3>
-            <p className="text-muted-foreground">1-800-STOREALI</p>
+            <p className="text-muted-foreground">1-800-STOREA</p>
           </div>
 
           <div className="text-center p-6">

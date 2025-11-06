@@ -8,7 +8,7 @@ const About = () => {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-20">
         <div className="max-w-4xl mx-auto">
           <h1 className="text-5xl md:text-6xl font-bold mb-6 text-center">
-            About <span className="bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">StoreAli</span>
+            About <span className="bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">STOREA</span>
           </h1>
           
           <p className="text-xl text-muted-foreground text-center mb-16 max-w-2xl mx-auto">
@@ -17,7 +17,7 @@ const About = () => {
 
           <div className="prose prose-lg max-w-none mb-16 text-muted-foreground">
             <p className="text-lg leading-relaxed mb-6">
-              StoreAli was born from the frustration of managing construction projects with outdated tools and fragmented communication. We recognized that the construction industry needed a modern, integrated platform that could keep pace with today's complex projects.
+              STOREA was born from the frustration of managing construction projects with outdated tools and fragmented communication. We recognized that the construction industry needed a modern, integrated platform that could keep pace with today's complex projects.
             </p>
             
             <p className="text-lg leading-relaxed mb-6">
@@ -25,7 +25,7 @@ const About = () => {
             </p>
 
             <p className="text-lg leading-relaxed">
-              Today, teams around the world use StoreAli to deliver projects on time, within budget, and with better outcomes for everyone involved.
+              Today, teams around the world use STOREA to deliver projects on time, within budget, and with better outcomes for everyone involved.
             </p>
           </div>
 

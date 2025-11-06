@@ -7,7 +7,7 @@ export const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div>
             <div className="text-xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent mb-4">
-              StoreAli
+              STOREA
             </div>
             <p className="text-sm text-muted-foreground">
               Modern construction management for the digital age.
@@ -43,7 +43,7 @@ export const Footer = () => {
         </div>
 
         <div className="border-t border-border mt-8 pt-8 text-center text-sm text-muted-foreground">
-          <p>&copy; {new Date().getFullYear()} StoreAli. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} STOREA. All rights reserved.</p>
         </div>
       </div>
     </footer>
