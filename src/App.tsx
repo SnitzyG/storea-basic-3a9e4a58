@@ -8,6 +8,7 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Admin from "./pages/Admin";
+import AdminAuth from "./pages/AdminAuth";
 import Dashboard from "./pages/Dashboard";
 import Projects from "./pages/Projects";
 import Documents from "./pages/Documents";
@@ -84,11 +85,13 @@ const App = () => (
               <Testing />
             </AppLayout>
           } />
-          <Route path="/admin" element={
+          <Route path="/admin/login" element={<AdminAuth />} />
+          <Route path="/admin/dashboard" element={
             <AppLayout>
               <Admin />
             </AppLayout>
           } />
+          <Route path="/admin" element={<AdminAuth />} />
           <Route path="/tender/:tenderId" element={<TenderResponse />} />
           <Route path="/tender-review-demo" element={<TenderReviewDemo />} />
           <Route path="/accept-invitation" element={<AcceptInvitation />} />

@@ -46,8 +46,8 @@ export default function Admin() {
     );
   }
 
-  if (!isAdmin) {
-    return <Navigate to="/projects" replace />;
+  if (!user || !isAdmin) {
+    return <Navigate to="/admin/login" replace />;
   }
 
   return (
