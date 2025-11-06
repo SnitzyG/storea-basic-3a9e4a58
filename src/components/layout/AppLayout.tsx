@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useProjectLinking } from '@/hooks/useProjectLinking';
 import { Navigate } from 'react-router-dom';
@@ -11,14 +12,31 @@ interface AppLayoutProps {
 export const AppLayout = ({
   children
 }: AppLayoutProps) => {
-  const {
-    user,
-    profile,
-    loading
-  } = useAuth();
+  const { user, profile, loading } = useAuth();
+
+  const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
 
   // Handle automatic project linking for homeowners and collaborators
   useProjectLinking();
+
+  // Determine admin role early to route admins to admin space and bypass approval gate
+  useEffect(() => {
+    if (!user) {
+      setIsAdmin(false);
+      return;
+    }
+    let mounted = true;
+    (async () => {
+      try {
+        const { data } = await supabase.rpc('has_role', { _user_id: user.id, _role: 'admin' });
+        if (mounted) setIsAdmin(Boolean(data));
+      } catch (e) {
+        console.error('Error checking admin role in AppLayout:', e);
+        if (mounted) setIsAdmin(false);
+      }
+    })();
+    return () => { mounted = false; };
+  }, [user]);
 
   // Show loading state while authentication is being determined
   if (loading) {
@@ -30,6 +48,16 @@ export const AppLayout = ({
   // Only redirect if we're certain the user is not authenticated
   if (!user) {
     return <Navigate to="/auth" replace />;
+  }
+
+  // If admin, route to Admin space
+  if (isAdmin === null) {
+    return <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-center">Loading...</div>
+      </div>;
+  }
+  if (isAdmin) {
+    return <Navigate to="/admin/dashboard" replace />;
   }
 
   // Block access if email is not verified
