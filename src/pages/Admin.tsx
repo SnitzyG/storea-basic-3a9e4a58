@@ -7,12 +7,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Shield } from 'lucide-react';
 
 export default function Admin() {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const checkAdminStatus = async () => {
+      if (authLoading) return; // wait for global auth to resolve
+
       if (!user) {
         setIsAdmin(false);
         setLoading(false);
@@ -26,7 +28,7 @@ export default function Admin() {
         });
 
         if (error) throw error;
-        setIsAdmin(data);
+        setIsAdmin(Boolean(data));
       } catch (error) {
         console.error('Error checking admin status:', error);
         setIsAdmin(false);
@@ -36,9 +38,9 @@ export default function Admin() {
     };
 
     checkAdminStatus();
-  }, [user]);
+  }, [user, authLoading]);
 
-  if (loading) {
+  if (authLoading || loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="animate-pulse">Loading...</div>
