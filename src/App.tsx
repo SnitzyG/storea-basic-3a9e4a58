@@ -12,6 +12,7 @@ import AdminApprovals from "./pages/AdminApprovals";
 import AdminEmails from "./pages/AdminEmails";
 import AdminSettings from "./pages/AdminSettings";
 import AdminAuth from "./pages/AdminAuth";
+import AdminIndex from "./pages/AdminIndex";
 import Dashboard from "./pages/Dashboard";
 import Projects from "./pages/Projects";
 import Documents from "./pages/Documents";
@@ -89,7 +90,7 @@ const App = () => (
             </AppLayout>
           } />
           <Route path="/admin/login" element={<AdminAuth />} />
-          <Route path="/admin" element={<AdminAuth />} />
+          <Route path="/admin" element={<AdminIndex />} />
           <Route path="/admin/dashboard" element={<AdminDashboard />} />
           <Route path="/admin/approvals" element={<AdminApprovals />} />
           <Route path="/admin/emails" element={<AdminEmails />} />
