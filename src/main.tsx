@@ -1,6 +1,6 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -40,6 +40,7 @@ import About from "./pages/public/About.tsx";
 import Features from "./pages/public/Features.tsx";
 import Pricing from "./pages/public/Pricing.tsx";
 import Contact from "./pages/public/Contact.tsx";
+import StyleGuide from "./pages/StyleGuide.tsx";
 
 import "./index.css";
 import { ThemeProvider } from "./context/ThemeContext.tsx";
@@ -100,6 +101,9 @@ createRoot(document.getElementById("root")!).render(
                     <Route path="/admin/approvals" element={<AdminApprovals />} />
                     <Route path="/admin/emails" element={<AdminEmails />} />
                     <Route path="/admin/settings" element={<AdminSettings />} />
+                    <Route path="/admin/style-guide" element={<StyleGuide />} />
+
+                    <Route path="/style-guide" element={<Navigate to="/admin/style-guide" replace />} />
                     
                     <Route path="*" element={<NotFound />} />
                   </Routes>
