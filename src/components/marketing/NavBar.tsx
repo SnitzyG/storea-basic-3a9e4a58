@@ -36,7 +36,7 @@ export const NavBar = () => {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <Link to="/" className="flex items-center gap-2">
-            <div className="text-2xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+            <div className="text-2xl font-black uppercase tracking-wide text-primary">
               STOREA
             </div>
           </Link>
@@ -51,9 +51,6 @@ export const NavBar = () => {
             </Link>
             <Link to="/pricing" className="text-foreground/80 hover:text-foreground transition-colors">
               Pricing
-            </Link>
-            <Link to="/contact" className="text-foreground/80 hover:text-foreground transition-colors">
-              Contact
             </Link>
             {isAdmin && (
               <Link to="/admin/dashboard" className="flex items-center gap-1.5 text-foreground/80 hover:text-foreground transition-colors">
@@ -103,13 +100,6 @@ export const NavBar = () => {
               onClick={() => setIsOpen(false)}
             >
               Pricing
-            </Link>
-            <Link 
-              to="/contact" 
-              className="block py-2 text-foreground/80 hover:text-foreground transition-colors"
-              onClick={() => setIsOpen(false)}
-            >
-              Contact
             </Link>
             {isAdmin && (
               <Link 

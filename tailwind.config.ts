@@ -72,11 +72,6 @@ export default {
 				'construction-success': 'hsl(var(--construction-success))',
 				'construction-info': 'hsl(var(--construction-info))'
 			},
-			backgroundImage: {
-				'gradient-primary': 'var(--gradient-primary)',
-				'gradient-gold': 'var(--gradient-gold)',
-				'gradient-subtle': 'var(--gradient-subtle)',
-			},
 			boxShadow: {
 				'elegant': 'var(--shadow-elegant)',
 				'glow': 'var(--shadow-glow)',

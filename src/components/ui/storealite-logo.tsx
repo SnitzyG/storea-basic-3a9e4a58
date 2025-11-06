@@ -11,14 +11,11 @@ export const StorealiteLogo = ({
   className = ''
 }: StoreaLogoProps) => {
   const logoStyle = {
-    background: 'linear-gradient(135deg, hsl(6, 8%, 17%) 0%, hsl(6, 8%, 25%) 100%)',
-    WebkitBackgroundClip: 'text',
-    WebkitTextFillColor: 'transparent',
-    backgroundClip: 'text',
+    color: 'hsl(var(--primary))',
     fontWeight: 900,
-    letterSpacing: '-0.05em',
+    letterSpacing: '0.05em',
     textTransform: 'uppercase' as const,
-    fontFamily: "'Arial Black', Arial, sans-serif"
+    fontFamily: 'Roboto, system-ui, sans-serif'
   };
 
   if (variant === 'icon-only') {

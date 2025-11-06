@@ -7,9 +7,9 @@ import { cn } from '@/lib/utils';
 // Shared table styling configurations
 export const sharedTableClasses = {
   tableContainer: "space-y-4",
-  tableCard: "border-0 shadow-sm bg-gradient-to-br from-card to-card/50",
+  tableCard: "border-0 shadow-sm bg-card",
   tableCardContent: "p-0",
-  tableHeader: "bg-gradient-to-r from-muted/50 to-muted/30 border-b-2 border-primary/10",
+  tableHeader: "bg-muted border-b-2 border-primary/10",
   tableHeaderRow: "",
   tableHeaderCell: "text-foreground/80 font-semibold text-sm h-12 px-4 cursor-pointer hover:bg-muted/30 transition-colors",
   tableBody: "",

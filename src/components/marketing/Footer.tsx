@@ -6,7 +6,7 @@ export const Footer = () => {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div>
-            <div className="text-xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent mb-4">
+            <div className="text-xl font-black uppercase tracking-wide text-primary mb-4">
               STOREA
             </div>
             <p className="text-sm text-muted-foreground">
