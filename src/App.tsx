@@ -26,6 +26,7 @@ import TenderReviewDemo from "./pages/TenderReviewDemo";
 import AcceptInvitation from "./pages/AcceptInvitation";
 import ProjectJoin from "./pages/ProjectJoin";
 import PropertyZoning from "./pages/PropertyZoning";
+import StyleGuide from "./pages/StyleGuide";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -107,6 +108,7 @@ const App = () => (
               </AppLayout>
             } 
           />
+          <Route path="/style-guide" element={<StyleGuide />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
