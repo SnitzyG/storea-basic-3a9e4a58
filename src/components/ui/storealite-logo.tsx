@@ -11,7 +11,7 @@ export const StorealiteLogo = ({
   className = ''
 }: StoreaLogoProps) => {
   const logoStyle = {
-    background: 'linear-gradient(135deg, hsl(215, 45%, 25%) 0%, hsl(215, 45%, 35%) 100%)',
+    background: 'linear-gradient(135deg, hsl(6, 8%, 17%) 0%, hsl(6, 8%, 25%) 100%)',
     WebkitBackgroundClip: 'text',
     WebkitTextFillColor: 'transparent',
     backgroundClip: 'text',

@@ -9,75 +9,75 @@ All colors MUST be HSL.
 @layer base {
   :root {
     /* STOREA Brand Colors - Light Mode */
-    /* Warm earthy palette: Forest Green, Warm Beige, Terracotta */
+    /* Refined palette: Dune, Black, Blue Haze, Bon Jour, White */
     
-    --background: 48 100% 99%; /* Cream #FEFAE0 */
-    --foreground: 85 48% 19%; /* Deep Forest Green #283618 */
+    --background: 0 0% 100%; /* White #FFFFFF */
+    --foreground: 6 8% 17%; /* Dune #2E2827 */
 
-    --card: 48 100% 99%; /* Cream #FEFAE0 */
-    --card-foreground: 85 48% 19%; /* Deep Forest Green #283618 */
+    --card: 0 0% 100%; /* White #FFFFFF */
+    --card-foreground: 6 8% 17%; /* Dune #2E2827 */
 
-    --popover: 48 100% 99%; /* Cream #FEFAE0 */
-    --popover-foreground: 85 48% 19%; /* Deep Forest Green #283618 */
+    --popover: 0 0% 100%; /* White #FFFFFF */
+    --popover-foreground: 6 8% 17%; /* Dune #2E2827 */
 
-    /* Primary Colors - Forest Green */
-    --primary: 85 48% 19%; /* Deep Forest Green #283618 */
-    --primary-foreground: 48 100% 99%; /* Cream #FEFAE0 */
-    --primary-glow: 25 66% 44%; /* Terracotta #BC6C25 */
+    /* Primary Colors - Dune */
+    --primary: 6 8% 17%; /* Dune #2E2827 */
+    --primary-foreground: 0 0% 100%; /* White #FFFFFF */
+    --primary-glow: 252 24% 84%; /* Blue Haze #D0CCE0 */
 
-    /* Secondary Colors - Sage Green */
-    --secondary: 80 38% 35%; /* Sage Green #606C38 */
-    --secondary-foreground: 48 100% 99%; /* Cream #FEFAE0 */
+    /* Secondary Colors - Blue Haze */
+    --secondary: 252 24% 84%; /* Blue Haze #D0CCE0 */
+    --secondary-foreground: 6 8% 17%; /* Dune #2E2827 */
 
-    /* Muted Colors - Warm Beige */
-    --muted: 40 47% 89%; /* Warm Beige #E2DCC8 */
+    /* Muted Colors - Bon Jour */
+    --muted: 0 6% 90%; /* Bon Jour #E8E4E4 */
     --muted-foreground: 0 0% 42%; /* Gray #6B7280 */
 
-    /* Accent Colors - Terracotta */
-    --accent: 30 66% 62%; /* Terracotta #DDA15E */
-    --accent-foreground: 85 48% 19%; /* Deep Forest Green #283618 */
-    --accent-subtle: 30 70% 96%; /* Light Beige #F5EFE0 */
+    /* Accent Colors - Blue Haze */
+    --accent: 252 24% 84%; /* Blue Haze #D0CCE0 */
+    --accent-foreground: 6 8% 17%; /* Dune #2E2827 */
+    --accent-subtle: 252 24% 95%; /* Light Blue Haze */
 
     /* Destructive */
     --destructive: 0 86% 50%; /* Red #DC2626 */
-    --destructive-foreground: 48 100% 99%; /* Cream #FEFAE0 */
+    --destructive-foreground: 0 0% 100%; /* White #FFFFFF */
 
     /* UI Elements */
-    --border: 30 33% 80%; /* Warm Border #D1C7B8 */
-    --input: 35 42% 88%; /* Input Border #E8E4D6 */
-    --ring: 30 66% 62%; /* Terracotta Focus Ring #DDA15E */
+    --border: 0 6% 90%; /* Bon Jour #E8E4E4 */
+    --input: 0 6% 90%; /* Bon Jour #E8E4E4 */
+    --ring: 252 24% 70%; /* Blue Haze Focus Ring */
 
     --radius: 0.5rem;
 
-    /* Sidebar - Cream with Forest Green accents */
-    --sidebar-background: 48 100% 99%;
-    --sidebar-foreground: 85 48% 19%;
-    --sidebar-primary: 85 48% 19%;
-    --sidebar-primary-foreground: 48 100% 99%;
-    --sidebar-accent: 40 47% 89%;
-    --sidebar-accent-foreground: 85 48% 19%;
-    --sidebar-border: 30 33% 80%;
-    --sidebar-ring: 30 66% 62%;
+    /* Sidebar - White with Dune accents */
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 6 8% 17%;
+    --sidebar-primary: 6 8% 17%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 0 6% 90%;
+    --sidebar-accent-foreground: 6 8% 17%;
+    --sidebar-border: 0 6% 90%;
+    --sidebar-ring: 252 24% 70%;
 
     /* Construction-Specific Status Colors */
     --construction-warning: 38 92% 50%; /* Amber #F59E0B */
     --construction-success: 160 84% 39%; /* Green #10B981 */
     --construction-info: 217 91% 60%; /* Blue #3B82F6 */
     
-    /* Role-specific colors - Earth tones */
-    --role-architect: 85 48% 19%; /* Forest Green */
+    /* Role-specific colors */
+    --role-architect: 252 24% 84%; /* Blue Haze */
     --role-builder: 160 84% 39%; /* Success Green */
     --role-homeowner: 265 55% 50%; /* Purple */
-    --role-contractor: 30 66% 62%; /* Terracotta */
+    --role-contractor: 6 8% 17%; /* Dune */
 
-    /* Organic gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(85 48% 19%), hsl(80 38% 35%));
-    --gradient-gold: linear-gradient(135deg, hsl(25 66% 44%), hsl(30 66% 62%));
-    --gradient-subtle: linear-gradient(180deg, hsl(48 100% 99%), hsl(40 47% 89%));
+    /* Modern gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(6 8% 17%), hsl(6 8% 25%));
+    --gradient-gold: linear-gradient(135deg, hsl(252 24% 84%), hsl(252 24% 90%));
+    --gradient-subtle: linear-gradient(180deg, hsl(0 0% 100%), hsl(0 6% 90%));
     
-    /* Shadows with primary color tint */
-    --shadow-elegant: 0 10px 30px -10px hsl(85 48% 19% / 0.15);
-    --shadow-glow: 0 0 40px hsl(30 66% 62% / 0.4);
+    /* Shadows with subtle tint */
+    --shadow-elegant: 0 10px 30px -10px hsl(6 8% 17% / 0.15);
+    --shadow-glow: 0 0 40px hsl(252 24% 84% / 0.4);
     
     /* Transitions */
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -86,53 +86,53 @@ All colors MUST be HSL.
 
   .dark {
     /* STOREA Brand Colors - Dark Mode */
-    /* Deep forest tones with warm accents */
+    /* Dark refined palette */
     
-    --background: 85 43% 10%; /* Dark Forest #1A1F0F */
-    --foreground: 30 60% 96%; /* Light Cream #F5F1E8 */
+    --background: 6 8% 12%; /* Dark Dune */
+    --foreground: 0 0% 100%; /* White #FFFFFF */
 
-    --card: 85 43% 16%; /* Dark Card #262E18 */
-    --card-foreground: 35 42% 88%; /* Light Text #E8E4D6 */
+    --card: 6 8% 17%; /* Dune #2E2827 */
+    --card-foreground: 0 0% 100%; /* White */
 
-    --popover: 85 43% 16%; /* Dark Popover #262E18 */
-    --popover-foreground: 35 42% 88%; /* Light Text #E8E4D6 */
+    --popover: 6 8% 17%; /* Dune #2E2827 */
+    --popover-foreground: 0 0% 100%; /* White */
 
-    /* Primary Colors - Lighter Green for dark mode */
-    --primary: 80 40% 52%; /* Sage Green Light #92A645 */
-    --primary-foreground: 85 43% 10%; /* Dark Forest #1A1F0F */
-    --primary-glow: 30 66% 62%; /* Terracotta #DDA15E */
+    /* Primary Colors - Lighter for dark mode */
+    --primary: 252 24% 84%; /* Blue Haze #D0CCE0 */
+    --primary-foreground: 6 8% 17%; /* Dune #2E2827 */
+    --primary-glow: 252 24% 90%; /* Lighter Blue Haze */
 
-    /* Secondary Colors - Dark Sage */
-    --secondary: 85 45% 19%; /* Dark Sage #3B421C */
-    --secondary-foreground: 40 47% 89%; /* Warm Beige #E2DCC8 */
+    /* Secondary Colors - Dark Blue Haze */
+    --secondary: 252 24% 60%; /* Darker Blue Haze */
+    --secondary-foreground: 0 0% 100%; /* White */
 
     /* Muted Colors - Dark Muted */
-    --muted: 85 40% 20%; /* Dark Muted #2D3420 */
-    --muted-foreground: 85 10% 62%; /* Muted Gray #A0A99C */
+    --muted: 6 8% 25%; /* Dark Muted */
+    --muted-foreground: 0 6% 70%; /* Light Gray */
 
-    /* Accent Colors - Bright Terracotta for dark */
-    --accent: 30 78% 65%; /* Light Terracotta #E8A76A */
-    --accent-foreground: 85 43% 10%; /* Dark Forest #1A1F0F */
-    --accent-subtle: 25 40% 19%; /* Dark Brown #3B2817 */
+    /* Accent Colors - Blue Haze for dark */
+    --accent: 252 24% 84%; /* Blue Haze #D0CCE0 */
+    --accent-foreground: 6 8% 17%; /* Dune #2E2827 */
+    --accent-subtle: 252 24% 20%; /* Dark Blue Haze */
 
     /* Destructive */
     --destructive: 0 90% 56%; /* Bright Red #EF4444 */
-    --destructive-foreground: 30 60% 96%; /* Light Cream #F5F1E8 */
+    --destructive-foreground: 0 0% 100%; /* White */
 
     /* UI Elements */
-    --border: 80 40% 27%; /* Dark Border #3F4A2F */
-    --input: 85 42% 29%; /* Dark Input #424F35 */
-    --ring: 30 66% 62%; /* Terracotta Focus Ring #DDA15E */
+    --border: 6 8% 30%; /* Dark Border */
+    --input: 6 8% 25%; /* Dark Input */
+    --ring: 252 24% 70%; /* Blue Haze Focus Ring */
 
     /* Sidebar - Dark with lighter accents */
-    --sidebar-background: 85 43% 16%;
-    --sidebar-foreground: 35 42% 88%;
-    --sidebar-primary: 80 40% 52%;
-    --sidebar-primary-foreground: 85 43% 10%;
-    --sidebar-accent: 85 40% 20%;
-    --sidebar-accent-foreground: 40 47% 89%;
-    --sidebar-border: 80 40% 27%;
-    --sidebar-ring: 30 66% 62%;
+    --sidebar-background: 6 8% 17%;
+    --sidebar-foreground: 0 0% 100%;
+    --sidebar-primary: 252 24% 84%;
+    --sidebar-primary-foreground: 6 8% 17%;
+    --sidebar-accent: 6 8% 25%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 6 8% 30%;
+    --sidebar-ring: 252 24% 70%;
 
     /* Construction-Specific Status Colors (brighter for dark mode) */
     --construction-warning: 38 98% 69%; /* Bright Amber #FBBF24 */
@@ -140,12 +140,12 @@ All colors MUST be HSL.
     --construction-info: 217 97% 71%; /* Bright Blue #60A5FA */
 
     /* Dark mode gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(85 43% 10%), hsl(85 43% 16%));
-    --gradient-gold: linear-gradient(135deg, hsl(25 66% 44%), hsl(30 66% 62%));
-    --gradient-subtle: linear-gradient(180deg, hsl(85 43% 12%), hsl(85 43% 16%));
+    --gradient-primary: linear-gradient(135deg, hsl(6 8% 12%), hsl(6 8% 17%));
+    --gradient-gold: linear-gradient(135deg, hsl(252 24% 84%), hsl(252 24% 90%));
+    --gradient-subtle: linear-gradient(180deg, hsl(6 8% 12%), hsl(6 8% 17%));
     
     --shadow-elegant: 0 10px 40px -10px hsl(0 0% 0% / 0.5);
-    --shadow-glow: 0 0 30px hsl(30 66% 62% / 0.3);
+    --shadow-glow: 0 0 30px hsl(252 24% 84% / 0.3);
   }
 }
 

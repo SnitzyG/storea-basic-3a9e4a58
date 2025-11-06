@@ -53,25 +53,24 @@ export default function StyleGuide() {
   };
 
   const lightModeColors = [
-    { category: 'Base Colors', colors: [
-      { name: 'Background', var: '--background', hex: '#FEFAE0', hsl: 'HSL(48 100% 99%)', purpose: 'Main background', wcag: '-' },
-      { name: 'Foreground', var: '--foreground', hex: '#283618', hsl: 'HSL(85 48% 19%)', purpose: 'Main text', wcag: 'AAA' },
-    ]},
-    { category: 'Primary Colors', colors: [
-      { name: 'Primary', var: '--primary', hex: '#283618', hsl: 'HSL(85 48% 19%)', purpose: 'Main CTAs', wcag: 'AAA' },
-      { name: 'Primary Foreground', var: '--primary-foreground', hex: '#FEFAE0', hsl: 'HSL(48 100% 99%)', purpose: 'Text on primary', wcag: 'AAA' },
-      { name: 'Primary Glow', var: '--primary-glow', hex: '#BC6C25', hsl: 'HSL(25 66% 44%)', purpose: 'Highlights', wcag: 'AA' },
-    ]},
-    { category: 'Secondary Colors', colors: [
-      { name: 'Secondary', var: '--secondary', hex: '#606C38', hsl: 'HSL(80 38% 35%)', purpose: 'Secondary backgrounds', wcag: 'AAA' },
-      { name: 'Secondary Foreground', var: '--secondary-foreground', hex: '#FEFAE0', hsl: 'HSL(48 100% 99%)', purpose: 'Text on secondary', wcag: 'AAA' },
-    ]},
-    { category: 'Accent Colors', colors: [
-      { name: 'Accent', var: '--accent', hex: '#DDA15E', hsl: 'HSL(30 66% 62%)', purpose: 'Premium features', wcag: 'AA' },
-      { name: 'Accent Foreground', var: '--accent-foreground', hex: '#283618', hsl: 'HSL(85 48% 19%)', purpose: 'Text on accent', wcag: 'AAA' },
-      { name: 'Accent Subtle', var: '--accent-subtle', hex: '#F5EFE0', hsl: 'HSL(30 70% 96%)', purpose: 'Gentle backgrounds', wcag: 'AA' },
+    { category: 'Brand Colors', colors: [
+      { name: 'Dune', var: '--primary', hex: '#2E2827', hsl: 'HSL(6 8% 17%)', purpose: 'Primary brand color', wcag: 'AAA' },
+      { name: 'Blue Haze', var: '--accent', hex: '#D0CCE0', hsl: 'HSL(252 24% 84%)', purpose: 'Accent, highlights', wcag: 'AA' },
+      { name: 'Bon Jour', var: '--muted', hex: '#E8E4E4', hsl: 'HSL(0 6% 90%)', purpose: 'Muted backgrounds', wcag: '-' },
+      { name: 'White', var: '--background', hex: '#FFFFFF', hsl: 'HSL(0 0% 100%)', purpose: 'Main background', wcag: '-' },
+      { name: 'Black', var: '--foreground-dark', hex: '#000000', hsl: 'HSL(0 0% 0%)', purpose: 'Dark mode base', wcag: 'AAA' },
     ]},
     { category: 'Semantic Colors', colors: [
+      { name: 'Primary', var: '--primary', hex: '#2E2827', hsl: 'HSL(6 8% 17%)', purpose: 'Main CTAs, headers', wcag: 'AAA' },
+      { name: 'Secondary', var: '--secondary', hex: '#D0CCE0', hsl: 'HSL(252 24% 84%)', purpose: 'Secondary backgrounds', wcag: 'AA' },
+      { name: 'Accent', var: '--accent', hex: '#D0CCE0', hsl: 'HSL(252 24% 84%)', purpose: 'Interactive elements', wcag: 'AA' },
+    ]},
+    { category: 'UI Elements', colors: [
+      { name: 'Background', var: '--background', hex: '#FFFFFF', hsl: 'HSL(0 0% 100%)', purpose: 'Main background', wcag: '-' },
+      { name: 'Foreground', var: '--foreground', hex: '#2E2827', hsl: 'HSL(6 8% 17%)', purpose: 'Main text', wcag: 'AAA' },
+      { name: 'Border', var: '--border', hex: '#E8E4E4', hsl: 'HSL(0 6% 90%)', purpose: 'Element borders', wcag: '-' },
+    ]},
+    { category: 'Status Colors', colors: [
       { name: 'Success', var: '--construction-success', hex: '#10B981', hsl: 'HSL(160 84% 39%)', purpose: 'Approved, complete', wcag: 'AAA' },
       { name: 'Warning', var: '--construction-warning', hex: '#F59E0B', hsl: 'HSL(38 92% 50%)', purpose: 'Pending, caution', wcag: 'AA' },
       { name: 'Error', var: '--destructive', hex: '#DC2626', hsl: 'HSL(0 86% 50%)', purpose: 'Error, delete', wcag: 'AAA' },
@@ -141,13 +140,13 @@ export default function StyleGuide() {
                     <h3 className="text-xl font-semibold mb-4">Design Philosophy</h3>
                     <p className="text-muted-foreground mb-4">
                       STOREA's refined design system combines professional construction industry aesthetics with modern, 
-                      intuitive interface patterns. The warm, earthy palette—featuring forest greens, warm beiges, and 
-                      terracotta tones—conveys stability, natural confidence, and grounded professionalism.
+                      intuitive interface patterns. The sophisticated palette—featuring Dune brown, Blue Haze accents, 
+                      and clean neutrals—conveys stability, clarity, and professional confidence.
                     </p>
                     <div className="space-y-2">
-                      <p><strong>Color Palette:</strong> Forest Green, Warm Beige, Terracotta</p>
+                      <p><strong>Color Palette:</strong> Dune, Blue Haze, Bon Jour, White, Black</p>
                       <p><strong>Typography:</strong> Roboto (all weights: 100, 300, 400, 500, 700, 900)</p>
-                      <p><strong>Approach:</strong> Clean, Modern, Organic, Construction-focused</p>
+                      <p><strong>Approach:</strong> Clean, Modern, Refined, Professional</p>
                     </div>
                   </div>
                   <div className="space-y-4">
@@ -158,7 +157,7 @@ export default function StyleGuide() {
                     <div className="space-y-2 text-sm text-muted-foreground">
                       <p><strong>Font:</strong> Roboto Black (900), 32px minimum</p>
                       <p><strong>Treatment:</strong> Uppercase, letter-spacing +2px to +4px</p>
-                      <p><strong>Color:</strong> Deep Forest Green (#283618)</p>
+                      <p><strong>Color:</strong> Dune (#2E2827)</p>
                       <p><strong>Style:</strong> Clean, no gradients or effects</p>
                       <p><strong>Clearspace:</strong> Minimum 10px padding on all sides</p>
                     </div>
