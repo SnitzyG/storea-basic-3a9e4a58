@@ -122,64 +122,70 @@ const TenderBuilder = () => {
       try {
         setLoading(true);
         
-        // Fetch tender details
+        // Fetch tender details using tender_id instead of id
         const { data: tenderData, error: tenderError } = await supabase
           .from('tenders')
           .select(`
             *,
             profiles:issued_by (
-              name,
-              company_id
+              full_name,
+              company_id,
+              companies (
+                name,
+                address
+              )
             )
           `)
-          .eq('id', tenderId)
-          .single();
+          .eq('tender_id', tenderId)
+          .maybeSingle();
 
         if (tenderError) throw tenderError;
         setTender(tenderData);
 
-        // Fetch package documents
-        const { data: docsData, error: docsError } = await supabase
-          .from('tender_package_documents')
-          .select('*')
-          .eq('tender_id', tenderId)
-          .order('uploaded_at', { ascending: false });
-
-        if (docsError) throw docsError;
-        setPackageDocs(docsData || []);
-
-        // Check for existing bid
-        const { data: bidData } = await supabase
-          .from('tender_bids')
-          .select('*')
-          .eq('tender_id', tenderId)
-          .eq('bidder_id', user.id)
-          .single();
-
-        if (bidData) {
-          setExistingBid(bidData);
-          setBidNotes((bidData as any).proposal || '');
-          
-          // Fetch existing bid line items
-          const { data: bidLineItems } = await supabase
-            .from('tender_bid_line_items')
+        // Fetch package documents - use tender.id not tender_id
+        if (tenderData) {
+          const { data: docsData, error: docsError } = await supabase
+            .from('tender_package_documents')
             .select('*')
-            .eq('bid_id', bidData.id);
+            .eq('tender_id', tenderData.id)
+            .order('uploaded_at', { ascending: false });
 
-          if (bidLineItems) {
-            const pricing: LineItemPricing = {};
-            bidLineItems.forEach((item: any) => {
-              pricing[item.tender_line_item_id] = {
-                unit_price: item.unit_price,
-                notes: item.notes || ''
-              };
-            });
-            setLineItemPricing(pricing);
-          }
+          if (docsError) throw docsError;
+          setPackageDocs(docsData || []);
 
-          // Parse attachments if they exist
-          if (bidData.attachments && Array.isArray(bidData.attachments)) {
-            setBidDocuments(bidData.attachments as unknown as BidDocument[]);
+          // Check for existing bid - use tender.id not tender_id
+          const { data: bidData } = await supabase
+            .from('tender_bids')
+            .select('*')
+            .eq('tender_id', tenderData.id)
+            .eq('bidder_id', user.id)
+            .maybeSingle();
+
+          if (bidData) {
+            setExistingBid(bidData);
+            setBidNotes((bidData as any).proposal || '');
+            
+            // Fetch existing bid line items
+            const { data: bidLineItems } = await supabase
+              .from('tender_bid_line_items')
+              .select('*')
+              .eq('bid_id', bidData.id);
+
+            if (bidLineItems) {
+              const pricing: LineItemPricing = {};
+              bidLineItems.forEach((item: any) => {
+                pricing[item.tender_line_item_id] = {
+                  unit_price: item.unit_price,
+                  notes: item.notes || ''
+                };
+              });
+              setLineItemPricing(pricing);
+            }
+
+            // Parse attachments if they exist
+            if (bidData.attachments && Array.isArray(bidData.attachments)) {
+              setBidDocuments(bidData.attachments as unknown as BidDocument[]);
+            }
           }
         }
       } catch (error: any) {
@@ -191,7 +197,7 @@ const TenderBuilder = () => {
     };
 
     fetchTenderDetails();
-  }, [tenderId, user, profile]);
+  }, [tenderId, user]);
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;

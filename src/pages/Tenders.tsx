@@ -308,13 +308,13 @@ const Tenders = () => {
                       <TableRow 
                         key={tender.id} 
                         onClick={() => {
-                          // Builders go to builder dashboard, architects go to details view
+                          // Builders go to builder dashboard using tender_id, architects go to details view
                           if (userRole === 'builder' || userRole === 'contractor') {
-                            navigate(`/tenders/${tender.id}/builder`);
+                            navigate(`/tenders/${tender.tender_id}/builder`);
                           } else {
                             navigate(`/tenders/${tender.id}`);
                           }
-                        }} 
+                        }}
                         className="hover:bg-muted/30 transition-all duration-200 cursor-pointer border-b border-muted/20"
                       >
                         <TableCell className="text-sm px-4 py-3 text-foreground/90">
