@@ -15,16 +15,41 @@ const prepareTenderConstructionItems = (tender: Tender) => {
 
 export const generateTenderPackage = async (tender: Tender) => {
   try {
-    // Generate PDF for steps 1,3,4,5,6,7,8
-    const pdfBlob = await generateTenderPDF(tender);
-    
-    // Generate Excel workbook with multiple tabs
-    const excelBlob = await generateTenderExcel(tender);
-    
-    // Create ZIP package
+    // Fetch uploaded documents from tender_package_documents
+    const { data: packageDocs, error } = await supabase
+      .from('tender_package_documents')
+      .select('*')
+      .eq('tender_id', tender.id);
+
+    if (error) throw error;
+
+    if (!packageDocs || packageDocs.length === 0) {
+      throw new Error('No documents found in tender package');
+    }
+
+    // Create ZIP package with uploaded documents only
     const zip = new JSZip();
-    zip.file(`${tender.title}_Details.pdf`, pdfBlob);
-    zip.file(`${tender.title}_Complete_Package.xlsx`, excelBlob);
+    
+    // Download and add each document to the ZIP
+    for (const doc of packageDocs) {
+      try {
+        // Download file from storage
+        const { data: fileData, error: downloadError } = await supabase.storage
+          .from('tender-packages')
+          .download(doc.file_path);
+
+        if (downloadError) {
+          console.warn(`Failed to download ${doc.document_name}:`, downloadError);
+          continue;
+        }
+
+        // Add file to ZIP with organized folder structure
+        const folderName = doc.document_type.split(' - ')[0] || 'Other';
+        zip.file(`${folderName}/${doc.document_name}`, fileData);
+      } catch (err) {
+        console.warn(`Error processing ${doc.document_name}:`, err);
+      }
+    }
     
     const zipBlob = await zip.generateAsync({ type: 'blob' });
     saveAs(zipBlob, `Tender_Package_${tender.title.replace(/[^a-z0-9]/gi, '_')}.zip`);

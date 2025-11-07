@@ -564,10 +564,6 @@ export function TenderPackageTracker({ tenderId, projectData, tenderData }: Tend
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => handleCreateDocument(doc.id, `${doc.folder} - ${doc.document}`)}>
-                              <FilePlus className="h-4 w-4 mr-2" />
-                              Create from Template
-                            </DropdownMenuItem>
                             <DropdownMenuItem asChild>
                               <label htmlFor={`file-upload-${doc.id}`} className="cursor-pointer">
                                 <Upload className="h-4 w-4 mr-2" />
@@ -581,10 +577,6 @@ export function TenderPackageTracker({ tenderId, projectData, tenderData }: Tend
                                   disabled={uploading === doc.id}
                                 />
                               </label>
-                            </DropdownMenuItem>
-                             <DropdownMenuItem onClick={() => handleChooseFromProjects(doc.id, `${doc.folder} - ${doc.document}`)}>
-                              <FolderOpen className="h-4 w-4 mr-2" />
-                              Choose from Previous Projects
                             </DropdownMenuItem>
                             <DropdownMenuItem onClick={() => handleSelectFromRegister(doc.id)}>
                               <FileText className="h-4 w-4 mr-2" />

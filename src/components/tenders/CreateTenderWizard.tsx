@@ -56,7 +56,7 @@ export const CreateTenderWizard = ({
   const { documents } = useDocuments(projectId);
   const { toast } = useToast();
 
-  const totalSteps = 5;
+  const totalSteps = 4;
   const progress = (step / totalSteps) * 100;
 
   // Fetch project data and auto-populate on open
@@ -553,25 +553,8 @@ export const CreateTenderWizard = ({
             </div>
           )}
 
-          {/* Step 4: Upload Construction Drawings */}
+          {/* Step 4: Review & Summary */}
           {step === 4 && (
-            <div className="space-y-6">
-              <Card className="bg-primary/5">
-                <CardHeader>
-                  <CardTitle className="text-base">Upload Construction Drawings</CardTitle>
-                  <CardDescription>Upload PDF or Excel files containing: site plan, floor plan, roof plan, elevations, sections, setout plan, and window/door schedules</CardDescription>
-                </CardHeader>
-              </Card>
-
-              <DrawingsUploadManager
-                projectId={projectId}
-                tenderId={tenderId || existingTender?.id}
-              />
-            </div>
-          )}
-
-          {/* Step 5: Review & Summary */}
-          {step === 5 && (
             <div className="space-y-6">
               <Card className="bg-primary/5">
                 <CardHeader>
