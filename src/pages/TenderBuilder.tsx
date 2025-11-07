@@ -13,7 +13,6 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { AppLayout } from '@/components/layout/AppLayout';
 import { TenderDocumentCarousel } from '@/components/tenders/TenderDocumentCarousel';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { 
@@ -75,8 +74,6 @@ const TenderBuilder = () => {
   const [tender, setTender] = useState<any>(null);
   const [packageDocs, setPackageDocs] = useState<TenderPackageDoc[]>([]);
   const [loading, setLoading] = useState(true);
-  const [hasAccess, setHasAccess] = useState<boolean>(false);
-  const [accessChecked, setAccessChecked] = useState<boolean>(false);
   const [existingBid, setExistingBid] = useState<any>(null);
   const [bidDocuments, setBidDocuments] = useState<BidDocument[]>([]);
   const [uploading, setUploading] = useState(false);
@@ -99,7 +96,6 @@ const TenderBuilder = () => {
   });
   
   const { lineItems, loading: lineItemsLoading } = useTenderLineItems(tenderId);
-  const { checkTenderAccess } = useTenderAccess();
 
   // Initialize line item pricing when line items load
   useEffect(() => {
@@ -115,53 +111,12 @@ const TenderBuilder = () => {
     }
   }, [lineItems]);
 
-  // Check tender access
-  useEffect(() => {
-    const verifyAccess = async () => {
-      if (!user || !tenderId) {
-        setAccessChecked(true);
-        setLoading(false);
-        return;
-      }
-
-      try {
-        const accessResult = await checkTenderAccess(tenderId);
-        setHasAccess(accessResult.hasAccess);
-        setAccessChecked(true);
-      } catch (error) {
-        console.error('Error checking tender access:', error);
-        setAccessChecked(true);
-        setHasAccess(false);
-      }
-    };
-
-    verifyAccess();
-  }, [tenderId, user]);
-
   // Fetch tender details and existing bid
   useEffect(() => {
     const fetchTenderDetails = async () => {
-      if (!user || !tenderId || !accessChecked) {
+      if (!user || !tenderId) {
+        setLoading(false);
         return;
-      }
-
-      if (!hasAccess) {
-        try {
-          const { data: tenderCheck } = await supabase
-            .from('tenders')
-            .select('issued_by')
-            .eq('id', tenderId)
-            .single();
-          
-          if (tenderCheck?.issued_by !== user.id) {
-            setLoading(false);
-            return;
-          }
-        } catch (error) {
-          console.error('Error checking tender ownership:', error);
-          setLoading(false);
-          return;
-        }
       }
 
       try {
@@ -236,7 +191,7 @@ const TenderBuilder = () => {
     };
 
     fetchTenderDetails();
-  }, [tenderId, user, profile, hasAccess, accessChecked]);
+  }, [tenderId, user, profile]);
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -578,56 +533,23 @@ const TenderBuilder = () => {
 
   if (loading) {
     return (
-      <AppLayout>
-        <div className="flex items-center justify-center h-96">
-          <Loader2 className="h-8 w-8 animate-spin" />
-        </div>
-      </AppLayout>
+      <div className="flex items-center justify-center h-96">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
     );
   }
 
-  if (accessChecked && !hasAccess && !tender) {
-    return (
-      <AppLayout>
-        <Card className="max-w-2xl mx-auto mt-8">
-          <CardHeader>
-            <CardTitle>Access Denied</CardTitle>
-            <CardDescription>
-              You don't have permission to view this tender
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="pt-6 text-center space-y-4">
-            <FileText className="h-16 w-16 mx-auto text-muted-foreground opacity-50" />
-            <p className="text-muted-foreground">
-              Request access to this tender to submit your bid.
-            </p>
-            <div className="flex gap-3 justify-center">
-              <Button variant="outline" onClick={() => navigate('/tenders')}>
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Tenders
-              </Button>
-              <Button onClick={() => navigate('/tenders', { state: { activeTab: 'join' } })}>
-                Request Access
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      </AppLayout>
-    );
-  }
 
   if (!tender) {
     return (
-      <AppLayout>
-        <Card>
-          <CardContent className="pt-6 text-center">
-            <p>Tender not found</p>
-            <Button onClick={() => navigate('/tenders')} className="mt-4">
-              Back to Tenders
-            </Button>
-          </CardContent>
-        </Card>
-      </AppLayout>
+      <Card className="max-w-2xl mx-auto mt-8">
+        <CardContent className="pt-6 text-center">
+          <p>Tender not found</p>
+          <Button onClick={() => navigate('/tenders')} className="mt-4">
+            Back to Tenders
+          </Button>
+        </CardContent>
+      </Card>
     );
   }
 
@@ -639,10 +561,9 @@ const TenderBuilder = () => {
   });
 
   return (
-    <AppLayout>
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
           <Button variant="ghost" onClick={() => navigate('/tenders')}>
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Tenders
@@ -1107,7 +1028,6 @@ const TenderBuilder = () => {
             </Card>
           </TabsContent>
         </Tabs>
-      </div>
 
       {/* RFI Dialog */}
       <Dialog open={showRFIDialog} onOpenChange={setShowRFIDialog}>
@@ -1226,7 +1146,7 @@ const TenderBuilder = () => {
           </div>
         </DialogContent>
       </Dialog>
-    </AppLayout>
+    </div>
   );
 };
 
