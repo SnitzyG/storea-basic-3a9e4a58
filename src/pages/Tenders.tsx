@@ -19,6 +19,7 @@ import { TenderInviteDialog } from '@/components/tenders/TenderInviteDialog';
 import { BidsReceivedSection } from '@/components/tenders/BidsReceivedSection';
 import { TenderComparisonDashboard } from '@/components/tenders/TenderComparisonDashboard';
 import { TenderJoinSection } from '@/components/tenders/TenderJoinSection';
+import { TenderAccessApprovals } from '@/components/tenders/TenderAccessApprovals';
 import { TenderDetailsView } from '@/components/tenders/TenderDetailsView';
 import { generateTenderPackage } from '@/utils/tenderPackageGenerator';
 import { toast } from '@/hooks/use-toast';
@@ -34,7 +35,7 @@ const Tenders = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [wizardOpen, setWizardOpen] = useState(false);
   const [selectedTender, setSelectedTender] = useState<Tender | null>(null);
-  const [activeTab, setActiveTab] = useState<'tenders' | 'bids' | 'comparison' | 'join'>('tenders');
+  const [activeTab, setActiveTab] = useState<'tenders' | 'bids' | 'comparison' | 'join' | 'access'>('tenders');
   const {
     selectedProject
   } = useProjectSelection();
@@ -255,7 +256,7 @@ const Tenders = () => {
 
       {/* Main Content Tabs */}
       <Tabs defaultValue="tenders" className="w-full" value={activeTab} onValueChange={(value) => setActiveTab(value as any)}>
-        <TabsList className={userRole === 'architect' ? 'grid w-full grid-cols-3' : 'grid w-full grid-cols-2'}>
+        <TabsList className={userRole === 'architect' ? 'grid w-full grid-cols-4' : 'grid w-full grid-cols-2'}>
           <TabsTrigger value="tenders" className="flex items-center gap-2">
             <FileText className="h-4 w-4" />
             All Tenders
@@ -269,6 +270,10 @@ const Tenders = () => {
               <TabsTrigger value="comparison" className="flex items-center gap-2">
                 <BarChart3 className="h-4 w-4" />
                 Comparison
+              </TabsTrigger>
+              <TabsTrigger value="access" className="flex items-center gap-2">
+                <UserPlus className="h-4 w-4" />
+                Access Requests
               </TabsTrigger>
             </>
           ) : (
@@ -483,6 +488,10 @@ const Tenders = () => {
 
         <TabsContent value="join" className="space-y-6">
           <TenderJoinSection projectId={selectedProject?.id} />
+        </TabsContent>
+
+        <TabsContent value="access" className="space-y-6">
+          <TenderAccessApprovals projectId={selectedProject?.id} />
         </TabsContent>
       </Tabs>
 
