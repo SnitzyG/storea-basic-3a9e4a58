@@ -2284,6 +2284,72 @@ export type Database = {
           },
         ]
       }
+      tender_bid_line_items: {
+        Row: {
+          bid_id: string
+          category: string
+          created_at: string
+          id: string
+          item_description: string
+          line_number: number
+          notes: string | null
+          quantity: number | null
+          specification: string | null
+          tender_line_item_id: string | null
+          total: number
+          unit_of_measure: string | null
+          unit_price: number
+          updated_at: string
+        }
+        Insert: {
+          bid_id: string
+          category?: string
+          created_at?: string
+          id?: string
+          item_description: string
+          line_number: number
+          notes?: string | null
+          quantity?: number | null
+          specification?: string | null
+          tender_line_item_id?: string | null
+          total: number
+          unit_of_measure?: string | null
+          unit_price: number
+          updated_at?: string
+        }
+        Update: {
+          bid_id?: string
+          category?: string
+          created_at?: string
+          id?: string
+          item_description?: string
+          line_number?: number
+          notes?: string | null
+          quantity?: number | null
+          specification?: string | null
+          tender_line_item_id?: string | null
+          total?: number
+          unit_of_measure?: string | null
+          unit_price?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tender_bid_line_items_bid_id_fkey"
+            columns: ["bid_id"]
+            isOneToOne: false
+            referencedRelation: "tender_bids"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tender_bid_line_items_tender_line_item_id_fkey"
+            columns: ["tender_line_item_id"]
+            isOneToOne: false
+            referencedRelation: "tender_line_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tender_bids: {
         Row: {
           attachments: Json | null
@@ -2293,10 +2359,13 @@ export type Database = {
           compliance_checked: boolean | null
           compliance_issues: Json | null
           created_at: string
+          data_entry_method: string | null
           estimated_duration_days: number | null
           evaluated_at: string | null
           evaluator_id: string | null
           evaluator_notes: string | null
+          excel_file_name: string | null
+          excel_file_path: string | null
           experience_score: number | null
           id: string
           overall_score: number | null
@@ -2317,10 +2386,13 @@ export type Database = {
           compliance_checked?: boolean | null
           compliance_issues?: Json | null
           created_at?: string
+          data_entry_method?: string | null
           estimated_duration_days?: number | null
           evaluated_at?: string | null
           evaluator_id?: string | null
           evaluator_notes?: string | null
+          excel_file_name?: string | null
+          excel_file_path?: string | null
           experience_score?: number | null
           id?: string
           overall_score?: number | null
@@ -2341,10 +2413,13 @@ export type Database = {
           compliance_checked?: boolean | null
           compliance_issues?: Json | null
           created_at?: string
+          data_entry_method?: string | null
           estimated_duration_days?: number | null
           evaluated_at?: string | null
           evaluator_id?: string | null
           evaluator_notes?: string | null
+          excel_file_name?: string | null
+          excel_file_path?: string | null
           experience_score?: number | null
           id?: string
           overall_score?: number | null

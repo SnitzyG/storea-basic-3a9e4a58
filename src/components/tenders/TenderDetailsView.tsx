@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { BidSubmissionDialog } from './BidSubmissionDialog';
+import { EnhancedDocumentGallery } from './EnhancedDocumentGallery';
 import { 
   Download, 
   FileText, 
@@ -17,11 +18,13 @@ import {
   Building,
   ArrowLeft,
   Loader2,
-  Package
+  Package,
+  FileSpreadsheet
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { toast } from 'sonner';
-import { downloadFromStorage } from '@/utils/storageUtils';
+import { useTenderLineItems } from '@/hooks/useTenderLineItems';
+import { generateProfessionalQuoteTemplate, getCompanyInfoFromProfile } from '@/utils/tenderExportUtils';
 
 interface TenderPackageDoc {
   id: string;
@@ -35,11 +38,14 @@ interface TenderPackageDoc {
 export const TenderDetailsView = () => {
   const { tenderId } = useParams<{ tenderId: string }>();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const [tender, setTender] = useState<any>(null);
   const [packageDocs, setPackageDocs] = useState<TenderPackageDoc[]>([]);
   const [loading, setLoading] = useState(true);
   const [showBidDialog, setShowBidDialog] = useState(false);
+  const [company, setCompany] = useState<any>(null);
+  
+  const { lineItems, loading: lineItemsLoading } = useTenderLineItems(tenderId);
 
   useEffect(() => {
     const fetchTenderDetails = async () => {
@@ -74,6 +80,17 @@ export const TenderDetailsView = () => {
 
         if (docsError) throw docsError;
         setPackageDocs(docsData || []);
+
+        // Fetch company info
+        if (profile?.company_id) {
+          const { data: companyData } = await supabase
+            .from('companies')
+            .select('*')
+            .eq('id', profile.company_id)
+            .single();
+          
+          setCompany(companyData);
+        }
       } catch (error: any) {
         console.error('Error fetching tender details:', error);
         toast.error('Failed to load tender details');
@@ -83,26 +100,49 @@ export const TenderDetailsView = () => {
     };
 
     fetchTenderDetails();
-  }, [tenderId, user]);
+  }, [tenderId, user, profile]);
 
-  const handleDownloadDocument = async (doc: TenderPackageDoc) => {
+  const handleDownloadTemplate = async () => {
     try {
-      await downloadFromStorage(doc.file_path, doc.document_name);
-      toast.success('Document downloaded successfully');
-    } catch (error: any) {
-      console.error('Error downloading document:', error);
-      toast.error('Failed to download document');
-    }
-  };
+      if (!tender || !profile) {
+        toast.error('Unable to generate template');
+        return;
+      }
 
-  const groupDocumentsByType = () => {
-    const groups: Record<string, TenderPackageDoc[]> = {};
-    packageDocs.forEach(doc => {
-      const type = doc.document_type || 'Other';
-      if (!groups[type]) groups[type] = [];
-      groups[type].push(doc);
-    });
-    return groups;
+      const companyInfo = getCompanyInfoFromProfile(profile, company);
+      
+      // Get project data if available
+      let projectData;
+      if (tender.project_id) {
+        const { data } = await supabase
+          .from('projects')
+          .select('reference, name, id, address')
+          .eq('id', tender.project_id)
+          .single();
+        
+        projectData = data;
+      }
+
+      await generateProfessionalQuoteTemplate({
+        tenderTitle: tender.title,
+        companyInfo,
+        lineItems: lineItems.map(item => ({
+          itemDescription: item.item_description,
+          specification: item.specification || undefined,
+          unitOfMeasure: item.unit_of_measure || undefined,
+          quantity: item.quantity || undefined,
+          category: item.category
+        })),
+        includeGST: true,
+        deadline: tender.deadline ? new Date(tender.deadline).toLocaleDateString() : undefined,
+        projectData
+      });
+
+      toast.success('Excel template downloaded - complete offline and upload when submitting your bid');
+    } catch (error: any) {
+      console.error('Error downloading template:', error);
+      toast.error('Failed to download template');
+    }
   };
 
   if (loading) {
@@ -130,7 +170,6 @@ export const TenderDetailsView = () => {
     );
   }
 
-  const documentGroups = groupDocumentsByType();
   const isExpired = tender.deadline && new Date(tender.deadline) < new Date();
 
   return (
@@ -216,6 +255,41 @@ export const TenderDetailsView = () => {
           </CardContent>
         </Card>
 
+        {/* Download Template Section */}
+        <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-transparent">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <FileSpreadsheet className="h-5 w-5" />
+              Quote Template
+            </CardTitle>
+            <CardDescription>
+              Download a professional Excel template pre-filled with tender details
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-start gap-4">
+              <div className="flex-1 space-y-2">
+                <p className="text-sm font-medium">Complete your bid offline</p>
+                <ul className="text-sm text-muted-foreground space-y-1">
+                  <li>• Pre-populated with all line items from tender</li>
+                  <li>• Built-in formulas for calculations</li>
+                  <li>• Professional formatting ready for submission</li>
+                  <li>• Upload completed file when submitting your bid</li>
+                </ul>
+              </div>
+              <Button
+                onClick={handleDownloadTemplate}
+                disabled={lineItemsLoading || lineItems.length === 0}
+                size="lg"
+                className="shrink-0"
+              >
+                <Download className="h-4 w-4 mr-2" />
+                Download Template
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Tender Package Documents */}
         <Card>
           <CardHeader>
@@ -225,50 +299,11 @@ export const TenderDetailsView = () => {
               <Badge variant="secondary">{packageDocs.length}</Badge>
             </CardTitle>
             <CardDescription>
-              Download tender documents to prepare your bid submission
+              View and download tender documents to prepare your bid submission
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-6">
-            {Object.keys(documentGroups).length === 0 ? (
-              <p className="text-center text-muted-foreground py-8">
-                No documents available for this tender
-              </p>
-            ) : (
-              Object.entries(documentGroups).map(([type, docs]) => (
-                <div key={type} className="space-y-3">
-                  <h3 className="font-semibold text-sm uppercase tracking-wide text-muted-foreground">
-                    {type}
-                  </h3>
-                  <div className="space-y-2">
-                    {docs.map((doc) => (
-                      <Card key={doc.id}>
-                        <CardContent className="py-4">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                              <FileText className="h-5 w-5 text-primary" />
-                              <div>
-                                <p className="font-medium text-sm">{doc.document_name}</p>
-                                <p className="text-xs text-muted-foreground">
-                                  Uploaded {formatDistanceToNow(new Date(doc.uploaded_at), { addSuffix: true })}
-                                  {doc.file_size && ` • ${(doc.file_size / 1024 / 1024).toFixed(2)} MB`}
-                                </p>
-                              </div>
-                            </div>
-                            <Button
-                              size="sm"
-                              onClick={() => handleDownloadDocument(doc)}
-                            >
-                              <Download className="h-4 w-4 mr-2" />
-                              Download
-                            </Button>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                </div>
-              ))
-            )}
+          <CardContent>
+            <EnhancedDocumentGallery documents={packageDocs} />
           </CardContent>
         </Card>
 
@@ -281,7 +316,7 @@ export const TenderDetailsView = () => {
                 <p className="text-sm text-muted-foreground">
                   {isExpired 
                     ? 'This tender has expired and is no longer accepting bids'
-                    : 'Review all documents and submit your competitive bid'}
+                    : 'Upload your completed quote template or fill in the details online'}
                 </p>
               </div>
               <Button 
