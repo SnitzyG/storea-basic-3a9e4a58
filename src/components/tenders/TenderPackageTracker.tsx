@@ -565,7 +565,7 @@ export function TenderPackageTracker({ tenderId, projectData, tenderData }: Tend
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
                             <DropdownMenuItem asChild>
-                              <label htmlFor={`file-upload-${doc.id}`} className="cursor-pointer">
+                              <label htmlFor={`file-upload-${doc.id}`} className="cursor-pointer flex items-center">
                                 <Upload className="h-4 w-4 mr-2" />
                                 Upload
                                 <input
