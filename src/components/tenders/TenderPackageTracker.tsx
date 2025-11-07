@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -51,6 +51,7 @@ export function TenderPackageTracker({ tenderId, projectData, tenderData }: Tend
   const { toast } = useToast();
   const { profile } = useAuth();
   const { selectedProject } = useProjectSelection();
+  const fileInputsRef = useRef<Record<number, HTMLInputElement | null>>({});
   // Document structure based on new requirements
   const DOCUMENT_STRUCTURE = [
     { category: 'Tender Form', documents: ['Tender form'] },
@@ -380,14 +381,19 @@ export function TenderPackageTracker({ tenderId, projectData, tenderData }: Tend
     
     // Fetch project documents
     try {
-      const projectId = tenderData?.project_id || projectData?.id || selectedProject?.id;
+      let projectId = tenderData?.project_id || projectData?.id || selectedProject?.id;
       
-      console.log('Loading documents for project:', {
-        tenderProjectId: tenderData?.project_id,
-        projectDataId: projectData?.id,
-        selectedProjectId: selectedProject?.id,
-        finalProjectId: projectId
-      });
+      // Fallback: fetch tender's project_id if not available
+      if (!projectId && tenderId) {
+        const { data: tenderRow, error: tenderErr } = await supabase
+          .from('tenders')
+          .select('project_id')
+          .eq('id', tenderId)
+          .single();
+        if (!tenderErr && tenderRow?.project_id) {
+          projectId = tenderRow.project_id;
+        }
+      }
       
       if (!projectId) {
         toast({
@@ -401,16 +407,15 @@ export function TenderPackageTracker({ tenderId, projectData, tenderData }: Tend
       const { data, error } = await supabase
         .from('documents')
         .select('*')
-        .eq('project_id', projectId);
-
-      console.log('Documents query result:', { data, error, count: data?.length });
+        .eq('project_id', projectId)
+        .order('created_at', { ascending: false });
 
       if (error) throw error;
 
       if (!data || data.length === 0) {
         toast({
           title: "No documents found",
-          description: `No documents found for project ID: ${projectId}. Please upload documents to the Documents tab first.`,
+          description: "No documents found in the register. Please upload documents to the Documents tab first.",
           variant: "destructive"
         });
       }
@@ -552,6 +557,15 @@ export function TenderPackageTracker({ tenderId, projectData, tenderData }: Tend
                       </div>
                     ) : (
                       <div className="flex justify-center gap-2">
+                        <input
+                          ref={(el) => { fileInputsRef.current[doc.id] = el; }}
+                          id={`file-upload-${doc.id}`}
+                          type="file"
+                          className="hidden"
+                          onChange={(e) => handleFileUpload(doc.id, e)}
+                          accept=".pdf,.doc,.docx,.xls,.xlsx"
+                          disabled={uploading === doc.id}
+                        />
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <Button
@@ -563,22 +577,22 @@ export function TenderPackageTracker({ tenderId, projectData, tenderData }: Tend
                               <Plus className="h-4 w-4" />
                             </Button>
                           </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem asChild>
-                              <label htmlFor={`file-upload-${doc.id}`} className="cursor-pointer flex items-center">
-                                <Upload className="h-4 w-4 mr-2" />
-                                Upload
-                                <input
-                                  id={`file-upload-${doc.id}`}
-                                  type="file"
-                                  className="hidden"
-                                  onChange={(e) => handleFileUpload(doc.id, e)}
-                                  accept=".pdf,.doc,.docx,.xls,.xlsx"
-                                  disabled={uploading === doc.id}
-                                />
-                              </label>
+                          <DropdownMenuContent align="end" className="z-50 bg-background">
+                            <DropdownMenuItem
+                              onSelect={(e) => {
+                                e.preventDefault();
+                                fileInputsRef.current[doc.id]?.click();
+                              }}
+                            >
+                              <Upload className="h-4 w-4 mr-2" />
+                              Upload
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleSelectFromRegister(doc.id)}>
+                            <DropdownMenuItem
+                              onSelect={(e) => {
+                                e.preventDefault();
+                                handleSelectFromRegister(doc.id);
+                              }}
+                            >
                               <FileText className="h-4 w-4 mr-2" />
                               From Document Register
                             </DropdownMenuItem>
