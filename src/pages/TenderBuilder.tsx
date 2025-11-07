@@ -95,7 +95,7 @@ const TenderBuilder = () => {
     category: 'General'
   });
   
-  const { lineItems, loading: lineItemsLoading } = useTenderLineItems(tenderId);
+  const { lineItems, loading: lineItemsLoading } = useTenderLineItems(tender?.id);
 
   // Initialize line item pricing when line items load
   useEffect(() => {
@@ -469,6 +469,7 @@ const TenderBuilder = () => {
         const { data: newBid, error: createError } = await supabase
           .from('tender_bids')
           .insert({
+            tender_id: tender.id,
             bidder_id: user!.id,
             bid_amount: totals.grandTotal,
             attachments: bidDocuments as any,

@@ -83,6 +83,7 @@ createRoot(document.getElementById("root")!).render(
                     <Route path="/rfis" element={<AppLayout><RFIs /></AppLayout>} />
                     <Route path="/messages" element={<AppLayout><Messages /></AppLayout>} />
                     <Route path="/tenders" element={<AppLayout><Tenders /></AppLayout>} />
+                    <Route path="/tenders/:tenderId" element={<AppLayout><Tenders /></AppLayout>} />
                     <Route path="/tenders/:tenderId/builder" element={<AppLayout><TenderBuilder /></AppLayout>} />
                     <Route path="/calendar" element={<AppLayout><Calendar /></AppLayout>} />
                     <Route path="/todo-list" element={<AppLayout><TodoList /></AppLayout>} />
