@@ -1,12 +1,12 @@
 import React, { useState, useMemo } from 'react';
 import { StorealiteLogo } from '@/components/ui/storealite-logo';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Plus, AlertTriangle, FileText, Users, BarChart3, UserPlus, Edit, Trash2, Hash, Copy } from 'lucide-react';
+import { Plus, AlertTriangle, FileText, Users, BarChart3, UserPlus, Edit, Trash2, Hash, Copy, Eye } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { useTenders, Tender } from '@/hooks/useTenders';
 import { useProjects } from '@/hooks/useProjects';
@@ -27,6 +27,7 @@ import { supabase } from '@/integrations/supabase/client';
 
 const Tenders = () => {
   const { tenderId } = useParams<{ tenderId?: string }>();
+  const navigate = useNavigate();
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
@@ -304,7 +305,7 @@ const Tenders = () => {
                   </TableHeader>
                   <TableBody>
                     {filteredTenders.map(tender => (
-                      <TableRow key={tender.id} className="hover:bg-muted/30 transition-all duration-200 cursor-pointer border-b border-muted/20">
+                      <TableRow key={tender.id} onClick={() => navigate(`/tenders/${tender.id}`)} className="hover:bg-muted/30 transition-all duration-200 cursor-pointer border-b border-muted/20">
                         <TableCell className="text-sm px-4 py-3 text-foreground/90">
                           {tender.tender_id ? (
                             <div className="flex items-center gap-2">
@@ -315,7 +316,7 @@ const Tenders = () => {
                               <Button 
                                 variant="ghost" 
                                 size="sm" 
-                                onClick={() => copyTenderId(tender.tender_id)} 
+                                onClick={(e) => { e.stopPropagation(); copyTenderId(tender.tender_id); }} 
                                 className="h-6 w-6 p-0"
                               >
                                 <Copy className="h-3 w-3" />
@@ -415,8 +416,16 @@ const Tenders = () => {
                             <Button 
                               variant="ghost" 
                               size="icon" 
-                              onClick={() => handleViewTenderPackage(tender)}
-                              title="View Tender Package PDF"
+                              onClick={(e) => { e.stopPropagation(); navigate(`/tenders/${tender.id}`); }}
+                              title="Open Tender – view docs & submit"
+                            >
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              onClick={(e) => { e.stopPropagation(); handleViewTenderPackage(tender); }}
+                              title="Download Tender Package PDF"
                             >
                               <FileText className="h-4 w-4" />
                             </Button>
