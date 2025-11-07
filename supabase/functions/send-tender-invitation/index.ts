@@ -115,7 +115,7 @@ const handler = async (req: Request): Promise<Response> => {
       `;
 
       return resend.emails.send({
-        from: "Store A <noreply@storea.com.au>",
+        from: "Store A Tenders <onboarding@resend.dev>",
         to: [email],
         subject: `Tender Invitation: ${tender.title}`,
         html: emailHtml,
