@@ -12,6 +12,7 @@ import { ChevronDown, FileText, Clock, CheckCircle, XCircle, Eye } from 'lucide-
 import { formatDistanceToNow } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 interface TenderJoinSectionProps {
   projectId?: string;
 }
@@ -233,18 +234,34 @@ export const TenderJoinSection = ({ projectId }: TenderJoinSectionProps) => {
                           <Button
                             size="sm"
                             onClick={async () => {
-                              // For builders/contractors we must open the Builder view which expects the human Tender ID (tender_id)
-                              // tender_access only has the UUID, so we fetch the tender to get its tender_id
-                              const { data: t, error } = await supabase
-                                .from('tenders')
-                                .select('tender_id')
-                                .eq('id', request.tender_id)
-                                .single();
-                              if (!error && t?.tender_id) {
+                              try {
+                                console.log('TenderJoinSection: Fetching tender_id for UUID:', request.tender_id);
+                                
+                                // For builders/contractors we must open the Builder view which expects the human Tender ID (tender_id)
+                                // tender_access only has the UUID, so we fetch the tender to get its tender_id
+                                const { data: t, error } = await supabase
+                                  .from('tenders')
+                                  .select('tender_id')
+                                  .eq('id', request.tender_id)
+                                  .single();
+                                
+                                if (error) {
+                                  console.error('TenderJoinSection: Error fetching tender_id:', error);
+                                  toast.error('Failed to load tender details');
+                                  return;
+                                }
+                                
+                                if (!t?.tender_id) {
+                                  console.error('TenderJoinSection: No tender_id found for UUID:', request.tender_id);
+                                  toast.error('Tender ID not found');
+                                  return;
+                                }
+                                
+                                console.log('TenderJoinSection: Navigating to builder with tender_id:', t.tender_id);
                                 navigate(`/tenders/${t.tender_id}/builder`);
-                              } else {
-                                // Fallback to architect-style details (UUID route)
-                                navigate(`/tenders/${request.tender_id}`);
+                              } catch (err) {
+                                console.error('TenderJoinSection: Unexpected error:', err);
+                                toast.error('Failed to open tender');
                               }
                             }}
                             className="w-full"

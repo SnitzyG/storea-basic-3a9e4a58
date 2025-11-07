@@ -115,32 +115,75 @@ const TenderBuilder = () => {
   useEffect(() => {
     const fetchTenderDetails = async () => {
       if (!user || !tenderId) {
+        console.log('TenderBuilder: Missing user or tenderId', { user: !!user, tenderId });
         setLoading(false);
         return;
       }
 
       try {
         setLoading(true);
+        console.log('TenderBuilder: Fetching tender details for:', tenderId);
         
-        // Fetch tender details using tender_id instead of id
-        const { data: tenderData, error: tenderError } = await supabase
+        // Detect if tenderId is a UUID (36 chars with hyphens) or human-readable ID
+        const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(tenderId);
+        console.log('TenderBuilder: ID type:', isUUID ? 'UUID' : 'Human-readable');
+        
+        // Build query based on ID type
+        let query = supabase
           .from('tenders')
-          .select(`
-            *,
-            profiles:issued_by (
-              full_name,
-              company_id,
-              companies (
-                name,
-                address
-              )
-            )
-          `)
-          .eq('tender_id', tenderId)
-          .maybeSingle();
+          .select('*');
+        
+        if (isUUID) {
+          query = query.eq('id', tenderId);
+        } else {
+          query = query.eq('tender_id', tenderId);
+        }
+        
+        const { data: tenderData, error: tenderError } = await query.maybeSingle();
 
-        if (tenderError) throw tenderError;
-        setTender(tenderData);
+        if (tenderError) {
+          console.error('TenderBuilder: Error fetching tender:', tenderError);
+          throw tenderError;
+        }
+        
+        if (!tenderData) {
+          console.error('TenderBuilder: Tender not found for ID:', tenderId);
+          toast.error('Tender not found');
+          setLoading(false);
+          return;
+        }
+        
+        console.log('TenderBuilder: Tender loaded:', tenderData.tender_id || tenderData.id);
+        
+        // Fetch profile and company info separately
+        const enrichedTender: any = { ...tenderData };
+        
+        if (tenderData.issued_by) {
+          const { data: profileData } = await supabase
+            .from('profiles')
+            .select('full_name, company_id')
+            .eq('user_id', tenderData.issued_by)
+            .single();
+          
+          if (profileData) {
+            enrichedTender.profiles = profileData;
+            
+            // Fetch company info
+            if (profileData.company_id) {
+              const { data: companyData } = await supabase
+                .from('companies')
+                .select('name, address')
+                .eq('id', profileData.company_id)
+                .single();
+              
+              if (companyData) {
+                enrichedTender.profiles.companies = companyData;
+              }
+            }
+          }
+        }
+        
+        setTender(enrichedTender);
 
         // Fetch package documents - use tender.id not tender_id
         if (tenderData) {
