@@ -47,6 +47,7 @@ export const CreateTenderWizard = ({
   
   // Step 3: Documents
   const [supportingDocuments, setSupportingDocuments] = useState<string[]>([]);
+  const [packageDocsCount, setPackageDocsCount] = useState(0);
   
   // Common state
   const [loading, setLoading] = useState(false);
@@ -123,6 +124,28 @@ export const CreateTenderWizard = ({
       setSupportingDocuments(existingTender.supporting_documents || []);
     }
   }, [existingTender, open]);
+
+  // Fetch package documents count from tender_package_documents
+  useEffect(() => {
+    const fetchPackageDocsCount = async () => {
+      if (!tenderId && !existingTender?.id) {
+        setPackageDocsCount(0);
+        return;
+      }
+      
+      const tid = tenderId || existingTender?.id;
+      const { count, error } = await supabase
+        .from('tender_package_documents')
+        .select('*', { count: 'exact', head: true })
+        .eq('tender_id', tid);
+      
+      if (!error && count !== null) {
+        setPackageDocsCount(count);
+      }
+    };
+    
+    fetchPackageDocsCount();
+  }, [tenderId, existingTender?.id, step]);
 
   const fetchProjectData = async () => {
     try {
@@ -248,7 +271,6 @@ export const CreateTenderWizard = ({
         budget: budget ? parseFloat(budget) : undefined,
         estimated_start_date: estimatedStartDate || undefined,
         deadline: `${submissionDeadline}T${submissionTime}:00`,
-        supporting_documents: supportingDocuments,
         status: 'open'
       };
 
@@ -329,7 +351,6 @@ export const CreateTenderWizard = ({
   };
 
   const complianceCount = 4; // Fixed for now
-  const attachedDocsCount = supportingDocuments.length;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -564,7 +585,7 @@ export const CreateTenderWizard = ({
 
                   <div>
                     <p className="text-sm text-muted-foreground">Supporting Documents:</p>
-                    <p className="font-medium">{attachedDocsCount} attached</p>
+                    <p className="font-medium">{packageDocsCount} attached</p>
                   </div>
                 </CardContent>
               </Card>
