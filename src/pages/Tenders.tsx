@@ -312,7 +312,7 @@ const Tenders = () => {
                           if (userRole === 'builder' || userRole === 'contractor') {
                             navigate(`/tenders/${tender.tender_id}/builder`);
                           } else {
-                            navigate(`/tenders/${tender.tender_id}`);
+                            navigate(`/tenders/${tender.id}`);
                           }
                         }}
                         className="hover:bg-muted/30 transition-all duration-200 cursor-pointer border-b border-muted/20"
@@ -432,7 +432,7 @@ const Tenders = () => {
                                 if (userRole === 'builder' || userRole === 'contractor') {
                                   navigate(`/tenders/${tender.tender_id}/builder`);
                                 } else {
-                                  navigate(`/tenders/${tender.tender_id}`);
+                                  navigate(`/tenders/${tender.id}`);
                                 }
                               }}
                               title="Open Tender – view docs & submit"
