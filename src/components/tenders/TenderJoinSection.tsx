@@ -11,7 +11,7 @@ import { useTenderAccess } from '@/hooks/useTenderAccess';
 import { ChevronDown, FileText, Clock, CheckCircle, XCircle, Eye } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
-
+import { supabase } from '@/integrations/supabase/client';
 interface TenderJoinSectionProps {
   projectId?: string;
 }
@@ -232,7 +232,21 @@ export const TenderJoinSection = ({ projectId }: TenderJoinSectionProps) => {
                         {request.status === 'approved' && (
                           <Button
                             size="sm"
-                            onClick={() => navigate(`/tenders/${request.tender_id}`)}
+                            onClick={async () => {
+                              // For builders/contractors we must open the Builder view which expects the human Tender ID (tender_id)
+                              // tender_access only has the UUID, so we fetch the tender to get its tender_id
+                              const { data: t, error } = await supabase
+                                .from('tenders')
+                                .select('tender_id')
+                                .eq('id', request.tender_id)
+                                .single();
+                              if (!error && t?.tender_id) {
+                                navigate(`/tenders/${t.tender_id}/builder`);
+                              } else {
+                                // Fallback to architect-style details (UUID route)
+                                navigate(`/tenders/${request.tender_id}`);
+                              }
+                            }}
                             className="w-full"
                           >
                             <Eye className="h-4 w-4 mr-2" />
