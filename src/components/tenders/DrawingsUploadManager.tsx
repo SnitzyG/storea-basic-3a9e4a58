@@ -9,6 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { ensureTenderDraft } from '@/utils/ensureTenderDraft';
 import { Upload, FileText, ArrowUpDown, Filter, Download } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import { StorealiteLogo } from '@/components/ui/storealite-logo';
@@ -515,18 +516,24 @@ export const DrawingsUploadManager = ({ projectId, tenderId, onLineItemsImported
                     size="sm"
                     variant="outline"
                     onClick={async () => {
-                      if (!tenderId) {
-                        toast({ title: 'Save draft first', description: 'Save the tender to enable saving selected items.', variant: 'destructive' });
-                        return;
+                      let currentTenderId = tenderId;
+                      if (!currentTenderId) {
+                        try {
+                          currentTenderId = await ensureTenderDraft({ projectId });
+                          toast({ title: 'Tender created', description: 'Created draft tender to save line items.' });
+                        } catch (error: any) {
+                          toast({ title: 'Error', description: error.message, variant: 'destructive' });
+                          return;
+                        }
                       }
                       const selected = lineItems.filter(li => selectedIds.has(li.id));
                       if (selected.length === 0) {
                         toast({ title: 'No items selected', description: 'Select at least one line item to save.', variant: 'destructive' });
                         return;
                       }
-                      await supabase.from('tender_line_items').delete().eq('tender_id', tenderId);
+                      await supabase.from('tender_line_items').delete().eq('tender_id', currentTenderId);
                       const { error } = await supabase.from('tender_line_items').insert(selected.map(item => ({
-                        tender_id: tenderId,
+                        tender_id: currentTenderId,
                         line_number: item.lineNumber,
                         item_description: item.itemDescription,
                         specification: item.specification,

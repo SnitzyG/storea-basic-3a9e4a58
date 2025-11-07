@@ -202,81 +202,6 @@ export const EnhancedCreateTenderDialog = ({ open, onOpenChange, projectId }: En
     updateFormData('builder_details', updatedBuilders);
   };
 
-  const saveDraft = async () => {
-    setLoading(true);
-    try {
-      // Upload files to storage if any
-      let tenderSpecPath = null;
-      let scopeWorksPath = null;
-      let documentPaths: string[] = [];
-
-      if (formData.tender_specification_file) {
-        const { data, error } = await supabase.storage
-          .from('documents')
-          .upload(`tenders/${projectId}/specifications/${formData.tender_specification_file.name}`, formData.tender_specification_file);
-        if (error) throw error;
-        tenderSpecPath = data.path;
-      }
-
-      if (formData.scope_of_works_file) {
-        const { data, error } = await supabase.storage
-          .from('documents')
-          .upload(`tenders/${projectId}/scope-of-works/${formData.scope_of_works_file.name}`, formData.scope_of_works_file);
-        if (error) throw error;
-        scopeWorksPath = data.path;
-      }
-
-      // Upload additional documents
-      for (const doc of formData.upload_documents) {
-        const { data, error } = await supabase.storage
-          .from('documents')
-          .upload(`tenders/${projectId}/documents/${doc.name}`, doc);
-        if (error) throw error;
-        documentPaths.push(data.path);
-      }
-
-      // Create tender record
-      const { error: tenderError } = await supabase
-        .from('tenders')
-        .insert([{
-          project_id: projectId,
-          title: formData.title,
-          project_title: formData.project_title,
-          project_address: formData.project_address,
-          client_name: formData.client_name,
-          tender_reference_no: formData.tender_reference,
-          message: formData.message,
-          estimated_start_date: formData.estimated_start_date || null,
-          deadline: `${formData.submission_deadline}T${formData.submission_deadline_time}:00`,
-          tender_specification_path: tenderSpecPath,
-          scope_of_works_path: scopeWorksPath,
-          documents: documentPaths.map(path => ({ path, name: path.split('/').pop() })) as any,
-          construction_items: formData.construction_items as any,
-          builder_details: formData.builder_details as any,
-          is_draft: true,
-          is_ready_for_tender: false,
-          issued_by: user?.id,
-          status: 'draft'
-        }]);
-
-      if (tenderError) throw tenderError;
-
-      toast({
-        title: "Draft Saved",
-        description: "Tender has been saved as draft"
-      });
-
-      onOpenChange(false);
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive"
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const markReadyForTender = async () => {
     if (!isReadyForTender) {
@@ -300,8 +225,6 @@ export const EnhancedCreateTenderDialog = ({ open, onOpenChange, projectId }: En
 
     setLoading(true);
     try {
-      // First save the tender
-      await saveDraft();
       
       // Then send invitations via edge function
       for (const builder of formData.builder_details) {
@@ -850,15 +773,6 @@ export const EnhancedCreateTenderDialog = ({ open, onOpenChange, projectId }: En
                   Previous
                 </Button>
               )}
-              
-              <Button
-                variant="outline"
-                onClick={saveDraft}
-                disabled={loading}
-              >
-                <Save className="w-4 h-4 mr-2" />
-                Save Draft
-              </Button>
             </div>
 
             <div className="flex gap-2">

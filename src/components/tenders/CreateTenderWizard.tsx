@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { FileText, Upload, Calendar, DollarSign, Save } from 'lucide-react';
+import { FileText, Upload, Calendar, DollarSign } from 'lucide-react';
 import { useTenders } from '@/hooks/useTenders';
 import { useDocuments } from '@/hooks/useDocuments';
 import { supabase } from '@/integrations/supabase/client';
@@ -14,6 +14,7 @@ import { useToast } from '@/hooks/use-toast';
 import { DrawingsUploadManager } from './DrawingsUploadManager';
 import { generateTenderPackage } from '@/utils/tenderPackageGenerator';
 import { TenderPackageTracker } from './TenderPackageTracker';
+import { ensureTenderDraft } from '@/utils/ensureTenderDraft';
 
 interface CreateTenderWizardProps {
   open: boolean;
@@ -65,6 +66,33 @@ export const CreateTenderWizard = ({
       fetchProjectData();
     }
   }, [open, projectId, existingTender]);
+
+  // Auto-create draft tender when entering Step 3
+  useEffect(() => {
+    const autoCreateDraft = async () => {
+      if (step === 3 && !tenderId && !existingTender?.id && title) {
+        try {
+          const draftId = await ensureTenderDraft({
+            projectId,
+            title,
+            project_address: projectAddress,
+            client_name: clientName,
+            deadline: submissionDeadline && submissionTime 
+              ? `${submissionDeadline}T${submissionTime}:00` 
+              : undefined
+          });
+          setTenderId(draftId);
+          toast({
+            title: "Draft Created",
+            description: "Tender draft created automatically"
+          });
+        } catch (error: any) {
+          console.error('Auto-draft error:', error);
+        }
+      }
+    };
+    autoCreateDraft();
+  }, [step, tenderId, existingTender, title, projectId, projectAddress, clientName, submissionDeadline, submissionTime]);
 
   // Calculate completion date when start date or weeks change
   useEffect(() => {
@@ -158,64 +186,6 @@ export const CreateTenderWizard = ({
     }
   };
 
-  const handleSaveDraft = async () => {
-    if (!title.trim()) {
-      toast({
-        title: "Error",
-        description: "Project title is required",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    setLoading(true);
-    try {
-      const tenderData: any = {
-        project_id: projectId,
-        title: title.trim(),
-        project_address: projectAddress || undefined,
-        client_name: clientName || undefined,
-        tender_reference_no: tenderReferenceNo || undefined,
-        budget: budget ? parseFloat(budget) : undefined,
-        estimated_start_date: estimatedStartDate || undefined,
-        completion_weeks: completionWeeks ? parseInt(completionWeeks) : undefined,
-        deadline: submissionDeadline && submissionTime ? `${submissionDeadline}T${submissionTime}:00` : undefined,
-        supporting_documents: supportingDocuments,
-        status: 'draft'
-      };
-
-      let result;
-      if (tenderId) {
-        // Update existing tender
-        const { error } = await supabase
-          .from('tenders')
-          .update(tenderData)
-          .eq('id', tenderId);
-        
-        if (error) throw error;
-        result = { id: tenderId };
-      } else {
-        // Create new tender
-        result = await createTender(tenderData);
-        if (result) {
-          setTenderId(result.id);
-        }
-      }
-
-      toast({
-        title: "Tender Saved",
-        description: "Your tender draft has been saved successfully.",
-      });
-    } catch (error) {
-      console.error('Save error:', error);
-      toast({
-        title: "Error",
-        description: "Failed to save tender draft",
-        variant: "destructive"
-      });
-    }
-    setLoading(false);
-  };
 
   const handleViewPackagePreview = async () => {
     const currentTenderId = tenderId || existingTender?.id;
@@ -626,15 +596,6 @@ export const CreateTenderWizard = ({
             </div>
 
             <div className="flex gap-2">
-              <Button 
-                onClick={handleSaveDraft} 
-                variant="outline"
-                disabled={loading}
-              >
-                <Save className="h-4 w-4 mr-2" />
-                Save Draft
-              </Button>
-
               {step < totalSteps ? (
                 <Button 
                   onClick={() => setStep(step + 1)}

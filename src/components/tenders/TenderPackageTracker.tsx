@@ -151,16 +151,7 @@ export function TenderPackageTracker({ tenderId, projectData, tenderData }: Tend
 
   const handleFileUpload = async (id: number, event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (!file || !tenderId) {
-      if (!tenderId) {
-        toast({
-          title: "Error",
-          description: "Please save the tender first before uploading documents.",
-          variant: "destructive"
-        });
-      }
-      return;
-    }
+    if (!file || !tenderId) return;
 
     setUploading(id);
 
@@ -168,18 +159,18 @@ export function TenderPackageTracker({ tenderId, projectData, tenderData }: Tend
       const doc = documents.find(d => d.id === id);
       if (!doc) return;
 
-      // Upload file to Supabase Storage
       const fileExt = file.name.split('.').pop();
       const docKey = `${doc.folder} - ${doc.document}`;
       const fileName = `${tenderId}/${docKey.replace(/\s+/g, '_')}_${Date.now()}.${fileExt}`;
       
+      // 1. Upload to tender-packages bucket
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from('tender-packages')
         .upload(fileName, file);
 
       if (uploadError) throw uploadError;
 
-      // Save document metadata to database
+      // 2. Save to tender_package_documents
       const { data: docData, error: docError } = await supabase
         .from('tender_package_documents')
         .insert({
@@ -194,6 +185,41 @@ export function TenderPackageTracker({ tenderId, projectData, tenderData }: Tend
         .single();
 
       if (docError) throw docError;
+
+      // 3. Also upload to documents bucket for Document Register
+      let projectId = tenderData?.project_id || projectData?.id || selectedProject?.id;
+      if (!projectId && tenderId) {
+        const { data: tenderRow } = await supabase
+          .from('tenders')
+          .select('project_id')
+          .eq('id', tenderId)
+          .single();
+        if (tenderRow?.project_id) projectId = tenderRow.project_id;
+      }
+
+      if (projectId) {
+        const documentsPath = `${projectId}/tenders/${tenderId}/${docKey.replace(/\s+/g, '_')}_${Date.now()}.${fileExt}`;
+        const { error: docsBucketError } = await supabase.storage
+          .from('documents')
+          .upload(documentsPath, file);
+
+        if (!docsBucketError) {
+          // 4. Insert into documents table
+          await supabase
+            .from('documents')
+            .insert({
+              project_id: projectId,
+              uploaded_by: profile?.user_id,
+              name: file.name,
+              file_path: documentsPath,
+              file_type: file.type || 'application/octet-stream',
+              file_extension: fileExt,
+              file_size: file.size,
+              category: 'Tender',
+              visibility_scope: 'private'
+            });
+        }
+      }
 
       setDocuments(docs =>
         docs.map(d =>
@@ -211,7 +237,7 @@ export function TenderPackageTracker({ tenderId, projectData, tenderData }: Tend
 
       toast({
         title: "File uploaded",
-        description: `${file.name} has been uploaded successfully.`
+        description: `${file.name} uploaded to tender package and document register.`
       });
     } catch (error: any) {
       console.error('Upload error:', error);
@@ -444,14 +470,31 @@ export function TenderPackageTracker({ tenderId, projectData, tenderData }: Tend
 
       const docKey = `${doc.folder} - ${doc.document}`;
 
-      // Save reference to database
+      // Download from documents bucket
+      const { data: fileBlob, error: downloadError } = await supabase.storage
+        .from('documents')
+        .download(projectDoc.file_path);
+
+      if (downloadError) throw downloadError;
+
+      // Re-upload to tender-packages bucket
+      const fileExt = projectDoc.file_path.split('.').pop();
+      const newPath = `${tenderId}/${docKey.replace(/\s+/g, '_')}_${Date.now()}.${fileExt}`;
+      
+      const { error: uploadError } = await supabase.storage
+        .from('tender-packages')
+        .upload(newPath, fileBlob);
+
+      if (uploadError) throw uploadError;
+
+      // Save to tender_package_documents with new path
       const { data: docData, error } = await supabase
         .from('tender_package_documents')
         .insert({
           tender_id: tenderId,
           document_type: docKey,
           document_name: projectDoc.name,
-          file_path: projectDoc.file_path,
+          file_path: newPath,
           file_size: projectDoc.file_size,
           uploaded_by: profile?.user_id
         })
@@ -467,7 +510,7 @@ export function TenderPackageTracker({ tenderId, projectData, tenderData }: Tend
             file: {
               id: docData.id,
               name: projectDoc.name,
-              path: projectDoc.file_path,
+              path: newPath,
               size: projectDoc.file_size || 0
             }
           } : d
@@ -477,7 +520,7 @@ export function TenderPackageTracker({ tenderId, projectData, tenderData }: Tend
       setShowDocRegisterDialog(false);
       toast({
         title: "Document added",
-        description: `${projectDoc.name} added from document register`
+        description: `${projectDoc.name} copied from document register`
       });
     } catch (error: any) {
       console.error('Error:', error);

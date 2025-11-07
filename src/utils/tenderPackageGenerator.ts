@@ -24,7 +24,7 @@ export const generateTenderPackage = async (tender: Tender) => {
     if (error) throw error;
 
     if (!packageDocs || packageDocs.length === 0) {
-      throw new Error('No documents found in tender package');
+      throw new Error('No documents in tender package. Please upload or select at least one document.');
     }
 
     // Create ZIP package with uploaded documents only
