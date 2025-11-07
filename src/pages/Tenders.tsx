@@ -427,7 +427,14 @@ const Tenders = () => {
                             <Button 
                               variant="ghost" 
                               size="icon" 
-                              onClick={(e) => { e.stopPropagation(); navigate(`/tenders/${tender.id}`); }}
+                              onClick={(e) => { 
+                                e.stopPropagation(); 
+                                if (userRole === 'builder' || userRole === 'contractor') {
+                                  navigate(`/tenders/${tender.id}/builder`);
+                                } else {
+                                  navigate(`/tenders/${tender.id}`);
+                                }
+                              }}
                               title="Open Tender – view docs & submit"
                             >
                               <Eye className="h-4 w-4" />
@@ -446,7 +453,8 @@ const Tenders = () => {
                                 <Button 
                                   variant="ghost" 
                                   size="icon"
-                                  onClick={() => {
+                                  onClick={(e) => {
+                                    e.stopPropagation();
                                     setSelectedTender(tender);
                                     setWizardOpen(true);
                                   }}
@@ -457,7 +465,7 @@ const Tenders = () => {
                                 <Button 
                                   variant="ghost" 
                                   size="icon" 
-                                  onClick={() => handleInviteBidders(tender)}
+                                  onClick={(e) => { e.stopPropagation(); handleInviteBidders(tender); }}
                                   title="Invite Bidders"
                                 >
                                   <UserPlus className="h-4 w-4" />
@@ -465,7 +473,7 @@ const Tenders = () => {
                                 <Button 
                                   variant="ghost" 
                                   size="icon" 
-                                  onClick={() => handleDeleteTender(tender)}
+                                  onClick={(e) => { e.stopPropagation(); handleDeleteTender(tender); }}
                                   title="Delete Tender"
                                   className="text-destructive hover:text-destructive hover:bg-destructive/10"
                                 >
