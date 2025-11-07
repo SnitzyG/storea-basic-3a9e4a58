@@ -76,7 +76,7 @@ export default function JoinTender() {
         
         // Redirect to tender view after 2 seconds
         setTimeout(() => {
-          navigate(`/tender-view/${tenderId}`);
+          navigate(`/tenders/${tenderId}`);
         }, 2000);
       } catch (error: any) {
         console.error('Error verifying tender access:', error);

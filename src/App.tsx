@@ -99,6 +99,7 @@ const App = () => (
           <Route path="/admin/settings" element={<AdminSettings />} />
           <Route path="/tender/:tenderId" element={<TenderResponse />} />
           <Route path="/join-tender/:tenderId" element={<JoinTender />} />
+          <Route path="/tenders/:tenderId" element={<Tenders />} />
           <Route path="/tender-view/:tenderId" element={<Tenders />} />
           <Route path="/tender-review-demo" element={<TenderReviewDemo />} />
           <Route path="/accept-invitation" element={<AcceptInvitation />} />
