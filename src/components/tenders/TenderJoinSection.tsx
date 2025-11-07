@@ -232,7 +232,7 @@ export const TenderJoinSection = ({ projectId }: TenderJoinSectionProps) => {
                         {request.status === 'approved' && (
                           <Button
                             size="sm"
-                            onClick={() => navigate(`/tender-view/${request.tender_id}`)}
+                            onClick={() => navigate(`/tenders/${request.tender_id}`)}
                             className="w-full"
                           >
                             <Eye className="h-4 w-4 mr-2" />

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { useTenderAccess } from '@/hooks/useTenderAccess';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -44,17 +45,65 @@ export const TenderDetailsView = () => {
   const [loading, setLoading] = useState(true);
   const [showBidDialog, setShowBidDialog] = useState(false);
   const [company, setCompany] = useState<any>(null);
+  const [hasAccess, setHasAccess] = useState<boolean>(false);
+  const [accessChecked, setAccessChecked] = useState<boolean>(false);
   
   const { lineItems, loading: lineItemsLoading } = useTenderLineItems(tenderId);
+  const { checkTenderAccess } = useTenderAccess();
 
+  // First check tender access
   useEffect(() => {
-    const fetchTenderDetails = async () => {
+    const verifyAccess = async () => {
       if (!user || !tenderId) {
+        setAccessChecked(true);
         setLoading(false);
         return;
       }
 
       try {
+        const accessResult = await checkTenderAccess(tenderId);
+        setHasAccess(accessResult.hasAccess);
+        setAccessChecked(true);
+      } catch (error) {
+        console.error('Error checking tender access:', error);
+        setAccessChecked(true);
+        setHasAccess(false);
+      }
+    };
+
+    verifyAccess();
+  }, [tenderId, user]);
+
+  // Then fetch tender details if access is granted
+  useEffect(() => {
+    const fetchTenderDetails = async () => {
+      if (!user || !tenderId || !accessChecked) {
+        return;
+      }
+
+      // Check if user has access OR is the tender issuer
+      if (!hasAccess) {
+        try {
+          const { data: tenderCheck } = await supabase
+            .from('tenders')
+            .select('issued_by')
+            .eq('id', tenderId)
+            .single();
+          
+          if (tenderCheck?.issued_by !== user.id) {
+            setLoading(false);
+            return;
+          }
+        } catch (error) {
+          console.error('Error checking tender ownership:', error);
+          setLoading(false);
+          return;
+        }
+      }
+
+      try {
+        setLoading(true);
+        
         // Fetch tender details
         const { data: tenderData, error: tenderError } = await supabase
           .from('tenders')
@@ -100,7 +149,7 @@ export const TenderDetailsView = () => {
     };
 
     fetchTenderDetails();
-  }, [tenderId, user, profile]);
+  }, [tenderId, user, profile, hasAccess, accessChecked]);
 
   const handleDownloadTemplate = async () => {
     try {
@@ -151,6 +200,37 @@ export const TenderDetailsView = () => {
         <div className="flex items-center justify-center h-96">
           <Loader2 className="h-8 w-8 animate-spin" />
         </div>
+      </AppLayout>
+    );
+  }
+
+  // Check if user has access
+  if (accessChecked && !hasAccess && !tender) {
+    return (
+      <AppLayout>
+        <Card className="max-w-2xl mx-auto mt-8">
+          <CardHeader>
+            <CardTitle>Access Denied</CardTitle>
+            <CardDescription>
+              You don't have permission to view this tender
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="pt-6 text-center space-y-4">
+            <FileText className="h-16 w-16 mx-auto text-muted-foreground opacity-50" />
+            <p className="text-muted-foreground">
+              Your access request may be pending approval from the architect, or you may not have requested access yet.
+            </p>
+            <div className="flex gap-3 justify-center">
+              <Button variant="outline" onClick={() => navigate('/tenders')}>
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back to Tenders
+              </Button>
+              <Button onClick={() => navigate('/tenders', { state: { activeTab: 'join' } })}>
+                Request Access
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       </AppLayout>
     );
   }
