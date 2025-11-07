@@ -61,6 +61,13 @@ const Auth = () => {
   }, [searchParams]);
   useEffect(() => {
     if (user) {
+      // Check for redirect_to parameter first
+      const redirectTo = searchParams.get('redirect_to');
+      if (redirectTo) {
+        navigate(redirectTo);
+        return;
+      }
+
       // Check for pending invitation tokens
       const pendingToken = localStorage.getItem('pending_project_token') || sessionStorage.getItem('pending_invitation_token');
       if (pendingToken) {
@@ -78,7 +85,7 @@ const Auth = () => {
         navigate('/projects');
       }
     }
-  }, [user, navigate]);
+  }, [user, navigate, searchParams]);
   // Remove this since navigation is now handled in useEffect
   // This prevents double navigation
   const handleSignIn = async (e: React.FormEvent) => {

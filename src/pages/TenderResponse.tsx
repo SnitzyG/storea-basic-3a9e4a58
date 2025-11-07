@@ -67,6 +67,27 @@ const TenderResponse = () => {
   }, [tenderId, token, email]);
 
   const verifyAccess = async () => {
+    // Check if user is authenticated
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) {
+      // Store the full URL for redirect after auth
+      const currentUrl = `/tender/${tenderId}?token=${encodeURIComponent(token)}&email=${encodeURIComponent(email)}`;
+      navigate(`/auth?redirect_to=${encodeURIComponent(currentUrl)}`);
+      return;
+    }
+
+    // Verify that the logged-in user's email matches the invited email
+    if (user.email !== email) {
+      toast({
+        title: "Access Denied",
+        description: "This invitation was sent to a different email address.",
+        variant: "destructive",
+      });
+      navigate('/');
+      return;
+    }
+
     try {
       setLoading(true);
       

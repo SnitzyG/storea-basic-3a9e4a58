@@ -1,6 +1,7 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { Resend } from 'npm:resend@2.0.0';
 
-// const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
+const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -51,8 +52,7 @@ const handler = async (req: Request): Promise<Response> => {
       .eq('user_id', tender.issued_by)
       .single();
 
-    const inviteUrl = `${Deno.env.get('SUPABASE_URL')?.replace('/rest/v1', '')}/auth/v1/invite`;
-    const siteUrl = `https://id-preview--bd2e83dc-1d1d-4a73-96c2-6279990f514d.lovable.app`;
+    const siteUrl = Deno.env.get('SITE_URL') || 'https://storea.com.au';
     
     // Generate proper authentication token for each recipient
     const generateTenderToken = (tenderId: string, email: string) => {
@@ -95,10 +95,15 @@ const handler = async (req: Request): Promise<Response> => {
           </div>
 
           <div style="background: #fff3cd; padding: 15px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #ffc107;">
-            <h3 style="color: #856404; margin-top: 0;">Getting Started</h3>
-            <p style="color: #856404; margin: 0;">
-              If you don't have an account yet, clicking the link above will guide you through creating one securely. 
-              Once logged in, you'll be able to view the full tender details and submit your bid.
+            <h3 style="color: #856404; margin-top: 0;">How to Submit Your Bid</h3>
+            <ol style="color: #856404; margin: 10px 0; padding-left: 20px;">
+              <li>Click the button above to access the tender</li>
+              <li>Create a free account or sign in to Store A</li>
+              <li>Review the complete tender details</li>
+              <li>Submit your competitive bid</li>
+            </ol>
+            <p style="color: #856404; margin: 10px 0 0 0;">
+              <strong>Note:</strong> This invitation is unique to you and can only be accessed with your email address.
             </p>
           </div>
 
@@ -109,17 +114,12 @@ const handler = async (req: Request): Promise<Response> => {
         </div>
       `;
 
-      // Temporarily disable email sending due to dependency issues
-      console.log('Would send tender invitation email to:', email, 'for tender:', tender.title);
-      return { success: true, message: 'Email notification logged (resend disabled)' };
-      /*
       return resend.emails.send({
-        from: "Construction Platform <onboarding@resend.dev>",
+        from: "Store A <noreply@storea.com.au>",
         to: [email],
         subject: `Tender Invitation: ${tender.title}`,
         html: emailHtml,
       });
-      */
     });
 
     const emailResults = await Promise.allSettled(emailPromises);
