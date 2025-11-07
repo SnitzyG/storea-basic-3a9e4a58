@@ -85,7 +85,7 @@ export const useTenderAccess = (projectId?: string) => {
       // First verify the tender exists and get the tender_id (UUID)
       const { data: tenderData, error: tenderError } = await supabase
         .from('tenders')
-        .select('id, title')
+        .select('id, title, tender_id')
         .eq('tender_id', tenderIdInput.toUpperCase())
         .single();
 

@@ -124,7 +124,7 @@ export const useProjectJoinRequests = () => {
       // Find project by project_id (the 15-character code)
       const { data: project, error: projectError } = await supabase
         .from('projects')
-        .select('id, name')
+        .select('id, name, project_id')
         .eq('project_id', projectCode.toUpperCase())
         .maybeSingle();
 
