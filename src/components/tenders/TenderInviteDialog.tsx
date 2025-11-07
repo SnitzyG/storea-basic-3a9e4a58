@@ -57,10 +57,22 @@ export const TenderInviteDialog = ({
         }
       });
       if (error) throw error;
-      toast({
-        title: "Invitations Sent",
-        description: `Successfully sent ${data.sent} invitation(s) to potential bidders.`
-      });
+
+      const { sent, failed, results } = data;
+      
+      if (failed > 0) {
+        const failedEmails = results.filter((r: any) => !r.success).map((r: any) => r.email);
+        toast({
+          title: "Partial Success",
+          description: `Sent ${sent} invitation(s). Failed to send to: ${failedEmails.join(', ')}`,
+          variant: "destructive"
+        });
+      } else {
+        toast({
+          title: "Invitations Sent",
+          description: `Successfully sent ${sent} invitation(s) to potential bidders. Check spam folder if not received.`
+        });
+      }
 
       // Reset form
       setEmails([]);

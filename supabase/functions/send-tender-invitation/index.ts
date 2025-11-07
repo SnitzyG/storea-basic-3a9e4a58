@@ -59,12 +59,13 @@ const handler = async (req: Request): Promise<Response> => {
       return btoa(`${tenderId}:${email}:${Date.now()}`);
     };
 
-    // Send invitation emails
+    // Send invitation emails with proper error handling
     const emailPromises = recipient_emails.map(async (email) => {
-      const tenderToken = generateTenderToken(tender_id, email);
-      const tenderUrl = `${siteUrl}/tender/${tender_id}?token=${encodeURIComponent(tenderToken)}&email=${encodeURIComponent(email)}`;
-      
-      const emailHtml = `
+      try {
+        const tenderToken = generateTenderToken(tender_id, email);
+        const tenderUrl = `${siteUrl}/tender/${tender_id}?token=${encodeURIComponent(tenderToken)}&email=${encodeURIComponent(email)}`;
+        
+        const emailHtml = `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
           <h1 style="color: #333; border-bottom: 2px solid #0070f3; padding-bottom: 10px;">
             Tender Invitation: ${tender.title}
@@ -114,37 +115,45 @@ const handler = async (req: Request): Promise<Response> => {
         </div>
       `;
 
-      return resend.emails.send({
-        from: "Store A Tenders <onboarding@resend.dev>",
-        to: [email],
-        subject: `Tender Invitation: ${tender.title}`,
-        html: emailHtml,
-      });
+        const result = await resend.emails.send({
+          from: "Store A Tenders <onboarding@resend.dev>",
+          to: [email],
+          subject: `Tender Invitation: ${tender.title}`,
+          html: emailHtml,
+          text: `Tender Invitation: ${tender.title}\n\nYou have been invited to submit a bid for "${tender.title}".\n\nProject: ${tender.projects?.name || 'Unknown Project'}\nDeadline: ${new Date(tender.deadline).toLocaleDateString()}\n\nView tender and submit bid: ${tenderUrl}\n\n${message ? `Message: ${message}\n\n` : ''}This invitation was sent from Store A Construction Management Platform.`,
+        });
+
+        console.log(`Email sent successfully to ${email}:`, result);
+        return { email, success: true, id: result.data?.id };
+      } catch (error: any) {
+        console.error(`Failed to send email to ${email}:`, error);
+        return { email, success: false, error: error.message };
+      }
     });
 
-    const emailResults = await Promise.allSettled(emailPromises);
+    const emailResults = await Promise.all(emailPromises);
     
     // Log the invitations
-    const logPromises = recipient_emails.map((email, index) => {
-      const result = emailResults[index];
+    const logPromises = emailResults.map((result) => {
       return supabase.from('activity_log').insert({
         user_id: tender.issued_by,
         project_id: tender.project_id,
         entity_type: 'tender',
         entity_id: tender_id,
         action: 'invited',
-        description: `Sent tender invitation to ${email}`,
+        description: `Sent tender invitation to ${result.email}`,
         metadata: {
-          email,
-          success: result.status === 'fulfilled',
-          tender_title: tender.title
+          email: result.email,
+          success: result.success,
+          tender_title: tender.title,
+          error: result.success ? null : result.error
         }
       });
     });
 
     await Promise.allSettled(logPromises);
 
-    const successCount = emailResults.filter(r => r.status === 'fulfilled').length;
+    const successCount = emailResults.filter(r => r.success).length;
     const failureCount = emailResults.length - successCount;
 
     console.log(`Tender invitations sent - Success: ${successCount}, Failed: ${failureCount}`);
@@ -155,8 +164,9 @@ const handler = async (req: Request): Promise<Response> => {
         sent: successCount,
         failed: failureCount,
         results: emailResults.map(r => ({
-          success: r.status === 'fulfilled',
-          error: r.status === 'rejected' ? r.reason : null
+          email: r.email,
+          success: r.success,
+          error: r.success ? null : r.error
         }))
       }),
       {
