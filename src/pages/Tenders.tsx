@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { StorealiteLogo } from '@/components/ui/storealite-logo';
-import { Link } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -18,11 +18,14 @@ import { BidSubmissionDialog } from '@/components/tenders/BidSubmissionDialog';
 import { TenderInviteDialog } from '@/components/tenders/TenderInviteDialog';
 import { BidsReceivedSection } from '@/components/tenders/BidsReceivedSection';
 import { TenderComparisonDashboard } from '@/components/tenders/TenderComparisonDashboard';
+import { TenderJoinSection } from '@/components/tenders/TenderJoinSection';
+import { TenderDetailsView } from '@/components/tenders/TenderDetailsView';
 import { generateTenderPackage } from '@/utils/tenderPackageGenerator';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
 const Tenders = () => {
+  const { tenderId } = useParams<{ tenderId?: string }>();
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
@@ -31,7 +34,7 @@ const Tenders = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [wizardOpen, setWizardOpen] = useState(false);
   const [selectedTender, setSelectedTender] = useState<Tender | null>(null);
-  const [activeTab, setActiveTab] = useState<'tenders' | 'bids' | 'comparison'>('tenders');
+  const [activeTab, setActiveTab] = useState<'tenders' | 'bids' | 'comparison' | 'join'>('tenders');
   const {
     selectedProject
   } = useProjectSelection();
@@ -203,6 +206,11 @@ const Tenders = () => {
     return <Badge className={config.className}>{config.label}</Badge>;
   };
 
+  // If viewing a specific tender (tenderId in URL), show TenderDetailsView
+  if (tenderId) {
+    return <TenderDetailsView />;
+  }
+
   return <div className="space-y-6 mx-[25px]">
       {/* Header */}
       <div className="flex items-center justify-between">
@@ -229,12 +237,12 @@ const Tenders = () => {
 
       {/* Main Content Tabs */}
       <Tabs defaultValue="tenders" className="w-full" value={activeTab} onValueChange={(value) => setActiveTab(value as any)}>
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className={userRole === 'architect' ? 'grid w-full grid-cols-3' : 'grid w-full grid-cols-2'}>
           <TabsTrigger value="tenders" className="flex items-center gap-2">
             <FileText className="h-4 w-4" />
             All Tenders
           </TabsTrigger>
-          {userRole === 'architect' && (
+          {userRole === 'architect' ? (
             <>
               <TabsTrigger value="bids" className="flex items-center gap-2">
                 <Users className="h-4 w-4" />
@@ -245,6 +253,11 @@ const Tenders = () => {
                 Comparison
               </TabsTrigger>
             </>
+          ) : (
+            <TabsTrigger value="join" className="flex items-center gap-2">
+              <UserPlus className="h-4 w-4" />
+              Join Tender
+            </TabsTrigger>
           )}
         </TabsList>
 
@@ -448,6 +461,10 @@ const Tenders = () => {
 
         <TabsContent value="comparison" className="space-y-6">
           <TenderComparisonDashboard tenderId={selectedProject?.id || ''} />
+        </TabsContent>
+
+        <TabsContent value="join" className="space-y-6">
+          <TenderJoinSection projectId={selectedProject?.id} />
         </TabsContent>
       </Tabs>
 

@@ -2187,6 +2187,59 @@ export type Database = {
           },
         ]
       }
+      tender_access: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          company: string | null
+          id: string
+          message: string | null
+          requested_at: string | null
+          requester_email: string
+          requester_name: string
+          role: string | null
+          status: string
+          tender_id: string
+          user_id: string
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          company?: string | null
+          id?: string
+          message?: string | null
+          requested_at?: string | null
+          requester_email: string
+          requester_name: string
+          role?: string | null
+          status?: string
+          tender_id: string
+          user_id: string
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          company?: string | null
+          id?: string
+          message?: string | null
+          requested_at?: string | null
+          requester_email?: string
+          requester_name?: string
+          role?: string | null
+          status?: string
+          tender_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tender_access_tender_id_fkey"
+            columns: ["tender_id"]
+            isOneToOne: false
+            referencedRelation: "tenders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tender_amendments: {
         Row: {
           amendment_number: number
