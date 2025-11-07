@@ -3064,6 +3064,10 @@ export type Database = {
         }
         Returns: string
       }
+      delete_tender_cascade: {
+        Args: { tender_id_param: string }
+        Returns: Json
+      }
       generate_document_group_number: {
         Args: {
           category_param: string

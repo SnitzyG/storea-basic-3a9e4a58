@@ -261,16 +261,16 @@ export const useTenders = (projectId?: string) => {
 
   const deleteTender = async (tenderId: string): Promise<boolean> => {
     try {
-      const { error } = await supabase
-        .from('tenders')
-        .delete()
-        .eq('id', tenderId);
+      // Use the cascade delete function to properly delete tender and all related data
+      const { data, error } = await supabase.rpc('delete_tender_cascade', {
+        tender_id_param: tenderId
+      });
 
       if (error) throw error;
 
       toast({
         title: "Success",
-        description: "Tender deleted successfully",
+        description: "Tender and all related data deleted successfully",
       });
       
       fetchTenders();
@@ -279,7 +279,7 @@ export const useTenders = (projectId?: string) => {
       console.error('Error deleting tender:', error);
       toast({
         title: "Error",
-        description: error.message || "Failed to delete tender",
+        description: error.message || "Failed to delete tender. Please try again.",
         variant: "destructive",
       });
       return false;
