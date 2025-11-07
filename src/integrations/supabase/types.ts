@@ -3144,6 +3144,10 @@ export type Database = {
         }
         Returns: Json
       }
+      user_has_tender_access: {
+        Args: { _tender_id: string; _user_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       app_role: "admin" | "user"
