@@ -363,13 +363,15 @@ const TenderBuilder = () => {
       const { error } = await supabase
         .from('rfis')
         .insert({
-          raised_by: user!.id,
+          project_id: tender.project_id,
+          question: rfiMessage,
           subject: `Tender Document Query: ${rfiDocumentName}`,
-          description: rfiMessage,
           rfi_type: 'request_for_information',
           priority: 'medium',
           status: 'open',
-          category: 'Tender Document'
+          raised_by: user!.id,
+          category: 'Tender Document',
+          attachments: [{ type: 'tender_document', document_id: rfiDocumentId, document_name: rfiDocumentName, tender_id: tender.id }]
         } as any);
 
       if (error) throw error;
