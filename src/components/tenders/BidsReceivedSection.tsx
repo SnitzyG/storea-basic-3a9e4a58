@@ -16,8 +16,12 @@ import {
   Award,
   Mail,
   ChevronUp,
-  ChevronDown
+  ChevronDown,
+  Eye,
+  Download,
+  FileSpreadsheet
 } from 'lucide-react';
+import { TenderBidDetailsDialog } from './TenderBidDetailsDialog';
 import { Tender, TenderBid, useTenders } from '@/hooks/useTenders';
 import { formatDistanceToNow } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
@@ -44,6 +48,8 @@ export const BidsReceivedSection = ({ tenders }: BidsReceivedSectionProps) => {
   const [tenderFilter, setTenderFilter] = useState<string>('all');
   const [sortField, setSortField] = useState<SortField>('submitted_at');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
+  const [selectedBidId, setSelectedBidId] = useState<string | null>(null);
+  const [selectedTenderId, setSelectedTenderId] = useState<string | null>(null);
   
   const { getTenderBids, awardTender } = useTenders();
   const { toast } = useToast();
@@ -179,6 +185,7 @@ export const BidsReceivedSection = ({ tenders }: BidsReceivedSectionProps) => {
   }
 
   return (
+    <>
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
@@ -362,15 +369,43 @@ export const BidsReceivedSection = ({ tenders }: BidsReceivedSectionProps) => {
                       )}
                     </TableCell>
                     <TableCell>
-                      {bid.tender.status === 'closed' && bid.status === 'submitted' && (
+                      <div className="flex items-center gap-2">
                         <Button
                           size="sm"
                           variant="outline"
-                          onClick={() => handleAwardBid(bid)}
+                          onClick={() => {
+                            setSelectedBidId(bid.id);
+                            setSelectedTenderId(bid.tender.id);
+                          }}
                         >
-                          Award
+                          <Eye className="h-4 w-4 mr-1" />
+                          View Details
                         </Button>
-                      )}
+                        {(bid as any).excel_file_path && (
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => {
+                              // Download Excel file
+                              toast({
+                                title: 'Download started',
+                                description: 'Downloading bid Excel file...'
+                              });
+                            }}
+                          >
+                            <Download className="h-4 w-4" />
+                          </Button>
+                        )}
+                        {bid.tender.status === 'closed' && bid.status === 'submitted' && (
+                          <Button
+                            size="sm"
+                            onClick={() => handleAwardBid(bid)}
+                          >
+                            <Award className="h-4 w-4 mr-1" />
+                            Award
+                          </Button>
+                        )}
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -391,5 +426,20 @@ export const BidsReceivedSection = ({ tenders }: BidsReceivedSectionProps) => {
         )}
       </CardContent>
     </Card>
+
+    {selectedBidId && selectedTenderId && (
+      <TenderBidDetailsDialog
+        open={!!selectedBidId}
+        onOpenChange={(open) => {
+          if (!open) {
+            setSelectedBidId(null);
+            setSelectedTenderId(null);
+          }
+        }}
+        bidId={selectedBidId}
+        tenderId={selectedTenderId}
+      />
+    )}
+    </>
   );
 };
