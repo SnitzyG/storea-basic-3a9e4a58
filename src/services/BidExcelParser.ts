@@ -20,8 +20,11 @@ export interface ParsedBidData {
 
 /**
  * Parse an Excel file containing bid line items
- * Expected format:
- * - Line Number | Description | Specification | UOM | Quantity | Unit Price | Total | Category | Notes
+ * Expected format columns in exact order:
+ * 1. Item Description
+ * 2. Quantity
+ * 3. Category
+ * 4. Unit Price
  */
 export class BidExcelParser {
   static async parseExcelFile(file: File): Promise<ParsedBidData> {
@@ -51,7 +54,7 @@ export class BidExcelParser {
           const headers = jsonData[0].map((h: any) => String(h).toLowerCase().trim());
           const lineItems: ParsedBidLineItem[] = [];
 
-          // Find column indices
+          // Find column indices - expect exact format: Item Description, Quantity, Category, Unit Price
           const getColIndex = (names: string[]) => {
             for (const name of names) {
               const idx = headers.findIndex(h => h.includes(name));
@@ -60,15 +63,18 @@ export class BidExcelParser {
             return -1;
           };
 
-          const lineNumIdx = getColIndex(['line', 'number', '#', 'item no']);
-          const descIdx = getColIndex(['description', 'item', 'desc']);
-          const specIdx = getColIndex(['specification', 'spec', 'details']);
-          const uomIdx = getColIndex(['uom', 'unit', 'measure']);
-          const qtyIdx = getColIndex(['quantity', 'qty', 'amount']);
+          // Required columns in order
+          const descIdx = getColIndex(['item description', 'description', 'item', 'desc']);
+          const qtyIdx = getColIndex(['quantity', 'qty']);
+          const categoryIdx = getColIndex(['category', 'trade']);
           const priceIdx = getColIndex(['unit price', 'price', 'rate']);
-          const totalIdx = getColIndex(['total', 'amount']);
-          const categoryIdx = getColIndex(['category', 'trade', 'type']);
-          const notesIdx = getColIndex(['notes', 'comments', 'remarks']);
+          
+          // Optional columns
+          const lineNumIdx = getColIndex(['line', 'number', '#']);
+          const specIdx = getColIndex(['specification', 'spec']);
+          const uomIdx = getColIndex(['unit of measure', 'uom', 'unit']);
+          const totalIdx = getColIndex(['total']);
+          const notesIdx = getColIndex(['notes', 'comments']);
 
           // Parse data rows (skip header)
           for (let i = 1; i < jsonData.length; i++) {

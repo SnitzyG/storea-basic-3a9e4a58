@@ -18,6 +18,7 @@ import { downloadFromStorage } from '@/utils/storageUtils';
 import { toast } from 'sonner';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
+import { supabase } from '@/integrations/supabase/client';
 
 interface TenderDocument {
   id: string;
@@ -218,6 +219,3 @@ export const TenderDocumentCarousel: React.FC<TenderDocumentCarouselProps> = ({
     </Card>
   );
 };
-
-// Import supabase
-import { supabase } from '@/integrations/supabase/client';

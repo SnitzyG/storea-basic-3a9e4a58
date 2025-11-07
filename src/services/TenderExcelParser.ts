@@ -72,61 +72,109 @@ export class TenderExcelParser {
 
   /**
    * Extract line items from worksheet
-   * Expects headers in row 13: Category, Item Description, Specification, Quantity, Unit, Rate, Total, Notes
+   * Expects headers: Item Description, Quantity, Category, Unit Price
+   * Can also handle: Specification, Unit, Total, Notes as optional columns
    */
   static extractLineItemsFromSheet(worksheet: XLSX.WorkSheet): ParsedBidLineItem[] {
-    const range = XLSX.utils.decode_range(worksheet['!ref'] || 'A1');
-    const lineItems: ParsedBidLineItem[] = [];
-    
-    // Start reading from row 13 (header row based on tenderExportUtils template)
-    const headerRow = 12; // 0-indexed, so row 13
-    const dataStartRow = headerRow + 1;
+    // Convert entire worksheet to JSON to find headers dynamically
+    const jsonData = XLSX.utils.sheet_to_json(worksheet, { 
+      header: 1,
+      defval: '',
+      blankrows: false
+    }) as any[][];
 
-    let currentCategory = 'General';
-    let lineNumber = 1;
+    if (jsonData.length < 2) {
+      return [];
+    }
 
-    for (let row = dataStartRow; row <= range.e.r; row++) {
-      const categoryCell = worksheet[XLSX.utils.encode_cell({ r: row, c: 0 })];
-      const descCell = worksheet[XLSX.utils.encode_cell({ r: row, c: 1 })];
-      const specCell = worksheet[XLSX.utils.encode_cell({ r: row, c: 2 })];
-      const qtyCell = worksheet[XLSX.utils.encode_cell({ r: row, c: 3 })];
-      const unitCell = worksheet[XLSX.utils.encode_cell({ r: row, c: 4 })];
-      const rateCell = worksheet[XLSX.utils.encode_cell({ r: row, c: 5 })];
-      const totalCell = worksheet[XLSX.utils.encode_cell({ r: row, c: 6 })];
-      const notesCell = worksheet[XLSX.utils.encode_cell({ r: row, c: 7 })];
-
-      // Check if this is a category header row (has category but no description)
-      if (categoryCell && categoryCell.v && !descCell?.v) {
-        currentCategory = String(categoryCell.v);
-        continue;
+    // Find header row (look for "Item Description" or "Description")
+    let headerRowIndex = -1;
+    for (let i = 0; i < Math.min(20, jsonData.length); i++) {
+      const row = jsonData[i];
+      const rowStr = row.map((cell: any) => String(cell).toLowerCase()).join('|');
+      if (rowStr.includes('item description') || (rowStr.includes('description') && rowStr.includes('quantity'))) {
+        headerRowIndex = i;
+        break;
       }
+    }
 
+    if (headerRowIndex === -1) {
+      throw new Error('Could not find header row in Excel file');
+    }
+
+    const headers = jsonData[headerRowIndex].map((h: any) => String(h).toLowerCase().trim());
+    const lineItems: ParsedBidLineItem[] = [];
+
+    // Find column indices - primary format: Item Description, Quantity, Category, Unit Price
+    const getColIndex = (names: string[]) => {
+      for (const name of names) {
+        const idx = headers.findIndex(h => h.includes(name));
+        if (idx !== -1) return idx;
+      }
+      return -1;
+    };
+
+    const descIdx = getColIndex(['item description', 'description', 'item']);
+    const qtyIdx = getColIndex(['quantity', 'qty']);
+    const categoryIdx = getColIndex(['category', 'trade']);
+    const priceIdx = getColIndex(['unit price', 'price', 'rate']);
+    
+    // Optional columns
+    const specIdx = getColIndex(['specification', 'spec']);
+    const uomIdx = getColIndex(['unit of measure', 'uom', 'unit']);
+    const totalIdx = getColIndex(['total']);
+    const notesIdx = getColIndex(['notes', 'comments']);
+
+    if (descIdx === -1 || priceIdx === -1) {
+      throw new Error('Excel file must contain "Item Description" and "Unit Price" columns');
+    }
+
+    let lineNumber = 1;
+    let currentCategory = 'General';
+
+    // Parse data rows (skip header)
+    for (let i = headerRowIndex + 1; i < jsonData.length; i++) {
+      const row = jsonData[i];
+      
       // Skip empty rows
-      if (!descCell || !descCell.v) continue;
+      if (!row || row.every((cell: any) => !cell)) continue;
 
-      // Skip rows without rate (builder hasn't filled in)
-      if (!rateCell || !rateCell.v) continue;
+      const description = descIdx !== -1 ? String(row[descIdx] || '').trim() : '';
+      
+      // Skip if no description
+      if (!description) continue;
 
-      // Skip totals rows
-      const desc = String(descCell.v).toLowerCase();
+      // Skip totals/subtotals rows
+      const desc = description.toLowerCase();
       if (desc.includes('subtotal') || desc.includes('gst') || desc.includes('total')) {
         break;
       }
 
-      const quantity = qtyCell?.v ? Number(qtyCell.v) : undefined;
-      const unitPrice = Number(rateCell.v);
-      const total = totalCell?.v ? Number(totalCell.v) : (quantity || 1) * unitPrice;
+      // Get values
+      const quantity = qtyIdx !== -1 && row[qtyIdx] ? Number(row[qtyIdx]) : undefined;
+      const category = categoryIdx !== -1 && row[categoryIdx] ? String(row[categoryIdx]).trim() : currentCategory;
+      const unitPrice = priceIdx !== -1 && row[priceIdx] ? Number(row[priceIdx]) : 0;
+      
+      // Skip rows without unit price (builder hasn't filled in)
+      if (!unitPrice || unitPrice <= 0) continue;
+
+      const total = totalIdx !== -1 && row[totalIdx] ? Number(row[totalIdx]) : (quantity || 1) * unitPrice;
+
+      // Update current category if this row has one
+      if (category && category !== 'General') {
+        currentCategory = category;
+      }
 
       lineItems.push({
         lineNumber: lineNumber++,
-        itemDescription: String(descCell.v),
-        specification: specCell?.v ? String(specCell.v) : undefined,
+        itemDescription: description,
+        specification: specIdx !== -1 ? String(row[specIdx] || '').trim() || undefined : undefined,
         quantity,
-        unitOfMeasure: unitCell?.v ? String(unitCell.v) : undefined,
+        unitOfMeasure: uomIdx !== -1 ? String(row[uomIdx] || '').trim() || undefined : undefined,
         unitPrice,
         total,
         category: currentCategory,
-        notes: notesCell?.v ? String(notesCell.v) : undefined
+        notes: notesIdx !== -1 ? String(row[notesIdx] || '').trim() || undefined : undefined
       });
     }
 
