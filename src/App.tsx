@@ -24,7 +24,7 @@ import Testing from "./pages/Testing";
 import TenderResponse from "./pages/TenderResponse";
 import JoinTender from "./pages/JoinTender";
 import TenderReviewDemo from "./pages/TenderReviewDemo";
-import { TenderBuilder } from "./pages/TenderBuilder";
+import TenderBuilder from "./pages/TenderBuilder";
 import AcceptInvitation from "./pages/AcceptInvitation";
 import ProjectJoin from "./pages/ProjectJoin";
 import PropertyZoning from "./pages/PropertyZoning";

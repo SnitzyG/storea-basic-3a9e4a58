@@ -16,6 +16,7 @@ import Tenders from "./pages/Tenders.tsx";
 import Financials from "./pages/Financials.tsx";
 import TenderResponse from "./pages/TenderResponse.tsx";
 import TenderReviewDemo from "./pages/TenderReviewDemo.tsx";
+import TenderBuilder from "./pages/TenderBuilder.tsx";
 import Auth from "./pages/Auth.tsx";
 import Testing from "./pages/Testing.tsx";
 import NotFound from "./pages/NotFound.tsx";
@@ -82,6 +83,7 @@ createRoot(document.getElementById("root")!).render(
                     <Route path="/rfis" element={<AppLayout><RFIs /></AppLayout>} />
                     <Route path="/messages" element={<AppLayout><Messages /></AppLayout>} />
                     <Route path="/tenders" element={<AppLayout><Tenders /></AppLayout>} />
+                    <Route path="/tenders/:tenderId/builder" element={<AppLayout><TenderBuilder /></AppLayout>} />
                     <Route path="/calendar" element={<AppLayout><Calendar /></AppLayout>} />
                     <Route path="/todo-list" element={<AppLayout><TodoList /></AppLayout>} />
                     <Route path="/financials" element={<AppLayout><Financials /></AppLayout>} />

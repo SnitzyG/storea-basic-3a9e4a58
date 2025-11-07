@@ -68,7 +68,7 @@ interface LineItemPricing {
   };
 }
 
-export const TenderBuilder = () => {
+const TenderBuilder = () => {
   const { tenderId } = useParams<{ tenderId: string }>();
   const navigate = useNavigate();
   const { user, profile } = useAuth();
@@ -1229,3 +1229,5 @@ export const TenderBuilder = () => {
     </AppLayout>
   );
 };
+
+export default TenderBuilder;
