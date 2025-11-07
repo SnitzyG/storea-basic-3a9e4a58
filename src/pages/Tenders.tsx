@@ -304,8 +304,19 @@ const Tenders = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredTenders.map(tender => (
-                      <TableRow key={tender.id} onClick={() => navigate(`/tenders/${tender.id}`)} className="hover:bg-muted/30 transition-all duration-200 cursor-pointer border-b border-muted/20">
+                  {filteredTenders.map(tender => (
+                      <TableRow 
+                        key={tender.id} 
+                        onClick={() => {
+                          // Builders go to builder dashboard, architects go to details view
+                          if (userRole === 'builder' || userRole === 'contractor') {
+                            navigate(`/tenders/${tender.id}/builder`);
+                          } else {
+                            navigate(`/tenders/${tender.id}`);
+                          }
+                        }} 
+                        className="hover:bg-muted/30 transition-all duration-200 cursor-pointer border-b border-muted/20"
+                      >
                         <TableCell className="text-sm px-4 py-3 text-foreground/90">
                           {tender.tender_id ? (
                             <div className="flex items-center gap-2">

@@ -24,6 +24,7 @@ import Testing from "./pages/Testing";
 import TenderResponse from "./pages/TenderResponse";
 import JoinTender from "./pages/JoinTender";
 import TenderReviewDemo from "./pages/TenderReviewDemo";
+import { TenderBuilder } from "./pages/TenderBuilder";
 import AcceptInvitation from "./pages/AcceptInvitation";
 import ProjectJoin from "./pages/ProjectJoin";
 import PropertyZoning from "./pages/PropertyZoning";
@@ -100,6 +101,11 @@ const App = () => (
           <Route path="/tender/:tenderId" element={<TenderResponse />} />
           <Route path="/join-tender/:tenderId" element={<JoinTender />} />
           <Route path="/tenders/:tenderId" element={<Tenders />} />
+          <Route path="/tenders/:tenderId/builder" element={
+            <AppLayout>
+              <TenderBuilder />
+            </AppLayout>
+          } />
           <Route path="/tender-view/:tenderId" element={<Tenders />} />
           <Route path="/tender-review-demo" element={<TenderReviewDemo />} />
           <Route path="/accept-invitation" element={<AcceptInvitation />} />
