@@ -12,8 +12,7 @@ import { useDropzone } from 'react-dropzone';
 import { Upload, FileSpreadsheet, Edit, Check, AlertCircle, Loader2 } from 'lucide-react';
 import { TenderExcelParser, ParsedBidData } from '@/services/TenderExcelParser';
 import { TenderBidFileService } from '@/services/TenderBidFileService';
-import { useTenderLineItems } from '@/hooks/useTenderLineItems';
-import { useTenderBidLineItems } from '@/hooks/useTenderBidLineItems';
+import { TenderLineItem } from '@/hooks/useTenderLineItems';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -21,13 +20,14 @@ interface TenderBidSubmissionWizardProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   tender: any;
+  lineItems?: TenderLineItem[];
   onSuccess?: () => void;
 }
 
 type SubmissionMethod = 'excel' | 'web_form' | null;
 type WizardStep = 'method' | 'upload' | 'review' | 'complete';
 
-export const TenderBidSubmissionWizard = ({ open, onOpenChange, tender, onSuccess }: TenderBidSubmissionWizardProps) => {
+export const TenderBidSubmissionWizard = ({ open, onOpenChange, tender, lineItems = [], onSuccess }: TenderBidSubmissionWizardProps) => {
   const { user, profile } = useAuth();
   const [currentStep, setCurrentStep] = useState<WizardStep>('method');
   const [submissionMethod, setSubmissionMethod] = useState<SubmissionMethod>(null);
@@ -49,8 +49,6 @@ export const TenderBidSubmissionWizard = ({ open, onOpenChange, tender, onSucces
   const [contactPerson, setContactPerson] = useState(profile?.name || '');
   const [email, setEmail] = useState(user?.email || '');
   const [phone, setPhone] = useState(profile?.phone || '');
-
-  const { lineItems } = useTenderLineItems(tender?.id);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop: async (acceptedFiles) => {

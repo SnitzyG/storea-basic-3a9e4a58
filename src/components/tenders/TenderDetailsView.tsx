@@ -414,6 +414,7 @@ export const TenderDetailsView = () => {
         open={showBidDialog}
         onOpenChange={setShowBidDialog}
         tender={tender}
+        lineItems={lineItems}
       />
     </AppLayout>
   );
