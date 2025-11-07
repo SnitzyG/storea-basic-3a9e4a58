@@ -14,6 +14,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { AppLayout } from '@/components/layout/AppLayout';
+import { TenderDocumentCarousel } from '@/components/tenders/TenderDocumentCarousel';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { 
   Download, 
   FileText, 
@@ -31,12 +33,16 @@ import {
   Eye,
   Edit2,
   Trash2,
-  CheckCircle2
+  CheckCircle2,
+  AlertCircle,
+  Plus,
+  MessageSquare
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { formatDistanceToNow } from 'date-fns';
 import { TenderBidFileService } from '@/services/TenderBidFileService';
 import { downloadFromStorage } from '@/utils/storageUtils';
+import { BidExcelParser, ParsedBidLineItem } from '@/services/BidExcelParser';
 
 interface TenderPackageDoc {
   id: string;
@@ -78,6 +84,19 @@ export const TenderBuilder = () => {
   const [lineItemPricing, setLineItemPricing] = useState<LineItemPricing>({});
   const [bidNotes, setBidNotes] = useState('');
   const [activeTab, setActiveTab] = useState('overview');
+  const [parsingExcel, setParsingExcel] = useState(false);
+  const [showRFIDialog, setShowRFIDialog] = useState(false);
+  const [rfiDocumentId, setRfiDocumentId] = useState<string>('');
+  const [rfiDocumentName, setRfiDocumentName] = useState<string>('');
+  const [rfiMessage, setRfiMessage] = useState('');
+  const [showManualEntryDialog, setShowManualEntryDialog] = useState(false);
+  const [manualLineItem, setManualLineItem] = useState({
+    line_number: 0,
+    item_description: '',
+    quantity: 1,
+    unit_price: 0,
+    category: 'General'
+  });
   
   const { lineItems, loading: lineItemsLoading } = useTenderLineItems(tenderId);
   const { checkTenderAccess } = useTenderAccess();
@@ -275,6 +294,166 @@ export const TenderBuilder = () => {
       console.error('Error downloading document:', error);
       toast.error('Failed to download document');
     }
+  };
+
+  const handleExcelUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.name.match(/\.(xlsx|xls)$/i)) {
+      toast.error('Please upload an Excel file (.xlsx or .xls)');
+      return;
+    }
+
+    setParsingExcel(true);
+    try {
+      // Parse the Excel file
+      const parsedData = await BidExcelParser.parseExcelFile(file);
+
+      // Validate against tender line items
+      const validation = BidExcelParser.validateAgainstTender(
+        parsedData.lineItems,
+        lineItems
+      );
+
+      if (!validation.valid) {
+        toast.error('Excel validation failed', {
+          description: validation.errors.slice(0, 3).join(', ')
+        });
+        return;
+      }
+
+      // Update line item pricing from parsed data
+      const newPricing: LineItemPricing = {};
+      parsedData.lineItems.forEach(item => {
+        // Find matching tender line item
+        const tenderLineItem = lineItems.find(li => li.line_number === item.line_number);
+        if (tenderLineItem) {
+          newPricing[tenderLineItem.id] = {
+            unit_price: item.unit_price,
+            notes: item.notes || ''
+          };
+        }
+      });
+
+      setLineItemPricing(newPricing);
+      
+      if (parsedData.notes) {
+        setBidNotes(parsedData.notes);
+      }
+
+      toast.success('Excel file parsed successfully', {
+        description: `${parsedData.lineItems.length} line items imported`
+      });
+
+      // Upload the Excel file as a bid document
+      const uploadedDoc: BidDocument = {
+        name: file.name,
+        file_path: '', // Will be set after upload
+        file_size: file.size,
+        uploaded_at: new Date().toISOString()
+      };
+
+      // Upload to storage
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Date.now()}-${file.name}`;
+      const filePath = `tenders/${tenderId}/bid-docs/${user?.id}/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('documents')
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: false
+        });
+
+      if (uploadError) throw uploadError;
+
+      uploadedDoc.file_path = filePath;
+      setBidDocuments([...bidDocuments, uploadedDoc]);
+
+    } catch (error: any) {
+      console.error('Error parsing Excel:', error);
+      toast.error('Failed to parse Excel file', {
+        description: error.message
+      });
+    } finally {
+      setParsingExcel(false);
+      // Reset input
+      e.target.value = '';
+    }
+  };
+
+  const handleRequestRFI = async (documentId: string, documentName: string) => {
+    setRfiDocumentId(documentId);
+    setRfiDocumentName(documentName);
+    setRfiMessage('');
+    setShowRFIDialog(true);
+  };
+
+  const handleSubmitRFI = async () => {
+    if (!tender || !rfiMessage.trim()) {
+      toast.error('Please enter a message');
+      return;
+    }
+
+    try {
+      // Create RFI
+      const { error } = await supabase
+        .from('rfis')
+        .insert({
+          raised_by: user!.id,
+          subject: `Tender Document Query: ${rfiDocumentName}`,
+          description: rfiMessage,
+          rfi_type: 'request_for_information',
+          priority: 'medium',
+          status: 'open',
+          category: 'Tender Document'
+        } as any);
+
+      if (error) throw error;
+
+      toast.success('RFI submitted successfully');
+      setShowRFIDialog(false);
+      setRfiMessage('');
+    } catch (error: any) {
+      console.error('Error submitting RFI:', error);
+      toast.error('Failed to submit RFI');
+    }
+  };
+
+  const handleAddManualLineItem = () => {
+    if (!manualLineItem.item_description.trim()) {
+      toast.error('Please enter item description');
+      return;
+    }
+
+    const nextLineNumber = lineItems.length > 0 
+      ? Math.max(...lineItems.map(li => li.line_number)) + 1 
+      : 1;
+
+    // Create a temporary line item ID
+    const tempId = `manual-${Date.now()}`;
+    
+    setLineItemPricing(prev => ({
+      ...prev,
+      [tempId]: {
+        unit_price: manualLineItem.unit_price,
+        notes: `${manualLineItem.item_description} (${manualLineItem.quantity} @ $${manualLineItem.unit_price})`
+      }
+    }));
+
+    toast.success('Manual line item added');
+    setShowManualEntryDialog(false);
+    
+    // Reset form
+    setManualLineItem({
+      line_number: 0,
+      item_description: '',
+      quantity: 1,
+      unit_price: 0,
+      category: 'General'
+    });
   };
 
   const calculateTotals = () => {
@@ -565,53 +744,76 @@ export const TenderBuilder = () => {
               </CardContent>
             </Card>
 
-            {/* Tender Package Documents */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Package className="h-5 w-5" />
-                  Tender Package Documents
-                  <Badge variant="secondary">{packageDocs.length}</Badge>
-                </CardTitle>
-                <CardDescription>
-                  Download and review tender documents
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                {packageDocs.length > 0 ? (
-                  <div className="space-y-2">
-                    {packageDocs.map((doc) => (
-                      <div key={doc.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50">
-                        <div className="flex items-center gap-3">
-                          <FileText className="h-5 w-5 text-muted-foreground" />
-                          <div>
-                            <p className="font-medium">{doc.document_name}</p>
-                            <p className="text-xs text-muted-foreground">
-                              {doc.document_type} • {doc.file_size ? `${(doc.file_size / 1024).toFixed(2)} KB` : 'Unknown size'}
-                            </p>
-                          </div>
-                        </div>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleDownloadDocument(doc)}
-                        >
-                          <Download className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-center text-muted-foreground py-8">
-                    No documents available
-                  </p>
-                )}
-              </CardContent>
-            </Card>
+            {/* Tender Package Documents Carousel */}
+            <TenderDocumentCarousel 
+              documents={packageDocs} 
+              onRequestRFI={handleRequestRFI}
+            />
           </TabsContent>
 
           {/* Pricing Tab */}
           <TabsContent value="pricing" className="space-y-6">
+            {/* Excel Upload and Manual Entry */}
+            <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-transparent">
+              <CardHeader>
+                <CardTitle>Quick Import Options</CardTitle>
+                <CardDescription>
+                  Upload your completed quote Excel or add line items manually
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="flex gap-4">
+                <div className="flex-1">
+                  <input
+                    type="file"
+                    id="excel-upload"
+                    accept=".xlsx,.xls"
+                    className="hidden"
+                    onChange={handleExcelUpload}
+                    disabled={parsingExcel || isExpired}
+                  />
+                  <label htmlFor="excel-upload">
+                    <Button
+                      asChild
+                      variant="outline"
+                      className="w-full cursor-pointer"
+                      disabled={parsingExcel || isExpired}
+                    >
+                      <div>
+                        {parsingExcel ? (
+                          <>
+                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                            Parsing Excel...
+                          </>
+                        ) : (
+                          <>
+                            <FileSpreadsheet className="h-4 w-4 mr-2" />
+                            Upload Quote Excel
+                          </>
+                        )}
+                      </div>
+                    </Button>
+                  </label>
+                  <p className="text-xs text-muted-foreground mt-2">
+                    Automatically import pricing from your completed quote template
+                  </p>
+                </div>
+                <div className="flex-1">
+                  <Button
+                    variant="outline"
+                    className="w-full"
+                    onClick={() => setShowManualEntryDialog(true)}
+                    disabled={isExpired}
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Manual Line Item
+                  </Button>
+                  <p className="text-xs text-muted-foreground mt-2">
+                    Manually add custom line items to your bid
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+
             <Card>
               <CardHeader>
                 <CardTitle>Line Item Pricing</CardTitle>
@@ -906,6 +1108,124 @@ export const TenderBuilder = () => {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* RFI Dialog */}
+      <Dialog open={showRFIDialog} onOpenChange={setShowRFIDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Request for Information</DialogTitle>
+            <DialogDescription>
+              Ask a question about: {rfiDocumentName}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="rfi-message">Your Question</Label>
+              <Textarea
+                id="rfi-message"
+                placeholder="Describe your question or clarification needed..."
+                value={rfiMessage}
+                onChange={(e) => setRfiMessage(e.target.value)}
+                rows={6}
+              />
+            </div>
+            <div className="flex gap-2 justify-end">
+              <Button variant="outline" onClick={() => setShowRFIDialog(false)}>
+                Cancel
+              </Button>
+              <Button onClick={handleSubmitRFI}>
+                <MessageSquare className="h-4 w-4 mr-2" />
+                Submit RFI
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Manual Line Item Entry Dialog */}
+      <Dialog open={showManualEntryDialog} onOpenChange={setShowManualEntryDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add Manual Line Item</DialogTitle>
+            <DialogDescription>
+              Add a custom line item to your bid
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="manual-desc">Item Description *</Label>
+              <Input
+                id="manual-desc"
+                placeholder="E.g., Additional site clearing"
+                value={manualLineItem.item_description}
+                onChange={(e) => setManualLineItem(prev => ({
+                  ...prev,
+                  item_description: e.target.value
+                }))}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="manual-qty">Quantity</Label>
+                <Input
+                  id="manual-qty"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={manualLineItem.quantity}
+                  onChange={(e) => setManualLineItem(prev => ({
+                    ...prev,
+                    quantity: parseFloat(e.target.value) || 0
+                  }))}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="manual-price">Unit Price ($)</Label>
+                <Input
+                  id="manual-price"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={manualLineItem.unit_price}
+                  onChange={(e) => setManualLineItem(prev => ({
+                    ...prev,
+                    unit_price: parseFloat(e.target.value) || 0
+                  }))}
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="manual-category">Category</Label>
+              <Input
+                id="manual-category"
+                placeholder="E.g., Site Works"
+                value={manualLineItem.category}
+                onChange={(e) => setManualLineItem(prev => ({
+                  ...prev,
+                  category: e.target.value
+                }))}
+              />
+            </div>
+            <div className="p-3 bg-muted rounded-lg">
+              <div className="flex justify-between text-sm">
+                <span className="font-medium">Total:</span>
+                <span className="font-bold">
+                  ${(manualLineItem.quantity * manualLineItem.unit_price).toFixed(2)}
+                </span>
+              </div>
+            </div>
+            <div className="flex gap-2 justify-end">
+              <Button variant="outline" onClick={() => setShowManualEntryDialog(false)}>
+                Cancel
+              </Button>
+              <Button onClick={handleAddManualLineItem}>
+                <Plus className="h-4 w-4 mr-2" />
+                Add Line Item
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </AppLayout>
   );
 };
