@@ -131,23 +131,6 @@ const Tenders = () => {
       autoCloseExpired();
     }
   }, [expiredOpenTenders.length]);
-  // If no projects and user is not an architect, show Join Tender interface directly
-  if (projects.length === 0 && userRole !== 'architect') {
-    return <div className="min-h-screen bg-background px-4 py-8">
-        <div className="max-w-4xl mx-auto space-y-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold">Tenders</h1>
-              <p className="text-muted-foreground mt-2">
-                Join tenders by entering the Tender ID provided by the architect
-              </p>
-            </div>
-          </div>
-          
-          <TenderJoinSection />
-        </div>
-      </div>;
-  }
 
   // If no projects and user is an architect, show the project creation message
   if (projects.length === 0) {
