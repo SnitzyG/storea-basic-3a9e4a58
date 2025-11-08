@@ -37,7 +37,7 @@ const Tenders = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [wizardOpen, setWizardOpen] = useState(false);
   const [selectedTender, setSelectedTender] = useState<Tender | null>(null);
-  const [activeTab, setActiveTab] = useState<'tenders' | 'bids' | 'comparison' | 'join' | 'access'>('tenders');
+  const [activeTab, setActiveTab] = useState<'tenders' | 'join'>('tenders');
   const {
     selectedProject
   } = useProjectSelection();
@@ -247,32 +247,15 @@ const Tenders = () => {
 
       {/* Main Content Tabs */}
       <Tabs defaultValue="tenders" className="w-full" value={activeTab} onValueChange={(value) => setActiveTab(value as any)}>
-        <TabsList className={userRole === 'architect' ? 'grid w-full grid-cols-4' : 'grid w-full grid-cols-2'}>
+        <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="tenders" className="flex items-center gap-2">
             <FileText className="h-4 w-4" />
             My Tenders
           </TabsTrigger>
-          {userRole === 'architect' ? (
-            <>
-              <TabsTrigger value="bids" className="flex items-center gap-2">
-                <Users className="h-4 w-4" />
-                Bids Received
-              </TabsTrigger>
-              <TabsTrigger value="comparison" className="flex items-center gap-2">
-                <BarChart3 className="h-4 w-4" />
-                Comparison
-              </TabsTrigger>
-              <TabsTrigger value="access" className="flex items-center gap-2">
-                <UserPlus className="h-4 w-4" />
-                Access Requests
-              </TabsTrigger>
-            </>
-          ) : (
-            <TabsTrigger value="join" className="flex items-center gap-2">
-              <UserPlus className="h-4 w-4" />
-              Join Tender
-            </TabsTrigger>
-          )}
+          <TabsTrigger value="join" className="flex items-center gap-2">
+            <UserPlus className="h-4 w-4" />
+            Join Tender
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="tenders" className="space-y-6">
@@ -510,25 +493,15 @@ const Tenders = () => {
           )}
         </TabsContent>
 
-        <TabsContent value="bids" className="space-y-6">
-          <BidsReceivedSection tenders={filteredTenders} />
-        </TabsContent>
-
-        <TabsContent value="comparison" className="space-y-6">
-          <TenderComparisonDashboard tenderId={selectedProject?.id || ''} />
-        </TabsContent>
-
+        {/* Join Tender Tab */}
         <TabsContent value="join" className="space-y-6">
           <TenderJoinSection projectId={selectedProject?.id} />
         </TabsContent>
-
-        <TabsContent value="access" className="space-y-6">
-          <TenderAccessApprovals projectId={selectedProject?.id} />
-        </TabsContent>
       </Tabs>
+    </div>
 
-      {/* Dialogs */}
-      <CreateTenderWizard 
+    {/* Dialogs */}
+    <CreateTenderWizard
         open={createDialogOpen} 
         onOpenChange={setCreateDialogOpen} 
         projectId={selectedProject?.id || ''} 
@@ -570,13 +543,12 @@ const Tenders = () => {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Create/Edit Tender Wizard */}
-      <CreateTenderWizard 
-        open={wizardOpen} 
-        onOpenChange={setWizardOpen}
-        projectId={selectedProject?.id || ''}
-      />
-    </div>
+    {/* Create/Edit Tender Wizard */}
+    <CreateTenderWizard 
+      open={wizardOpen} 
+      onOpenChange={setWizardOpen}
+      projectId={selectedProject?.id || ''}
+    />
   </AppLayout>;
 };
 
