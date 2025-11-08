@@ -233,13 +233,10 @@ const Tenders = () => {
   }
 
   return <AppLayout>
-    <div className="space-y-6">
+    <div className="space-y-6 mx-[25px]">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">Tenders</h1>
-          <p className="text-muted-foreground mt-1">Manage and track tender opportunities</p>
-        </div>
+        <div></div>
         {userRole === 'architect' && (
           <Button onClick={() => setCreateDialogOpen(true)} className="bg-primary hover:bg-primary/90">
             <Plus className="h-4 w-4 mr-2" />
@@ -248,49 +245,51 @@ const Tenders = () => {
         )}
       </div>
 
-      {/* Expired Tenders Alert */}
-      {expiredOpenTenders.length > 0 && userRole === 'architect' && <Card className="mb-6 border-orange-200 bg-orange-50">
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-2 text-orange-700">
-              <AlertTriangle className="w-5 h-5" />
-              <span className="font-medium">
-                {expiredOpenTenders.length} tender(s) have expired and will be auto-closed
-              </span>
-            </div>
-          </CardContent>
-        </Card>}
-
       {/* Main Content Tabs */}
       <Tabs defaultValue="tenders" className="w-full" value={activeTab} onValueChange={(value) => setActiveTab(value as any)}>
         <TabsList className={userRole === 'architect' ? 'grid w-full grid-cols-4' : 'grid w-full grid-cols-2'}>
-          <TabsTrigger value="tenders">
-            <FileText className="h-4 w-4 mr-2" />
+          <TabsTrigger value="tenders" className="flex items-center gap-2">
+            <FileText className="h-4 w-4" />
             My Tenders
           </TabsTrigger>
           {userRole === 'architect' ? (
             <>
-              <TabsTrigger value="bids">
-                <Users className="h-4 w-4 mr-2" />
+              <TabsTrigger value="bids" className="flex items-center gap-2">
+                <Users className="h-4 w-4" />
                 Bids Received
               </TabsTrigger>
-              <TabsTrigger value="comparison">
-                <BarChart3 className="h-4 w-4 mr-2" />
+              <TabsTrigger value="comparison" className="flex items-center gap-2">
+                <BarChart3 className="h-4 w-4" />
                 Comparison
               </TabsTrigger>
-              <TabsTrigger value="access">
-                <UserPlus className="h-4 w-4 mr-2" />
+              <TabsTrigger value="access" className="flex items-center gap-2">
+                <UserPlus className="h-4 w-4" />
                 Access Requests
               </TabsTrigger>
             </>
           ) : (
-            <TabsTrigger value="join">
-              <UserPlus className="h-4 w-4 mr-2" />
+            <TabsTrigger value="join" className="flex items-center gap-2">
+              <UserPlus className="h-4 w-4" />
               Join Tender
             </TabsTrigger>
           )}
         </TabsList>
 
         <TabsContent value="tenders" className="space-y-6">
+          {/* Expired Tenders Alert */}
+          {expiredOpenTenders.length > 0 && userRole === 'architect' && (
+            <Card className="border-orange-200 bg-orange-50">
+              <CardContent className="pt-6">
+                <div className="flex items-center gap-2 text-orange-700">
+                  <AlertTriangle className="w-5 h-5" />
+                  <span className="font-medium">
+                    {expiredOpenTenders.length} tender(s) have expired and will be auto-closed
+                  </span>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
           {/* Tenders List View */}
           {filteredTenders.length > 0 ? (
             <Card className="border-0 shadow-sm bg-gradient-to-br from-card to-card/50">
