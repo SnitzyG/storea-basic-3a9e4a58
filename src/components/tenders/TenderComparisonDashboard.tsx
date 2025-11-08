@@ -31,29 +31,53 @@ export const TenderComparisonDashboard: React.FC<TenderComparisonDashboardProps>
 
   // Fetch bids from database
   useEffect(() => {
+    console.log('TenderComparisonDashboard mounted with tenderId:', tenderId);
+    console.log('tenderId type:', typeof tenderId);
+    console.log('tenderId length:', tenderId?.length);
     fetchBids();
   }, [tenderId]);
 
   const fetchBids = async () => {
     try {
       setLoading(true);
+      console.log('Fetching bids for tender:', tenderId);
+      
       const { data, error } = await supabase
         .from('tender_bids')
-        .select(`
-          *,
-          bidder_profile:profiles!tender_bids_bidder_id_fkey(name, role)
-        `)
+        .select('*')
         .eq('tender_id', tenderId)
         .order('bid_amount', { ascending: true });
 
       if (error) {
         console.error('Error fetching bids:', error);
-        toast.error('Failed to fetch bids');
+        console.error('Error details:', JSON.stringify(error, null, 2));
+        toast.error(`Failed to fetch bids: ${error.message}`);
         return;
       }
 
       console.log('Fetched bids:', data);
-      setBids(data as any || []);
+      console.log('Number of bids:', data?.length || 0);
+      
+      // Fetch bidder profiles separately
+      if (data && data.length > 0) {
+        const bidderIds = data.map(bid => bid.bidder_id);
+        const { data: profiles } = await supabase
+          .from('profiles')
+          .select('user_id, name, role')
+          .in('user_id', bidderIds);
+        
+        console.log('Fetched profiles:', profiles);
+        
+        // Enrich bids with profile data
+        const enrichedBids = data.map(bid => ({
+          ...bid,
+          bidder_profile: profiles?.find(p => p.user_id === bid.bidder_id)
+        }));
+        
+        setBids(enrichedBids as any);
+      } else {
+        setBids([]);
+      }
     } catch (error) {
       console.error('Error fetching bids:', error);
       toast.error('Failed to fetch bids');
