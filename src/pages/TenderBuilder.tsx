@@ -914,61 +914,93 @@ const TenderBuilder = () => {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {lineItems.map((item) => {
-                          const pricing = lineItemPricing[item.id] || { unit_price: 0, notes: '' };
-                          const total = (item.quantity || 1) * pricing.unit_price;
+                        {(() => {
+                          // Group line items by section header
+                          const sections: { [key: string]: typeof lineItems } = {};
+                          let currentSection = '';
                           
-                          return (
-                            <TableRow key={item.id}>
-                              <TableCell className="font-medium">{item.line_number}</TableCell>
-                              <TableCell>
-                                <div>
-                                  <p className="font-medium">{item.item_description}</p>
-                                  {item.specification && (
-                                    <p className="text-xs text-muted-foreground mt-1">
-                                      {item.specification}
-                                    </p>
-                                  )}
-                                </div>
-                              </TableCell>
-                              <TableCell>{item.quantity || 1}</TableCell>
-                              <TableCell>{item.unit_of_measure || '-'}</TableCell>
-                              <TableCell>
-                                <Input
-                                  type="number"
-                                  step="0.01"
-                                  min="0"
-                                  placeholder="0.00"
-                                  value={pricing.unit_price || ''}
-                                  onChange={(e) => {
-                                    const value = parseFloat(e.target.value) || 0;
-                                    setLineItemPricing(prev => ({
-                                      ...prev,
-                                      [item.id]: { ...prev[item.id], unit_price: value }
-                                    }));
-                                  }}
-                                  disabled={isExpired}
-                                />
-                              </TableCell>
-                              <TableCell className="font-semibold">
-                                ${total.toFixed(2)}
-                              </TableCell>
-                              <TableCell>
-                                <Input
-                                  placeholder="Optional notes..."
-                                  value={pricing.notes || ''}
-                                  onChange={(e) => {
-                                    setLineItemPricing(prev => ({
-                                      ...prev,
-                                      [item.id]: { ...prev[item.id], notes: e.target.value }
-                                    }));
-                                  }}
-                                  disabled={isExpired}
-                                />
-                              </TableCell>
-                            </TableRow>
-                          );
-                        })}
+                          lineItems.forEach(item => {
+                            const section = item.category || 'General';
+                            if (!sections[section]) {
+                              sections[section] = [];
+                            }
+                            sections[section].push(item);
+                          });
+
+                          return Object.entries(sections).flatMap(([sectionName, sectionItems], sectionIdx) => {
+                            const rows = [];
+                            
+                            // Add section header row if it's not "General" or if there are multiple sections
+                            if (sectionName !== 'General' || Object.keys(sections).length > 1) {
+                              rows.push(
+                                <TableRow key={`section-${sectionIdx}`} className="bg-muted/50 hover:bg-muted/50">
+                                  <TableCell colSpan={7} className="font-bold text-base py-3">
+                                    {sectionName}
+                                  </TableCell>
+                                </TableRow>
+                              );
+                            }
+
+                            // Add line items for this section
+                            sectionItems.forEach((item) => {
+                              const pricing = lineItemPricing[item.id] || { unit_price: 0, notes: '' };
+                              const total = (item.quantity || 1) * pricing.unit_price;
+                              
+                              rows.push(
+                                <TableRow key={item.id}>
+                                  <TableCell className="font-medium">{item.line_number}</TableCell>
+                                  <TableCell>
+                                    <div>
+                                      <p className="font-medium">{item.item_description}</p>
+                                      {item.specification && (
+                                        <p className="text-xs text-muted-foreground mt-1">
+                                          {item.specification}
+                                        </p>
+                                      )}
+                                    </div>
+                                  </TableCell>
+                                  <TableCell>{item.quantity || 1}</TableCell>
+                                  <TableCell>{item.unit_of_measure || '-'}</TableCell>
+                                  <TableCell>
+                                    <Input
+                                      type="number"
+                                      step="0.01"
+                                      min="0"
+                                      placeholder="0.00"
+                                      value={pricing.unit_price || ''}
+                                      onChange={(e) => {
+                                        const value = parseFloat(e.target.value) || 0;
+                                        setLineItemPricing(prev => ({
+                                          ...prev,
+                                          [item.id]: { ...prev[item.id], unit_price: value }
+                                        }));
+                                      }}
+                                      disabled={isExpired}
+                                    />
+                                  </TableCell>
+                                  <TableCell className="font-semibold">
+                                    ${total.toFixed(2)}
+                                  </TableCell>
+                                  <TableCell>
+                                    <Input
+                                      placeholder="Optional notes..."
+                                      value={pricing.notes || ''}
+                                      onChange={(e) => {
+                                        setLineItemPricing(prev => ({
+                                          ...prev,
+                                          [item.id]: { ...prev[item.id], notes: e.target.value }
+                                        }));
+                                      }}
+                                      disabled={isExpired}
+                                    />
+                                  </TableCell>
+                                </TableRow>
+                              );
+                            });
+
+                            return rows;
+                          });
+                        })()}
                       </TableBody>
                     </Table>
                   </div>

@@ -10,21 +10,28 @@ export interface ParsedBidLineItem {
   total: number;
   category: string;
   notes?: string;
+  section_header?: string; // Track which section this item belongs to
+}
+
+export interface SectionHeader {
+  title: string;
+  rowIndex: number;
 }
 
 export interface ParsedBidData {
   lineItems: ParsedBidLineItem[];
+  sectionHeaders: SectionHeader[];
   totalAmount: number;
   notes?: string;
 }
 
 /**
  * Parse an Excel file containing bid line items
- * Expected format columns in exact order:
- * 1. Item Description
- * 2. Quantity
- * 3. Category
- * 4. Unit Price
+ * Expected format columns:
+ * #, Description, Qty, Unit Price, Total
+ * 
+ * Rows without a # are treated as section headers (e.g., "Cabinetry", "Provisional Sums")
+ * Only rows with a # are counted as actual line items
  */
 export class BidExcelParser {
   static async parseExcelFile(file: File): Promise<ParsedBidData> {
@@ -53,8 +60,9 @@ export class BidExcelParser {
 
           const headers = jsonData[0].map((h: any) => String(h).toLowerCase().trim());
           const lineItems: ParsedBidLineItem[] = [];
+          const sectionHeaders: SectionHeader[] = [];
 
-          // Find column indices - expect exact format: Item Description, Quantity, Category, Unit Price
+          // Find column indices - new format: #, Description, Qty, Unit Price, Total
           const getColIndex = (names: string[]) => {
             for (const name of names) {
               const idx = headers.findIndex(h => h.includes(name));
@@ -63,18 +71,14 @@ export class BidExcelParser {
             return -1;
           };
 
-          // Required columns in order
-          const descIdx = getColIndex(['item description', 'description', 'item', 'desc']);
-          const qtyIdx = getColIndex(['quantity', 'qty']);
-          const categoryIdx = getColIndex(['category', 'trade']);
+          // Required columns
+          const lineNumIdx = getColIndex(['#', 'line', 'number']);
+          const descIdx = getColIndex(['description', 'desc', 'item']);
+          const qtyIdx = getColIndex(['qty', 'quantity']);
           const priceIdx = getColIndex(['unit price', 'price', 'rate']);
-          
-          // Optional columns
-          const lineNumIdx = getColIndex(['line', 'number', '#']);
-          const specIdx = getColIndex(['specification', 'spec']);
-          const uomIdx = getColIndex(['unit of measure', 'uom', 'unit']);
           const totalIdx = getColIndex(['total']);
-          const notesIdx = getColIndex(['notes', 'comments']);
+
+          let currentSection = 'General';
 
           // Parse data rows (skip header)
           for (let i = 1; i < jsonData.length; i++) {
@@ -83,13 +87,27 @@ export class BidExcelParser {
             // Skip empty rows
             if (!row || row.every((cell: any) => !cell)) continue;
 
-            // Always use row index for consistent sequential numbering
-            const lineNumber = i;
+            const lineNumValue = lineNumIdx !== -1 ? row[lineNumIdx] : null;
             const description = descIdx !== -1 ? String(row[descIdx] || '').trim() : '';
             
             // Skip if no description
             if (!description) continue;
 
+            // Check if this is a section header (has description but no line number)
+            const hasLineNumber = lineNumValue !== null && lineNumValue !== '' && !isNaN(Number(lineNumValue));
+            
+            if (!hasLineNumber) {
+              // This is a section header (e.g., "Cabinetry", "Supply only costs (fixed)")
+              currentSection = description;
+              sectionHeaders.push({
+                title: description,
+                rowIndex: i
+              });
+              continue; // Don't add section headers as line items
+            }
+
+            // This is an actual line item (has a #)
+            const lineNumber = Number(lineNumValue);
             const quantity = qtyIdx !== -1 ? Number(row[qtyIdx]) || 1 : 1;
             const unitPrice = priceIdx !== -1 ? Number(row[priceIdx]) || 0 : 0;
             const total = totalIdx !== -1 ? Number(row[totalIdx]) || (quantity * unitPrice) : (quantity * unitPrice);
@@ -97,13 +115,11 @@ export class BidExcelParser {
             lineItems.push({
               line_number: lineNumber,
               item_description: description,
-              specification: specIdx !== -1 ? String(row[specIdx] || '').trim() : undefined,
-              unit_of_measure: uomIdx !== -1 ? String(row[uomIdx] || '').trim() : undefined,
               quantity,
               unit_price: unitPrice,
               total,
-              category: categoryIdx !== -1 ? String(row[categoryIdx] || 'General').trim() : 'General',
-              notes: notesIdx !== -1 ? String(row[notesIdx] || '').trim() : undefined
+              category: currentSection,
+              section_header: currentSection
             });
           }
 
@@ -115,6 +131,7 @@ export class BidExcelParser {
 
           resolve({
             lineItems,
+            sectionHeaders,
             totalAmount,
             notes: undefined
           });
