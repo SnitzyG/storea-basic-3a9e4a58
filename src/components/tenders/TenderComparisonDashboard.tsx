@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -11,18 +11,56 @@ import { TenderBid } from '@/hooks/useTenders';
 import { downloadFromStorage } from '@/utils/storageUtils';
 import { toast } from 'sonner';
 import { BidLineItemsTable } from './BidLineItemsTable';
+import { supabase } from '@/integrations/supabase/client';
+
 interface TenderComparisonDashboardProps {
   tenderId: string;
   bids?: TenderBid[];
 }
 
 const COLORS = ['hsl(var(--primary))', 'hsl(var(--secondary))', '#8884d8', '#82ca9d', '#ffc658', '#ff7300', '#d084d0'];
+
 export const TenderComparisonDashboard: React.FC<TenderComparisonDashboardProps> = ({
   tenderId,
-  bids = []
+  bids: propsBids
 }) => {
+  const [bids, setBids] = useState<TenderBid[]>(propsBids || []);
+  const [loading, setLoading] = useState(true);
   const [sortBy, setSortBy] = useState<'price' | 'timeline' | 'score'>('price');
   const [filterBy, setFilterBy] = useState<'all' | 'submitted' | 'under_review'>('all');
+
+  // Fetch bids from database
+  useEffect(() => {
+    fetchBids();
+  }, [tenderId]);
+
+  const fetchBids = async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('tender_bids')
+        .select(`
+          *,
+          bidder_profile:profiles!tender_bids_bidder_id_fkey(name, role)
+        `)
+        .eq('tender_id', tenderId)
+        .order('bid_amount', { ascending: true });
+
+      if (error) {
+        console.error('Error fetching bids:', error);
+        toast.error('Failed to fetch bids');
+        return;
+      }
+
+      console.log('Fetched bids:', data);
+      setBids(data as any || []);
+    } catch (error) {
+      console.error('Error fetching bids:', error);
+      toast.error('Failed to fetch bids');
+    } finally {
+      setLoading(false);
+    }
+  };
   const filteredBids = useMemo(() => {
     return bids.filter(bid => filterBy === 'all' || bid.status === filterBy);
   }, [bids, filterBy]);
