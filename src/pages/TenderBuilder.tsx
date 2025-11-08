@@ -900,7 +900,7 @@ const TenderBuilder = () => {
             <TabsTrigger value="submit">Submit</TabsTrigger>
           </TabsList>
 
-          {/* Overview Tab */}
+          {/* Tender Details Tab */}
           <TabsContent value="overview" className="space-y-6">
             <Card>
               <CardHeader>
@@ -1061,7 +1061,7 @@ const TenderBuilder = () => {
             )}
           </TabsContent>
 
-          {/* Pricing Tab */}
+          {/* Submit Bid Tab */}
           <TabsContent value="pricing" className="space-y-6">
             {/* Excel Upload and Manual Entry */}
             <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-transparent">
@@ -1359,8 +1359,9 @@ const TenderBuilder = () => {
             )}
           </TabsContent>
 
-          {/* Documents Tab */}
-          <TabsContent value="documents" className="space-y-6">
+          {/* Submit Bid Tab - includes pricing, documents, and submit */}
+          <TabsContent value="pricing" className="space-y-6">
+            {/* Pricing Section */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -1557,6 +1558,7 @@ const TenderBuilder = () => {
             </Card>
           </TabsContent>
         </Tabs>
+      </div>
 
       {/* RFI Dialog */}
       <Dialog open={showRFIDialog} onOpenChange={setShowRFIDialog}>
@@ -1680,8 +1682,7 @@ const TenderBuilder = () => {
           </div>
         </DialogContent>
       </Dialog>
-    </div>
-  </AppLayout>
+    </AppLayout>
   );
 };
 
