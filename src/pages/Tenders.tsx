@@ -9,7 +9,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Plus, AlertTriangle, FileText, Users, BarChart3, UserPlus, Edit, Trash2, Hash, Copy, Eye } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { useTenders, Tender } from '@/hooks/useTenders';
-import { useTenderAccess } from '@/hooks/useTenderAccess';
 import { useProjects } from '@/hooks/useProjects';
 import { useAuth } from '@/hooks/useAuth';
 import { useProjectSelection } from '@/context/ProjectSelectionContext';
@@ -41,48 +40,31 @@ const Tenders = () => {
   const [wizardOpen, setWizardOpen] = useState(false);
   const [selectedTender, setSelectedTender] = useState<Tender | null>(null);
   const [activeTab, setActiveTab] = useState<'tenders' | 'compare' | 'join'>('tenders');
-  const { selectedProject } = useProjectSelection();
-  const { projects } = useProjects();
-  const { profile } = useAuth();
-  const { tenders, loading, publishTender, closeTender, awardTender, deleteTender } = useTenders(selectedProject?.id);
-  const { myRequests } = useTenderAccess();
-  const [approvedTenders, setApprovedTenders] = useState<Tender[]>([]);
+  const {
+    selectedProject
+  } = useProjectSelection();
+  const {
+    projects
+  } = useProjects();
+  const {
+    profile
+  } = useAuth();
+  const {
+    tenders,
+    loading,
+    publishTender,
+    closeTender,
+    awardTender,
+    deleteTender
+  } = useTenders(selectedProject?.id);
   const userRole = profile?.role || '';
-
-  // Fetch approved-access tenders for builders/contractors
-  React.useEffect(() => {
-    const approvedIds = Array.from(new Set((myRequests || [])
-      .filter((r: any) => r.status === 'approved')
-      .map((r: any) => r.tender_id)));
-
-    if (approvedIds.length === 0) {
-      setApprovedTenders([]);
-      return;
-    }
-
-    const loadApproved = async () => {
-      const { data, error } = await supabase
-        .from('tenders')
-        .select('*')
-        .in('id', approvedIds);
-      if (!error) {
-        setApprovedTenders((data || []) as Tender[]);
-      }
-    };
-
-    loadApproved();
-  }, [myRequests]);
 
   // Filter tenders based on user role
   const filteredTenders = useMemo(() => {
+    // Homeowners should not see tenders tab at all, but just in case
     if (userRole === 'homeowner') return [];
-    if (userRole === 'builder' || userRole === 'contractor') {
-      const map = new Map<string, Tender>();
-      [...tenders, ...approvedTenders].forEach(t => t && map.set(t.id, t));
-      return Array.from(map.values());
-    }
     return tenders;
-  }, [tenders, approvedTenders, userRole]);
+  }, [tenders, userRole]);
   const handleViewTender = (tender: Tender) => {
     setSelectedTender(tender);
     setDetailsDialogOpen(true);
