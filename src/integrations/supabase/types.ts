@@ -3054,6 +3054,10 @@ export type Database = {
         Returns: Json
       }
       approve_user: { Args: { target_user_id: string }; Returns: Json }
+      check_tender_access: {
+        Args: { _tender_id: string; _user_id: string }
+        Returns: boolean
+      }
       cleanup_expired_invitations: { Args: never; Returns: undefined }
       create_document_supersede: {
         Args: {
