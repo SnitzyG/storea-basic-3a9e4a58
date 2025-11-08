@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { StorealiteLogo } from '@/components/ui/storealite-logo';
+
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -135,23 +135,6 @@ const Tenders = () => {
   if (loading) {
     return <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">Loading tenders...</div>
-      </div>;
-  }
-  if (!selectedProject) {
-    return <div className="min-h-screen flex items-center justify-center">
-        <Card className="w-96">
-          <CardHeader>
-            <CardTitle>Tenders</CardTitle>
-          </CardHeader>
-          <CardContent className="text-center py-8">
-            <p className="text-muted-foreground mb-4">
-              No projects available. Create a project or join a project first to create a Tender.
-            </p>
-            <Button asChild>
-              <Link to="/projects">Go to Projects</Link>
-            </Button>
-          </CardContent>
-        </Card>
       </div>;
   }
   const copyTenderId = async (tenderId: string) => {
