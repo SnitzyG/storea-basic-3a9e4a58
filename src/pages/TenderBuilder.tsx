@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useTenderAccess } from '@/hooks/useTenderAccess';
 import { useTenderLineItems, TenderLineItem } from '@/hooks/useTenderLineItems';
+import { AppLayout } from '@/components/layout/AppLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -11,10 +12,11 @@ import { Separator } from '@/components/ui/separator';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { TenderDocumentCarousel } from '@/components/tenders/TenderDocumentCarousel';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { 
   Download, 
   FileText, 
@@ -22,7 +24,6 @@ import {
   DollarSign, 
   MapPin, 
   Building,
-  ArrowLeft,
   Loader2,
   Package,
   FileSpreadsheet,
@@ -35,13 +36,16 @@ import {
   CheckCircle2,
   AlertCircle,
   Plus,
-  MessageSquare
+  MessageSquare,
+  Percent
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { formatDistanceToNow } from 'date-fns';
 import { TenderBidFileService } from '@/services/TenderBidFileService';
 import { downloadFromStorage } from '@/utils/storageUtils';
 import { BidExcelParser, ParsedBidLineItem } from '@/services/BidExcelParser';
+import JSZip from 'jszip';
+import { saveAs } from 'file-saver';
 
 interface TenderPackageDoc {
   id: string;
@@ -94,6 +98,8 @@ const TenderBuilder = () => {
     unit_price: 0,
     category: 'General'
   });
+  const [builderMargin, setBuilderMargin] = useState(0);
+  const [sectionHeaders, setSectionHeaders] = useState<string[]>([]);
   
   const { lineItems: fetchedLineItems, loading: lineItemsLoading } = useTenderLineItems(tender?.id);
   const [lineItems, setLineItems] = useState<TenderLineItem[]>([]);
@@ -102,6 +108,9 @@ const TenderBuilder = () => {
   useEffect(() => {
     if (fetchedLineItems.length > 0) {
       setLineItems(fetchedLineItems);
+      // Extract unique section headers from categories
+      const uniqueHeaders = Array.from(new Set(fetchedLineItems.map(item => item.category).filter(Boolean)));
+      setSectionHeaders(uniqueHeaders as string[]);
     }
   }, [fetchedLineItems]);
 
@@ -212,32 +221,33 @@ const TenderBuilder = () => {
             .eq('bidder_id', user.id)
             .maybeSingle();
 
-          if (bidData) {
-            setExistingBid(bidData);
-            setBidNotes((bidData as any).proposal || '');
-            
-            // Fetch existing bid line items
-            const { data: bidLineItems } = await supabase
-              .from('tender_bid_line_items')
-              .select('*')
-              .eq('bid_id', bidData.id);
+            if (bidData) {
+              setExistingBid(bidData);
+              setBidNotes((bidData as any).proposal || '');
+              setBuilderMargin((bidData as any).builder_margin || 0);
+              
+              // Fetch existing bid line items
+              const { data: bidLineItems } = await supabase
+                .from('tender_bid_line_items')
+                .select('*')
+                .eq('bid_id', bidData.id);
 
-            if (bidLineItems) {
-              const pricing: LineItemPricing = {};
-              bidLineItems.forEach((item: any) => {
-                pricing[item.tender_line_item_id] = {
-                  unit_price: item.unit_price,
-                  notes: item.notes || ''
-                };
-              });
-              setLineItemPricing(pricing);
-            }
+              if (bidLineItems) {
+                const pricing: LineItemPricing = {};
+                bidLineItems.forEach((item: any) => {
+                  pricing[item.tender_line_item_id] = {
+                    unit_price: item.unit_price,
+                    notes: item.notes || ''
+                  };
+                });
+                setLineItemPricing(pricing);
+              }
 
-            // Parse attachments if they exist
-            if (bidData.attachments && Array.isArray(bidData.attachments)) {
-              setBidDocuments(bidData.attachments as unknown as BidDocument[]);
+              // Parse attachments if they exist
+              if (bidData.attachments && Array.isArray(bidData.attachments)) {
+                setBidDocuments(bidData.attachments as unknown as BidDocument[]);
+              }
             }
-          }
         }
       } catch (error: any) {
         console.error('Error fetching tender details:', error);
@@ -308,6 +318,40 @@ const TenderBuilder = () => {
     }
   };
 
+  const handleDownloadAllDocuments = async () => {
+    if (packageDocs.length === 0) {
+      toast.error('No documents available to download');
+      return;
+    }
+
+    try {
+      toast.info('Preparing documents for download...');
+      const zip = new JSZip();
+      
+      for (const doc of packageDocs) {
+        try {
+          const { data, error } = await supabase.storage
+            .from('documents')
+            .download(doc.file_path);
+          
+          if (error) throw error;
+          if (data) {
+            zip.file(doc.document_name, data);
+          }
+        } catch (err) {
+          console.error('Error downloading file:', doc.document_name, err);
+        }
+      }
+
+      const content = await zip.generateAsync({ type: 'blob' });
+      saveAs(content, `tender-${tender.tender_id}-documents.zip`);
+      toast.success('All documents downloaded successfully');
+    } catch (error) {
+      console.error('Error creating zip file:', error);
+      toast.error('Failed to download all documents');
+    }
+  };
+
   const handleExcelUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -342,6 +386,16 @@ const TenderBuilder = () => {
         }));
         
         setLineItems(dynamicLineItems);
+
+        // Extract section headers from parsed data
+        if (parsedData.sectionHeaders && parsedData.sectionHeaders.length > 0) {
+          const headers = parsedData.sectionHeaders.map(h => h.title);
+          setSectionHeaders(headers);
+        } else {
+          // Extract from categories
+          const uniqueHeaders = Array.from(new Set(dynamicLineItems.map(item => item.category).filter(Boolean)));
+          setSectionHeaders(uniqueHeaders as string[]);
+        }
 
         // Set pricing from Excel
         const newPricing: LineItemPricing = {};
@@ -522,6 +576,57 @@ const TenderBuilder = () => {
     });
   };
 
+  const handleDeleteLineItem = (itemId: string) => {
+    setLineItems(prev => prev.filter(item => item.id !== itemId));
+    setLineItemPricing(prev => {
+      const newPricing = { ...prev };
+      delete newPricing[itemId];
+      return newPricing;
+    });
+    toast.success('Line item deleted');
+  };
+
+  const handleSaveProgress = async () => {
+    if (!tender || !user) return;
+    
+    try {
+      const totals = calculateTotals();
+      
+      if (existingBid) {
+        await supabase
+          .from('tender_bids')
+          .update({
+            bid_amount: totals.grandTotal,
+            builder_margin: builderMargin,
+            attachments: bidDocuments as any,
+            status: 'draft',
+            updated_at: new Date().toISOString()
+          } as any)
+          .eq('id', existingBid.id);
+      } else {
+        const { data: newBid } = await supabase
+          .from('tender_bids')
+          .insert({
+            tender_id: tender.id,
+            bidder_id: user.id,
+            bid_amount: totals.grandTotal,
+            builder_margin: builderMargin,
+            attachments: bidDocuments as any,
+            status: 'draft'
+          } as any)
+          .select()
+          .single();
+        
+        if (newBid) setExistingBid(newBid);
+      }
+      
+      toast.success('Progress saved');
+    } catch (error) {
+      console.error('Error saving progress:', error);
+      toast.error('Failed to save progress');
+    }
+  };
+
   const calculateTotals = () => {
     let subtotal = 0;
     lineItems.forEach(item => {
@@ -531,10 +636,12 @@ const TenderBuilder = () => {
         subtotal += quantity * pricing.unit_price;
       }
     });
-    const gst = subtotal * 0.1;
-    const grandTotal = subtotal + gst;
+    const marginAmount = subtotal * (builderMargin / 100);
+    const subtotalWithMargin = subtotal + marginAmount;
+    const gst = subtotalWithMargin * 0.1;
+    const grandTotal = subtotalWithMargin + gst;
     
-    return { subtotal, gst, grandTotal };
+    return { subtotal, marginAmount, subtotalWithMargin, gst, grandTotal };
   };
 
   const handleSubmitBid = async () => {
@@ -600,9 +707,11 @@ const TenderBuilder = () => {
           .from('tender_bids')
           .update({
             bid_amount: totals.grandTotal,
+            builder_margin: builderMargin,
             attachments: bidDocuments as any,
             status: 'submitted',
-            submitted_at: new Date().toISOString()
+            submitted_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
           } as any)
           .eq('id', existingBid.id);
 
@@ -615,6 +724,7 @@ const TenderBuilder = () => {
             tender_id: tender.id,
             bidder_id: user!.id,
             bid_amount: totals.grandTotal,
+            builder_margin: builderMargin,
             attachments: bidDocuments as any,
             status: 'submitted',
             submitted_at: new Date().toISOString()
@@ -684,23 +794,26 @@ const TenderBuilder = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-96">
-        <Loader2 className="h-8 w-8 animate-spin" />
-      </div>
+      <AppLayout>
+        <div className="flex items-center justify-center h-96">
+          <Loader2 className="h-8 w-8 animate-spin" />
+        </div>
+      </AppLayout>
     );
   }
 
-
   if (!tender) {
     return (
-      <Card className="max-w-2xl mx-auto mt-8">
-        <CardContent className="pt-6 text-center">
-          <p>Tender not found</p>
-          <Button onClick={() => navigate('/tenders')} className="mt-4">
-            Back to Tenders
-          </Button>
-        </CardContent>
-      </Card>
+      <AppLayout>
+        <Card className="max-w-2xl mx-auto mt-8">
+          <CardContent className="pt-6 text-center">
+            <p>Tender not found</p>
+            <Button onClick={() => navigate('/tenders')} className="mt-4">
+              Back to Tenders
+            </Button>
+          </CardContent>
+        </Card>
+      </AppLayout>
     );
   }
 
@@ -712,13 +825,14 @@ const TenderBuilder = () => {
   });
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-          <Button variant="ghost" onClick={() => navigate('/tenders')}>
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Tenders
-          </Button>
+    <AppLayout>
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold">{tender.title}</h1>
+            <p className="text-muted-foreground">Tender ID: {tender.tender_id}</p>
+          </div>
           <div className="flex items-center gap-2">
             {existingBid && (
               <Badge variant="secondary" className="flex items-center gap-1">
@@ -752,6 +866,28 @@ const TenderBuilder = () => {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {tender.profiles && (
+                    <>
+                      <div className="flex items-start gap-3">
+                        <Building className="h-5 w-5 text-muted-foreground mt-0.5" />
+                        <div>
+                          <p className="text-sm font-medium">Architect Name</p>
+                          <p className="text-sm text-muted-foreground">{tender.profiles.full_name || 'Not specified'}</p>
+                        </div>
+                      </div>
+
+                      {tender.profiles.companies && (
+                        <div className="flex items-start gap-3">
+                          <Building className="h-5 w-5 text-muted-foreground mt-0.5" />
+                          <div>
+                            <p className="text-sm font-medium">Architect Company</p>
+                            <p className="text-sm text-muted-foreground">{tender.profiles.companies.name || 'Not specified'}</p>
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  )}
+
                   <div className="flex items-start gap-3">
                     <Building className="h-5 w-5 text-muted-foreground mt-0.5" />
                     <div>
@@ -816,11 +952,61 @@ const TenderBuilder = () => {
               </CardContent>
             </Card>
 
-            {/* Tender Package Documents Carousel */}
-            <TenderDocumentCarousel 
-              documents={packageDocs} 
-              onRequestRFI={handleRequestRFI}
-            />
+            {/* Tender Package Documents */}
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <div>
+                  <CardTitle>Tender Documents</CardTitle>
+                  <CardDescription>
+                    {packageDocs.length} document(s) available
+                  </CardDescription>
+                </div>
+                {packageDocs.length > 0 && (
+                  <Button onClick={handleDownloadAllDocuments} variant="outline">
+                    <Download className="h-4 w-4 mr-2" />
+                    Download All
+                  </Button>
+                )}
+              </CardHeader>
+              <CardContent>
+                {packageDocs.length > 0 ? (
+                  <div className="grid gap-3">
+                    {packageDocs.map((doc) => (
+                      <div key={doc.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors">
+                        <div className="flex items-center gap-3 flex-1">
+                          <FileText className="h-8 w-8 text-muted-foreground" />
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium truncate">{doc.document_name}</p>
+                            <p className="text-sm text-muted-foreground">
+                              {doc.document_type} • {doc.file_size ? `${(doc.file_size / 1024 / 1024).toFixed(2)} MB` : 'Unknown size'}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleRequestRFI(doc.id, doc.document_name)}
+                          >
+                            <MessageSquare className="h-4 w-4 mr-2" />
+                            RFI
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDownloadDocument(doc)}
+                          >
+                            <Download className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-center text-muted-foreground py-8">No documents available</p>
+                )}
+              </CardContent>
+            </Card>
           </TabsContent>
 
           {/* Pricing Tab */}
@@ -886,6 +1072,15 @@ const TenderBuilder = () => {
               </CardContent>
             </Card>
 
+            {lineItems.length > 0 && (
+              <div className="flex justify-end">
+                <Button onClick={handleSaveProgress} variant="outline" disabled={isExpired}>
+                  <Save className="h-4 w-4 mr-2" />
+                  Save Progress
+                </Button>
+              </div>
+            )}
+
             <Card>
               <CardHeader>
                 <CardTitle>Line Item Pricing</CardTitle>
@@ -907,10 +1102,10 @@ const TenderBuilder = () => {
                           <TableHead className="w-[60px]">#</TableHead>
                           <TableHead>Description</TableHead>
                           <TableHead className="w-[100px]">Qty</TableHead>
-                          <TableHead className="w-[120px]">Unit</TableHead>
                           <TableHead className="w-[150px]">Unit Price</TableHead>
                           <TableHead className="w-[150px]">Total</TableHead>
-                          <TableHead className="w-[200px]">Notes</TableHead>
+                          <TableHead className="w-[250px]">Additional Notes</TableHead>
+                          <TableHead className="w-[80px]"></TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -934,7 +1129,7 @@ const TenderBuilder = () => {
                             if (sectionName !== 'General' || Object.keys(sections).length > 1) {
                               rows.push(
                                 <TableRow key={`section-${sectionIdx}`} className="bg-muted/50 hover:bg-muted/50">
-                                  <TableCell colSpan={7} className="font-bold text-base py-3">
+                                  <TableCell colSpan={8} className="font-bold text-base py-3">
                                     {sectionName}
                                   </TableCell>
                                 </TableRow>
@@ -959,8 +1154,22 @@ const TenderBuilder = () => {
                                       )}
                                     </div>
                                   </TableCell>
-                                  <TableCell>{item.quantity || 1}</TableCell>
-                                  <TableCell>{item.unit_of_measure || '-'}</TableCell>
+                                  <TableCell>
+                                    <Input
+                                      type="number"
+                                      step="1"
+                                      min="1"
+                                      value={item.quantity || 1}
+                                      onChange={(e) => {
+                                        const newQty = parseInt(e.target.value) || 1;
+                                        setLineItems(prev => prev.map(li => 
+                                          li.id === item.id ? { ...li, quantity: newQty } : li
+                                        ));
+                                      }}
+                                      disabled={isExpired}
+                                      className="w-20"
+                                    />
+                                  </TableCell>
                                   <TableCell>
                                     <Input
                                       type="number"
@@ -983,7 +1192,7 @@ const TenderBuilder = () => {
                                   </TableCell>
                                   <TableCell>
                                     <Input
-                                      placeholder="Optional notes..."
+                                      placeholder="Additional Notes"
                                       value={pricing.notes || ''}
                                       onChange={(e) => {
                                         setLineItemPricing(prev => ({
@@ -993,6 +1202,16 @@ const TenderBuilder = () => {
                                       }}
                                       disabled={isExpired}
                                     />
+                                  </TableCell>
+                                  <TableCell>
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      onClick={() => handleDeleteLineItem(item.id)}
+                                      disabled={isExpired}
+                                    >
+                                      <Trash2 className="h-4 w-4 text-destructive" />
+                                    </Button>
                                   </TableCell>
                                 </TableRow>
                               );
@@ -1019,25 +1238,54 @@ const TenderBuilder = () => {
             </Card>
 
             {/* Totals */}
-            <Card className="bg-primary/5 border-primary/20">
-              <CardContent className="pt-6">
-                <div className="space-y-3">
-                  <div className="flex justify-between text-lg">
-                    <span className="font-medium">Subtotal:</span>
-                    <span className="font-semibold">${totals.subtotal.toFixed(2)}</span>
+            {lineItems.length > 0 && (
+              <Card className="bg-primary/5 border-primary/20">
+                <CardContent className="pt-6">
+                  <div className="space-y-3">
+                    <div className="flex justify-between text-lg">
+                      <span className="font-medium">Subtotal:</span>
+                      <span className="font-semibold">${totals.subtotal.toFixed(2)}</span>
+                    </div>
+                    
+                    <div className="flex items-center justify-between gap-4">
+                      <div className="flex items-center gap-2">
+                        <Label htmlFor="builder-margin">Builder Margin:</Label>
+                        <div className="flex items-center gap-1">
+                          <Input
+                            id="builder-margin"
+                            type="number"
+                            step="0.1"
+                            min="0"
+                            max="100"
+                            value={builderMargin}
+                            onChange={(e) => setBuilderMargin(parseFloat(e.target.value) || 0)}
+                            disabled={isExpired}
+                            className="w-20"
+                          />
+                          <Percent className="h-4 w-4 text-muted-foreground" />
+                        </div>
+                      </div>
+                      <span className="font-semibold">${totals.marginAmount.toFixed(2)}</span>
+                    </div>
+
+                    <div className="flex justify-between text-lg">
+                      <span className="font-medium">Subtotal (incl. margin):</span>
+                      <span className="font-semibold">${totals.subtotalWithMargin.toFixed(2)}</span>
+                    </div>
+                    
+                    <div className="flex justify-between text-lg">
+                      <span className="font-medium">GST (10%):</span>
+                      <span className="font-semibold">${totals.gst.toFixed(2)}</span>
+                    </div>
+                    <Separator />
+                    <div className="flex justify-between text-2xl font-bold text-primary">
+                      <span>Grand Total (incl. GST):</span>
+                      <span>${totals.grandTotal.toFixed(2)}</span>
+                    </div>
                   </div>
-                  <div className="flex justify-between text-lg">
-                    <span className="font-medium">GST (10%):</span>
-                    <span className="font-semibold">${totals.gst.toFixed(2)}</span>
-                  </div>
-                  <Separator />
-                  <div className="flex justify-between text-2xl font-bold text-primary">
-                    <span>Grand Total:</span>
-                    <span>${totals.grandTotal.toFixed(2)}</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            )}
           </TabsContent>
 
           {/* Documents Tab */}
@@ -1225,30 +1473,38 @@ const TenderBuilder = () => {
           <DialogHeader>
             <DialogTitle>Request for Information</DialogTitle>
             <DialogDescription>
-              Ask a question about: {rfiDocumentName}
+              Submit an RFI regarding: {rfiDocumentName}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="rfi-message">Your Question</Label>
+            <div>
+              <Label htmlFor="rfi-subject">Subject</Label>
+              <Input
+                id="rfi-subject"
+                value={`Tender Document Query: ${rfiDocumentName}`}
+                disabled
+              />
+            </div>
+            <div>
+              <Label htmlFor="rfi-message">Message</Label>
               <Textarea
                 id="rfi-message"
-                placeholder="Describe your question or clarification needed..."
+                placeholder="Describe your question or concern..."
                 value={rfiMessage}
                 onChange={(e) => setRfiMessage(e.target.value)}
                 rows={6}
               />
             </div>
-            <div className="flex gap-2 justify-end">
-              <Button variant="outline" onClick={() => setShowRFIDialog(false)}>
-                Cancel
-              </Button>
-              <Button onClick={handleSubmitRFI}>
-                <MessageSquare className="h-4 w-4 mr-2" />
-                Submit RFI
-              </Button>
-            </div>
           </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowRFIDialog(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleSubmitRFI} disabled={!rfiMessage.trim()}>
+              <Send className="h-4 w-4 mr-2" />
+              Submit RFI
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 
@@ -1306,15 +1562,20 @@ const TenderBuilder = () => {
             </div>
             <div className="space-y-2">
               <Label htmlFor="manual-category">Category</Label>
-              <Input
-                id="manual-category"
-                placeholder="E.g., Site Works"
+              <Select
                 value={manualLineItem.category}
-                onChange={(e) => setManualLineItem(prev => ({
-                  ...prev,
-                  category: e.target.value
-                }))}
-              />
+                onValueChange={(value) => setManualLineItem(prev => ({ ...prev, category: value }))}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select category" />
+                </SelectTrigger>
+                <SelectContent>
+                  {sectionHeaders.length > 0 && sectionHeaders.map((header) => (
+                    <SelectItem key={header} value={header}>{header}</SelectItem>
+                  ))}
+                  <SelectItem value="Other">Other (Custom)</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             <div className="p-3 bg-muted rounded-lg">
               <div className="flex justify-between text-sm">
@@ -1337,6 +1598,7 @@ const TenderBuilder = () => {
         </DialogContent>
       </Dialog>
     </div>
+  </AppLayout>
   );
 };
 
