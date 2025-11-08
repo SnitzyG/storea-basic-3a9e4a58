@@ -1436,6 +1436,26 @@ const TenderBuilder = () => {
                     ))}
                   </div>
                 )}
+                
+                {/* Save Documents Button */}
+                <div className="flex justify-end">
+                  <Button
+                    onClick={handleSaveProgress}
+                    disabled={submitting || isExpired}
+                  >
+                    {submitting ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Saving...
+                      </>
+                    ) : (
+                      <>
+                        <Save className="h-4 w-4 mr-2" />
+                        Save Documents
+                      </>
+                    )}
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
@@ -1633,20 +1653,12 @@ const TenderBuilder = () => {
             </div>
             <div className="space-y-2">
               <Label htmlFor="manual-category">Category</Label>
-              <Select
+              <Input
+                id="manual-category"
+                placeholder="E.g., Preliminaries, Site Works, etc."
                 value={manualLineItem.category}
-                onValueChange={(value) => setManualLineItem(prev => ({ ...prev, category: value }))}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select category" />
-                </SelectTrigger>
-                <SelectContent>
-                  {sectionHeaders.length > 0 && sectionHeaders.map((header) => (
-                    <SelectItem key={header} value={header}>{header}</SelectItem>
-                  ))}
-                  <SelectItem value="Other">Other (Custom)</SelectItem>
-                </SelectContent>
-              </Select>
+                onChange={(e) => setManualLineItem(prev => ({ ...prev, category: e.target.value }))}
+              />
             </div>
             <div className="p-3 bg-muted rounded-lg">
               <div className="flex justify-between text-sm">
