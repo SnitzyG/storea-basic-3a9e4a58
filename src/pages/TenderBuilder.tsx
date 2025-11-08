@@ -8,6 +8,7 @@ import { AppLayout } from '@/components/layout/AppLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Separator } from '@/components/ui/separator';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -1265,35 +1266,8 @@ const TenderBuilder = () => {
                                        <Trash2 className="h-4 w-4 text-destructive" />
                                      </Button>
                                    </TableCell>
-                                 </TableRow>
-                               );
-                             } else {
-                               return (
-                                 <TableRow key={item.id} className="bg-muted/30">
-                                   <TableCell colSpan={7} className="font-semibold text-sm py-2 px-4">
-                                     {item.category}
-                                   </TableCell>
-                                 </TableRow>
-                               );
-                             }
-                                          [item.id]: { ...prev[item.id], notes: e.target.value }
-                                        }));
-                                      }}
-                                      disabled={isExpired}
-                                    />
-                                  </TableCell>
-                                  <TableCell>
-                                    <Button
-                                      variant="ghost"
-                                      size="icon"
-                                      onClick={() => handleDeleteLineItem(item.id)}
-                                      disabled={isExpired}
-                                    >
-                                      <Trash2 className="h-4 w-4 text-destructive" />
-                                    </Button>
-                                  </TableCell>
-                                </TableRow>
-                              );
+                                    </TableRow>
+                                );
                             });
 
                             return rows;
