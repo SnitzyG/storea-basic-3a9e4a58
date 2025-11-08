@@ -132,7 +132,7 @@ const Tenders = () => {
     }
   }, [expiredOpenTenders.length]);
 
-  if (loading) {
+  if (selectedProject?.id && loading) {
     return <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">Loading tenders...</div>
       </div>;
