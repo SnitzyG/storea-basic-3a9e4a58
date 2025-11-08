@@ -24,7 +24,6 @@ import { TenderDetailsView } from '@/components/tenders/TenderDetailsView';
 import { generateTenderPackage } from '@/utils/tenderPackageGenerator';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { AppLayout } from '@/components/layout/AppLayout';
 
 const Tenders = () => {
   const { tenderId } = useParams<{ tenderId?: string }>();
@@ -232,8 +231,9 @@ const Tenders = () => {
     return <TenderDetailsView />;
   }
 
-  return <AppLayout>
-    <div className="space-y-6 mx-[25px]">
+  return (
+    <>
+      <div className="space-y-6 mx-[25px]">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div></div>
@@ -549,7 +549,8 @@ const Tenders = () => {
       onOpenChange={setWizardOpen}
       projectId={selectedProject?.id || ''}
     />
-  </AppLayout>;
+    </>
+  );
 };
 
 export default Tenders;
