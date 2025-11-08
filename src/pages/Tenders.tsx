@@ -246,15 +246,17 @@ const Tenders = () => {
 
       {/* Main Content Tabs */}
       <Tabs defaultValue="tenders" className="w-full" value={activeTab} onValueChange={value => setActiveTab(value as any)}>
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className={`grid w-full ${userRole === 'architect' ? 'grid-cols-3' : 'grid-cols-2'}`}>
           <TabsTrigger value="tenders" className="flex items-center gap-2">
             <FileText className="h-4 w-4" />
             My Tenders
           </TabsTrigger>
-          <TabsTrigger value="compare" className="flex items-center gap-2">
-            <BarChart3 className="h-4 w-4" />
-            Compare Quotes
-          </TabsTrigger>
+          {userRole === 'architect' && (
+            <TabsTrigger value="compare" className="flex items-center gap-2">
+              <BarChart3 className="h-4 w-4" />
+              Compare Quotes
+            </TabsTrigger>
+          )}
           <TabsTrigger value="join" className="flex items-center gap-2">
             <UserPlus className="h-4 w-4" />
             Join Tender
