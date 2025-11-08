@@ -78,7 +78,12 @@ export const useTenders = (projectId?: string) => {
   const { toast } = useToast();
 
   const fetchTenders = async () => {
-    if (!projectId) return;
+    console.log('[useTenders] fetchTenders called with projectId:', projectId);
+    
+    if (!projectId) {
+      console.log('[useTenders] No projectId, returning early');
+      return;
+    }
     
     try {
       let tendersData: any[] = [];
@@ -95,25 +100,32 @@ export const useTenders = (projectId?: string) => {
 
       // Also fetch tenders the user has approved access to (for builders)
       if (user) {
+        console.log('[useTenders] Fetching approved tenders for user:', user.id);
         const { data: approvedAccess } = await supabase
           .from('tender_access')
           .select('tender_id')
           .eq('user_id', user.id)
           .eq('status', 'approved');
 
+        console.log('[useTenders] Approved access records:', approvedAccess);
+
         if (approvedAccess && approvedAccess.length > 0) {
           const approvedTenderIds = approvedAccess.map(a => a.tender_id);
+          console.log('[useTenders] Fetching tenders with IDs:', approvedTenderIds);
           
-          const { data: approvedTenders } = await supabase
+          const { data: approvedTenders, error: approvedError } = await supabase
             .from('tenders')
             .select('*')
             .in('id', approvedTenderIds)
             .order('created_at', { ascending: false });
 
+          console.log('[useTenders] Approved tenders fetched:', approvedTenders, 'error:', approvedError);
+
           if (approvedTenders) {
             // Merge approved tenders with project tenders (avoid duplicates)
             const existingIds = new Set(tendersData.map(t => t.id));
             const newTenders = approvedTenders.filter(t => !existingIds.has(t.id));
+            console.log('[useTenders] Adding', newTenders.length, 'approved tenders to the list');
             tendersData = [...tendersData, ...newTenders];
           }
         }
@@ -158,6 +170,7 @@ export const useTenders = (projectId?: string) => {
         my_bid: userBidMap.get(tender.id),
       }));
 
+      console.log('[useTenders] Final enriched tenders count:', enrichedTenders.length);
       setTenders(enrichedTenders as Tender[]);
     } catch (error) {
       console.error('Error fetching tenders:', error);
