@@ -83,7 +83,8 @@ export class BidExcelParser {
             // Skip empty rows
             if (!row || row.every((cell: any) => !cell)) continue;
 
-            const lineNumber = lineNumIdx !== -1 ? Number(row[lineNumIdx]) || i : i;
+            // Always use row index for consistent sequential numbering
+            const lineNumber = i;
             const description = descIdx !== -1 ? String(row[descIdx] || '').trim() : '';
             
             // Skip if no description

@@ -95,7 +95,15 @@ const TenderBuilder = () => {
     category: 'General'
   });
   
-  const { lineItems, loading: lineItemsLoading } = useTenderLineItems(tender?.id);
+  const { lineItems: fetchedLineItems, loading: lineItemsLoading } = useTenderLineItems(tender?.id);
+  const [lineItems, setLineItems] = useState<TenderLineItem[]>([]);
+
+  // Sync fetched line items to local state
+  useEffect(() => {
+    if (fetchedLineItems.length > 0) {
+      setLineItems(fetchedLineItems);
+    }
+  }, [fetchedLineItems]);
 
   // Initialize line item pricing when line items load
   useEffect(() => {
@@ -315,41 +323,76 @@ const TenderBuilder = () => {
       // Parse the Excel file
       const parsedData = await BidExcelParser.parseExcelFile(file);
 
-      // Validate against tender line items
-      const validation = BidExcelParser.validateAgainstTender(
-        parsedData.lineItems,
-        lineItems
-      );
+      // Flexible validation based on whether tender has line items
+      if (lineItems.length === 0) {
+        // Tender has no predefined items - create dynamic line items from Excel
+        const dynamicLineItems = parsedData.lineItems.map((item, index) => ({
+          id: `excel-${Date.now()}-${index}`,
+          tender_id: tender.id,
+          line_number: index + 1,
+          item_description: item.item_description,
+          category: item.category,
+          quantity: item.quantity,
+          unit_of_measure: item.unit_of_measure,
+          specification: item.specification || null,
+          unit_price: null,
+          total: 0,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        }));
+        
+        setLineItems(dynamicLineItems);
 
-      if (!validation.valid) {
-        toast.error('Excel validation failed', {
-          description: validation.errors.slice(0, 3).join(', ')
-        });
-        return;
-      }
-
-      // Update line item pricing from parsed data
-      const newPricing: LineItemPricing = {};
-      parsedData.lineItems.forEach(item => {
-        // Find matching tender line item
-        const tenderLineItem = lineItems.find(li => li.line_number === item.line_number);
-        if (tenderLineItem) {
-          newPricing[tenderLineItem.id] = {
-            unit_price: item.unit_price,
-            notes: item.notes || ''
+        // Set pricing from Excel
+        const newPricing: LineItemPricing = {};
+        dynamicLineItems.forEach((item, index) => {
+          newPricing[item.id] = {
+            unit_price: parsedData.lineItems[index].unit_price,
+            notes: parsedData.lineItems[index].notes || ''
           };
-        }
-      });
+        });
+        setLineItemPricing(newPricing);
 
-      setLineItemPricing(newPricing);
+        toast.success('Excel uploaded successfully', {
+          description: `${parsedData.lineItems.length} line items imported from your quote`
+        });
+      } else {
+        // Tender has predefined items - validate against them
+        const validation = BidExcelParser.validateAgainstTender(
+          parsedData.lineItems,
+          lineItems
+        );
+
+        if (!validation.valid) {
+          toast.error('Excel validation failed', {
+            description: validation.errors.slice(0, 3).join(', ')
+          });
+          return;
+        }
+
+        // Update line item pricing from parsed data
+        const newPricing: LineItemPricing = {};
+        parsedData.lineItems.forEach(item => {
+          // Find matching tender line item
+          const tenderLineItem = lineItems.find(li => li.line_number === item.line_number);
+          if (tenderLineItem) {
+            newPricing[tenderLineItem.id] = {
+              unit_price: item.unit_price,
+              notes: item.notes || ''
+            };
+          }
+        });
+
+        setLineItemPricing(newPricing);
+        
+        toast.success('Excel file parsed successfully', {
+          description: `${parsedData.lineItems.length} line items imported`
+        });
+      }
       
       if (parsedData.notes) {
         setBidNotes(parsedData.notes);
       }
-
-      toast.success('Excel file parsed successfully', {
-        description: `${parsedData.lineItems.length} line items imported`
-      });
 
       // Upload the Excel file as a bid document
       const uploadedDoc: BidDocument = {
@@ -438,14 +481,31 @@ const TenderBuilder = () => {
       ? Math.max(...lineItems.map(li => li.line_number)) + 1 
       : 1;
 
-    // Create a temporary line item ID
-    const tempId = `manual-${Date.now()}`;
-    
+    // Create a new line item object
+    const newLineItem: TenderLineItem = {
+      id: `manual-${Date.now()}`,
+      tender_id: tender.id,
+      line_number: nextLineNumber,
+      item_description: manualLineItem.item_description,
+      category: manualLineItem.category,
+      quantity: manualLineItem.quantity,
+      unit_of_measure: null,
+      specification: null,
+      unit_price: null,
+      total: 0,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    };
+
+    // Add the line item to the lineItems array
+    setLineItems(prev => [...prev, newLineItem]);
+
+    // Also add pricing
     setLineItemPricing(prev => ({
       ...prev,
-      [tempId]: {
+      [newLineItem.id]: {
         unit_price: manualLineItem.unit_price,
-        notes: `${manualLineItem.item_description} (${manualLineItem.quantity} @ $${manualLineItem.unit_price})`
+        notes: ''
       }
     }));
 
@@ -493,9 +553,47 @@ const TenderBuilder = () => {
     try {
       const totals = calculateTotals();
       
+      // STEP 1: Create dynamic line items in tender_line_items if they don't exist in DB
+      const dynamicItems = lineItems.filter(item => 
+        item.id.startsWith('excel-') || item.id.startsWith('manual-')
+      );
+      
+      const lineItemIdMapping: Record<string, string> = {};
+      
+      if (dynamicItems.length > 0) {
+        const itemsToInsert = dynamicItems.map(item => {
+          const pricing = lineItemPricing[item.id];
+          return {
+            tender_id: tender.id,
+            line_number: item.line_number,
+            item_description: item.item_description,
+            category: item.category,
+            quantity: item.quantity,
+            unit_of_measure: item.unit_of_measure,
+            specification: item.specification,
+            unit_price: pricing?.unit_price || 0,
+            total: (item.quantity || 1) * (pricing?.unit_price || 0)
+          };
+        });
+        
+        const { data: createdItems, error: itemsError } = await supabase
+          .from('tender_line_items')
+          .insert(itemsToInsert)
+          .select();
+          
+        if (itemsError) throw itemsError;
+        
+        // Map temp IDs to real DB IDs
+        dynamicItems.forEach((item, index) => {
+          if (createdItems && createdItems[index]) {
+            lineItemIdMapping[item.id] = createdItems[index].id;
+          }
+        });
+      }
+      
       let bidId = existingBid?.id;
 
-      // Create or update bid
+      // STEP 2: Create or update bid
       if (existingBid) {
         // Update existing bid
         const { error: updateError } = await supabase
@@ -529,20 +627,21 @@ const TenderBuilder = () => {
         setExistingBid(newBid);
       }
 
-      // Delete existing line items and create new ones
+      // STEP 3: Delete existing line items and create new ones with corrected IDs
       await supabase
         .from('tender_bid_line_items')
         .delete()
         .eq('bid_id', bidId);
 
       const lineItemsToInsert = lineItems.map(item => {
+        const realId = lineItemIdMapping[item.id] || item.id;
         const pricing = lineItemPricing[item.id];
         const quantity = item.quantity || 1;
         const total = quantity * pricing.unit_price;
 
         return {
           bid_id: bidId,
-          tender_line_item_id: item.id,
+          tender_line_item_id: realId,
           line_number: item.line_number,
           item_description: item.item_description,
           specification: item.specification,
@@ -800,7 +899,8 @@ const TenderBuilder = () => {
                     <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
                   </div>
                 ) : lineItems.length > 0 ? (
-                  <div className="border rounded-lg overflow-hidden">
+                  <>
+                    <div className="border rounded-lg overflow-hidden">
                     <Table>
                       <TableHeader>
                         <TableRow>
@@ -872,10 +972,16 @@ const TenderBuilder = () => {
                       </TableBody>
                     </Table>
                   </div>
+                  </>
                 ) : (
-                  <p className="text-center text-muted-foreground py-12">
-                    No line items available
-                  </p>
+                  <div className="text-center py-12">
+                    <p className="text-muted-foreground mb-2">
+                      This tender has no predefined line items
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      You can upload your Excel quote or add items manually above
+                    </p>
+                  </div>
                 )}
               </CardContent>
             </Card>
