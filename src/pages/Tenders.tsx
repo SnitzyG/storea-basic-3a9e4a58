@@ -465,7 +465,7 @@ const Tenders = () => {
             </Card>}
 
           {/* Access Requests Section - Only for Architects */}
-          {userRole === 'architect'}
+          {userRole === 'architect' && <TenderAccessApprovals projectId={selectedProject?.id} />}
         </TabsContent>
 
         {/* Compare Quotes Tab */}
