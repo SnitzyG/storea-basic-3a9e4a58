@@ -1082,7 +1082,109 @@ const TenderBuilder = () => {
             )}
           </TabsContent>
 
-          {/* Submit Bid Tab */}
+          {/* Documents Tab */}
+          <TabsContent value="documents" className="space-y-6">
+            {/* Upload Your Documents */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Upload className="h-5 w-5" />
+                  Upload Your Documents
+                </CardTitle>
+                <CardDescription>
+                  Add supporting documents, quotations, or completed templates
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="border-2 border-dashed rounded-lg p-8 text-center hover:border-primary transition-colors">
+                  <input
+                    type="file"
+                    id="file-upload"
+                    multiple
+                    className="hidden"
+                    onChange={handleFileUpload}
+                    disabled={uploading || isExpired}
+                  />
+                  <label htmlFor="file-upload" className="cursor-pointer">
+                    <Upload className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+                    <p className="text-sm font-medium mb-1">
+                      Click to upload or drag and drop
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      PDF, Excel, Word, Images (max 10MB each)
+                    </p>
+                  </label>
+                </div>
+
+                {uploading && (
+                  <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Uploading documents...
+                  </div>
+                )}
+
+                {bidDocuments.length > 0 && (
+                  <div className="space-y-2">
+                    <h4 className="font-medium">Uploaded Documents</h4>
+                    {bidDocuments.map((doc, index) => (
+                      <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
+                        <div className="flex items-center gap-3">
+                          <FileText className="h-5 w-5 text-muted-foreground" />
+                          <div>
+                            <p className="font-medium">{doc.name}</p>
+                            {doc.file_size && (
+                              <p className="text-xs text-muted-foreground">
+                                {(doc.file_size / 1024).toFixed(2)} KB
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDownloadDocument(doc)}
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleRemoveDocument(index)}
+                            disabled={isExpired}
+                          >
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                
+                {/* Save Documents Button */}
+                <div className="flex justify-end">
+                  <Button
+                    onClick={handleSaveProgress}
+                    disabled={submitting || isExpired}
+                  >
+                    {submitting ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Saving...
+                      </>
+                    ) : (
+                      <>
+                        <Save className="h-4 w-4 mr-2" />
+                        Save Documents
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Pricing Tab */}
           <TabsContent value="pricing" className="space-y-6">
             {/* Excel Upload and Manual Entry */}
             <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-transparent">
@@ -1380,107 +1482,6 @@ const TenderBuilder = () => {
             )}
           </TabsContent>
 
-          {/* Submit Bid Tab - includes pricing, documents, and submit */}
-          <TabsContent value="pricing" className="space-y-6">
-            {/* Pricing Section */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Upload className="h-5 w-5" />
-                  Upload Your Documents
-                </CardTitle>
-                <CardDescription>
-                  Add supporting documents, quotations, or completed templates
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="border-2 border-dashed rounded-lg p-8 text-center hover:border-primary transition-colors">
-                  <input
-                    type="file"
-                    id="file-upload"
-                    multiple
-                    className="hidden"
-                    onChange={handleFileUpload}
-                    disabled={uploading || isExpired}
-                  />
-                  <label htmlFor="file-upload" className="cursor-pointer">
-                    <Upload className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                    <p className="text-sm font-medium mb-1">
-                      Click to upload or drag and drop
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      PDF, Excel, Word, Images (max 10MB each)
-                    </p>
-                  </label>
-                </div>
-
-                {uploading && (
-                  <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    Uploading documents...
-                  </div>
-                )}
-
-                {bidDocuments.length > 0 && (
-                  <div className="space-y-2">
-                    <h4 className="font-medium">Uploaded Documents</h4>
-                    {bidDocuments.map((doc, index) => (
-                      <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
-                        <div className="flex items-center gap-3">
-                          <FileText className="h-5 w-5 text-muted-foreground" />
-                          <div>
-                            <p className="font-medium">{doc.name}</p>
-                            {doc.file_size && (
-                              <p className="text-xs text-muted-foreground">
-                                {(doc.file_size / 1024).toFixed(2)} KB
-                              </p>
-                            )}
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleDownloadDocument(doc)}
-                          >
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleRemoveDocument(index)}
-                            disabled={isExpired}
-                          >
-                            <Trash2 className="h-4 w-4 text-destructive" />
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-                
-                {/* Save Documents Button */}
-                <div className="flex justify-end">
-                  <Button
-                    onClick={handleSaveProgress}
-                    disabled={submitting || isExpired}
-                  >
-                    {submitting ? (
-                      <>
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        Saving...
-                      </>
-                    ) : (
-                      <>
-                        <Save className="h-4 w-4 mr-2" />
-                        Save Documents
-                      </>
-                    )}
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
 
           {/* Submit Tab */}
           <TabsContent value="submit" className="space-y-6">
