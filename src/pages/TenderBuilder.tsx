@@ -99,6 +99,7 @@ const TenderBuilder = () => {
     category: 'General'
   });
   const [builderMargin, setBuilderMargin] = useState(0);
+  const [includeMargin, setIncludeMargin] = useState(false);
   const [sectionHeaders, setSectionHeaders] = useState<string[]>([]);
   
   const { lineItems: fetchedLineItems, loading: lineItemsLoading } = useTenderLineItems(tender?.id);
@@ -225,6 +226,7 @@ const TenderBuilder = () => {
               setExistingBid(bidData);
               setBidNotes((bidData as any).proposal || '');
               setBuilderMargin((bidData as any).builder_margin || 0);
+              setIncludeMargin(((bidData as any).builder_margin || 0) > 0);
               
               // Fetch existing bid line items
               const { data: bidLineItems } = await supabase
@@ -589,15 +591,17 @@ const TenderBuilder = () => {
   const handleSaveProgress = async () => {
     if (!tender || !user) return;
     
+    setSubmitting(true);
     try {
       const totals = calculateTotals();
+      let bidId = existingBid?.id;
       
       if (existingBid) {
         await supabase
           .from('tender_bids')
           .update({
             bid_amount: totals.grandTotal,
-            builder_margin: builderMargin,
+            builder_margin: includeMargin ? builderMargin : 0,
             attachments: bidDocuments as any,
             status: 'draft',
             updated_at: new Date().toISOString()
@@ -610,20 +614,60 @@ const TenderBuilder = () => {
             tender_id: tender.id,
             bidder_id: user.id,
             bid_amount: totals.grandTotal,
-            builder_margin: builderMargin,
+            builder_margin: includeMargin ? builderMargin : 0,
             attachments: bidDocuments as any,
             status: 'draft'
           } as any)
           .select()
           .single();
         
-        if (newBid) setExistingBid(newBid);
+        if (newBid) {
+          setExistingBid(newBid);
+          bidId = newBid.id;
+        }
+      }
+
+      // Save line item pricing
+      if (bidId) {
+        // Delete existing line items for this bid
+        await supabase
+          .from('tender_bid_line_items')
+          .delete()
+          .eq('bid_id', bidId);
+
+        // Insert updated line items (only for items with real tender_line_item IDs)
+        const bidLineItemsData = lineItems
+          .filter(item => !item.id.startsWith('excel-') && !item.id.startsWith('manual-'))
+          .map(item => {
+            const pricing = lineItemPricing[item.id];
+            return {
+              bid_id: bidId,
+              tender_line_item_id: item.id,
+              line_number: item.line_number,
+              item_description: item.item_description,
+              specification: item.specification || '',
+              unit_of_measure: item.unit_of_measure || '',
+              quantity: item.quantity || 1,
+              category: item.category,
+              unit_price: pricing?.unit_price || 0,
+              total: (item.quantity || 1) * (pricing?.unit_price || 0),
+              notes: pricing?.notes || ''
+            };
+          });
+
+        if (bidLineItemsData.length > 0) {
+          await supabase
+            .from('tender_bid_line_items')
+            .insert(bidLineItemsData);
+        }
       }
       
       toast.success('Progress saved');
     } catch (error) {
       console.error('Error saving progress:', error);
       toast.error('Failed to save progress');
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -636,7 +680,7 @@ const TenderBuilder = () => {
         subtotal += quantity * pricing.unit_price;
       }
     });
-    const marginAmount = subtotal * (builderMargin / 100);
+    const marginAmount = includeMargin ? (subtotal * builderMargin) / 100 : 0;
     const subtotalWithMargin = subtotal + marginAmount;
     const gst = subtotalWithMargin * 0.1;
     const grandTotal = subtotalWithMargin + gst;
@@ -707,7 +751,7 @@ const TenderBuilder = () => {
           .from('tender_bids')
           .update({
             bid_amount: totals.grandTotal,
-            builder_margin: builderMargin,
+            builder_margin: includeMargin ? builderMargin : 0,
             attachments: bidDocuments as any,
             status: 'submitted',
             submitted_at: new Date().toISOString(),
@@ -724,7 +768,7 @@ const TenderBuilder = () => {
             tender_id: tender.id,
             bidder_id: user!.id,
             bid_amount: totals.grandTotal,
-            builder_margin: builderMargin,
+            builder_margin: includeMargin ? builderMargin : 0,
             attachments: bidDocuments as any,
             status: 'submitted',
             submitted_at: new Date().toISOString()
@@ -954,59 +998,66 @@ const TenderBuilder = () => {
 
             {/* Tender Package Documents */}
             <Card>
-              <CardHeader className="flex flex-row items-center justify-between">
-                <div>
-                  <CardTitle>Tender Documents</CardTitle>
-                  <CardDescription>
-                    {packageDocs.length} document(s) available
-                  </CardDescription>
-                </div>
-                {packageDocs.length > 0 && (
-                  <Button onClick={handleDownloadAllDocuments} variant="outline">
-                    <Download className="h-4 w-4 mr-2" />
-                    Download All
-                  </Button>
-                )}
+              <CardHeader>
+                <CardTitle>Tender Documents</CardTitle>
+                <CardDescription>Review and download tender package documents</CardDescription>
               </CardHeader>
-              <CardContent>
-                {packageDocs.length > 0 ? (
-                  <div className="grid gap-3">
+              <CardContent className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <p className="text-sm text-muted-foreground">
+                    {packageDocs.length} document(s) available
+                  </p>
+                  {packageDocs.length > 0 && (
+                    <Button onClick={handleDownloadAllDocuments} variant="outline" size="sm">
+                      <Download className="h-4 w-4 mr-2" />
+                      Download All
+                    </Button>
+                  )}
+                </div>
+
+                {packageDocs.length > 0 && (
+                  <div className="space-y-3">
                     {packageDocs.map((doc) => (
-                      <div key={doc.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors">
-                        <div className="flex items-center gap-3 flex-1">
-                          <FileText className="h-8 w-8 text-muted-foreground" />
-                          <div className="flex-1 min-w-0">
-                            <p className="font-medium truncate">{doc.document_name}</p>
-                            <p className="text-sm text-muted-foreground">
-                              {doc.document_type} • {doc.file_size ? `${(doc.file_size / 1024 / 1024).toFixed(2)} MB` : 'Unknown size'}
-                            </p>
+                      <div key={doc.id} className="flex items-center justify-between p-4 border rounded-lg">
+                        <div className="flex items-center gap-3">
+                          <FileText className="h-5 w-5 text-primary" />
+                          <div>
+                            <p className="font-medium">{doc.document_name}</p>
+                            <p className="text-xs text-muted-foreground">{doc.document_type}</p>
                           </div>
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex gap-2">
+                          <Button onClick={() => handleDownloadDocument(doc)} variant="outline" size="sm">
+                            <Download className="h-4 w-4 mr-2" />
+                            Download
+                          </Button>
                           <Button
-                            variant="ghost"
+                            onClick={() => {
+                              setRfiDocumentId(doc.id);
+                              setRfiDocumentName(doc.document_name);
+                              setShowRFIDialog(true);
+                            }}
+                            variant="outline"
                             size="sm"
-                            onClick={() => handleRequestRFI(doc.id, doc.document_name)}
                           >
                             <MessageSquare className="h-4 w-4 mr-2" />
                             RFI
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleDownloadDocument(doc)}
-                          >
-                            <Download className="h-4 w-4" />
                           </Button>
                         </div>
                       </div>
                     ))}
                   </div>
-                ) : (
-                  <p className="text-center text-muted-foreground py-8">No documents available</p>
                 )}
               </CardContent>
             </Card>
+
+            {packageDocs.length === 0 && (
+              <Card>
+                <CardContent className="py-8 text-center">
+                  <p className="text-muted-foreground">No tender documents available</p>
+                </CardContent>
+              </Card>
+            )}
           </TabsContent>
 
           {/* Pricing Tab */}
@@ -1102,10 +1153,10 @@ const TenderBuilder = () => {
                           <TableHead className="w-[60px]">#</TableHead>
                           <TableHead>Description</TableHead>
                           <TableHead className="w-[100px]">Qty</TableHead>
-                          <TableHead className="w-[150px]">Unit Price</TableHead>
-                          <TableHead className="w-[150px]">Total</TableHead>
-                          <TableHead className="w-[250px]">Additional Notes</TableHead>
-                          <TableHead className="w-[80px]"></TableHead>
+                          <TableHead className="w-[140px]">Unit Price</TableHead>
+                          <TableHead className="w-[120px]">Total</TableHead>
+                          <TableHead className="w-[200px]">Notes</TableHead>
+                          <TableHead className="w-[80px]">Actions</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -1190,13 +1241,41 @@ const TenderBuilder = () => {
                                   <TableCell className="font-semibold">
                                     ${total.toFixed(2)}
                                   </TableCell>
-                                  <TableCell>
-                                    <Input
-                                      placeholder="Additional Notes"
-                                      value={pricing.notes || ''}
-                                      onChange={(e) => {
-                                        setLineItemPricing(prev => ({
-                                          ...prev,
+                                   <TableCell>
+                                     <Textarea
+                                       placeholder="Additional Notes"
+                                       value={pricing.notes || ''}
+                                       onChange={(e) => {
+                                         setLineItemPricing(prev => ({
+                                           ...prev,
+                                           [item.id]: { ...prev[item.id], notes: e.target.value }
+                                         }));
+                                       }}
+                                       disabled={isExpired}
+                                       className="min-h-[60px]"
+                                     />
+                                   </TableCell>
+                                   <TableCell>
+                                     <Button
+                                       variant="ghost"
+                                       size="icon"
+                                       onClick={() => handleDeleteLineItem(item.id)}
+                                       disabled={isExpired}
+                                     >
+                                       <Trash2 className="h-4 w-4 text-destructive" />
+                                     </Button>
+                                   </TableCell>
+                                 </TableRow>
+                               );
+                             } else {
+                               return (
+                                 <TableRow key={item.id} className="bg-muted/30">
+                                   <TableCell colSpan={7} className="font-semibold text-sm py-2 px-4">
+                                     {item.category}
+                                   </TableCell>
+                                 </TableRow>
+                               );
+                             }
                                           [item.id]: { ...prev[item.id], notes: e.target.value }
                                         }));
                                       }}
@@ -1247,35 +1326,53 @@ const TenderBuilder = () => {
                       <span className="font-semibold">${totals.subtotal.toFixed(2)}</span>
                     </div>
                     
-                    <div className="flex items-center justify-between gap-4">
-                      <div className="flex items-center gap-2">
-                        <Label htmlFor="builder-margin">Builder Margin:</Label>
-                        <div className="flex items-center gap-1">
+                    <div className="space-y-2">
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          id="include-margin"
+                          checked={includeMargin}
+                          onCheckedChange={(checked) => setIncludeMargin(checked as boolean)}
+                        />
+                        <Label htmlFor="include-margin" className="cursor-pointer">
+                          Include Builder Margin
+                        </Label>
+                      </div>
+                      
+                      {includeMargin && (
+                        <div className="flex items-center gap-2 ml-6">
                           <Input
-                            id="builder-margin"
                             type="number"
-                            step="0.1"
-                            min="0"
-                            max="100"
                             value={builderMargin}
                             onChange={(e) => setBuilderMargin(parseFloat(e.target.value) || 0)}
-                            disabled={isExpired}
-                            className="w-20"
+                            placeholder="0"
+                            className="w-24"
+                            min="0"
+                            max="100"
+                            step="0.1"
                           />
-                          <Percent className="h-4 w-4 text-muted-foreground" />
+                          <span className="text-sm text-muted-foreground">%</span>
                         </div>
-                      </div>
-                      <span className="font-semibold">${totals.marginAmount.toFixed(2)}</span>
+                      )}
                     </div>
 
-                    <div className="flex justify-between text-lg">
-                      <span className="font-medium">Subtotal (incl. margin):</span>
-                      <span className="font-semibold">${totals.subtotalWithMargin.toFixed(2)}</span>
-                    </div>
+                    {includeMargin && builderMargin > 0 && (
+                      <>
+                        <div className="flex justify-between text-lg">
+                          <span className="font-medium">Builder Margin:</span>
+                          <span className="font-semibold">${totals.marginAmount.toFixed(2)}</span>
+                        </div>
+                        <div className="flex justify-between text-lg">
+                          <span className="font-medium">Subtotal (incl. margin):</span>
+                          <span className="font-semibold">${totals.subtotalWithMargin.toFixed(2)}</span>
+                        </div>
+                      </>
+                    )}
                     
-                    <div className="flex justify-between text-lg">
-                      <span className="font-medium">GST (10%):</span>
-                      <span className="font-semibold">${totals.gst.toFixed(2)}</span>
+                    <Separator />
+                    
+                    <div className="flex justify-between text-xl font-bold text-primary">
+                      <span>Grand Total (incl. GST):</span>
+                      <span>${totals.grandTotal.toFixed(2)}</span>
                     </div>
                     <Separator />
                     <div className="flex justify-between text-2xl font-bold text-primary">

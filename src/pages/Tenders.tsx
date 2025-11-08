@@ -24,6 +24,7 @@ import { TenderDetailsView } from '@/components/tenders/TenderDetailsView';
 import { generateTenderPackage } from '@/utils/tenderPackageGenerator';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { AppLayout } from '@/components/layout/AppLayout';
 
 const Tenders = () => {
   const { tenderId } = useParams<{ tenderId?: string }>();
@@ -231,10 +232,14 @@ const Tenders = () => {
     return <TenderDetailsView />;
   }
 
-  return <div className="space-y-6 mx-[25px]">
+  return <AppLayout>
+    <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <div></div>
+        <div>
+          <h1 className="text-2xl font-bold">Tenders</h1>
+          <p className="text-muted-foreground mt-1">Manage and track tender opportunities</p>
+        </div>
         {userRole === 'architect' && (
           <Button onClick={() => setCreateDialogOpen(true)} className="bg-primary hover:bg-primary/90">
             <Plus className="h-4 w-4 mr-2" />
@@ -258,28 +263,28 @@ const Tenders = () => {
       {/* Main Content Tabs */}
       <Tabs defaultValue="tenders" className="w-full" value={activeTab} onValueChange={(value) => setActiveTab(value as any)}>
         <TabsList className={userRole === 'architect' ? 'grid w-full grid-cols-4' : 'grid w-full grid-cols-2'}>
-          <TabsTrigger value="tenders" className="flex items-center gap-2">
-            <FileText className="h-4 w-4" />
-            All Tenders
+          <TabsTrigger value="tenders">
+            <FileText className="h-4 w-4 mr-2" />
+            My Tenders
           </TabsTrigger>
           {userRole === 'architect' ? (
             <>
-              <TabsTrigger value="bids" className="flex items-center gap-2">
-                <Users className="h-4 w-4" />
+              <TabsTrigger value="bids">
+                <Users className="h-4 w-4 mr-2" />
                 Bids Received
               </TabsTrigger>
-              <TabsTrigger value="comparison" className="flex items-center gap-2">
-                <BarChart3 className="h-4 w-4" />
+              <TabsTrigger value="comparison">
+                <BarChart3 className="h-4 w-4 mr-2" />
                 Comparison
               </TabsTrigger>
-              <TabsTrigger value="access" className="flex items-center gap-2">
-                <UserPlus className="h-4 w-4" />
+              <TabsTrigger value="access">
+                <UserPlus className="h-4 w-4 mr-2" />
                 Access Requests
               </TabsTrigger>
             </>
           ) : (
-            <TabsTrigger value="join" className="flex items-center gap-2">
-              <UserPlus className="h-4 w-4" />
+            <TabsTrigger value="join">
+              <UserPlus className="h-4 w-4 mr-2" />
               Join Tender
             </TabsTrigger>
           )}
@@ -565,6 +570,15 @@ const Tenders = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>;
+
+      {/* Create/Edit Tender Wizard */}
+      <CreateTenderWizard 
+        open={wizardOpen} 
+        onOpenChange={setWizardOpen}
+        projectId={selectedProject?.id || ''}
+      />
+    </div>
+  </AppLayout>;
 };
+
 export default Tenders;

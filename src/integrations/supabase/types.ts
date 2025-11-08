@@ -2355,6 +2355,7 @@ export type Database = {
           attachments: Json | null
           bid_amount: number
           bidder_id: string
+          builder_margin: number | null
           communication_score: number | null
           compliance_checked: boolean | null
           compliance_issues: Json | null
@@ -2382,6 +2383,7 @@ export type Database = {
           attachments?: Json | null
           bid_amount: number
           bidder_id: string
+          builder_margin?: number | null
           communication_score?: number | null
           compliance_checked?: boolean | null
           compliance_issues?: Json | null
@@ -2409,6 +2411,7 @@ export type Database = {
           attachments?: Json | null
           bid_amount?: number
           bidder_id?: string
+          builder_margin?: number | null
           communication_score?: number | null
           compliance_checked?: boolean | null
           compliance_issues?: Json | null
