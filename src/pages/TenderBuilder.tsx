@@ -1584,34 +1584,121 @@ const TenderBuilder = () => {
 
       {/* RFI Dialog */}
       <Dialog open={showRFIDialog} onOpenChange={setShowRFIDialog}>
-        <DialogContent>
+        <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Request for Information</DialogTitle>
-            <DialogDescription>
-              Submit an RFI regarding: {rfiDocumentName}
-            </DialogDescription>
+            <DialogTitle className="text-2xl font-semibold">Create New RFI</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            <div>
+            {/* Mail Type */}
+            <div className="space-y-2">
+              <Label>Mail Type</Label>
+              <Select defaultValue="Request For Information">
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Request For Information">Request For Information</SelectItem>
+                  <SelectItem value="General Correspondence">General Correspondence</SelectItem>
+                  <SelectItem value="Design Query">Design Query</SelectItem>
+                  <SelectItem value="Construction Query">Construction Query</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Priority */}
+            <div className="space-y-2">
+              <Label htmlFor="rfi-priority">Priority *</Label>
+              <Select defaultValue="medium">
+                <SelectTrigger id="rfi-priority">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="low">Low</SelectItem>
+                  <SelectItem value="medium">Medium</SelectItem>
+                  <SelectItem value="high">High</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* To (Recipient) */}
+            <div className="space-y-2">
+              <Label htmlFor="rfi-recipient">To (Recipient)</Label>
+              <Select>
+                <SelectTrigger id="rfi-recipient">
+                  <SelectValue placeholder="Select recipient" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="architect">Architect</SelectItem>
+                  <SelectItem value="engineer">Engineer</SelectItem>
+                  <SelectItem value="contractor">Contractor</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* CC */}
+            <div className="space-y-2">
+              <Label htmlFor="rfi-cc">CC</Label>
+              <Select>
+                <SelectTrigger id="rfi-cc">
+                  <SelectValue placeholder="Select CC recipients" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="team">Project Team</SelectItem>
+                  <SelectItem value="client">Client</SelectItem>
+                  <SelectItem value="consultant">Consultant</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Subject */}
+            <div className="space-y-2">
               <Label htmlFor="rfi-subject">Subject</Label>
               <Input
                 id="rfi-subject"
-                value={`Tender Document Query: ${rfiDocumentName}`}
-                disabled
+                placeholder="Enter subject"
+                defaultValue={`Tender Document Query: ${rfiDocumentName}`}
               />
             </div>
-            <div>
-              <Label htmlFor="rfi-message">Message</Label>
+
+            {/* Message */}
+            <div className="space-y-2">
+              <Label htmlFor="rfi-message">Message *</Label>
               <Textarea
                 id="rfi-message"
                 placeholder="Describe your question or concern..."
                 value={rfiMessage}
                 onChange={(e) => setRfiMessage(e.target.value)}
                 rows={6}
+                className="resize-none"
               />
             </div>
+
+            {/* Notes */}
+            <div className="space-y-2">
+              <Label htmlFor="rfi-notes">Notes</Label>
+              <Textarea
+                id="rfi-notes"
+                placeholder="Add any additional notes..."
+                rows={3}
+                className="resize-none"
+              />
+            </div>
+
+            {/* Attachments */}
+            <div className="space-y-2">
+              <Label>Attachments (Optional)</Label>
+              <div className="border-2 border-dashed rounded-lg p-6 text-center hover:border-primary transition-colors cursor-pointer">
+                <Upload className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
+                <p className="text-sm font-medium mb-1">
+                  Drag & drop files here, or click to select
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Up to 5 files • PDF, JPG, PNG, DOCX, XLSX, ZIP, TXT, CSV (max 25MB each)
+                </p>
+              </div>
+            </div>
           </div>
-          <DialogFooter>
+          <DialogFooter className="gap-2">
             <Button variant="outline" onClick={() => setShowRFIDialog(false)}>
               Cancel
             </Button>
