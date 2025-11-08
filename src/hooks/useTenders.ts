@@ -82,7 +82,7 @@ export const useTenders = (projectId?: string) => {
     
     try {
       // Fetch tenders
-      const { data: tendersData, error } = await supabase
+      const { data: tendersData, error} = await supabase
         .from('tenders')
         .select('*')
         .eq('project_id', projectId)
