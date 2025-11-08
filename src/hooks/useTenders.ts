@@ -81,14 +81,43 @@ export const useTenders = (projectId?: string) => {
     if (!projectId) return;
     
     try {
-      // Fetch tenders
-      const { data: tendersData, error} = await supabase
+      let tendersData: any[] = [];
+      
+      // Fetch tenders issued by the project
+      const { data: projectTenders, error: projectError } = await supabase
         .from('tenders')
         .select('*')
         .eq('project_id', projectId)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (projectError) throw projectError;
+      tendersData = projectTenders || [];
+
+      // Also fetch tenders the user has approved access to (for builders)
+      if (user) {
+        const { data: approvedAccess } = await supabase
+          .from('tender_access')
+          .select('tender_id')
+          .eq('user_id', user.id)
+          .eq('status', 'approved');
+
+        if (approvedAccess && approvedAccess.length > 0) {
+          const approvedTenderIds = approvedAccess.map(a => a.tender_id);
+          
+          const { data: approvedTenders } = await supabase
+            .from('tenders')
+            .select('*')
+            .in('id', approvedTenderIds)
+            .order('created_at', { ascending: false });
+
+          if (approvedTenders) {
+            // Merge approved tenders with project tenders (avoid duplicates)
+            const existingIds = new Set(tendersData.map(t => t.id));
+            const newTenders = approvedTenders.filter(t => !existingIds.has(t.id));
+            tendersData = [...tendersData, ...newTenders];
+          }
+        }
+      }
 
       // Fetch user profiles for tender issuers and awardees
       const userIds = [...new Set([
