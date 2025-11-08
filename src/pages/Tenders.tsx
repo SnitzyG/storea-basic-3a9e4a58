@@ -17,7 +17,7 @@ import { TenderDetailsDialog } from '@/components/tenders/TenderDetailsDialog';
 import { BidSubmissionDialog } from '@/components/tenders/BidSubmissionDialog';
 import { TenderInviteDialog } from '@/components/tenders/TenderInviteDialog';
 import { BidsReceivedSection } from '@/components/tenders/BidsReceivedSection';
-import { TenderComparisonDashboard } from '@/components/tenders/TenderComparisonDashboard';
+import { ProjectQuotesComparison } from '@/components/tenders/ProjectQuotesComparison';
 import { TenderJoinSection } from '@/components/tenders/TenderJoinSection';
 import { TenderAccessApprovals } from '@/components/tenders/TenderAccessApprovals';
 import { TenderDetailsView } from '@/components/tenders/TenderDetailsView';
@@ -259,21 +259,35 @@ const Tenders = () => {
         </TabsList>
 
         <TabsContent value="tenders" className="space-y-6">
-          {/* Expired Tenders Alert */}
-          {expiredOpenTenders.length > 0 && userRole === 'architect' && (
-            <Card className="border-orange-200 bg-orange-50">
-              <CardContent className="pt-6">
-                <div className="flex items-center gap-2 text-orange-700">
-                  <AlertTriangle className="w-5 h-5" />
-                  <span className="font-medium">
-                    {expiredOpenTenders.length} tender(s) have expired and will be auto-closed
-                  </span>
-                </div>
-              </CardContent>
-            </Card>
-          )}
+          {/* Sub-tabs for My Tenders */}
+          <Tabs defaultValue="list" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="list" className="flex items-center gap-2">
+                <FileText className="h-4 w-4" />
+                Tender List
+              </TabsTrigger>
+              <TabsTrigger value="compare" className="flex items-center gap-2">
+                <BarChart3 className="h-4 w-4" />
+                Compare Quotes
+              </TabsTrigger>
+            </TabsList>
 
-          {/* Tenders List View */}
+            <TabsContent value="list" className="space-y-6 mt-6">
+              {/* Expired Tenders Alert */}
+              {expiredOpenTenders.length > 0 && userRole === 'architect' && (
+                <Card className="border-orange-200 bg-orange-50">
+                  <CardContent className="pt-6">
+                    <div className="flex items-center gap-2 text-orange-700">
+                      <AlertTriangle className="w-5 h-5" />
+                      <span className="font-medium">
+                        {expiredOpenTenders.length} tender(s) have expired and will be auto-closed
+                      </span>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Tenders List View */}
           {filteredTenders.length > 0 ? (
             <Card className="border-0 shadow-sm bg-gradient-to-br from-card to-card/50">
               <CardContent className="p-0">
@@ -491,6 +505,41 @@ const Tenders = () => {
               </CardContent>
             </Card>
           )}
+
+              {/* Access Requests Section - Only for Architects */}
+              {userRole === 'architect' && (
+                <div className="mt-6">
+                  <h3 className="text-lg font-semibold mb-4">Access Requests</h3>
+                  <TenderAccessApprovals projectId={selectedProject?.id} />
+                </div>
+              )}
+            </TabsContent>
+
+            {/* Compare Quotes Tab */}
+            <TabsContent value="compare" className="space-y-6 mt-6">
+              {userRole === 'architect' ? (
+                <>
+                  <div className="flex items-center justify-between mb-4">
+                    <div>
+                      <h3 className="text-lg font-semibold">Compare Builder Quotes</h3>
+                      <p className="text-sm text-muted-foreground">View and compare submitted bids from builders</p>
+                    </div>
+                  </div>
+                  <ProjectQuotesComparison projectId={selectedProject?.id} />
+                </>
+              ) : (
+                <Card>
+                  <CardContent className="text-center py-12">
+                    <BarChart3 className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                    <h3 className="text-lg font-medium mb-2">Access Restricted</h3>
+                    <p className="text-muted-foreground">
+                      Only architects can compare quotes
+                    </p>
+                  </CardContent>
+                </Card>
+              )}
+            </TabsContent>
+          </Tabs>
         </TabsContent>
 
         {/* Join Tender Tab */}
