@@ -313,7 +313,28 @@ const TenderBuilder = () => {
   const handleDownloadDocument = async (doc: TenderPackageDoc | BidDocument) => {
     try {
       const fileName = 'document_name' in doc ? doc.document_name : doc.name;
-      await downloadFromStorage(doc.file_path, fileName);
+      console.log('Downloading document:', { fileName, filePath: doc.file_path });
+      
+      // Download from tender-packages bucket for tender documents
+      const { data: fileData, error: downloadError } = await supabase.storage
+        .from('tender-packages')
+        .download(doc.file_path);
+
+      if (downloadError) {
+        console.error('Download error:', downloadError);
+        throw downloadError;
+      }
+
+      // Create blob URL and trigger download
+      const url = URL.createObjectURL(fileData);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = fileName || 'document';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      
       toast.success('Download started');
     } catch (error) {
       console.error('Error downloading document:', error);
