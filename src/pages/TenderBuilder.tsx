@@ -1471,11 +1471,6 @@ const TenderBuilder = () => {
                       <span>Grand Total (incl. GST):</span>
                       <span>${totals.grandTotal.toFixed(2)}</span>
                     </div>
-                    <Separator />
-                    <div className="flex justify-between text-2xl font-bold text-primary">
-                      <span>Grand Total (incl. GST):</span>
-                      <span>${totals.grandTotal.toFixed(2)}</span>
-                    </div>
                   </div>
                 </CardContent>
               </Card>
