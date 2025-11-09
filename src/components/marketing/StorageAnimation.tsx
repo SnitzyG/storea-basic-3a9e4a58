@@ -23,20 +23,20 @@ export default function StorageAnimation() {
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % items.length);
-    }, 500);
+    }, 1200);
 
     return () => clearInterval(interval);
   }, []);
 
   return (
-    <div className="flex items-center justify-center h-64 w-full bg-white overflow-hidden" style={{ fontFamily: 'Roboto' }}>
+    <div className="flex items-center justify-center h-[32rem] w-full bg-white overflow-hidden" style={{ fontFamily: 'Roboto' }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap');
       `}</style>
       <div className="text-center w-full px-4">
-        <div className="h-64 flex flex-col items-center justify-center gap-2">
-          <div className="text-gray-800 text-5xl md:text-6xl font-bold whitespace-nowrap">STORE <span className="text-black">A</span></div>
-          <div className="text-4xl md:text-5xl font-normal text-black whitespace-nowrap overflow-hidden text-ellipsis max-w-full">
+        <div className="h-[32rem] flex flex-col items-center justify-center gap-4">
+          <div className="text-gray-800 text-6xl md:text-7xl font-bold whitespace-nowrap">STORE <span className="text-black">A</span></div>
+          <div className="text-5xl md:text-6xl font-normal text-black whitespace-nowrap overflow-hidden text-ellipsis max-w-full">
             {items[currentIndex]}
           </div>
         </div>
