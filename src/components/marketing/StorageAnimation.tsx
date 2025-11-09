@@ -29,14 +29,14 @@ export default function StorageAnimation() {
   }, []);
 
   return (
-    <div className="flex items-center justify-center py-16 bg-white" style={{ fontFamily: 'Roboto' }}>
+    <div className="flex items-center justify-center h-64 w-full bg-white overflow-hidden" style={{ fontFamily: 'Roboto' }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap');
       `}</style>
-      <div className="text-center">
-        <div className="min-h-32 flex flex-col items-center justify-center">
-          <div className="text-gray-800 text-8xl font-bold">STORE <span className="text-black">A</span></div>
-          <div className="text-9xl font-normal text-black">
+      <div className="text-center w-full px-4">
+        <div className="h-64 flex flex-col items-center justify-center gap-2">
+          <div className="text-gray-800 text-5xl md:text-6xl font-bold whitespace-nowrap">STORE <span className="text-black">A</span></div>
+          <div className="text-4xl md:text-5xl font-normal text-black whitespace-nowrap overflow-hidden text-ellipsis max-w-full">
             {items[currentIndex]}
           </div>
         </div>
