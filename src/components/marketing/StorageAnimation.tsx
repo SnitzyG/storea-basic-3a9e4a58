@@ -29,7 +29,7 @@ export default function StorageAnimation() {
   }, []);
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-white" style={{ fontFamily: 'Roboto' }}>
+    <div className="flex items-center justify-center py-16 bg-white" style={{ fontFamily: 'Roboto' }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap');
       `}</style>
