@@ -71,17 +71,17 @@ export default function StorageAnimation() {
   };
   
   return (
-    <div className="flex items-center justify-center h-[32rem] w-full bg-white">
+    <div className="flex items-center justify-center min-h-screen w-full bg-white">
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap');
       `}</style>
       <div className="w-full px-8 md:px-16">
-        <div className="flex items-center justify-center gap-2">
-          <div className="text-gray-800 text-6xl md:text-7xl font-bold whitespace-nowrap" style={{ fontFamily: 'Roboto' }}>
+        <div className="flex items-center justify-center gap-4">
+          <div className="text-gray-800 text-8xl md:text-9xl font-bold whitespace-nowrap" style={{ fontFamily: 'Roboto' }}>
             STORE <span className="text-black">A</span>
           </div>
           
-          <div className="text-6xl md:text-7xl font-bold whitespace-nowrap" style={{ 
+          <div className="text-8xl md:text-9xl font-bold whitespace-nowrap" style={{ 
             fontFamily: 'Roboto',
             color: isSpinning ? '#d1d5db' : '#4b5563',
             transition: 'color 0.3s'
