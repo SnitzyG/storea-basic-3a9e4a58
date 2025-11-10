@@ -1,43 +1,92 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 export default function StorageAnimation() {
   const items = [
-    'PROJECT', 'FILE', 'DRAWING', 'SPECIFICATION', 'PERMIT', 'CONTRACT', 'INVOICE',
-    'REPORT', 'CHANGE ORDER', 'RFI', 'SUBMITTAL', 'MILESTONE', 'TASK', 'DEADLINE',
-    'SCHEDULE', 'BUDGET', 'COST ESTIMATE', 'ACTUAL COST', 'LABOR COST', 'MATERIAL COST',
-    'EQUIPMENT COST', 'CONTINGENCY', 'COST VARIANCE', 'PAYMENT', 'PURCHASE ORDER',
-    'LABOURER', 'EQUIPMENT', 'MATERIAL', 'SUBCONTRACTOR', 'VENDOR', 'RESOURCE ALLOCATION',
-    'TEAM MEMBER', 'ROLE', 'RESPONSIBILITY', 'CERTIFICATION', 'SAFETY INCIDENT',
-    'HAZARD ASSESSMENT', 'INSPECTION', 'SAFETY PLAN', 'TRAINING RECORD', 'TEST RESULT',
-    'INSPECTION REPORT', 'DEFECT LOG', 'CORRECTION REQUEST', 'QUALITY STANDARD', 'MEETING',
-    'MEETING MINUTES', 'EMAIL', 'NOTIFICATION', 'ISSUE', 'CHANGE REQUEST', 'DAILY REPORT',
-    'WEATHERDATA', 'ACCESSLOG', 'INVENTORY', 'WASTERECORD', 'SITEPHOTO', 'SITEVIDEO',
-    'PROGRESS METRIC', 'SCHEDULE PERFORMANCE', 'BUDGET PERFORMANCE', 'QUALITY METRIC',
-    'SAFETY METRIC', 'PRODUCTIVITY METRIC', 'WARRANTY', 'INSURANCE', 'AMENDMENT',
-    'SUSTAINABILITY GOAL', 'WASTE REDUCTION', 'EMISSIONS DATA', 'COMMENT', 'ATTACHMENT',
-    'VERSION', 'AUDIT', 'APPROVAL', 'SIGNATURE'
+    'PLAN', 'SCHEDULE', 'REPORT', 'BUDGET', 'ESTIMATE', 'DRAWING', 'SPECIFICATION', 
+    'DOCUMENT', 'FILE', 'CONTRACT', 'INVOICE', 'CHANGE', 'REVISION', 'PHOTO', 'IMAGE', 
+    'RECORD', 'CHECKLIST', 'FORM', 'TEMPLATE', 'MODEL', 'DESIGN', 'DIAGRAM', 'BLUEPRINT', 
+    'MAP', 'PERMIT', 'LICENSE', 'CERTIFICATE', 'APPROVAL', 'SUBMITTAL', 'RFI', 'LOG', 
+    'NOTE', 'COMMENT', 'MESSAGE', 'EMAIL', 'MEMO', 'AGENDA', 'MEETING', 'MINUTE', 
+    'SCOPE', 'TIMELINE', 'MILESTONE', 'DELIVERABLE', 'TASK', 'ASSIGNMENT', 'RESOURCE', 
+    'MATERIAL', 'EQUIPMENT', 'TOOL', 'SNAPSHOT', 'VIDEO', 'SUMMARY', 'ANALYSIS', 
+    'FORECAST', 'RECEIPT', 'PAYMENT', 'TIMESHEET', 'REQUEST', 'ISSUE', 'RISK', 
+    'OPPORTUNITY', 'ACTION', 'ITEM', 'UPDATE', 'VERSION', 'BACKUP', 'ARCHIVE', 
+    'POLICY', 'PROCEDURE', 'STANDARD', 'LAYOUT', 'SKETCH', 'AGREEMENT', 'PROPOSAL', 
+    'BID', 'OFFER', 'SUBMISSION'
   ];
-
+  
+  const [currentWord, setCurrentWord] = useState(items[0]);
+  const [isSpinning, setIsSpinning] = useState(false);
+  const [spinWords, setSpinWords] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
-
+  
   useEffect(() => {
+    // Start first spin after 1 second
+    setTimeout(() => {
+      startSpin();
+    }, 1000);
+    
     const interval = setInterval(() => {
-      setCurrentIndex((prev) => (prev + 1) % items.length);
-    }, 1200);
-
+      startSpin();
+    }, 13000);
+    
     return () => clearInterval(interval);
   }, []);
-
+  
+  const startSpin = () => {
+    // Select 16 random words
+    const selected = [];
+    for (let i = 0; i < 16; i++) {
+      const randomIdx = Math.floor(Math.random() * items.length);
+      selected.push(items[randomIdx]);
+    }
+    setSpinWords(selected);
+    setIsSpinning(true);
+    setCurrentIndex(0);
+    
+    // Spin through words
+    let index = 0;
+    const totalDuration = 8000;
+    const wordCount = 16;
+    
+    const spinThroughWords = () => {
+      if (index < wordCount) {
+        setCurrentWord(selected[index]);
+        setCurrentIndex(index);
+        
+        // Slow down over time
+        const progress = index / wordCount;
+        const delay = 100 + (progress * 700); // Start at 100ms, end at 800ms
+        
+        index++;
+        setTimeout(spinThroughWords, delay);
+      } else {
+        // Stop spinning
+        setIsSpinning(false);
+        setCurrentWord(selected[wordCount - 1]);
+      }
+    };
+    
+    spinThroughWords();
+  };
+  
   return (
-    <div className="flex items-center justify-center h-[32rem] w-full bg-white overflow-hidden" style={{ fontFamily: 'Roboto' }}>
+    <div className="flex items-center justify-center min-h-screen w-full bg-white">
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap');
       `}</style>
-      <div className="text-center w-full px-4">
-        <div className="h-[32rem] flex flex-col items-center justify-center gap-4">
-          <div className="text-gray-800 text-6xl md:text-7xl font-bold whitespace-nowrap">STORE <span className="text-black">A</span></div>
-          <div className="text-5xl md:text-6xl font-normal text-black whitespace-nowrap overflow-hidden text-ellipsis max-w-full">
-            {items[currentIndex]}
+      <div className="w-full px-8 md:px-16">
+        <div className="flex items-center gap-2">
+          <div className="text-gray-800 text-6xl md:text-7xl font-bold whitespace-nowrap" style={{ fontFamily: 'Roboto' }}>
+            STORE <span className="text-black">A</span>
+          </div>
+          
+          <div className="text-6xl md:text-7xl font-bold whitespace-nowrap" style={{ 
+            fontFamily: 'Roboto',
+            color: isSpinning ? '#d1d5db' : '#4b5563',
+            transition: 'color 0.3s'
+          }}>
+            {currentWord}
           </div>
         </div>
       </div>
