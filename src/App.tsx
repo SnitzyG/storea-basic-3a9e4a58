@@ -30,6 +30,7 @@ import ProjectJoin from "./pages/ProjectJoin";
 import PropertyZoning from "./pages/PropertyZoning";
 import StyleGuide from "./pages/StyleGuide";
 import NotFound from "./pages/NotFound";
+import Privacy from "./pages/public/Privacy";
 
 const queryClient = new QueryClient();
 
@@ -120,6 +121,7 @@ const App = () => (
           />
           <Route path="/admin/style-guide" element={<StyleGuide />} />
           <Route path="/style-guide" element={<Navigate to="/admin/style-guide" replace />} />
+          <Route path="/privacy" element={<Privacy />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
