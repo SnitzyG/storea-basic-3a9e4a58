@@ -653,18 +653,7 @@ const RFIs = () => {
         <div className="text-center">Loading Mail...</div>
       </div>;
   }
-  if (!selectedProject) {
-    return <div className="min-h-screen flex items-center justify-center">
-        <Card className="w-full max-w-md">
-          <CardContent className="text-center py-8">
-            <h3 className="text-lg font-semibold mb-2">No Project Selected</h3>
-            <p className="text-muted-foreground mb-4">
-              Please select a project to view Mail.
-            </p>
-          </CardContent>
-        </Card>
-      </div>;
-  }
+  
   return <div className="space-y-6 mx-[25px]">
       {/* Debug validators - only show in development */}
       {showDebug && <div className="space-y-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg mb-6">
