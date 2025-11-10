@@ -2,13 +2,14 @@ import { useState, useEffect, useRef } from 'react';
 
 export default function StorageAnimation() {
   const items = [
-    'BUDGET', 'DRAWING', 'PROJECT', 'LAYOUT', 'PAYMENT', 'INVOICE', 'REQUEST', 
+    'PLAN', 'BUDGET', 'PROJECT', 'LAYOUT', 'PAYMENT', 'INVOICE', 'REQUEST', 
     'MEETING', 'MESSAGE', 'COMMENT', 'DIAGRAM', 'DESIGN', 'MODEL', 'RECORD', 
-    'VERSION', 'SCHEDULE', 'RESOURCE', 'MATERIAL', 'FORECAST', 'ANALYSIS', 
-    'TEMPLATE', 'DOCUMENT', 'CONTRACT', 'APPROVAL', 'TIMELINE', 'REVISION', 
-    'STANDARD', 'ESTIMATE', 'PROPOSAL', 'DATABASE', 'REGISTER', 'CALENDAR', 
-    'STRATEGY', 'TRACKING', 'CONCRETE', 'BUILDING', 'WORKFLOW', 'PROGRESS', 
-    'TRAINING', 'FEEDBACK', 'INCIDENT', 'SUMMARY', 'DELIVERY'
+    'VERSION', 'CONTRACT', 'DRAWING', 'SUMMARY', 'DELIVERY', 'REPORT', 
+    'CHANGE', 'PHOTO', 'POLICY', 'MANUAL', 'PERMIT', 'ACTION', 'ISSUE', 
+    'MEMO', 'UPDATE', 'NOTICE', 'AGENDA', 'VENDOR', 'WORKER', 'CLIENT', 
+    'ASSET', 'BACKUP', 'SKETCH', 'METRIC', 'DETAIL', 'RESULT', 'STATUS', 
+    'MODULE', 'SAMPLE', 'FOLDER', 'TENDER', 'SUPPLY', 'REVIEW', 'OUTPUT', 
+    'SCOPE', 'TOOL', 'FORM', 'LOG', 'RFI', 'MAP', 'NOTE', 'EMAIL', 'TASK'
   ];
   
   const [currentWord, setCurrentWord] = useState(items[0]);
@@ -71,7 +72,7 @@ export default function StorageAnimation() {
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap');
       `}</style>
-      <div className="flex items-center justify-center gap-6 w-full max-w-full">
+      <div className="flex items-center justify-center gap-6 w-[90%] max-w-full">
         <div className="text-gray-800 text-8xl md:text-[10rem] lg:text-[12rem] font-bold whitespace-nowrap" style={{ fontFamily: 'Roboto' }}>
           STOREA
         </div>
