@@ -2,11 +2,22 @@ import { createContext, useContext, useState, useEffect, ReactNode, useMemo } fr
 import { useProjects, Project } from '@/hooks/useProjects';
 import { supabase } from '@/integrations/supabase/client';
 
+interface Tender {
+  id: string;
+  project_id: string;
+  title: string;
+  status: string;
+}
+
 interface ProjectSelectionContextType {
   selectedProject: Project | null;
   setSelectedProject: (project: Project | null) => void;
   availableProjects: Project[];
+  selectedTender: Tender | null;
+  setSelectedTender: (tender: Tender | null) => void;
+  availableTenders: Tender[];
   loading: boolean;
+  selectionType: 'project' | 'tender';
 }
 
 const ProjectSelectionContext = createContext<ProjectSelectionContextType | undefined>(undefined);
@@ -18,7 +29,10 @@ interface ProjectSelectionProviderProps {
 export const ProjectSelectionProvider = ({ children }: ProjectSelectionProviderProps) => {
   const { projects, loading } = useProjects();
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  const [selectedTender, setSelectedTender] = useState<Tender | null>(null);
   const [memberProjectIds, setMemberProjectIds] = useState<string[]>([]);
+  const [availableTenders, setAvailableTenders] = useState<Tender[]>([]);
+  const [selectionType, setSelectionType] = useState<'project' | 'tender'>('project');
 
   // Load only projects where the user is an actual member (project_users)
   useEffect(() => {
@@ -68,12 +82,51 @@ export const ProjectSelectionProvider = ({ children }: ProjectSelectionProviderP
     return userProjects.sort((a, b) => a.name.localeCompare(b.name));
   }, [projects, memberProjectIds]);
 
-  // Auto-select first available project if none selected
+  // Load tenders where user has access
   useEffect(() => {
-    if (!loading && !selectedProject && availableProjects.length > 0) {
-      setSelectedProject(availableProjects[0]);
+    let mounted = true;
+    const loadUserTenders = async () => {
+      try {
+        const { data: userData } = await supabase.auth.getUser();
+        const userId = userData.user?.id;
+        if (!userId) {
+          if (mounted) setAvailableTenders([]);
+          return;
+        }
+
+        // Get tenders where user is project member, issuer, or has tender access
+        const { data, error } = await supabase
+          .from('tenders')
+          .select('id, project_id, title, status')
+          .or(`issued_by.eq.${userId},project_id.in.(${memberProjectIds.join(',')})`);
+
+        if (error) {
+          console.error('Error loading tenders:', error);
+          if (mounted) setAvailableTenders([]);
+          return;
+        }
+
+        if (mounted) {
+          setAvailableTenders((data || []) as Tender[]);
+        }
+      } catch (error) {
+        console.error('Error in loadUserTenders:', error);
+        if (mounted) setAvailableTenders([]);
+      }
+    };
+
+    if (memberProjectIds.length > 0) {
+      loadUserTenders();
     }
-  }, [loading, selectedProject, availableProjects]);
+  }, [memberProjectIds]);
+
+  // Auto-select first available project if none selected and no tender selected
+  useEffect(() => {
+    if (!loading && !selectedProject && !selectedTender && availableProjects.length > 0) {
+      setSelectedProject(availableProjects[0]);
+      setSelectionType('project');
+    }
+  }, [loading, selectedProject, selectedTender, availableProjects]);
 
   // If current selection is no longer permitted, switch to first allowed
   useEffect(() => {
@@ -82,13 +135,34 @@ export const ProjectSelectionProvider = ({ children }: ProjectSelectionProviderP
     }
   }, [availableProjects, selectedProject]);
 
+  // Custom setter that handles selection type
+  const handleSetProject = (project: Project | null) => {
+    setSelectedProject(project);
+    if (project) {
+      setSelectedTender(null);
+      setSelectionType('project');
+    }
+  };
+
+  const handleSetTender = (tender: Tender | null) => {
+    setSelectedTender(tender);
+    if (tender) {
+      setSelectedProject(null);
+      setSelectionType('tender');
+    }
+  };
+
   return (
     <ProjectSelectionContext.Provider 
       value={{
         selectedProject,
-        setSelectedProject,
+        setSelectedProject: handleSetProject,
         availableProjects,
-        loading
+        selectedTender,
+        setSelectedTender: handleSetTender,
+        availableTenders,
+        loading,
+        selectionType
       }}
     >
       {children}
