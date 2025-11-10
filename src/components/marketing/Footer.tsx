@@ -26,7 +26,7 @@ export const Footer = () => {
             <a href="https://www.instagram.com/storea_au/" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground transition-colors">
               <Instagram className="h-4 w-4" />
             </a>
-            <a href="https://youtube.com" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground transition-colors">
+            <a href="https://www.youtube.com/@storea_au" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground transition-colors">
               <Youtube className="h-4 w-4" />
             </a>
           </div>
