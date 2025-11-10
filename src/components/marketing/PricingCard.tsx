@@ -9,9 +9,10 @@ interface PricingCardProps {
   description: string;
   features: string[];
   highlighted?: boolean;
+  isYearly?: boolean;
 }
 
-export const PricingCard = ({ name, price, description, features, highlighted }: PricingCardProps) => {
+export const PricingCard = ({ name, price, description, features, highlighted, isYearly }: PricingCardProps) => {
   return (
     <Card className={`relative ${highlighted ? 'border-primary shadow-xl' : 'border-border'}`}>
       {highlighted && (
@@ -26,7 +27,7 @@ export const PricingCard = ({ name, price, description, features, highlighted }:
         <CardTitle className="text-2xl">{name}</CardTitle>
         <div className="mt-3">
           <span className="text-4xl font-bold">{price}</span>
-          {price !== 'Free' && <span className="text-muted-foreground">/month</span>}
+          {price !== 'Free' && <span className="text-muted-foreground">/{isYearly ? 'year' : 'month'}</span>}
         </div>
         <CardDescription className="mt-2">{description}</CardDescription>
       </CardHeader>

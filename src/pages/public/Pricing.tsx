@@ -1,17 +1,28 @@
+import { useState } from 'react';
 import { PublicLayout } from '@/components/marketing/PublicLayout';
 import { PricingCard } from '@/components/marketing/PricingCard';
 import { usePageMeta } from '@/hooks/usePageMeta';
 
 const Pricing = () => {
+  const [isYearly, setIsYearly] = useState(false);
+  
   usePageMeta({
     title: 'STOREA Pricing – Choose Your Plan',
     description: 'Flexible pricing plans to fit your construction project needs. Start free or upgrade to premium.'
   });
 
+  const calculatePrice = (monthlyPrice: number) => {
+    if (isYearly) {
+      const yearlyTotal = monthlyPrice * 12 * 0.95;
+      return Math.round(yearlyTotal);
+    }
+    return monthlyPrice;
+  };
+
   const plans = [
     {
       name: 'Free',
-      price: 'Free',
+      monthlyPrice: 0,
       description: 'Perfect for small projects or trying out the platform',
       features: [
         'Up to 2 active projects',
@@ -24,7 +35,7 @@ const Pricing = () => {
     },
     {
       name: 'Pro',
-      price: '$49',
+      monthlyPrice: 49,
       description: 'For growing teams managing multiple projects',
       features: [
         'Unlimited projects',
@@ -40,7 +51,7 @@ const Pricing = () => {
     },
     {
       name: 'Team',
-      price: '$149',
+      monthlyPrice: 149,
       description: 'For large teams requiring enterprise features',
       features: [
         'Everything in Pro',
@@ -67,11 +78,37 @@ const Pricing = () => {
           <p className="text-lg text-muted-foreground">
             Choose the plan that fits your team's needs. Start free, upgrade when you're ready.
           </p>
+          
+          <div className="flex items-center justify-center gap-3 mt-6">
+            <span className={`text-sm font-medium ${!isYearly ? 'text-foreground' : 'text-muted-foreground'}`}>
+              Monthly
+            </span>
+            <button
+              onClick={() => setIsYearly(!isYearly)}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                isYearly ? 'bg-primary' : 'bg-muted'
+              }`}
+            >
+              <span
+                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                  isYearly ? 'translate-x-6' : 'translate-x-1'
+                }`}
+              />
+            </button>
+            <span className={`text-sm font-medium ${isYearly ? 'text-foreground' : 'text-muted-foreground'}`}>
+              Yearly
+            </span>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto">
           {plans.map((plan, index) => (
-            <PricingCard key={index} {...plan} />
+            <PricingCard 
+              key={index} 
+              {...plan} 
+              price={plan.monthlyPrice === 0 ? 'Free' : `$${calculatePrice(plan.monthlyPrice)}`}
+              isYearly={isYearly}
+            />
           ))}
         </div>
       </div>
