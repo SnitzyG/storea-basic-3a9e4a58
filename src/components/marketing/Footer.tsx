@@ -3,7 +3,7 @@ import { Facebook, Instagram, Youtube } from 'lucide-react';
 export const Footer = () => {
   return <footer className="bg-white border-t border-border/20">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4">
-        <div className="flex flex-col md:flex-row items-center justify-center gap-4">
+        <div className="flex flex-col md:flex-row items-center justify-between gap-4 w-full">
           <div className="flex items-center gap-6 text-xs text-muted-foreground">
             <Link to="/features" className="hover:text-foreground transition-colors">Features</Link>
             <Link to="/pricing" className="hover:text-foreground transition-colors">Pricing</Link>
