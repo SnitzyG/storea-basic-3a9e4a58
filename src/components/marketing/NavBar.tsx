@@ -58,10 +58,10 @@ export const NavBar = () => {
               </Link>}
             <div className="flex items-center gap-3">
               <Link to="/auth">
-                <Button variant="ghost">Login</Button>
+                <Button variant="outline">Login</Button>
               </Link>
               <Link to="/auth">
-                
+                <Button>Sign Up</Button>
               </Link>
             </div>
           </div>
@@ -89,10 +89,10 @@ export const NavBar = () => {
               </Link>}
             <div className="pt-3 space-y-2">
               <Link to="/auth" onClick={() => setIsOpen(false)}>
-                <Button variant="ghost" className="w-full">Login</Button>
+                <Button variant="outline" className="w-full">Login</Button>
               </Link>
               <Link to="/auth" onClick={() => setIsOpen(false)}>
-                <Button className="w-full">Get Started</Button>
+                <Button className="w-full">Sign Up</Button>
               </Link>
             </div>
           </div>}
