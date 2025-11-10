@@ -1,11 +1,14 @@
 import { PublicLayout } from '@/components/marketing/PublicLayout';
-import { usePageMeta } from '@/hooks/usePageMeta';
+import { useEffect } from 'react';
 
 export default function Privacy() {
-  usePageMeta({
-    title: 'Privacy Policy - STOREA',
-    description: 'STOREA Privacy Policy - Learn how we collect, use, and protect your personal and business information in accordance with Australian privacy laws.'
-  });
+  useEffect(() => {
+    document.title = 'Privacy Policy - STOREA';
+    const metaDescription = document.querySelector('meta[name="description"]');
+    if (metaDescription) {
+      metaDescription.setAttribute('content', 'STOREA Privacy Policy - Learn how we collect, use, and protect your personal and business information in accordance with Australian privacy laws.');
+    }
+  }, []);
 
   return (
     <PublicLayout>
