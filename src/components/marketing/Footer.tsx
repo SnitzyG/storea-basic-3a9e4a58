@@ -9,10 +9,8 @@ export const Footer = () => {
             </div>
             <p className="text-sm text-muted-foreground">Build smarter.
 Deliver faster.
-Everything connected.
-Nothing complicated.
-
-          </p>
+Everything connected. Nothing complicated.
+Modern construction management that just works.</p>
           </div>
 
           <div>
