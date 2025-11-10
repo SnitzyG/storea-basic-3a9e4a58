@@ -96,46 +96,6 @@ export const TenderJoinSection = ({ projectId, showOnlyMyRequests = false }: Ten
                             "{request.message}"
                             </p>
                           )}
-
-                          {request.status === 'approved' && (
-                            <Button
-                              size="sm"
-                              onClick={async () => {
-                                try {
-                                  console.log('TenderJoinSection: Fetching tender_id for UUID:', request.tender_id);
-                                  
-                                  const { data: t, error } = await supabase
-                                    .from('tenders')
-                                    .select('tender_id')
-                                    .eq('id', request.tender_id)
-                                    .single();
-                                  
-                                  if (error) {
-                                    console.error('TenderJoinSection: Error fetching tender_id:', error);
-                                    toast.error('Failed to load tender details');
-                                    return;
-                                  }
-                                  
-                                  if (!t?.tender_id) {
-                                    console.error('TenderJoinSection: No tender_id found for UUID:', request.tender_id);
-                                    toast.error('Tender ID not found');
-                                    return;
-                                  }
-                                  
-                                  console.log('TenderJoinSection: Navigating to builder with tender_id:', t.tender_id);
-                                  navigate(`/tenders/${t.tender_id}/builder`);
-                                } catch (err) {
-                                  console.error('TenderJoinSection: Unexpected error:', err);
-                                  toast.error('Failed to open tender');
-                                }
-                              }}
-                              className="w-full"
-                            >
-                              <Eye className="h-4 w-4 mr-2" />
-                              View Tender Details
-                            </Button>
-                          )}
-
                         </div>
                       </CardContent>
                     </Card>
@@ -149,7 +109,7 @@ export const TenderJoinSection = ({ projectId, showOnlyMyRequests = false }: Ten
             <CardContent className="pt-6 text-center text-muted-foreground">
               <FileText className="h-12 w-12 mx-auto mb-3 opacity-50" />
               <p>No tender requests yet</p>
-              <p className="text-sm">Use the "Join Tender" tab to request access to tenders</p>
+              <p className="text-sm">Use the "Join Tender" form above to request access to tenders</p>
             </CardContent>
           </Card>
         )}
@@ -217,6 +177,49 @@ export const TenderJoinSection = ({ projectId, showOnlyMyRequests = false }: Ten
           </Button>
         </CardContent>
       </Card>
+
+      {/* My Tender Requests Section */}
+      {myRequests.length > 0 && (
+        <Card>
+          <Collapsible open={showMyRequests} onOpenChange={setShowMyRequests} defaultOpen>
+            <CollapsibleTrigger className="w-full">
+              <CardHeader className="cursor-pointer hover:bg-accent/50 transition-colors">
+                <div className="flex items-center justify-between">
+                  <CardTitle>My Tender Requests</CardTitle>
+                  <ChevronDown className={`h-5 w-5 transition-transform ${showMyRequests ? 'rotate-180' : ''}`} />
+                </div>
+              </CardHeader>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <CardContent className="space-y-4">
+                {myRequests.map((request) => (
+                  <Card key={request.id} className="bg-accent/20">
+                    <CardContent className="pt-6">
+                      <div className="space-y-3">
+                        <div className="flex items-start justify-between">
+                          <div>
+                            <p className="font-semibold">Tender Access Request</p>
+                            <p className="text-sm text-muted-foreground">
+                              Requested {formatDistanceToNow(new Date(request.requested_at), { addSuffix: true })}
+                            </p>
+                          </div>
+                          {getStatusBadge(request.status)}
+                        </div>
+
+                        {request.message && (
+                          <p className="text-sm text-muted-foreground italic border-l-2 border-primary pl-3">
+                            "{request.message}"
+                          </p>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </CardContent>
+            </CollapsibleContent>
+          </Collapsible>
+        </Card>
+      )}
 
       {/* Requests for Approval (Architects Only) */}
       {isArchitect && accessRequests.length > 0 && (
