@@ -71,7 +71,7 @@ export default function StorageAnimation() {
   };
   
   return (
-    <div className="flex items-center justify-center h-[60vh] w-full bg-white">
+    <div className="flex items-center justify-center w-full">
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap');
       `}</style>

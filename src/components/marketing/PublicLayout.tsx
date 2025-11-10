@@ -8,9 +8,9 @@ interface PublicLayoutProps {
 
 export const PublicLayout = ({ children }: PublicLayoutProps) => {
   return (
-    <div className="min-h-screen flex flex-col bg-background">
+    <div className="min-h-screen flex flex-col bg-white">
       <NavBar />
-      <main className="flex-1">
+      <main className="flex-1 flex items-center justify-center">
         {children}
       </main>
       <Footer />
