@@ -21,7 +21,7 @@ const Pricing = () => {
 
   const plans = [
     {
-      name: 'Free',
+      name: 'Basic',
       monthlyPrice: 0,
       description: 'Perfect for small projects or trying out the platform',
       features: [
