@@ -221,6 +221,11 @@ const Tenders = () => {
         )}
 
         <TabsContent value="tenders" className="space-y-6">
+          {/* My Tender Requests - For Builders/Contractors */}
+          {(userRole === 'builder' || userRole === 'contractor') && (
+            <TenderJoinSection projectId={selectedProject?.id} showOnlyMyRequests={true} />
+          )}
+
           {/* Expired Tenders Alert */}
           {expiredOpenTenders.length > 0 && userRole === 'architect' && <Card className="border-orange-200 bg-orange-50">
               <CardContent className="pt-6">

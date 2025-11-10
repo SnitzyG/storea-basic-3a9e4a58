@@ -94,30 +94,59 @@ export const ProjectSelectionProvider = ({ children }: ProjectSelectionProviderP
           return;
         }
 
-        // Get tenders where user is project member, issuer, or has tender access
-        const { data, error } = await supabase
-          .from('tenders')
-          .select('id, project_id, title, status')
-          .or(`issued_by.eq.${userId},project_id.in.(${memberProjectIds.join(',')})`);
+        // Get tenders where user has approved tender_access  
+        const client = supabase as any;
+        client
+          .from('tender_access')
+          .select('tender_id')
+          .eq('requester_id', userId)
+          .eq('status', 'approved')
+          .then((accessResult: any) => {
+            const approvedTenderIds: string[] = accessResult.data 
+              ? accessResult.data.map((a: any) => a.tender_id)
+              : [];
+            
+            // Get tenders where user is issuer or project member
+            const orCondition = memberProjectIds.length > 0 
+              ? `issued_by.eq.${userId},project_id.in.(${memberProjectIds.join(',')})`
+              : `issued_by.eq.${userId}`;
+              
+            Promise.all([
+              client
+                .from('tenders')
+                .select('id, project_id, title, status')
+                .or(orCondition),
+              approvedTenderIds.length > 0
+                ? client
+                    .from('tenders')
+                    .select('id, project_id, title, status')
+                    .in('id', approvedTenderIds)
+                : Promise.resolve({ data: [] })
+            ]).then(([ownedResult, accessResult2]: any[]) => {
+              // Combine and deduplicate tenders
+              const allTenders = [...(ownedResult.data || []), ...(accessResult2.data || [])];
+              const tenderMap: Record<string, any> = {};
+              allTenders.forEach((t: any) => {
+                tenderMap[t.id] = t;
+              });
+              const uniqueTenders: Tender[] = Object.values(tenderMap);
 
-        if (error) {
-          console.error('Error loading tenders:', error);
-          if (mounted) setAvailableTenders([]);
-          return;
-        }
-
-        if (mounted) {
-          setAvailableTenders((data || []) as Tender[]);
-        }
+              if (mounted) {
+                setAvailableTenders(uniqueTenders);
+              }
+            });
+          });
       } catch (error) {
         console.error('Error in loadUserTenders:', error);
         if (mounted) setAvailableTenders([]);
       }
     };
 
-    if (memberProjectIds.length > 0) {
-      loadUserTenders();
-    }
+    loadUserTenders();
+    
+    return () => {
+      mounted = false;
+    };
   }, [memberProjectIds]);
 
   // Auto-select first available project if none selected and no tender selected
