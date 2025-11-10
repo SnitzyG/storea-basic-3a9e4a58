@@ -78,12 +78,12 @@ export default function StorageAnimation() {
       <div className="w-full px-8 md:px-16">
         <div className="flex items-center justify-center gap-4">
           <div className="text-gray-800 text-8xl md:text-9xl font-bold whitespace-nowrap" style={{ fontFamily: 'Roboto' }}>
-            STORE <span className="text-black">A</span>
+            STOREA
           </div>
           
-          <div className="text-8xl md:text-9xl font-bold whitespace-nowrap" style={{ 
+          <div className="text-8xl md:text-9xl font-bold whitespace-nowrap min-w-[600px] md:min-w-[800px]" style={{ 
             fontFamily: 'Roboto',
-            color: isSpinning ? '#d1d5db' : '#4b5563',
+            color: isSpinning ? '#d1d5db' : '#000000',
             transition: 'color 0.3s'
           }}>
             {currentWord}
