@@ -72,12 +72,12 @@ export default function StorageAnimation() {
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap');
       `}</style>
-      <div className="flex items-center gap-6">
-        <div className="text-gray-800 text-8xl md:text-[10rem] lg:text-[12rem] font-bold whitespace-nowrap w-[500px] md:w-[650px] lg:w-[750px] text-right" style={{ fontFamily: 'Roboto' }}>
+      <div className="flex flex-col items-center gap-4">
+        <div className="text-gray-800 text-8xl md:text-[10rem] lg:text-[12rem] font-bold whitespace-nowrap" style={{ fontFamily: 'Roboto' }}>
           STOREA
         </div>
         
-        <div className="text-8xl md:text-[10rem] lg:text-[12rem] font-bold whitespace-nowrap w-[600px] md:w-[800px] lg:w-[900px] text-left" style={{ 
+        <div className="text-8xl md:text-[10rem] lg:text-[12rem] font-bold whitespace-nowrap" style={{ 
           fontFamily: 'Roboto',
           color: isSpinning ? '#d1d5db' : '#000000',
           transition: 'color 0.3s'
