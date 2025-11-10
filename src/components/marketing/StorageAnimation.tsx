@@ -77,7 +77,7 @@ export default function StorageAnimation() {
           STOREA
         </div>
         
-        <div className="text-8xl md:text-[10rem] lg:text-[12rem] font-bold whitespace-nowrap flex-1 max-w-[800px]" style={{ 
+        <div className="text-8xl md:text-[10rem] lg:text-[12rem] font-bold whitespace-nowrap w-[600px] md:w-[800px] lg:w-[900px]" style={{ 
           fontFamily: 'Roboto',
           color: isSpinning ? '#d1d5db' : '#000000',
           transition: 'color 0.3s'
