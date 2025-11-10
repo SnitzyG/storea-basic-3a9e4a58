@@ -13,7 +13,7 @@ export const Footer = () => {
           </div>
           
           <div className="flex items-center gap-4">
-            <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground transition-colors">
+            <a href="https://www.facebook.com/storeaau" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground transition-colors">
               <Facebook className="h-4 w-4" />
             </a>
             <a href="https://x.com/storea_au" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground transition-colors">
