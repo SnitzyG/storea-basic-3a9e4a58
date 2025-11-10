@@ -11,7 +11,8 @@ export const Footer = () => {
 Deliver faster.
 Everything connected.
 Nothing complicated.
-Modern construction management that just works.</p>
+
+          </p>
           </div>
 
           <div>
