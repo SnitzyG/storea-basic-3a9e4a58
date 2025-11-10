@@ -41,6 +41,7 @@ import About from "./pages/public/About.tsx";
 import Features from "./pages/public/Features.tsx";
 import Pricing from "./pages/public/Pricing.tsx";
 import Contact from "./pages/public/Contact.tsx";
+import Privacy from "./pages/public/Privacy.tsx";
 import StyleGuide from "./pages/StyleGuide.tsx";
 
 import "./index.css";
@@ -71,6 +72,7 @@ createRoot(document.getElementById("root")!).render(
                     <Route path="/features" element={<Features />} />
                     <Route path="/pricing" element={<Pricing />} />
                     <Route path="/contact" element={<Contact />} />
+                    <Route path="/privacy" element={<Privacy />} />
                     
                     {/* Auth pages */}
                     <Route path="/auth" element={<Auth />} />
