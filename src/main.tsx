@@ -42,6 +42,7 @@ import Features from "./pages/public/Features.tsx";
 import Pricing from "./pages/public/Pricing.tsx";
 import Contact from "./pages/public/Contact.tsx";
 import Privacy from "./pages/public/Privacy.tsx";
+import Terms from "./pages/public/Terms.tsx";
 import StyleGuide from "./pages/StyleGuide.tsx";
 
 import "./index.css";
@@ -73,6 +74,7 @@ createRoot(document.getElementById("root")!).render(
                     <Route path="/pricing" element={<Pricing />} />
                     <Route path="/contact" element={<Contact />} />
                     <Route path="/privacy" element={<Privacy />} />
+                    <Route path="/terms" element={<Terms />} />
                     
                     {/* Auth pages */}
                     <Route path="/auth" element={<Auth />} />

@@ -9,7 +9,7 @@ export const Footer = () => {
             <Link to="/pricing" className="hover:text-foreground transition-colors">Pricing</Link>
             
             <Link to="/privacy" className="hover:text-foreground transition-colors">Privacy</Link>
-            <a href="#" className="hover:text-foreground transition-colors">Terms</a>
+            <Link to="/terms" className="hover:text-foreground transition-colors">Terms</Link>
           </div>
           
           <div className="flex items-center gap-4">
