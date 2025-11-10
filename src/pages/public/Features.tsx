@@ -89,11 +89,11 @@ const Features = () => {
     <PublicLayout>
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 h-full flex flex-col justify-center">
         <div className="max-w-4xl mx-auto text-center mb-6">
-          <h1 className="text-3xl md:text-4xl font-bold mb-2 text-gray-800">
+          <h1 className="text-4xl md:text-5xl font-bold mb-4 text-gray-800">
             Powerful Features for Modern Construction
           </h1>
           
-          <p className="text-base text-muted-foreground">
+          <p className="text-lg text-muted-foreground">
             Everything you need to manage construction projects efficiently, all in one integrated platform.
           </p>
         </div>
