@@ -22,30 +22,31 @@ export const PricingCard = ({ name, price, description, features, highlighted }:
         </div>
       )}
       
-      <CardHeader className="text-center pb-8">
-        <CardTitle className="text-2xl">{name}</CardTitle>
-        <div className="mt-4">
-          <span className="text-4xl font-bold">{price}</span>
-          {price !== 'Free' && <span className="text-muted-foreground">/month</span>}
+      <CardHeader className="text-center pb-4">
+        <CardTitle className="text-xl">{name}</CardTitle>
+        <div className="mt-2">
+          <span className="text-3xl font-bold">{price}</span>
+          {price !== 'Free' && <span className="text-muted-foreground text-sm">/month</span>}
         </div>
-        <CardDescription className="mt-2">{description}</CardDescription>
+        <CardDescription className="mt-1 text-sm">{description}</CardDescription>
       </CardHeader>
 
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-3">
         <Link to="/auth">
           <Button 
             className="w-full" 
             variant={highlighted ? 'default' : 'outline'}
+            size="sm"
           >
             Get Started
           </Button>
         </Link>
 
-        <ul className="space-y-3 pt-4">
+        <ul className="space-y-2 pt-2">
           {features.map((feature, index) => (
-            <li key={index} className="flex items-start gap-3">
-              <Check className="h-5 w-5 text-primary shrink-0 mt-0.5" />
-              <span className="text-sm text-muted-foreground">{feature}</span>
+            <li key={index} className="flex items-start gap-2">
+              <Check className="h-4 w-4 text-primary shrink-0 mt-0.5" />
+              <span className="text-xs text-muted-foreground">{feature}</span>
             </li>
           ))}
         </ul>
