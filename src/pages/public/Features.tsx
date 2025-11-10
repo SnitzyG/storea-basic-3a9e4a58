@@ -1,5 +1,6 @@
 import { PublicLayout } from '@/components/marketing/PublicLayout';
 import { FeatureCard } from '@/components/marketing/FeatureCard';
+import { usePageMeta } from '@/hooks/usePageMeta';
 import { 
   FileText, 
   Users, 
@@ -16,6 +17,11 @@ import {
 } from 'lucide-react';
 
 const Features = () => {
+  usePageMeta({
+    title: 'STOREA Features – Tools to Simplify Project Management',
+    description: 'Discover all the tools STOREA offers to manage projects, teams, and documents in one place.'
+  });
+
   const features = [
     {
       icon: FileText,

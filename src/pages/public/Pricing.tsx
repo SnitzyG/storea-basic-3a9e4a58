@@ -1,7 +1,13 @@
 import { PublicLayout } from '@/components/marketing/PublicLayout';
 import { PricingCard } from '@/components/marketing/PricingCard';
+import { usePageMeta } from '@/hooks/usePageMeta';
 
 const Pricing = () => {
+  usePageMeta({
+    title: 'STOREA Pricing – Choose Your Plan',
+    description: 'Flexible pricing plans to fit your construction project needs. Start free or upgrade to premium.'
+  });
+
   const plans = [
     {
       name: 'Free',

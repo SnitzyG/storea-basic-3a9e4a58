@@ -12,7 +12,14 @@ import { CaptchaChallenge } from '@/components/security/CaptchaChallenge';
 import { StorealiteLogo } from '@/components/ui/storealite-logo';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { usePageMeta } from '@/hooks/usePageMeta';
+
 const Auth = () => {
+  usePageMeta({
+    title: 'Login – STOREA',
+    description: 'Access your STOREA account and manage your projects securely.'
+  });
+
   const {
     user,
     loading,
