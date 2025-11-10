@@ -87,18 +87,18 @@ const Features = () => {
 
   return (
     <PublicLayout>
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="max-w-4xl mx-auto text-center mb-10">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4 text-gray-800">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 h-full flex flex-col justify-center">
+        <div className="max-w-4xl mx-auto text-center mb-6">
+          <h1 className="text-3xl md:text-4xl font-bold mb-2 text-gray-800">
             Powerful Features for Modern Construction
           </h1>
           
-          <p className="text-lg text-muted-foreground">
+          <p className="text-base text-muted-foreground">
             Everything you need to manage construction projects efficiently, all in one integrated platform.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 max-w-7xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 max-w-7xl mx-auto">
           {features.map((feature, index) => (
             <FeatureCard key={index} {...feature} />
           ))}
