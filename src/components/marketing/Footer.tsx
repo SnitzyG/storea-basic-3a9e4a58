@@ -1,17 +1,16 @@
 import { Link } from 'react-router-dom';
-
 export const Footer = () => {
-  return (
-    <footer className="bg-muted/30 border-t border-border mt-20">
+  return <footer className="bg-muted/30 border-t border-border mt-20">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div>
             <div className="text-xl font-black uppercase tracking-wide text-primary mb-4">
               STOREA
             </div>
-            <p className="text-sm text-muted-foreground">
-              Modern construction management for the digital age.
-            </p>
+            <p className="text-sm text-muted-foreground">Build smarter.
+Deliver faster.
+Everything connected. Nothing complicated.
+Modern construction management that just works.</p>
           </div>
 
           <div>
@@ -47,6 +46,5 @@ export const Footer = () => {
           <p>&copy; {new Date().getFullYear()} STOREA. All rights reserved.</p>
         </div>
       </div>
-    </footer>
-  );
+    </footer>;
 };
