@@ -1,5 +1,7 @@
 import { PublicLayout } from '@/components/marketing/PublicLayout';
 import { PricingCard } from '@/components/marketing/PricingCard';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Check } from 'lucide-react';
 import { usePageMeta } from '@/hooks/usePageMeta';
 
 const Pricing = () => {
@@ -74,17 +76,46 @@ const Pricing = () => {
             <PricingCard key={index} {...plan} />
           ))}
           
-          <div className="border-border hover:shadow-elegant transition-all duration-300 rounded-lg border bg-card p-6 flex flex-col">
-            <div className="flex-1">
-              <h3 className="text-2xl font-bold mb-2 text-foreground">Custom</h3>
-              <p className="text-muted-foreground mb-6">
-                Enterprise pricing and custom solutions tailored to your organization's needs.
-              </p>
-            </div>
-            <a href="/contact" className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2 w-full">
-              Get in touch →
-            </a>
-          </div>
+          <Card className="border-border">
+            <CardHeader className="text-center pb-8">
+              <CardTitle className="text-2xl">Custom</CardTitle>
+              <div className="mt-4">
+                <span className="text-4xl font-bold">Contact Us</span>
+              </div>
+              <CardDescription className="mt-2">
+                Enterprise pricing and custom solutions tailored to your organization's needs
+              </CardDescription>
+            </CardHeader>
+
+            <CardContent className="space-y-4">
+              <a href="/contact" className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2 w-full">
+                Get in touch
+              </a>
+
+              <ul className="space-y-3 pt-4">
+                <li className="flex items-start gap-3">
+                  <Check className="h-5 w-5 text-primary shrink-0 mt-0.5" />
+                  <span className="text-sm text-muted-foreground">Unlimited everything</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <Check className="h-5 w-5 text-primary shrink-0 mt-0.5" />
+                  <span className="text-sm text-muted-foreground">White-label options</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <Check className="h-5 w-5 text-primary shrink-0 mt-0.5" />
+                  <span className="text-sm text-muted-foreground">Custom integrations</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <Check className="h-5 w-5 text-primary shrink-0 mt-0.5" />
+                  <span className="text-sm text-muted-foreground">Dedicated support team</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <Check className="h-5 w-5 text-primary shrink-0 mt-0.5" />
+                  <span className="text-sm text-muted-foreground">SLA guarantees</span>
+                </li>
+              </ul>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </PublicLayout>
