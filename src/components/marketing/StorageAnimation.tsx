@@ -16,18 +16,23 @@ export default function StorageAnimation() {
   const [isSpinning, setIsSpinning] = useState(false);
   const [spinWords, setSpinWords] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   
   useEffect(() => {
     // Start first spin after 1 second
-    setTimeout(() => {
+    timeoutRef.current = setTimeout(() => {
       startSpin();
     }, 1000);
     
-    const interval = setInterval(() => {
+    intervalRef.current = setInterval(() => {
       startSpin();
     }, 13000);
     
-    return () => clearInterval(interval);
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    };
   }, []);
   
   const startSpin = () => {

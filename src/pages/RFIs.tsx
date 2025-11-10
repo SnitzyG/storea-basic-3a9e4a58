@@ -648,25 +648,6 @@ const RFIs = () => {
       }, 250);
     }
   };
-  if (projects.length === 0) {
-    return <div className="min-h-screen flex items-center justify-center bg-background px-4">
-        <Card className="w-full max-w-md">
-          <CardContent className="text-center py-12">
-            <div className="mb-6">
-              <StorealiteLogo className="text-5xl" />
-            </div>
-            
-            <h3 className="text-lg font-semibold mb-2">Mail</h3>
-            <p className="text-muted-foreground mb-4">
-              No projects available. Create a project or join a project first to create an RFI.
-            </p>
-            <Button asChild>
-              <Link to="/projects">Go to Projects</Link>
-            </Button>
-          </CardContent>
-        </Card>
-      </div>;
-  }
   if (loading) {
     return <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">Loading Mail...</div>

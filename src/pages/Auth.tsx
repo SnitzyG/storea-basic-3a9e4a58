@@ -318,7 +318,7 @@ const Auth = () => {
           <div className="text-center">Loading...</div>
         </div>}
       
-      <div className="w-full max-w-2xl">
+      <div className="w-full max-w-md">
         {emailConfirmed && <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg">
             <p className="text-green-800 text-sm">
               ✓ Email confirmed! You can now sign in to your account.
@@ -444,18 +444,13 @@ const Auth = () => {
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="signup-password">Password</Label>
-                    <div className="relative">
-                      <Input id="signup-password" type={isPasswordVisible ? "text" : "password"} placeholder="Create a password" value={password} onChange={e => handlePasswordChange(e.target.value)} required />
-                      <Button type="button" variant="ghost" size="sm" className="absolute right-2 top-1/2 -translate-y-1/2 h-auto p-1" onClick={() => setIsPasswordVisible(!isPasswordVisible)}>
-                        {isPasswordVisible ? '🙈' : '👁️'}
-                      </Button>
-                    </div>
+                    <Input id="signup-password" type="password" placeholder="Create a password" value={password} onChange={e => handlePasswordChange(e.target.value)} required />
                     {passwordStrength && <PasswordStrengthIndicator result={passwordStrength} />}
                   </div>
                   
                   <div className="space-y-2">
                     <Label htmlFor="confirm-password">Confirm Password</Label>
-                    <Input id="confirm-password" type={isPasswordVisible ? "text" : "password"} placeholder="Confirm your password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} required />
+                    <Input id="confirm-password" type="password" placeholder="Confirm your password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} required />
                     {confirmPassword && password !== confirmPassword && <p className="text-sm text-destructive">Passwords do not match</p>}
                   </div>
                   <div className="space-y-2">
