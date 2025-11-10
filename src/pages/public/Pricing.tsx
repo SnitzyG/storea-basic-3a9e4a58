@@ -69,20 +69,22 @@ const Pricing = () => {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto mb-16">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-7xl mx-auto">
           {plans.map((plan, index) => (
             <PricingCard key={index} {...plan} />
           ))}
-        </div>
-
-        <div className="max-w-2xl mx-auto text-center bg-muted/50 rounded-2xl p-8 border border-border">
-          <h3 className="text-2xl font-semibold mb-3 text-gray-800">Need something custom?</h3>
-          <p className="text-muted-foreground mb-6">
-            Contact us for enterprise pricing and custom solutions tailored to your organization's needs.
-          </p>
-          <a href="/contact" className="text-primary hover:underline font-medium">
-            Get in touch →
-          </a>
+          
+          <div className="border-border hover:shadow-elegant transition-all duration-300 rounded-lg border bg-card p-6 flex flex-col">
+            <div className="flex-1">
+              <h3 className="text-2xl font-bold mb-2 text-foreground">Custom</h3>
+              <p className="text-muted-foreground mb-6">
+                Enterprise pricing and custom solutions tailored to your organization's needs.
+              </p>
+            </div>
+            <a href="/contact" className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2 w-full">
+              Get in touch →
+            </a>
+          </div>
         </div>
       </div>
     </PublicLayout>
