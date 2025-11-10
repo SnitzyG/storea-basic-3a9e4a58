@@ -12,3 +12,20 @@ Allow: /
 
 User-agent: *
 Allow: /
+
+# Sitemap
+Sitemap: https://www.storea.com.au/sitemap.xml
+
+# Disallow admin and app routes from search indexing
+Disallow: /admin/
+Disallow: /app/
+Disallow: /dashboard/
+Disallow: /projects/
+Disallow: /documents/
+Disallow: /rfis/
+Disallow: /messages/
+Disallow: /tenders/
+Disallow: /financials/
+Disallow: /calendar/
+Disallow: /todo-list/
+Disallow: /testing/
