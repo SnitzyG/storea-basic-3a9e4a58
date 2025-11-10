@@ -14,7 +14,7 @@ interface PricingCardProps {
 
 export const PricingCard = ({ name, price, description, features, highlighted, isYearly }: PricingCardProps) => {
   return (
-    <Card className={`relative ${highlighted ? 'border-primary shadow-xl' : 'border-border'}`}>
+    <Card className={`relative h-full flex flex-col ${highlighted ? 'border-primary shadow-xl' : 'border-border'}`}>
       {highlighted && (
         <div className="absolute -top-4 left-1/2 -translate-x-1/2">
           <span className="bg-primary text-primary-foreground px-4 py-1 rounded-full text-sm font-medium">
@@ -32,7 +32,7 @@ export const PricingCard = ({ name, price, description, features, highlighted, i
         <CardDescription className="mt-2">{description}</CardDescription>
       </CardHeader>
 
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-4 flex-1 flex flex-col">
         <Link to="/auth">
           <Button 
             className="w-full" 
@@ -42,7 +42,7 @@ export const PricingCard = ({ name, price, description, features, highlighted, i
           </Button>
         </Link>
 
-        <ul className="space-y-2.5 pt-3">
+        <ul className="space-y-2.5 pt-3 flex-1">
           {features.map((feature, index) => (
             <li key={index} className="flex items-start gap-2.5">
               <Check className="h-4 w-4 text-primary shrink-0 mt-0.5" />
