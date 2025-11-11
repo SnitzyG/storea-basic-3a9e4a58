@@ -151,7 +151,7 @@ export default function Financials() {
   const canViewClient = userRole === 'builder' || userRole === 'architect' || userRole === 'contractor';
 
   const renderFinancialTabs = (viewRole: string, userId: string | null) => (
-    <Tabs defaultValue="budgets" className="space-y-4">
+    <Tabs defaultValue="budgets" className="space-y-2">
       <TabsList className={cn("grid w-full", isClientView ? "grid-cols-2" : "grid-cols-5")}>
         <TabsTrigger value="budgets" className="flex items-center gap-2">
           <DollarSign className="h-4 w-4" />
@@ -183,7 +183,7 @@ export default function Financials() {
 
       {/* Budgets Section */}
       <TabsContent value="budgets" className="space-y-4">
-        <Tabs defaultValue="project-budgets" className="space-y-4">
+        <Tabs defaultValue="project-budgets" className="space-y-2">
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="project-budgets">Project Budgets</TabsTrigger>
             <TabsTrigger value="budget-actuals">Budget vs Actuals</TabsTrigger>
@@ -208,7 +208,7 @@ export default function Financials() {
       {/* Commitments Section */}
       {!isClientView && (
         <TabsContent value="commitments" className="space-y-4">
-          <Tabs defaultValue="subcontracts" className="space-y-4">
+          <Tabs defaultValue="subcontracts" className="space-y-2">
             <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="subcontracts">Subcontracts</TabsTrigger>
               <TabsTrigger value="purchase-orders">Purchase Orders</TabsTrigger>
@@ -270,7 +270,7 @@ export default function Financials() {
       {/* Claims & Variations Section */}
       {!isClientView && (
         <TabsContent value="claims" className="space-y-4">
-          <Tabs defaultValue="progress-claims" className="space-y-4">
+          <Tabs defaultValue="progress-claims" className="space-y-2">
             <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="progress-claims">Progress Claims</TabsTrigger>
               <TabsTrigger value="variations">Variations</TabsTrigger>
@@ -303,7 +303,7 @@ export default function Financials() {
 
       {/* Payments Section */}
       <TabsContent value="payments" className="space-y-4">
-        <Tabs defaultValue="invoices" className="space-y-4">
+        <Tabs defaultValue="invoices" className="space-y-2">
           <TabsList className={cn("grid w-full", isClientView ? "grid-cols-3" : "grid-cols-4")}>
             <TabsTrigger value="invoices">Invoices</TabsTrigger>
             <TabsTrigger value="payments">Payments</TabsTrigger>
@@ -334,7 +334,7 @@ export default function Financials() {
       {/* Reports Section */}
       {!isClientView && (
         <TabsContent value="reports" className="space-y-4">
-          <Tabs defaultValue="client-contributions" className="space-y-4">
+          <Tabs defaultValue="client-contributions" className="space-y-2">
             <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="client-contributions">Client Contributions</TabsTrigger>
               <TabsTrigger value="integrations">Accounting Integrations</TabsTrigger>
@@ -376,7 +376,7 @@ export default function Financials() {
 
   return (
     <div className="container mx-auto py-6 space-y-6">
-      <Tabs value={selectedRoleView} onValueChange={(value) => setSelectedRoleView(value as any)} className="space-y-6">
+      <Tabs value={selectedRoleView} onValueChange={(value) => setSelectedRoleView(value as any)} className="space-y-4">
         <TabsList className={cn(
           "grid w-full",
           [canViewBuilder, canViewArchitect, canViewClient].filter(Boolean).length === 3 
