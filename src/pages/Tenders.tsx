@@ -5,8 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Plus, AlertTriangle, FileText, Users, BarChart3, UserPlus, Edit, Trash2, Hash, Copy, Eye, CheckCircle } from 'lucide-react';
+import { Plus, AlertTriangle, FileText, BarChart3, UserPlus, CheckCircle, Eye } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { useTenders, Tender } from '@/hooks/useTenders';
 import { useProjects } from '@/hooks/useProjects';
@@ -21,6 +20,7 @@ import { ProjectQuotesComparison } from '@/components/tenders/ProjectQuotesCompa
 import { TenderJoinSection } from '@/components/tenders/TenderJoinSection';
 import { TenderAccessApprovals } from '@/components/tenders/TenderAccessApprovals';
 import { TenderDetailsView } from '@/components/tenders/TenderDetailsView';
+import { TenderSummaryCard } from '@/components/tenders/TenderSummaryCard';
 import { generateTenderPackage } from '@/utils/tenderPackageGenerator';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -122,7 +122,9 @@ const Tenders = () => {
   const [selectedTender, setSelectedTender] = useState<Tender | null>(null);
   const [activeTab, setActiveTab] = useState<'tenders' | 'compare' | 'join'>('tenders');
   const {
-    selectedProject
+    selectedProject,
+    selectedTender: contextTender,
+    availableTenders
   } = useProjectSelection();
   const {
     projects
@@ -140,12 +142,29 @@ const Tenders = () => {
   } = useTenders(selectedProject?.id);
   const userRole = profile?.role || '';
 
+  // Combine tenders from project and context (for builders who joined via tender)
+  const allTenders = useMemo(() => {
+    const tenderMap = new Map();
+    
+    // Add tenders from project
+    tenders.forEach(t => tenderMap.set(t.id, t));
+    
+    // Add tenders from context (for builders)
+    availableTenders.forEach(t => {
+      if (!tenderMap.has(t.id)) {
+        tenderMap.set(t.id, t);
+      }
+    });
+    
+    return Array.from(tenderMap.values());
+  }, [tenders, availableTenders]);
+
   // Filter tenders based on user role
   const filteredTenders = useMemo(() => {
     // Homeowners should not see tenders tab at all, but just in case
     if (userRole === 'homeowner') return [];
-    return tenders;
-  }, [tenders, userRole]);
+    return allTenders;
+  }, [allTenders, userRole]);
   const handleViewTender = (tender: Tender) => {
     setSelectedTender(tender);
     setDetailsDialogOpen(true);
@@ -199,7 +218,7 @@ const Tenders = () => {
   };
 
   // Check for expired tenders that need to be closed
-  const expiredOpenTenders = tenders.filter(t => t.status === 'open' && new Date(t.deadline) < new Date());
+  const expiredOpenTenders = allTenders.filter(t => t.status === 'open' && new Date(t.deadline) < new Date());
 
   // Auto-close expired tenders (in a real app, this would be a background job)
   React.useEffect(() => {
@@ -232,28 +251,6 @@ const Tenders = () => {
         variant: "destructive"
       });
     }
-  };
-  const getStatusBadge = (status: string) => {
-    const statusConfig = {
-      draft: {
-        label: 'DRAFT',
-        className: 'bg-gray-100 text-gray-800'
-      },
-      open: {
-        label: 'OPEN',
-        className: 'bg-green-100 text-green-800'
-      },
-      closed: {
-        label: 'CLOSED',
-        className: 'bg-orange-100 text-orange-800'
-      },
-      awarded: {
-        label: 'AWARDED',
-        className: 'bg-blue-100 text-blue-800'
-      }
-    };
-    const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.draft;
-    return <Badge className={config.className}>{config.label}</Badge>;
   };
 
   // If viewing a specific tender (tenderId in URL), show TenderDetailsView
@@ -320,181 +317,39 @@ const Tenders = () => {
             </Card>}
 
           {/* Tenders List View */}
-          {filteredTenders.length > 0 ? <Card className="border-0 shadow-sm bg-gradient-to-br from-card to-card/50">
-              <CardContent className="p-0">
-                <Table>
-                  <TableHeader className="bg-gradient-to-r from-muted/50 to-muted/30 border-b-2 border-primary/10">
-                    <TableRow>
-                      <TableHead className="text-foreground/80 font-semibold text-sm h-12 px-4">Tender ID</TableHead>
-                      <TableHead className="text-foreground/80 font-semibold text-sm h-12 px-4">Title</TableHead>
-                      <TableHead className="text-foreground/80 font-semibold text-sm h-12 px-4">Status</TableHead>
-                      <TableHead className="text-foreground/80 font-semibold text-sm h-12 px-4">Deadline</TableHead>
-                      <TableHead className="text-foreground/80 font-semibold text-sm h-12 px-4">Issued By</TableHead>
-                      <TableHead className="text-foreground/80 font-semibold text-sm h-12 px-4">Bids Received</TableHead>
-                      <TableHead className="text-foreground/80 font-semibold text-sm h-12 px-4">Created</TableHead>
-                      <TableHead className="text-foreground/80 font-semibold text-sm h-12 px-4 w-[150px]">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                  {filteredTenders.map(tender => <TableRow key={tender.id} onClick={() => {
-                    // Builders go to builder dashboard using tender_id, architects go to details view
+          {filteredTenders.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {filteredTenders.map((tender) => (
+                <TenderSummaryCard
+                  key={tender.id}
+                  tender={tender}
+                  onView={(t) => {
                     if (userRole === 'builder' || userRole === 'contractor') {
-                      navigate(`/tenders/${tender.tender_id}/builder`);
+                      navigate(`/tenders/${t.tender_id}/builder`);
                     } else {
-                      navigate(`/tenders/${tender.id}`);
+                      navigate(`/tenders/${t.id}`);
                     }
-                  }} className="hover:bg-muted/30 transition-all duration-200 cursor-pointer border-b border-muted/20">
-                        <TableCell className="text-sm px-4 py-3 text-foreground/90">
-                          {tender.tender_id ? <div className="flex items-center gap-2">
-                              <div className="flex items-center gap-1 text-xs text-primary font-mono bg-primary/10 px-2 py-1 rounded border border-primary/20">
-                                <Hash className="h-3 w-3" />
-                                {tender.tender_id}
-                              </div>
-                              <Button variant="ghost" size="sm" onClick={e => {
-                          e.stopPropagation();
-                          copyTenderId(tender.tender_id);
-                        }} className="h-6 w-6 p-0">
-                                <Copy className="h-3 w-3" />
-                              </Button>
-                            </div> : <span className="font-mono text-xs text-muted-foreground">-</span>}
-                        </TableCell>
-                        <TableCell className="text-sm px-4 py-3 text-foreground/90">
-                          <div className="space-y-1">
-                            <p className="font-medium text-sm leading-none text-foreground">{tender.title}</p>
-                            {tender.description && <p className="text-xs text-muted-foreground line-clamp-1">{tender.description}</p>}
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-sm px-4 py-3 text-foreground/90">
-                          {tender.status === 'draft' && userRole === 'architect' ? <select value={tender.status} onChange={async e => {
-                        const newStatus = e.target.value as 'draft' | 'open' | 'closed' | 'awarded';
-                        const {
-                          error
-                        } = await supabase.from('tenders').update({
-                          status: newStatus
-                        }).eq('id', tender.id);
-                        if (error) {
-                          toast({
-                            title: "Error",
-                            description: "Failed to update tender status",
-                            variant: "destructive"
-                          });
-                        } else {
-                          toast({
-                            title: "Status Updated",
-                            description: "Tender status has been updated"
-                          });
-                          window.location.reload();
-                        }
-                      }} className="text-xs px-2 py-1 rounded border bg-gray-100 text-gray-800">
-                              <option value="draft">DRAFT</option>
-                              <option value="open">OPEN</option>
-                              <option value="closed">CLOSED</option>
-                              <option value="awarded">AWARDED</option>
-                            </select> : getStatusBadge(tender.status)}
-                        </TableCell>
-                        <TableCell className="text-sm px-4 py-3 text-foreground/90">
-                          <div className="space-y-1">
-                            <p className="text-xs font-medium text-foreground">
-                              {new Date(tender.deadline).toLocaleDateString()} at {new Date(tender.deadline).toLocaleTimeString([], {
-                            hour: '2-digit',
-                            minute: '2-digit'
-                          })}
-                            </p>
-                            <p className="text-xs text-muted-foreground">
-                              ({Math.ceil((new Date(tender.deadline).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))} days)
-                            </p>
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-sm px-4 py-3 text-foreground/90">
-                          <div className="flex items-center gap-2">
-                            <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center">
-                              <span className="text-xs font-semibold text-primary">
-                                {tender.issued_by_profile?.name?.charAt(0) || 'U'}
-                              </span>
-                            </div>
-                            <span className="text-xs text-muted-foreground">
-                              {tender.issued_by_profile?.name || 'Unknown'}
-                            </span>
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-sm px-4 py-3 text-foreground/90">
-                          <span className="text-xs text-muted-foreground">
-                            {tender.bid_count || 0} bid(s) received
-                          </span>
-                        </TableCell>
-                        <TableCell className="text-sm px-4 py-3 text-foreground/90">
-                          <span className="text-xs text-muted-foreground">
-                            {(() => {
-                          const now = new Date();
-                          const created = new Date(tender.created_at);
-                          const diffMinutes = Math.floor((now.getTime() - created.getTime()) / (1000 * 60));
-                          if (diffMinutes < 60) return `${diffMinutes} minute${diffMinutes !== 1 ? 's' : ''} ago`;
-                          const diffHours = Math.floor(diffMinutes / 60);
-                          if (diffHours < 24) return `${diffHours} hour${diffHours !== 1 ? 's' : ''} ago`;
-                          const diffDays = Math.floor(diffHours / 24);
-                          return `${diffDays} day${diffDays !== 1 ? 's' : ''} ago`;
-                        })()}
-                          </span>
-                        </TableCell>
-                        <TableCell className="text-sm px-4 py-3 text-foreground/90 w-[200px]">
-                          <div className="flex gap-1 items-center">
-                            <Button variant="ghost" size="icon" onClick={e => {
-                          e.stopPropagation();
-                          if (userRole === 'builder' || userRole === 'contractor') {
-                            navigate(`/tenders/${tender.tender_id}/builder`);
-                          } else {
-                            navigate(`/tenders/${tender.id}`);
-                          }
-                        }} title="Open Tender – view docs & submit">
-                              <Eye className="h-4 w-4" />
-                            </Button>
-                            <Button variant="ghost" size="icon" onClick={e => {
-                          e.stopPropagation();
-                          handleViewTenderPackage(tender);
-                        }} title="Download Tender Package PDF">
-                              <FileText className="h-4 w-4" />
-                            </Button>
-                            
-                            {userRole === 'architect' && <>
-                                <Button variant="ghost" size="icon" onClick={e => {
-                            e.stopPropagation();
-                            setSelectedTender(tender);
-                            setWizardOpen(true);
-                          }} title="Edit Tender">
-                                  <Edit className="h-4 w-4" />
-                                </Button>
-                                <Button variant="ghost" size="icon" onClick={e => {
-                            e.stopPropagation();
-                            handleInviteBidders(tender);
-                          }} title="Invite Bidders">
-                                  <UserPlus className="h-4 w-4" />
-                                </Button>
-                                <Button variant="ghost" size="icon" onClick={e => {
-                            e.stopPropagation();
-                            handleDeleteTender(tender);
-                          }} title="Delete Tender" className="text-destructive hover:text-destructive hover:bg-destructive/10">
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
-                              </>}
-                          </div>
-                        </TableCell>
-                      </TableRow>)}
-                  </TableBody>
-                </Table>
-              </CardContent>
-            </Card> : <Card>
+                  }}
+                />
+              ))}
+            </div>
+          ) : (
+            <Card>
               <CardContent className="text-center py-12">
                 <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-medium mb-2">No Tenders Found</h3>
+                <h3 className="text-lg font-medium mb-2">No tenders yet</h3>
                 <p className="text-muted-foreground mb-4">
-                  {userRole === 'architect' ? "No tenders have been created for this project yet." : "No tenders are available for bidding in this project."}
+                  Check back soon for new opportunities.
                 </p>
-                {userRole === 'architect' && <Button onClick={() => setCreateDialogOpen(true)}>
+                {userRole === 'architect' && (
+                  <Button onClick={() => setCreateDialogOpen(true)}>
                     <Plus className="h-4 w-4 mr-2" />
                     Create Tender
-                  </Button>}
+                  </Button>
+                )}
               </CardContent>
-            </Card>}
+            </Card>
+          )}
 
           {/* Access Requests Section - Only for Architects */}
           {userRole === 'architect' && <TenderAccessApprovals projectId={selectedProject?.id} />}
