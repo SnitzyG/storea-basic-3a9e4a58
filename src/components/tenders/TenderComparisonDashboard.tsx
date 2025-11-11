@@ -7,11 +7,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Separator } from '@/components/ui/separator';
 import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar } from 'recharts';
 import { TrendingUp, TrendingDown, DollarSign, Calendar, Users, BarChart3, Download, Filter, Star, Clock, Award, Target, FileText, Package } from 'lucide-react';
-import { TenderBid } from '@/hooks/useTenders';
+import { TenderBid, useTenders } from '@/hooks/useTenders';
 import { downloadFromStorage } from '@/utils/storageUtils';
 import { toast } from 'sonner';
 import { BidLineItemsTable } from './BidLineItemsTable';
 import { supabase } from '@/integrations/supabase/client';
+import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
+import { Loader2 } from 'lucide-react';
 
 interface TenderComparisonDashboardProps {
   tenderId: string;
@@ -28,14 +30,41 @@ export const TenderComparisonDashboard: React.FC<TenderComparisonDashboardProps>
   const [loading, setLoading] = useState(true);
   const [sortBy, setSortBy] = useState<'price' | 'timeline' | 'score'>('price');
   const [filterBy, setFilterBy] = useState<'all' | 'submitted' | 'under_review'>('all');
+  const [tenderData, setTenderData] = useState<{ project_id: string; title: string } | null>(null);
+  const [awardingBid, setAwardingBid] = useState<string | null>(null);
+  const [showAwardDialog, setShowAwardDialog] = useState(false);
+  const [selectedBid, setSelectedBid] = useState<TenderBid | null>(null);
+  const [lineItemCount, setLineItemCount] = useState(0);
 
-  // Fetch bids from database
+  const { awardTender } = useTenders();
+
+  // Fetch bids and tender data from database
   useEffect(() => {
     console.log('TenderComparisonDashboard mounted with tenderId:', tenderId);
     console.log('tenderId type:', typeof tenderId);
     console.log('tenderId length:', tenderId?.length);
     fetchBids();
+    fetchTenderData();
   }, [tenderId]);
+
+  const fetchTenderData = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('tenders')
+        .select('project_id, title')
+        .eq('id', tenderId)
+        .single();
+
+      if (error) {
+        console.error('Error fetching tender data:', error);
+        return;
+      }
+
+      setTenderData(data);
+    } catch (error) {
+      console.error('Error fetching tender data:', error);
+    }
+  };
 
   const fetchBids = async () => {
     try {
@@ -85,6 +114,37 @@ export const TenderComparisonDashboard: React.FC<TenderComparisonDashboardProps>
       setLoading(false);
     }
   };
+
+  const handleAwardTender = async (bid: TenderBid) => {
+    // Fetch line item count for the confirmation dialog
+    const { data: lineItems } = await supabase
+      .from('tender_bid_line_items')
+      .select('id')
+      .eq('bid_id', bid.id);
+    
+    setLineItemCount(lineItems?.length || 0);
+    setSelectedBid(bid);
+    setShowAwardDialog(true);
+  };
+
+  const confirmAward = async () => {
+    if (!selectedBid) return;
+    
+    setAwardingBid(selectedBid.id);
+    setShowAwardDialog(false);
+    
+    const success = await awardTender(tenderId, selectedBid.bidder_id);
+    
+    if (success) {
+      toast.success(`Tender awarded to ${selectedBid.bidder_profile?.name}. ${lineItemCount} line items transferred to financials.`);
+      fetchBids(); // Refresh the list
+    }
+    
+    setAwardingBid(null);
+    setSelectedBid(null);
+    setLineItemCount(0);
+  };
+
   const filteredBids = useMemo(() => {
     return bids.filter(bid => filterBy === 'all' || bid.status === filterBy);
   }, [bids, filterBy]);
@@ -354,6 +414,30 @@ export const TenderComparisonDashboard: React.FC<TenderComparisonDashboardProps>
                       </h4>
                       <BidLineItemsTable bidId={bid.id} tenderId={tenderId} />
                     </div>
+
+                    {/* Award Button */}
+                    {(bid.status === 'submitted' || bid.status === 'under_review') && (
+                      <div className="mt-6 pt-4 border-t">
+                        <Button
+                          onClick={() => handleAwardTender(bid)}
+                          disabled={awardingBid !== null}
+                          className="w-full"
+                          size="lg"
+                        >
+                          {awardingBid === bid.id ? (
+                            <>
+                              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                              Awarding Tender...
+                            </>
+                          ) : (
+                            <>
+                              <Award className="h-4 w-4 mr-2" />
+                              Award Tender to {bid.bidder_profile?.name}
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                    )}
 
                     {/* Submission Details */}
                     <div className="mt-6 pt-4 border-t">
@@ -633,5 +717,20 @@ export const TenderComparisonDashboard: React.FC<TenderComparisonDashboardProps>
           {renderAnalyticsTab()}
         </TabsContent>
       </Tabs>
+
+      {/* Award Confirmation Dialog */}
+      <ConfirmationDialog
+        open={showAwardDialog}
+        onClose={() => {
+          setShowAwardDialog(false);
+          setSelectedBid(null);
+          setLineItemCount(0);
+        }}
+        onConfirm={confirmAward}
+        title="Award Tender"
+        description={`Are you sure you want to award this tender to ${selectedBid?.bidder_profile?.name}? This will give the builder access to the project and transfer ${lineItemCount} line items to the Financials tab. All other bids will be rejected.`}
+        confirmText="Award Tender"
+        cancelText="Cancel"
+      />
     </div>;
 };

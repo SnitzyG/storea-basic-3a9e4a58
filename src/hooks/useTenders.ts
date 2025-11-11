@@ -338,10 +338,69 @@ export const useTenders = (projectId?: string) => {
 
   const awardTender = async (id: string, awardedTo: string) => {
     try {
-      // Update tender status and award
-      await updateTender(id, { status: 'awarded', awarded_to: awardedTo });
-      
-      // Update all bids for this tender - mark the winning bid as accepted, others as rejected
+      // Step 1: Fetch tender and project details
+      const { data: tender, error: tenderError } = await supabase
+        .from('tenders')
+        .select('project_id, title')
+        .eq('id', id)
+        .single();
+
+      if (tenderError || !tender) {
+        throw new Error('Tender not found');
+      }
+
+      if (!tender.project_id) {
+        throw new Error('Tender is not associated with a project');
+      }
+
+      // Step 2: Check if builder is already a project member
+      const { data: existingMember } = await supabase
+        .from('project_users')
+        .select('id')
+        .eq('project_id', tender.project_id)
+        .eq('user_id', awardedTo)
+        .single();
+
+      // If not a member, add them with role 'builder'
+      if (!existingMember) {
+        const { error: addMemberError } = await supabase
+          .from('project_users')
+          .insert({
+            project_id: tender.project_id,
+            user_id: awardedTo,
+            role: 'builder',
+            invited_by: user?.id || awardedTo
+          });
+
+        if (addMemberError) throw addMemberError;
+
+        // Log activity for builder addition
+        await supabase
+          .from('activity_log')
+          .insert({
+            user_id: user?.id,
+            project_id: tender.project_id,
+            entity_type: 'project',
+            entity_id: tender.project_id,
+            action: 'team_member_added',
+            description: `Builder added to project through tender award: "${tender.title}"`,
+            metadata: { 
+              added_user_id: awardedTo,
+              tender_id: id,
+              role: 'builder'
+            }
+          });
+      }
+
+      // Step 3: Update tender status and award
+      const { error: updateError } = await supabase
+        .from('tenders')
+        .update({ status: 'awarded', awarded_to: awardedTo })
+        .eq('id', id);
+
+      if (updateError) throw updateError;
+
+      // Step 4: Update bid statuses
       const { error: acceptBidError } = await supabase
         .from('tender_bids')
         .update({ status: 'accepted' })
@@ -358,17 +417,101 @@ export const useTenders = (projectId?: string) => {
 
       if (rejectBidsError) throw rejectBidsError;
 
+      // Step 5: Get the winning bid ID
+      const { data: winningBid, error: bidError } = await supabase
+        .from('tender_bids')
+        .select('id')
+        .eq('tender_id', id)
+        .eq('bidder_id', awardedTo)
+        .single();
+
+      if (bidError || !winningBid) {
+        throw new Error('Could not find winning bid');
+      }
+
+      // Step 6: Transfer line items to financials
+      const { data: lineItems, error: lineItemsError } = await supabase
+        .from('tender_bid_line_items')
+        .select('*')
+        .eq('bid_id', winningBid.id);
+
+      if (lineItemsError) throw lineItemsError;
+
+      if (lineItems && lineItems.length > 0) {
+        // Transform line items for insertion into line_item_budgets
+        const budgetLineItems = lineItems.map(item => ({
+          project_id: tender.project_id,
+          item_number: item.line_number,
+          item_name: item.item_description,
+          description: item.specification || '',
+          category: item.category || 'General',
+          quantity: item.quantity,
+          unit: item.unit_of_measure || '',
+          rate: item.unit_price,
+          total: item.total,
+          contract_budget: item.total,
+          percentage_complete: 0,
+          total_claimed_to_date: 0,
+          balance_to_claim: item.total,
+          notes: item.notes || ''
+        }));
+
+        const { error: insertError } = await supabase
+          .from('line_item_budgets')
+          .insert(budgetLineItems);
+
+        if (insertError) {
+          console.error('Error inserting line items:', insertError);
+          throw new Error('Failed to transfer line items to financials');
+        }
+
+        // Log activity for line items transfer
+        await supabase
+          .from('activity_log')
+          .insert({
+            user_id: user?.id,
+            project_id: tender.project_id,
+            entity_type: 'tender',
+            entity_id: id,
+            action: 'line_items_transferred',
+            description: `Transferred ${lineItems.length} line items from awarded tender to financials`,
+            metadata: { 
+              tender_id: id,
+              bid_id: winningBid.id,
+              line_item_count: lineItems.length
+            }
+          });
+      }
+
+      // Step 7: Log tender award activity
+      await supabase
+        .from('activity_log')
+        .insert({
+          user_id: user?.id,
+          project_id: tender.project_id,
+          entity_type: 'tender',
+          entity_id: id,
+          action: 'awarded',
+          description: `Tender awarded: "${tender.title}"`,
+          metadata: { 
+            awarded_to: awardedTo,
+            tender_id: id,
+            line_items_transferred: lineItems?.length || 0
+          }
+        });
+
       toast({
         title: "Success",
-        description: "Tender awarded successfully",
+        description: `Tender awarded successfully. ${lineItems?.length || 0} line items transferred to financials.`,
       });
 
+      fetchTenders();
       return true;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error awarding tender:', error);
       toast({
         title: "Error",
-        description: "Failed to award tender",
+        description: error.message || "Failed to award tender",
         variant: "destructive",
       });
       return false;
