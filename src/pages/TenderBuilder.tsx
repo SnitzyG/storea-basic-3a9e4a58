@@ -1777,8 +1777,8 @@ const TenderBuilder = () => {
           </div>
         </DialogContent>
       </Dialog>
-    
-    </>\n  );
+    </>
+  );
 };
 
 export default TenderBuilder;
