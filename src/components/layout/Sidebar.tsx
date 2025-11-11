@@ -106,21 +106,13 @@ export const Sidebar = ({
           const Icon = tab.icon;
           const isActive = location.pathname.startsWith(tab.path);
           const notificationCount = counts[tab.id as keyof typeof counts];
-          const isDisabled = tab.id === 'financials'; // Disable financials tab
           
-          return <Link key={tab.id} to={isDisabled ? '#' : tab.path} className={cn("flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors", isDisabled ? "opacity-40 cursor-not-allowed pointer-events-none text-muted-foreground" : isActive ? "bg-sidebar-accent text-sidebar-accent-foreground" : "text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground dark:text-white")} onClick={(e) => {
-            if (isDisabled) {
-              e.preventDefault();
-              return;
-            }
+          return <Link key={tab.id} to={tab.path} className={cn("flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors", isActive ? "bg-sidebar-accent text-sidebar-accent-foreground" : "text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground dark:text-white")} onClick={() => {
             markTabAsRead(tab.id);
           }}>
                 <Icon className="h-5 w-5" />
                 {tab.label}
-                {isDisabled && <Badge variant="secondary" className="ml-auto text-xs">
-                    Soon
-                  </Badge>}
-                {!isDisabled && notificationCount > 0 && <Badge variant="secondary" className="ml-auto h-5 min-w-5 px-1 text-xs">
+                {notificationCount > 0 && <Badge variant="secondary" className="ml-auto h-5 min-w-5 px-1 text-xs">
                     {notificationCount}
                   </Badge>}
               </Link>;
