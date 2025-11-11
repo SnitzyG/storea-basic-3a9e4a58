@@ -17,6 +17,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { TenderDocumentCarousel } from '@/components/tenders/TenderDocumentCarousel';
+import { TenderLocationMap } from '@/components/tenders/TenderLocationMap';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { 
   Download, 
@@ -930,7 +931,7 @@ const TenderBuilder = () => {
                   Tender ID: <span className="font-mono">{tender.tender_id}</span>
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {tender.profiles && (
                     <>
@@ -959,14 +960,6 @@ const TenderBuilder = () => {
                     <div>
                       <p className="text-sm font-medium">Client</p>
                       <p className="text-sm text-muted-foreground">{tender.client_name || 'Not specified'}</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-3">
-                    <MapPin className="h-5 w-5 text-muted-foreground mt-0.5" />
-                    <div>
-                      <p className="text-sm font-medium">Project Address</p>
-                      <p className="text-sm text-muted-foreground">{tender.project_address || 'Not specified'}</p>
                     </div>
                   </div>
 
@@ -1003,6 +996,22 @@ const TenderBuilder = () => {
                     </div>
                   </div>
                 </div>
+
+                {tender.project_address && (
+                  <>
+                    <Separator />
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-2">
+                        <MapPin className="h-5 w-5 text-muted-foreground" />
+                        <p className="text-sm font-medium">Project Location</p>
+                      </div>
+                      <TenderLocationMap 
+                        address={tender.project_address} 
+                        tenderTitle={tender.title}
+                      />
+                    </div>
+                  </>
+                )}
 
                 {tender.description && (
                   <>
