@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useProjectSelection } from '@/context/ProjectSelectionContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent } from '@/components/ui/tabs';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { BudgetOverview } from '@/components/financials/BudgetOverview';
 import { InvoicesSection } from '@/components/financials/InvoicesSection';
 import { PaymentsSection } from '@/components/financials/PaymentsSection';
@@ -20,14 +20,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { DollarSign, FileText, CreditCard, Users, BarChart, Receipt } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
-import {
-  RoleFilterTabsList,
-  RoleFilterTabsTrigger,
-  MainFinancialTabsList,
-  MainFinancialTabsTrigger,
-  SubTabsList,
-  SubTabsTrigger,
-} from '@/components/financials/FinancialTabStyles';
 
 interface UserRole {
   role: 'homeowner' | 'architect' | 'contractor' | 'builder';
@@ -160,43 +152,43 @@ export default function Financials() {
 
   const renderFinancialTabs = (viewRole: string, userId: string | null) => (
     <Tabs defaultValue="budgets" className="space-y-4">
-      <MainFinancialTabsList>
-        <MainFinancialTabsTrigger value="budgets">
-          <DollarSign className="h-4 w-4 mr-2" />
+      <TabsList className={cn("grid w-full", isClientView ? "grid-cols-2" : "grid-cols-5")}>
+        <TabsTrigger value="budgets" className="flex items-center gap-2">
+          <DollarSign className="h-4 w-4" />
           Budgets
-        </MainFinancialTabsTrigger>
+        </TabsTrigger>
         {!isClientView && (
-          <MainFinancialTabsTrigger value="commitments">
-            <FileText className="h-4 w-4 mr-2" />
+          <TabsTrigger value="commitments" className="flex items-center gap-2">
+            <FileText className="h-4 w-4" />
             Commitments
-          </MainFinancialTabsTrigger>
+          </TabsTrigger>
         )}
         {!isClientView && (
-          <MainFinancialTabsTrigger value="claims">
-            <Receipt className="h-4 w-4 mr-2" />
+          <TabsTrigger value="claims" className="flex items-center gap-2">
+            <Receipt className="h-4 w-4" />
             Claims & Variations
-          </MainFinancialTabsTrigger>
+          </TabsTrigger>
         )}
-        <MainFinancialTabsTrigger value="payments">
-          <CreditCard className="h-4 w-4 mr-2" />
+        <TabsTrigger value="payments" className="flex items-center gap-2">
+          <CreditCard className="h-4 w-4" />
           Payments
-        </MainFinancialTabsTrigger>
+        </TabsTrigger>
         {!isClientView && (
-          <MainFinancialTabsTrigger value="reports">
-            <BarChart className="h-4 w-4 mr-2" />
+          <TabsTrigger value="reports" className="flex items-center gap-2">
+            <BarChart className="h-4 w-4" />
             Reports
-          </MainFinancialTabsTrigger>
+          </TabsTrigger>
         )}
-      </MainFinancialTabsList>
+      </TabsList>
 
       {/* Budgets Section */}
       <TabsContent value="budgets" className="space-y-4">
         <Tabs defaultValue="project-budgets" className="space-y-4">
-          <SubTabsList>
-            <SubTabsTrigger value="project-budgets">Project Budgets</SubTabsTrigger>
-            <SubTabsTrigger value="budget-actuals">Budget vs Actuals</SubTabsTrigger>
-            <SubTabsTrigger value="forecasting">Forecasting</SubTabsTrigger>
-          </SubTabsList>
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="project-budgets">Project Budgets</TabsTrigger>
+            <TabsTrigger value="budget-actuals">Budget vs Actuals</TabsTrigger>
+            <TabsTrigger value="forecasting">Forecasting</TabsTrigger>
+          </TabsList>
 
           <TabsContent value="project-budgets" className="space-y-6">
             <BudgetOverview projectId={selectedProject.id} userRole={userRole} userId={userId} />
@@ -217,12 +209,12 @@ export default function Financials() {
       {!isClientView && (
         <TabsContent value="commitments" className="space-y-4">
           <Tabs defaultValue="subcontracts" className="space-y-4">
-            <SubTabsList>
-              <SubTabsTrigger value="subcontracts">Subcontracts</SubTabsTrigger>
-              <SubTabsTrigger value="purchase-orders">Purchase Orders</SubTabsTrigger>
-              <SubTabsTrigger value="creditor-invoices">Creditor Invoices</SubTabsTrigger>
-              <SubTabsTrigger value="committed-costs">Committed Costs</SubTabsTrigger>
-            </SubTabsList>
+            <TabsList className="grid w-full grid-cols-4">
+              <TabsTrigger value="subcontracts">Subcontracts</TabsTrigger>
+              <TabsTrigger value="purchase-orders">Purchase Orders</TabsTrigger>
+              <TabsTrigger value="creditor-invoices">Creditor Invoices</TabsTrigger>
+              <TabsTrigger value="committed-costs">Committed Costs</TabsTrigger>
+            </TabsList>
 
             <TabsContent value="subcontracts">
               <Card>
@@ -279,11 +271,11 @@ export default function Financials() {
       {!isClientView && (
         <TabsContent value="claims" className="space-y-4">
           <Tabs defaultValue="progress-claims" className="space-y-4">
-            <SubTabsList>
-              <SubTabsTrigger value="progress-claims">Progress Claims</SubTabsTrigger>
-              <SubTabsTrigger value="variations">Variations</SubTabsTrigger>
-              <SubTabsTrigger value="retentions">Retentions</SubTabsTrigger>
-            </SubTabsList>
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="progress-claims">Progress Claims</TabsTrigger>
+              <TabsTrigger value="variations">Variations</TabsTrigger>
+              <TabsTrigger value="retentions">Retentions</TabsTrigger>
+            </TabsList>
 
             <TabsContent value="progress-claims" className="space-y-6">
               <ProgressClaimsSection projectId={selectedProject.id} userRole={userRole} userId={userId} />
@@ -312,12 +304,12 @@ export default function Financials() {
       {/* Payments Section */}
       <TabsContent value="payments" className="space-y-4">
         <Tabs defaultValue="invoices" className="space-y-4">
-          <SubTabsList>
-            <SubTabsTrigger value="invoices">Invoices</SubTabsTrigger>
-            <SubTabsTrigger value="payments">Payments</SubTabsTrigger>
-            <SubTabsTrigger value="cashflow">Cashflow Summary</SubTabsTrigger>
-            {!isClientView && <SubTabsTrigger value="wip">Work in Progress (WIP)</SubTabsTrigger>}
-          </SubTabsList>
+          <TabsList className={cn("grid w-full", isClientView ? "grid-cols-3" : "grid-cols-4")}>
+            <TabsTrigger value="invoices">Invoices</TabsTrigger>
+            <TabsTrigger value="payments">Payments</TabsTrigger>
+            <TabsTrigger value="cashflow">Cashflow Summary</TabsTrigger>
+            {!isClientView && <TabsTrigger value="wip">Work in Progress (WIP)</TabsTrigger>}
+          </TabsList>
 
           <TabsContent value="invoices">
             <InvoicesSection projectId={selectedProject.id} userRole={userRole} />
@@ -343,11 +335,11 @@ export default function Financials() {
       {!isClientView && (
         <TabsContent value="reports" className="space-y-4">
           <Tabs defaultValue="client-contributions" className="space-y-4">
-            <SubTabsList>
-              <SubTabsTrigger value="client-contributions">Client Contributions</SubTabsTrigger>
-              <SubTabsTrigger value="integrations">Accounting Integrations</SubTabsTrigger>
-              <SubTabsTrigger value="financial-reports">Financial Reports</SubTabsTrigger>
-            </SubTabsList>
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="client-contributions">Client Contributions</TabsTrigger>
+              <TabsTrigger value="integrations">Accounting Integrations</TabsTrigger>
+              <TabsTrigger value="financial-reports">Financial Reports</TabsTrigger>
+            </TabsList>
 
             <TabsContent value="client-contributions">
               <ClientContributionsSection projectId={selectedProject.id} userRole={userRole} />
@@ -385,37 +377,38 @@ export default function Financials() {
   return (
     <div className="container mx-auto py-6 space-y-6">
       <Tabs value={selectedRoleView} onValueChange={(value) => setSelectedRoleView(value as any)} className="space-y-6">
-        <RoleFilterTabsList className={cn(
+        <TabsList className={cn(
+          "grid w-full",
           [canViewBuilder, canViewArchitect, canViewClient].filter(Boolean).length === 3 
             ? "grid-cols-3" 
             : "grid-cols-2"
         )}>
           {canViewBuilder && (
-            <RoleFilterTabsTrigger value="builder">
-              <Users className="h-5 w-5 mr-2" />
+            <TabsTrigger value="builder" className="flex items-center gap-2">
+              <Users className="h-4 w-4" />
               Builder Financials
               {builders.length > 0 && (
                 <Badge variant="secondary" className="ml-2">
                   {builders.length}
                 </Badge>
               )}
-            </RoleFilterTabsTrigger>
+            </TabsTrigger>
           )}
           
           {canViewArchitect && (
-            <RoleFilterTabsTrigger value="architect">
-              <FileText className="h-5 w-5 mr-2" />
+            <TabsTrigger value="architect" className="flex items-center gap-2">
+              <FileText className="h-4 w-4" />
               Architect Financials
-            </RoleFilterTabsTrigger>
+            </TabsTrigger>
           )}
           
           {canViewClient && (
-            <RoleFilterTabsTrigger value="client">
-              <DollarSign className="h-5 w-5 mr-2" />
+            <TabsTrigger value="client" className="flex items-center gap-2">
+              <DollarSign className="h-4 w-4" />
               Client Financials
-            </RoleFilterTabsTrigger>
+            </TabsTrigger>
           )}
-        </RoleFilterTabsList>
+        </TabsList>
 
         {/* Builder View */}
         <TabsContent value="builder" className="space-y-4">
