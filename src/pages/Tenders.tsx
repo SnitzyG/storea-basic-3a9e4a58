@@ -20,7 +20,7 @@ import { ProjectQuotesComparison } from '@/components/tenders/ProjectQuotesCompa
 import { TenderJoinSection } from '@/components/tenders/TenderJoinSection';
 import { TenderAccessApprovals } from '@/components/tenders/TenderAccessApprovals';
 import { TenderDetailsView } from '@/components/tenders/TenderDetailsView';
-import { TenderSummaryCard } from '@/components/tenders/TenderSummaryCard';
+import { TenderListView } from '@/components/tenders/TenderListView';
 import { generateTenderPackage } from '@/utils/tenderPackageGenerator';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -162,21 +162,6 @@ const Tenders = () => {
         <div className="text-center">Loading tenders...</div>
       </div>;
   }
-  const copyTenderId = async (tenderId: string) => {
-    try {
-      await navigator.clipboard.writeText(tenderId);
-      toast({
-        title: "Tender ID copied",
-        description: "Tender ID has been copied to clipboard"
-      });
-    } catch (error) {
-      toast({
-        title: "Failed to copy",
-        description: "Please copy the Tender ID manually",
-        variant: "destructive"
-      });
-    }
-  };
 
   // If viewing a specific tender (tenderId in URL), show TenderDetailsView
   if (tenderId) {
@@ -238,21 +223,16 @@ const Tenders = () => {
 
           {/* Tenders List View */}
           {filteredTenders.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filteredTenders.map((tender) => (
-                <TenderSummaryCard
-                  key={tender.id}
-                  tender={tender}
-                  onView={(t) => {
-                    if (userRole === 'builder' || userRole === 'contractor') {
-                      navigate(`/tenders/${t.tender_id}/builder`);
-                    } else {
-                      navigate(`/tenders/${t.id}`);
-                    }
-                  }}
-                />
-              ))}
-            </div>
+            <TenderListView
+              tenders={filteredTenders}
+              onView={(t) => {
+                if (userRole === 'builder' || userRole === 'contractor') {
+                  navigate(`/tenders/${t.tender_id}/builder`);
+                } else {
+                  navigate(`/tenders/${t.id}`);
+                }
+              }}
+            />
           ) : (
             <Card>
               <CardContent className="text-center py-12">
