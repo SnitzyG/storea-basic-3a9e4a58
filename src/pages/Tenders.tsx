@@ -156,7 +156,9 @@ const Tenders = () => {
       }
     });
     
-    return Array.from(tenderMap.values());
+    const combined = Array.from(tenderMap.values());
+    console.log('[Tenders] Combined tenders:', combined.length, 'from project:', tenders.length, 'from context:', availableTenders.length);
+    return combined;
   }, [tenders, availableTenders]);
 
   // Filter tenders based on user role

@@ -5,8 +5,19 @@ import { supabase } from '@/integrations/supabase/client';
 interface Tender {
   id: string;
   project_id: string;
+  tender_id: string;
   title: string;
+  description?: string;
   status: string;
+  deadline: string;
+  budget?: number;
+  issued_by: string;
+  issued_by_profile?: {
+    name: string;
+    role: string;
+  };
+  created_at: string;
+  updated_at: string;
 }
 
 interface ProjectSelectionContextType {
@@ -101,7 +112,7 @@ export const ProjectSelectionProvider = ({ children }: ProjectSelectionProviderP
           .select('tender_id')
           .eq('requester_id', userId)
           .eq('status', 'approved')
-          .then((accessResult: any) => {
+          .then(async (accessResult: any) => {
             const approvedTenderIds: string[] = accessResult.data 
               ? accessResult.data.map((a: any) => a.tender_id)
               : [];
@@ -111,30 +122,48 @@ export const ProjectSelectionProvider = ({ children }: ProjectSelectionProviderP
               ? `issued_by.eq.${userId},project_id.in.(${memberProjectIds.join(',')})`
               : `issued_by.eq.${userId}`;
               
-            Promise.all([
+            const [ownedResult, accessResult2] = await Promise.all([
               client
                 .from('tenders')
-                .select('id, project_id, title, status')
+                .select('*')
                 .or(orCondition),
               approvedTenderIds.length > 0
                 ? client
                     .from('tenders')
-                    .select('id, project_id, title, status')
+                    .select('*')
                     .in('id', approvedTenderIds)
                 : Promise.resolve({ data: [] })
-            ]).then(([ownedResult, accessResult2]: any[]) => {
-              // Combine and deduplicate tenders
-              const allTenders = [...(ownedResult.data || []), ...(accessResult2.data || [])];
-              const tenderMap: Record<string, any> = {};
-              allTenders.forEach((t: any) => {
-                tenderMap[t.id] = t;
-              });
-              const uniqueTenders: Tender[] = Object.values(tenderMap);
+            ]);
 
-              if (mounted) {
-                setAvailableTenders(uniqueTenders);
-              }
+            // Combine and deduplicate tenders
+            const allTenders = [...(ownedResult.data || []), ...(accessResult2.data || [])];
+            const tenderMap: Record<string, any> = {};
+            allTenders.forEach((t: any) => {
+              tenderMap[t.id] = t;
             });
+            const uniqueTendersData = Object.values(tenderMap);
+
+            // Fetch user profiles for tender issuers
+            const userIds = [...new Set(uniqueTendersData.map((t: any) => t.issued_by).filter(Boolean))];
+            
+            const { data: profiles } = await supabase
+              .from('profiles')
+              .select('user_id, name, role')
+              .in('user_id', userIds);
+
+            const profileMap = new Map(profiles?.map(p => [p.user_id, p]) || []);
+
+            // Enrich tenders with profile data
+            const enrichedTenders = uniqueTendersData.map((t: any) => ({
+              ...t,
+              issued_by_profile: profileMap.get(t.issued_by)
+            }));
+
+            console.log('[ProjectSelectionContext] Loaded', enrichedTenders.length, 'tenders:', enrichedTenders);
+
+            if (mounted) {
+              setAvailableTenders(enrichedTenders as Tender[]);
+            }
           });
       } catch (error) {
         console.error('Error in loadUserTenders:', error);
