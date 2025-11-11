@@ -34,6 +34,7 @@ interface LineItem {
 interface LineItemBudgetsProps {
   projectId: string;
   userRole: string;
+  userId?: string | null;
 }
 
 const CATEGORIES = [
@@ -53,7 +54,7 @@ const CATEGORIES = [
   'General',
 ];
 
-export function LineItemBudgets({ projectId, userRole }: LineItemBudgetsProps) {
+export function LineItemBudgets({ projectId, userRole, userId }: LineItemBudgetsProps) {
   const [lineItems, setLineItems] = useState<LineItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);

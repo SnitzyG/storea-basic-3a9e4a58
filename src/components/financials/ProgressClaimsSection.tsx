@@ -28,9 +28,10 @@ interface ProgressClaim {
 interface ProgressClaimsSectionProps {
   projectId: string;
   userRole: string;
+  userId?: string | null;
 }
 
-export function ProgressClaimsSection({ projectId, userRole }: ProgressClaimsSectionProps) {
+export function ProgressClaimsSection({ projectId, userRole, userId }: ProgressClaimsSectionProps) {
   const [claims, setClaims] = useState<ProgressClaim[]>([]);
   const [loading, setLoading] = useState(true);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);

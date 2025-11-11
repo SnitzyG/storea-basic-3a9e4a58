@@ -13,6 +13,7 @@ import { toast } from '@/hooks/use-toast';
 interface BudgetOverviewProps {
   projectId: string;
   userRole: string;
+  userId?: string | null;
 }
 
 interface Budget {
@@ -22,7 +23,7 @@ interface Budget {
   currency: string;
 }
 
-export function BudgetOverview({ projectId, userRole }: BudgetOverviewProps) {
+export function BudgetOverview({ projectId, userRole, userId }: BudgetOverviewProps) {
   const [budget, setBudget] = useState<Budget | null>(null);
   const [totalSpent, setTotalSpent] = useState(0);
   const [loading, setLoading] = useState(true);
