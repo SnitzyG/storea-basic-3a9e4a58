@@ -90,6 +90,7 @@ const TenderBuilder = () => {
   const [bidNotes, setBidNotes] = useState('');
   const [activeTab, setActiveTab] = useState('overview');
   const [parsingExcel, setParsingExcel] = useState(false);
+  const [selectedLineItems, setSelectedLineItems] = useState<Set<string>>(new Set());
   const [showRFIDialog, setShowRFIDialog] = useState(false);
   const [rfiDocumentId, setRfiDocumentId] = useState<string>('');
   const [rfiDocumentName, setRfiDocumentName] = useState<string>('');
@@ -608,6 +609,101 @@ const TenderBuilder = () => {
       return newPricing;
     });
     toast.success('Line item deleted');
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedLineItems.size === 0) {
+      toast.error('No line items selected');
+      return;
+    }
+
+    const itemsToDelete = Array.from(selectedLineItems);
+    setLineItems(prev => prev.filter(item => !selectedLineItems.has(item.id)));
+    
+    const newPricing = { ...lineItemPricing };
+    itemsToDelete.forEach(id => delete newPricing[id]);
+    setLineItemPricing(newPricing);
+    
+    setSelectedLineItems(new Set());
+    toast.success(`Deleted ${itemsToDelete.length} line item(s)`);
+  };
+
+  const toggleLineItemSelection = (itemId: string) => {
+    const newSelection = new Set(selectedLineItems);
+    if (newSelection.has(itemId)) {
+      newSelection.delete(itemId);
+    } else {
+      newSelection.add(itemId);
+    }
+    setSelectedLineItems(newSelection);
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedLineItems.size === lineItems.length) {
+      setSelectedLineItems(new Set());
+    } else {
+      setSelectedLineItems(new Set(lineItems.map(item => item.id)));
+    }
+  };
+
+  const exportToPDF = () => {
+    import('jspdf').then(({ jsPDF }) => {
+      import('jspdf-autotable').then(() => {
+        const doc = new jsPDF();
+        
+        // Title
+        doc.setFontSize(18);
+        doc.text(tender.title, 14, 20);
+        doc.setFontSize(11);
+        doc.text(`Tender ID: ${tender.tender_id}`, 14, 28);
+        doc.text(`Submitted by: ${profile?.name || 'Builder'}`, 14, 34);
+        doc.text(`Date: ${new Date().toLocaleDateString()}`, 14, 40);
+        
+        // Line Items Table
+        const tableData = lineItems.map(item => {
+          const pricing = lineItemPricing[item.id];
+          const quantity = item.quantity || 1;
+          const unitPrice = pricing?.unit_price || 0;
+          const total = quantity * unitPrice;
+          
+          return [
+            item.line_number || '',
+            item.item_description || '',
+            quantity.toString(),
+            item.unit_of_measure || '',
+            `$${unitPrice.toFixed(2)}`,
+            `$${total.toFixed(2)}`,
+            pricing?.notes || ''
+          ];
+        });
+        
+        (doc as any).autoTable({
+          startY: 48,
+          head: [['#', 'Description', 'Qty', 'Unit', 'Unit Price', 'Total', 'Notes']],
+          body: tableData,
+          theme: 'grid',
+          headStyles: { fillColor: [41, 128, 185] },
+          styles: { fontSize: 9 },
+        });
+        
+        // Totals
+        const finalY = (doc as any).lastAutoTable.finalY + 10;
+        const totals = calculateTotals();
+        
+        doc.setFontSize(10);
+        doc.text(`Subtotal (Ex GST): $${totals.subtotal.toFixed(2)}`, 140, finalY);
+        if (includeMargin) {
+          doc.text(`Builder Margin (${builderMargin}%): $${totals.marginAmount.toFixed(2)}`, 140, finalY + 6);
+          doc.text(`Subtotal with Margin: $${totals.subtotalWithMargin.toFixed(2)}`, 140, finalY + 12);
+        }
+        doc.text(`GST (10%): $${totals.gst.toFixed(2)}`, 140, finalY + (includeMargin ? 18 : 6));
+        doc.setFont(undefined, 'bold');
+        doc.text(`Total (Inc GST): $${totals.grandTotal.toFixed(2)}`, 140, finalY + (includeMargin ? 24 : 12));
+        
+        doc.save(`${tender.tender_id}_bid.pdf`);
+        toast.success('PDF exported successfully');
+      });
+    });
   };
 
   const handleSaveProgress = async () => {
@@ -1269,11 +1365,25 @@ const TenderBuilder = () => {
             )}
 
             <Card>
-              <CardHeader>
-                <CardTitle>Line Item Pricing</CardTitle>
-                <CardDescription>
-                  Enter your pricing for each line item below
-                </CardDescription>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <div>
+                  <CardTitle>Line Item Pricing</CardTitle>
+                  <CardDescription>
+                    Enter your pricing for each line item below
+                  </CardDescription>
+                </div>
+                <div className="flex gap-2">
+                  {selectedLineItems.size > 0 && (
+                    <Button onClick={handleBulkDelete} variant="destructive" size="sm">
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      Delete Selected ({selectedLineItems.size})
+                    </Button>
+                  )}
+                  <Button onClick={exportToPDF} variant="outline" size="sm">
+                    <FileText className="h-4 w-4 mr-2" />
+                    Export PDF
+                  </Button>
+                </div>
               </CardHeader>
               <CardContent>
                 {lineItemsLoading ? (
@@ -1286,6 +1396,12 @@ const TenderBuilder = () => {
                     <Table>
                       <TableHeader>
                         <TableRow>
+                          <TableHead className="w-[50px]">
+                            <Checkbox
+                              checked={selectedLineItems.size === lineItems.length && lineItems.length > 0}
+                              onCheckedChange={toggleSelectAll}
+                            />
+                          </TableHead>
                           <TableHead className="w-[60px]">#</TableHead>
                           <TableHead>Description</TableHead>
                           <TableHead className="w-[100px]">Qty</TableHead>
@@ -1313,10 +1429,10 @@ const TenderBuilder = () => {
                             const rows = [];
                             
                             // Add section header row if it's not "General" or if there are multiple sections
-                            if (sectionName !== 'General' || Object.keys(sections).length > 1) {
+                              if (sectionName !== 'General' || Object.keys(sections).length > 1) {
                               rows.push(
                                 <TableRow key={`section-${sectionIdx}`} className="bg-muted/50 hover:bg-muted/50">
-                                  <TableCell colSpan={8} className="font-bold text-base py-3">
+                                  <TableCell colSpan={9} className="font-bold text-base py-3">
                                     {sectionName}
                                   </TableCell>
                                 </TableRow>
@@ -1330,6 +1446,12 @@ const TenderBuilder = () => {
                               
                               rows.push(
                                 <TableRow key={item.id}>
+                                  <TableCell>
+                                    <Checkbox
+                                      checked={selectedLineItems.has(item.id)}
+                                      onCheckedChange={() => toggleLineItemSelection(item.id)}
+                                    />
+                                  </TableCell>
                                   <TableCell className="font-medium">{item.line_number}</TableCell>
                                   <TableCell>
                                     <div>
@@ -1405,6 +1527,26 @@ const TenderBuilder = () => {
                                 );
                             });
 
+                            // Add "Add Manual Line Item" button after each section
+                            rows.push(
+                              <TableRow key={`add-${sectionIdx}`} className="hover:bg-transparent border-b-0">
+                                <TableCell colSpan={9} className="text-center py-2">
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => {
+                                      setManualLineItem(prev => ({ ...prev, category: sectionName }));
+                                      setShowManualEntryDialog(true);
+                                    }}
+                                    disabled={isExpired}
+                                  >
+                                    <Plus className="h-4 w-4 mr-2" />
+                                    Add Line Item to {sectionName}
+                                  </Button>
+                                </TableCell>
+                              </TableRow>
+                            );
+
                             return rows;
                           });
                         })()}
@@ -1431,7 +1573,7 @@ const TenderBuilder = () => {
                 <CardContent className="pt-6">
                   <div className="space-y-3">
                     <div className="flex justify-between text-lg">
-                      <span className="font-medium">Subtotal:</span>
+                      <span className="font-medium">Subtotal (Ex GST):</span>
                       <span className="font-semibold">${totals.subtotal.toFixed(2)}</span>
                     </div>
                     
@@ -1467,11 +1609,11 @@ const TenderBuilder = () => {
                     {includeMargin && builderMargin > 0 && (
                       <>
                         <div className="flex justify-between text-lg">
-                          <span className="font-medium">Builder Margin:</span>
+                          <span className="font-medium">Builder Margin ({builderMargin}%):</span>
                           <span className="font-semibold">${totals.marginAmount.toFixed(2)}</span>
                         </div>
                         <div className="flex justify-between text-lg">
-                          <span className="font-medium">Subtotal (incl. margin):</span>
+                          <span className="font-medium">Subtotal (Ex GST, incl. margin):</span>
                           <span className="font-semibold">${totals.subtotalWithMargin.toFixed(2)}</span>
                         </div>
                       </>
@@ -1479,8 +1621,15 @@ const TenderBuilder = () => {
                     
                     <Separator />
                     
+                    <div className="flex justify-between text-lg">
+                      <span className="font-medium">GST (10%):</span>
+                      <span className="font-semibold">${totals.gst.toFixed(2)}</span>
+                    </div>
+                    
+                    <Separator />
+                    
                     <div className="flex justify-between text-xl font-bold text-primary">
-                      <span>Grand Total (incl. GST):</span>
+                      <span>Total (Inc GST):</span>
                       <span>${totals.grandTotal.toFixed(2)}</span>
                     </div>
                   </div>
