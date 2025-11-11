@@ -46,7 +46,7 @@ export const MainFinancialTabsList = React.forwardRef<
   <TabsList
     ref={ref}
     className={cn(
-      "inline-flex h-11 items-center justify-start rounded-md bg-muted/60 p-1 shadow-sm w-full",
+      "grid w-full h-11 items-center rounded-md bg-muted/60 p-1 shadow-sm",
       className
     )}
     {...props}
@@ -82,7 +82,7 @@ export const SubTabsList = React.forwardRef<
   <TabsList
     ref={ref}
     className={cn(
-      "inline-flex h-10 items-center justify-start rounded-sm bg-muted/40 p-1 w-full",
+      "grid w-full h-10 items-center rounded-sm bg-muted/40 p-1",
       className
     )}
     {...props}
