@@ -178,20 +178,29 @@ export const ProjectSelectionProvider = ({ children }: ProjectSelectionProviderP
     };
   }, [memberProjectIds]);
 
-  // Auto-select first available project if none selected and no tender selected
+  // Auto-select first available project OR tender if none selected
   useEffect(() => {
-    if (!loading && !selectedProject && !selectedTender && availableProjects.length > 0) {
-      setSelectedProject(availableProjects[0]);
-      setSelectionType('project');
+    if (!loading && !selectedProject && !selectedTender) {
+      if (availableProjects.length > 0) {
+        setSelectedProject(availableProjects[0]);
+        setSelectionType('project');
+      } else if (availableTenders.length > 0) {
+        // Auto-select first tender if no projects available
+        setSelectedTender(availableTenders[0]);
+        setSelectionType('tender');
+      }
     }
-  }, [loading, selectedProject, selectedTender, availableProjects]);
+  }, [loading, selectedProject, selectedTender, availableProjects, availableTenders]);
 
   // If current selection is no longer permitted, switch to first allowed
   useEffect(() => {
     if (selectedProject && !availableProjects.find((p) => p.id === selectedProject.id)) {
       setSelectedProject(availableProjects[0] ?? null);
     }
-  }, [availableProjects, selectedProject]);
+    if (selectedTender && !availableTenders.find((t) => t.id === selectedTender.id)) {
+      setSelectedTender(availableTenders[0] ?? null);
+    }
+  }, [availableProjects, selectedProject, availableTenders, selectedTender]);
 
   // Custom setter that handles selection type
   const handleSetProject = (project: Project | null) => {
