@@ -32,26 +32,6 @@ export const Sidebar = ({
       icon: FolderOpen,
       path: '/projects'
     }, {
-      id: 'messages',
-      label: 'Messages',
-      icon: MessageSquare,
-      path: '/messages'
-    }, {
-      id: 'documents',
-      label: 'Documents',
-      icon: FileStack,
-      path: '/documents'
-    }, {
-      id: 'rfis',
-      label: 'Mail',
-      icon: HelpCircle,
-      path: '/rfis'
-    }, {
-      id: 'tenders',
-      label: 'Tenders',
-      icon: Briefcase,
-      path: '/tenders'
-    }, {
       id: 'calendar',
       label: 'Calendar',
       icon: CalendarDays,
@@ -62,10 +42,30 @@ export const Sidebar = ({
       icon: CheckSquare,
       path: '/todo-list'
     }, {
+      id: 'documents',
+      label: 'Documents',
+      icon: FileStack,
+      path: '/documents'
+    }, {
+      id: 'messages',
+      label: 'Messages',
+      icon: MessageSquare,
+      path: '/messages'
+    }, {
+      id: 'tenders',
+      label: 'Tenders',
+      icon: Briefcase,
+      path: '/tenders'
+    }, {
       id: 'financials',
       label: 'Financials',
       icon: DollarSign,
       path: '/financials'
+    }, {
+      id: 'rfis',
+      label: 'Mail',
+      icon: HelpCircle,
+      path: '/rfis'
     }];
     switch (role) {
       case 'architect':
