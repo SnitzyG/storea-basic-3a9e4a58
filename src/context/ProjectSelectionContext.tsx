@@ -110,7 +110,7 @@ export const ProjectSelectionProvider = ({ children }: ProjectSelectionProviderP
         client
           .from('tender_access')
           .select('tender_id')
-          .eq('requester_id', userId)
+          .eq('user_id', userId)
           .eq('status', 'approved')
           .then(async (accessResult: any) => {
             const approvedTenderIds: string[] = accessResult.data 

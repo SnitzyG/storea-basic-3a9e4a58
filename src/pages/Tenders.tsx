@@ -301,11 +301,6 @@ const Tenders = () => {
         )}
 
         <TabsContent value="tenders" className="space-y-6">
-          {/* View Tender Details - For Builders/Contractors with Approved Access */}
-          {(userRole === 'builder' || userRole === 'contractor') && (
-            <ApprovedTendersSection />
-          )}
-
           {/* Expired Tenders Alert */}
           {expiredOpenTenders.length > 0 && userRole === 'architect' && <Card className="border-orange-200 bg-orange-50">
               <CardContent className="pt-6">
@@ -381,6 +376,11 @@ const Tenders = () => {
         {/* Join Tender Tab */}
         <TabsContent value="join" className="space-y-6">
           <TenderJoinSection projectId={selectedProject?.id} />
+          
+          {/* View Tender Details - For Builders/Contractors with Approved Access */}
+          {(userRole === 'builder' || userRole === 'contractor') && (
+            <ApprovedTendersSection />
+          )}
         </TabsContent>
       </Tabs>
     </div>
