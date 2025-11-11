@@ -5,7 +5,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useTenderAccess } from '@/hooks/useTenderAccess';
 import { useTenderLineItems, TenderLineItem } from '@/hooks/useTenderLineItems';
 import { useRFIs } from '@/hooks/useRFIs';
-import { AppLayout } from '@/components/layout/AppLayout';
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -860,17 +860,14 @@ const TenderBuilder = () => {
 
   if (loading) {
     return (
-      <AppLayout>
         <div className="flex items-center justify-center h-96">
           <Loader2 className="h-8 w-8 animate-spin" />
         </div>
-      </AppLayout>
     );
   }
 
   if (!tender) {
     return (
-      <AppLayout>
         <Card className="max-w-2xl mx-auto mt-8">
           <CardContent className="pt-6 text-center">
             <p>Tender not found</p>
@@ -879,7 +876,6 @@ const TenderBuilder = () => {
             </Button>
           </CardContent>
         </Card>
-      </AppLayout>
     );
   }
 
@@ -891,7 +887,8 @@ const TenderBuilder = () => {
   });
 
   return (
-    <AppLayout>
+    
+      <>
       <div className="space-y-6 mx-[25px]">
         {/* Header */}
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -1780,8 +1777,8 @@ const TenderBuilder = () => {
           </div>
         </DialogContent>
       </Dialog>
-    </AppLayout>
-  );
+    
+    </>\n  );
 };
 
 export default TenderBuilder;
