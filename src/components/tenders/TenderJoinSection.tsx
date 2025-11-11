@@ -85,7 +85,10 @@ export const TenderJoinSection = ({ projectId, showOnlyMyRequests = false }: Ten
                             <div>
                               <p className="font-semibold">Tender Access Request</p>
                               <p className="text-sm text-muted-foreground">
-                                Requested {formatDistanceToNow(new Date(request.requested_at), { addSuffix: true })}
+                                {request.status === 'approved' && request.approved_at 
+                                  ? `Approved ${formatDistanceToNow(new Date(request.approved_at), { addSuffix: true })}`
+                                  : `Requested ${formatDistanceToNow(new Date(request.requested_at), { addSuffix: true })}`
+                                }
                               </p>
                             </div>
                             {getStatusBadge(request.status)}
@@ -95,6 +98,34 @@ export const TenderJoinSection = ({ projectId, showOnlyMyRequests = false }: Ten
                             <p className="text-sm text-muted-foreground italic">
                             "{request.message}"
                             </p>
+                          )}
+
+                          {request.status === 'approved' && (
+                            <Button
+                              size="sm"
+                              onClick={async () => {
+                                try {
+                                  const { data: t, error } = await supabase
+                                    .from('tenders')
+                                    .select('tender_id')
+                                    .eq('id', request.tender_id)
+                                    .single();
+                                  
+                                  if (error || !t?.tender_id) {
+                                    toast.error('Failed to load tender details');
+                                    return;
+                                  }
+                                  
+                                  navigate(`/tenders/${t.tender_id}/builder`);
+                                } catch (err) {
+                                  toast.error('Failed to open tender');
+                                }
+                              }}
+                              className="w-full"
+                            >
+                              <Eye className="h-4 w-4 mr-2" />
+                              View Tender Details
+                            </Button>
                           )}
                         </div>
                       </CardContent>
@@ -200,7 +231,10 @@ export const TenderJoinSection = ({ projectId, showOnlyMyRequests = false }: Ten
                           <div>
                             <p className="font-semibold">Tender Access Request</p>
                             <p className="text-sm text-muted-foreground">
-                              Requested {formatDistanceToNow(new Date(request.requested_at), { addSuffix: true })}
+                              {request.status === 'approved' && request.approved_at 
+                                ? `Approved ${formatDistanceToNow(new Date(request.approved_at), { addSuffix: true })}`
+                                : `Requested ${formatDistanceToNow(new Date(request.requested_at), { addSuffix: true })}`
+                              }
                             </p>
                           </div>
                           {getStatusBadge(request.status)}
@@ -210,6 +244,34 @@ export const TenderJoinSection = ({ projectId, showOnlyMyRequests = false }: Ten
                           <p className="text-sm text-muted-foreground italic border-l-2 border-primary pl-3">
                             "{request.message}"
                           </p>
+                        )}
+
+                        {request.status === 'approved' && (
+                          <Button
+                            size="sm"
+                            onClick={async () => {
+                              try {
+                                const { data: t, error } = await supabase
+                                  .from('tenders')
+                                  .select('tender_id')
+                                  .eq('id', request.tender_id)
+                                  .single();
+                                
+                                if (error || !t?.tender_id) {
+                                  toast.error('Failed to load tender details');
+                                  return;
+                                }
+                                
+                                navigate(`/tenders/${t.tender_id}/builder`);
+                              } catch (err) {
+                                toast.error('Failed to open tender');
+                              }
+                            }}
+                            className="w-full"
+                          >
+                            <Eye className="h-4 w-4 mr-2" />
+                            View Tender Details
+                          </Button>
                         )}
                       </div>
                     </CardContent>

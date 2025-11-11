@@ -27,84 +27,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useTenderAccess } from '@/hooks/useTenderAccess';
 import { formatDistanceToNow } from 'date-fns';
 
-// Component to show approved tenders for builders
-const ApprovedTendersSection = () => {
-  const navigate = useNavigate();
-  const { myRequests } = useTenderAccess();
-  
-  const approvedRequests = myRequests.filter(req => req.status === 'approved');
 
-  if (approvedRequests.length === 0) {
-    return null;
-  }
-
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <CheckCircle className="h-5 w-5 text-green-500" />
-          Approved Tender Access
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-3">
-        {approvedRequests.map((request) => (
-          <Card key={request.id} className="bg-accent/30">
-            <CardContent className="pt-6">
-              <div className="space-y-3">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <p className="font-semibold">Tender Access</p>
-                    <p className="text-sm text-muted-foreground">
-                      Approved {formatDistanceToNow(new Date(request.approved_at || request.requested_at), { addSuffix: true })}
-                    </p>
-                  </div>
-                  <Badge className="bg-green-500">
-                    <CheckCircle className="h-3 w-3 mr-1" />
-                    Approved
-                  </Badge>
-                </div>
-
-                <Button
-                  size="sm"
-                  onClick={async () => {
-                    try {
-                      const { data: t, error } = await supabase
-                        .from('tenders')
-                        .select('tender_id')
-                        .eq('id', request.tender_id)
-                        .single();
-                      
-                      if (error || !t?.tender_id) {
-                        toast({
-                          title: "Error",
-                          description: "Failed to load tender details",
-                          variant: "destructive"
-                        });
-                        return;
-                      }
-                      
-                      navigate(`/tenders/${t.tender_id}/builder`);
-                    } catch (err) {
-                      toast({
-                        title: "Error",
-                        description: "Failed to open tender",
-                        variant: "destructive"
-                      });
-                    }
-                  }}
-                  className="w-full"
-                >
-                  <Eye className="h-4 w-4 mr-2" />
-                  View Tender Details
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </CardContent>
-    </Card>
-  );
-};
 const Tenders = () => {
   const {
     tenderId
@@ -376,11 +299,6 @@ const Tenders = () => {
         {/* Join Tender Tab */}
         <TabsContent value="join" className="space-y-6">
           <TenderJoinSection projectId={selectedProject?.id} />
-          
-          {/* View Tender Details - For Builders/Contractors with Approved Access */}
-          {(userRole === 'builder' || userRole === 'contractor') && (
-            <ApprovedTendersSection />
-          )}
         </TabsContent>
       </Tabs>
     </div>
