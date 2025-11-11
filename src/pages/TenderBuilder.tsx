@@ -356,7 +356,7 @@ const TenderBuilder = () => {
       for (const doc of packageDocs) {
         try {
           const { data, error } = await supabase.storage
-            .from('documents')
+            .from('tender-packages')
             .download(doc.file_path);
           
           if (error) throw error;
