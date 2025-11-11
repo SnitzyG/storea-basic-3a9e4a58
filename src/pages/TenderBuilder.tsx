@@ -93,6 +93,7 @@ const TenderBuilder = () => {
   const [rfiDocumentName, setRfiDocumentName] = useState<string>('');
   const [rfiMessage, setRfiMessage] = useState('');
   const [showManualEntryDialog, setShowManualEntryDialog] = useState(false);
+  const [architectProfile, setArchitectProfile] = useState<any>(null);
   const [manualLineItem, setManualLineItem] = useState({
     line_number: 0,
     item_description: '',
@@ -187,6 +188,7 @@ const TenderBuilder = () => {
           
           if (profileData) {
             enrichedTender.profiles = profileData;
+            setArchitectProfile(profileData); // Store architect profile for RFI assignment
             
             // Fetch company info
             if (profileData.company_id) {
@@ -524,7 +526,7 @@ const TenderBuilder = () => {
     }
 
     try {
-      // Create RFI
+      // Create RFI assigned to the architect
       const { error } = await supabase
         .from('rfis')
         .insert({
@@ -535,13 +537,16 @@ const TenderBuilder = () => {
           priority: 'medium',
           status: 'open',
           raised_by: user!.id,
+          assigned_to: tender.issued_by, // Assign to the architect who created the tender
+          sender_name: profile?.name || 'Builder',
+          recipient_name: architectProfile?.name || architectProfile?.full_name || 'Architect',
           category: 'Tender Document',
           attachments: [{ type: 'tender_document', document_id: rfiDocumentId, document_name: rfiDocumentName, tender_id: tender.id }]
         } as any);
 
       if (error) throw error;
 
-      toast.success('RFI submitted successfully');
+      toast.success('RFI submitted successfully - Architect will see this in their Mail tab');
       setShowRFIDialog(false);
       setRfiMessage('');
     } catch (error: any) {
@@ -1595,13 +1600,14 @@ const TenderBuilder = () => {
 
       {/* RFI Dialog */}
       <Dialog open={showRFIDialog} onOpenChange={setShowRFIDialog}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle className="text-2xl font-semibold">Create New RFI</DialogTitle>
+        <DialogContent className="max-w-2xl max-h-[85vh] flex flex-col">
+          <DialogHeader className="flex-shrink-0">
+            <DialogTitle className="text-xl font-semibold">Create New RFI</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4">
+          
+          <div className="flex-1 overflow-y-auto space-y-3 px-1">
             {/* Mail Type */}
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               <Label>Mail Type</Label>
               <Select defaultValue="Request For Information">
                 <SelectTrigger>
@@ -1617,7 +1623,7 @@ const TenderBuilder = () => {
             </div>
 
             {/* Priority */}
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               <Label htmlFor="rfi-priority">Priority *</Label>
               <Select defaultValue="medium">
                 <SelectTrigger id="rfi-priority">
@@ -1632,37 +1638,18 @@ const TenderBuilder = () => {
             </div>
 
             {/* To (Recipient) */}
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               <Label htmlFor="rfi-recipient">To (Recipient)</Label>
-              <Select>
-                <SelectTrigger id="rfi-recipient">
-                  <SelectValue placeholder="Select recipient" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="architect">Architect</SelectItem>
-                  <SelectItem value="engineer">Engineer</SelectItem>
-                  <SelectItem value="contractor">Contractor</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* CC */}
-            <div className="space-y-2">
-              <Label htmlFor="rfi-cc">CC</Label>
-              <Select>
-                <SelectTrigger id="rfi-cc">
-                  <SelectValue placeholder="Select CC recipients" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="team">Project Team</SelectItem>
-                  <SelectItem value="client">Client</SelectItem>
-                  <SelectItem value="consultant">Consultant</SelectItem>
-                </SelectContent>
-              </Select>
+              <Input
+                id="rfi-recipient"
+                value={architectProfile?.name || architectProfile?.full_name || 'Architect'}
+                disabled
+                className="bg-muted"
+              />
             </div>
 
             {/* Subject */}
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               <Label htmlFor="rfi-subject">Subject</Label>
               <Input
                 id="rfi-subject"
@@ -1672,44 +1659,40 @@ const TenderBuilder = () => {
             </div>
 
             {/* Message */}
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               <Label htmlFor="rfi-message">Message *</Label>
               <Textarea
                 id="rfi-message"
                 placeholder="Describe your question or concern..."
                 value={rfiMessage}
                 onChange={(e) => setRfiMessage(e.target.value)}
-                rows={6}
+                rows={4}
                 className="resize-none"
               />
             </div>
 
             {/* Notes */}
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               <Label htmlFor="rfi-notes">Notes</Label>
               <Textarea
                 id="rfi-notes"
                 placeholder="Add any additional notes..."
-                rows={3}
+                rows={2}
                 className="resize-none"
               />
             </div>
 
-            {/* Attachments */}
-            <div className="space-y-2">
-              <Label>Attachments (Optional)</Label>
-              <div className="border-2 border-dashed rounded-lg p-6 text-center hover:border-primary transition-colors cursor-pointer">
-                <Upload className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
-                <p className="text-sm font-medium mb-1">
-                  Drag & drop files here, or click to select
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  Up to 5 files • PDF, JPG, PNG, DOCX, XLSX, ZIP, TXT, CSV (max 25MB each)
-                </p>
+            {/* Related Document */}
+            <div className="space-y-1.5">
+              <Label>Related Document</Label>
+              <div className="p-3 bg-muted rounded-lg text-sm">
+                <FileText className="h-4 w-4 inline mr-2" />
+                {rfiDocumentName}
               </div>
             </div>
           </div>
-          <DialogFooter className="gap-2">
+          
+          <DialogFooter className="flex-shrink-0 gap-2 pt-4">
             <Button variant="outline" onClick={() => setShowRFIDialog(false)}>
               Cancel
             </Button>
