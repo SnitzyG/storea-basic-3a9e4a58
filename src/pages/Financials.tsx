@@ -15,9 +15,7 @@ import { PaymentScheduleStages } from '@/components/financials/PaymentScheduleSt
 import { ClaimsHistoryTable } from '@/components/financials/ClaimsHistoryTable';
 import { VariationsDetailedSection } from '@/components/financials/VariationsDetailedSection';
 import { ContractSummaryOverview } from '@/components/financials/ContractSummaryOverview';
-import { Badge } from '@/components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { DollarSign, FileText, CreditCard, Users, BarChart, Receipt } from 'lucide-react';
+import { DollarSign, FileText, CreditCard, BarChart, Receipt } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
 
@@ -25,27 +23,16 @@ interface UserRole {
   role: 'homeowner' | 'architect' | 'contractor' | 'builder';
 }
 
-interface TeamMember {
-  id: string;
-  name: string;
-  role: string;
-}
-
 export default function Financials() {
   const { session } = useAuth();
   const { selectedProject } = useProjectSelection();
   const [userRole, setUserRole] = useState<UserRole['role']>('contractor');
   const [loading, setLoading] = useState(true);
-  const [builders, setBuilders] = useState<TeamMember[]>([]);
-  const [architects, setArchitects] = useState<TeamMember[]>([]);
-  const [clients, setClients] = useState<TeamMember[]>([]);
-  const [selectedRoleView, setSelectedRoleView] = useState<'builder' | 'architect' | 'client'>('builder');
-  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!session?.user?.id || !selectedProject?.id) return;
 
-    const fetchUserRoleAndTeam = async () => {
+    const fetchUserRole = async () => {
       try {
         // Fetch current user's role
         const { data: projectUser } = await supabase
@@ -58,67 +45,14 @@ export default function Financials() {
         if (projectUser) {
           setUserRole(projectUser.role);
         }
-
-        // Fetch all team members with their profiles
-        const { data: teamMembers } = await supabase
-          .from('project_users')
-          .select('user_id, role, profiles(id, name)')
-          .eq('project_id', selectedProject.id);
-
-        if (teamMembers) {
-          // Group by role
-          const builderMembers = teamMembers
-            .filter(m => m.role === 'builder' || m.role === 'contractor')
-            .map(m => ({
-              id: m.user_id,
-              name: (m.profiles as any)?.name || 'Unknown',
-              role: m.role
-            }));
-          
-          const architectMembers = teamMembers
-            .filter(m => m.role === 'architect')
-            .map(m => ({
-              id: m.user_id,
-              name: (m.profiles as any)?.name || 'Unknown',
-              role: m.role
-            }));
-          
-          const clientMembers = teamMembers
-            .filter(m => m.role === 'homeowner')
-            .map(m => ({
-              id: m.user_id,
-              name: (m.profiles as any)?.name || 'Unknown',
-              role: m.role
-            }));
-
-          setBuilders(builderMembers);
-          setArchitects(architectMembers);
-          setClients(clientMembers);
-
-          // Set default selected user based on role
-          if (projectUser?.role === 'homeowner') {
-            setSelectedRoleView('architect');
-            if (architectMembers.length > 0) {
-              setSelectedUserId(architectMembers[0].id);
-            }
-          } else if (projectUser?.role === 'architect') {
-            setSelectedRoleView('builder');
-            if (builderMembers.length > 0) {
-              setSelectedUserId(builderMembers[0].id);
-            }
-          } else {
-            setSelectedRoleView('builder');
-            setSelectedUserId(session.user.id);
-          }
-        }
       } catch (error) {
-        console.error('Error fetching user role and team:', error);
+        console.error('Error fetching user role:', error);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchUserRoleAndTeam();
+    fetchUserRole();
   }, [session, selectedProject]);
 
   if (!session) {
@@ -146,12 +80,9 @@ export default function Financials() {
   }
 
   const isClientView = userRole === 'homeowner';
-  const canViewBuilder = userRole === 'builder' || userRole === 'architect' || userRole === 'contractor';
-  const canViewArchitect = userRole === 'homeowner' || userRole === 'architect';
-  const canViewClient = userRole === 'builder' || userRole === 'architect' || userRole === 'contractor';
 
   const renderFinancialTabs = (viewRole: string, userId: string | null) => (
-    <Tabs defaultValue="budgets" className="space-y-2">
+    <Tabs defaultValue="budgets">
       <TabsList className={cn("grid w-full", isClientView ? "grid-cols-2" : "grid-cols-5")}>
         <TabsTrigger value="budgets" className="flex items-center gap-2">
           <DollarSign className="h-4 w-4" />
@@ -182,8 +113,8 @@ export default function Financials() {
       </TabsList>
 
       {/* Budgets Section */}
-      <TabsContent value="budgets" className="space-y-4">
-        <Tabs defaultValue="project-budgets" className="space-y-2">
+      <TabsContent value="budgets">
+        <Tabs defaultValue="project-budgets">
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="project-budgets">Project Budgets</TabsTrigger>
             <TabsTrigger value="budget-actuals">Budget vs Actuals</TabsTrigger>
@@ -207,8 +138,8 @@ export default function Financials() {
 
       {/* Commitments Section */}
       {!isClientView && (
-        <TabsContent value="commitments" className="space-y-4">
-          <Tabs defaultValue="subcontracts" className="space-y-2">
+        <TabsContent value="commitments">
+          <Tabs defaultValue="subcontracts">
             <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="subcontracts">Subcontracts</TabsTrigger>
               <TabsTrigger value="purchase-orders">Purchase Orders</TabsTrigger>
@@ -269,8 +200,8 @@ export default function Financials() {
 
       {/* Claims & Variations Section */}
       {!isClientView && (
-        <TabsContent value="claims" className="space-y-4">
-          <Tabs defaultValue="progress-claims" className="space-y-2">
+        <TabsContent value="claims">
+          <Tabs defaultValue="progress-claims">
             <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="progress-claims">Progress Claims</TabsTrigger>
               <TabsTrigger value="variations">Variations</TabsTrigger>
@@ -302,8 +233,8 @@ export default function Financials() {
       )}
 
       {/* Payments Section */}
-      <TabsContent value="payments" className="space-y-4">
-        <Tabs defaultValue="invoices" className="space-y-2">
+      <TabsContent value="payments">
+        <Tabs defaultValue="invoices">
           <TabsList className={cn("grid w-full", isClientView ? "grid-cols-3" : "grid-cols-4")}>
             <TabsTrigger value="invoices">Invoices</TabsTrigger>
             <TabsTrigger value="payments">Payments</TabsTrigger>
@@ -333,8 +264,8 @@ export default function Financials() {
 
       {/* Reports Section */}
       {!isClientView && (
-        <TabsContent value="reports" className="space-y-4">
-          <Tabs defaultValue="client-contributions" className="space-y-2">
+        <TabsContent value="reports">
+          <Tabs defaultValue="client-contributions">
             <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="client-contributions">Client Contributions</TabsTrigger>
               <TabsTrigger value="integrations">Accounting Integrations</TabsTrigger>
@@ -375,122 +306,8 @@ export default function Financials() {
   );
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
-      <Tabs value={selectedRoleView} onValueChange={(value) => setSelectedRoleView(value as any)} className="space-y-4">
-        <TabsList className={cn(
-          "grid w-full",
-          [canViewBuilder, canViewArchitect, canViewClient].filter(Boolean).length === 3 
-            ? "grid-cols-3" 
-            : "grid-cols-2"
-        )}>
-          {canViewBuilder && (
-            <TabsTrigger value="builder" className="flex items-center gap-2">
-              <Users className="h-4 w-4" />
-              Builder Financials
-              {builders.length > 0 && (
-                <Badge variant="secondary" className="ml-2">
-                  {builders.length}
-                </Badge>
-              )}
-            </TabsTrigger>
-          )}
-          
-          {canViewArchitect && (
-            <TabsTrigger value="architect" className="flex items-center gap-2">
-              <FileText className="h-4 w-4" />
-              Architect Financials
-            </TabsTrigger>
-          )}
-          
-          {canViewClient && (
-            <TabsTrigger value="client" className="flex items-center gap-2">
-              <DollarSign className="h-4 w-4" />
-              Client Financials
-            </TabsTrigger>
-          )}
-        </TabsList>
-
-        {/* Builder View */}
-        <TabsContent value="builder" className="space-y-4">
-          {builders.length > 1 && (
-            <Card>
-              <CardContent className="pt-6">
-                <div className="flex items-center gap-4">
-                  <span className="text-sm font-medium">View financials for:</span>
-                  <Select value={selectedUserId || undefined} onValueChange={setSelectedUserId}>
-                    <SelectTrigger className="w-[280px]">
-                      <SelectValue placeholder="Select builder" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {builders.map(builder => (
-                        <SelectItem key={builder.id} value={builder.id}>
-                          {builder.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-          
-          {renderFinancialTabs('builder', selectedUserId || (builders.length > 0 ? builders[0].id : null))}
-        </TabsContent>
-
-        {/* Architect View */}
-        <TabsContent value="architect" className="space-y-4">
-          {architects.length > 1 && (
-            <Card>
-              <CardContent className="pt-6">
-                <div className="flex items-center gap-4">
-                  <span className="text-sm font-medium">View financials for:</span>
-                  <Select value={selectedUserId || undefined} onValueChange={setSelectedUserId}>
-                    <SelectTrigger className="w-[280px]">
-                      <SelectValue placeholder="Select architect" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {architects.map(architect => (
-                        <SelectItem key={architect.id} value={architect.id}>
-                          {architect.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-          
-          {renderFinancialTabs('architect', selectedUserId || (architects.length > 0 ? architects[0].id : null))}
-        </TabsContent>
-
-        {/* Client View */}
-        <TabsContent value="client" className="space-y-4">
-          {clients.length > 1 && (
-            <Card>
-              <CardContent className="pt-6">
-                <div className="flex items-center gap-4">
-                  <span className="text-sm font-medium">View financials for:</span>
-                  <Select value={selectedUserId || undefined} onValueChange={setSelectedUserId}>
-                    <SelectTrigger className="w-[280px]">
-                      <SelectValue placeholder="Select client" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {clients.map(client => (
-                        <SelectItem key={client.id} value={client.id}>
-                          {client.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-          
-          {renderFinancialTabs('client', selectedUserId || (clients.length > 0 ? clients[0].id : null))}
-        </TabsContent>
-      </Tabs>
+    <div className="container mx-auto py-6">
+      {renderFinancialTabs('builder', session?.user?.id || null)}
     </div>
   );
 }
