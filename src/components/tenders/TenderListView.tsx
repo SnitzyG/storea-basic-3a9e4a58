@@ -1,7 +1,8 @@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Copy, Calendar, DollarSign, User, Eye } from 'lucide-react';
+import { Copy, Calendar, DollarSign, User, Eye, Hash } from 'lucide-react';
 import { Tender } from '@/hooks/useTenders';
 import { toast } from '@/hooks/use-toast';
 
@@ -11,19 +12,19 @@ interface TenderListViewProps {
 }
 
 const statusColors = {
-  draft: 'bg-muted text-muted-foreground',
-  open: 'bg-green-500/10 text-green-700 border-green-500/20',
-  closed: 'bg-yellow-500/10 text-yellow-700 border-yellow-500/20',
-  awarded: 'bg-blue-500/10 text-blue-700 border-blue-500/20',
-  cancelled: 'bg-red-500/10 text-red-700 border-red-500/20',
+  draft: 'bg-gray-100 text-gray-800',
+  open: 'bg-green-100 text-green-800',
+  closed: 'bg-yellow-100 text-yellow-800',
+  awarded: 'bg-blue-100 text-blue-800',
+  cancelled: 'bg-red-100 text-red-800',
 };
 
 const statusLabels = {
-  draft: 'Draft',
-  open: 'Open',
-  closed: 'Closed',
-  awarded: 'Awarded',
-  cancelled: 'Cancelled',
+  draft: 'DRAFT',
+  open: 'OPEN',
+  closed: 'CLOSED',
+  awarded: 'AWARDED',
+  cancelled: 'CANCELLED',
 };
 
 export const TenderListView = ({ tenders, onView }: TenderListViewProps) => {
@@ -61,108 +62,105 @@ export const TenderListView = ({ tenders, onView }: TenderListViewProps) => {
   };
 
   return (
-    <div className="rounded-md border">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead className="w-[300px]">Title</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead>Tender ID</TableHead>
-            <TableHead>Client</TableHead>
-            <TableHead>Deadline</TableHead>
-            <TableHead className="text-right">Budget</TableHead>
-            <TableHead className="w-[100px]"></TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {tenders.map((tender) => {
-            const deadline = formatDeadline(tender.deadline);
-            return (
-              <TableRow 
-                key={tender.id}
-                className="cursor-pointer hover:bg-muted/50"
-                onClick={() => onView(tender)}
-              >
-                <TableCell className="font-medium">
-                  <div className="flex flex-col gap-1">
-                    <span className="text-sm font-semibold">{tender.title}</span>
-                    {tender.description && (
-                      <span className="text-xs text-muted-foreground line-clamp-1">
-                        {tender.description}
-                      </span>
-                    )}
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <Badge className={statusColors[tender.status]}>
-                    {statusLabels[tender.status]}
-                  </Badge>
-                </TableCell>
-                <TableCell>
-                  <div className="flex items-center gap-1">
-                    <code className="text-xs font-mono bg-primary/10 text-primary px-2 py-1 rounded border border-primary/20">
-                      {tender.tender_id}
-                    </code>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      onClick={(e) => copyTenderId(e, tender.tender_id)}
-                      className="h-6 w-6 p-0"
-                    >
-                      <Copy className="h-3 w-3" />
-                    </Button>
-                  </div>
-                </TableCell>
-                <TableCell>
-                  {tender.issued_by_profile?.name ? (
-                    <div className="flex items-center gap-2">
-                      <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center">
-                        <User className="h-3 w-3 text-primary" />
-                      </div>
-                      <span className="text-sm">{tender.issued_by_profile.name}</span>
+    <Card className="border-0 shadow-sm bg-gradient-to-br from-card to-card/50">
+      <CardContent className="p-0">
+        <Table>
+          <TableHeader className="bg-gradient-to-r from-muted/50 to-muted/30 border-b-2 border-primary/10">
+            <TableRow>
+              <TableHead className="text-foreground/80 font-semibold text-sm h-12 px-4">Title</TableHead>
+              <TableHead className="text-foreground/80 font-semibold text-sm h-12 px-4">Status</TableHead>
+              <TableHead className="text-foreground/80 font-semibold text-sm h-12 px-4">Tender ID</TableHead>
+              <TableHead className="text-foreground/80 font-semibold text-sm h-12 px-4">Client</TableHead>
+              <TableHead className="text-foreground/80 font-semibold text-sm h-12 px-4">Deadline</TableHead>
+              <TableHead className="text-foreground/80 font-semibold text-sm h-12 px-4">Budget</TableHead>
+              <TableHead className="text-foreground/80 font-semibold text-sm h-12 px-4 w-[50px] text-center">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {tenders.map((tender) => {
+              const deadline = formatDeadline(tender.deadline);
+              return (
+                <TableRow 
+                  key={tender.id}
+                  className="hover:bg-muted/30 transition-all duration-200 cursor-pointer border-b border-muted/20"
+                  onClick={() => onView(tender)}
+                >
+                  <TableCell className="text-sm px-4 py-3 text-foreground/90">
+                    <div className="space-y-1">
+                      <p className="font-medium text-sm leading-none text-foreground">{tender.title}</p>
+                      {tender.description && (
+                        <span className="text-xs text-muted-foreground line-clamp-1">
+                          {tender.description}
+                        </span>
+                      )}
                     </div>
-                  ) : (
-                    <span className="text-xs text-muted-foreground">-</span>
-                  )}
-                </TableCell>
-                <TableCell>
-                  <div className="flex items-center gap-2">
-                    <Calendar className="h-4 w-4 text-muted-foreground" />
+                  </TableCell>
+                  <TableCell className="text-sm px-4 py-3 text-foreground/90">
+                    <Badge className={statusColors[tender.status]}>
+                      {statusLabels[tender.status]}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-sm px-4 py-3 text-foreground/90">
+                    <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-1 text-xs text-primary font-mono bg-primary/10 px-2 py-1 rounded border border-primary/20">
+                        <Hash className="h-3 w-3" />
+                        {tender.tender_id}
+                      </div>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={(e) => copyTenderId(e, tender.tender_id)}
+                        className="h-6 w-6 p-0"
+                      >
+                        <Copy className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-sm px-4 py-3 text-foreground/90">
+                    {tender.issued_by_profile?.name ? (
+                      <div className="flex items-center gap-2">
+                        <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center">
+                          <User className="h-3 w-3 text-primary" />
+                        </div>
+                        <span className="text-xs text-muted-foreground">{tender.issued_by_profile.name}</span>
+                      </div>
+                    ) : (
+                      <span className="text-xs text-muted-foreground">-</span>
+                    )}
+                  </TableCell>
+                  <TableCell className="text-sm px-4 py-3 text-foreground/90">
                     <div className="flex flex-col">
-                      <span className="text-sm">{deadline.formatted}</span>
+                      <span className="text-xs text-muted-foreground">{deadline.formatted}</span>
                       <span className="text-xs text-muted-foreground">{deadline.daysText}</span>
                     </div>
-                  </div>
-                </TableCell>
-                <TableCell className="text-right">
-                  {tender.budget ? (
-                    <div className="flex items-center justify-end gap-1">
-                      <DollarSign className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm font-medium">
-                        {tender.budget.toLocaleString()}
+                  </TableCell>
+                  <TableCell className="text-sm px-4 py-3 text-foreground/90">
+                    {tender.budget ? (
+                      <span className="text-xs text-muted-foreground">
+                        ${tender.budget.toLocaleString()}
                       </span>
-                    </div>
-                  ) : (
-                    <span className="text-xs text-muted-foreground">-</span>
-                  )}
-                </TableCell>
-                <TableCell>
-                  <Button 
-                    variant="ghost" 
-                    size="sm"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onView(tender);
-                    }}
-                  >
-                    <Eye className="h-4 w-4" />
-                  </Button>
-                </TableCell>
-              </TableRow>
-            );
-          })}
-        </TableBody>
-      </Table>
-    </div>
+                    ) : (
+                      <span className="text-xs text-muted-foreground">-</span>
+                    )}
+                  </TableCell>
+                  <TableCell className="text-sm px-4 py-3 text-foreground/90 w-[50px] text-center">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onView(tender);
+                      }}
+                    >
+                      <Eye className="h-3 w-3" />
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              );
+            })}
+          </TableBody>
+        </Table>
+      </CardContent>
+    </Card>
   );
 };
