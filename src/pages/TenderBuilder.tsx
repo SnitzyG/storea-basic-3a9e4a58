@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useTenderAccess } from '@/hooks/useTenderAccess';
 import { useTenderLineItems, TenderLineItem } from '@/hooks/useTenderLineItems';
+import { useRFIs } from '@/hooks/useRFIs';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -77,6 +78,7 @@ const TenderBuilder = () => {
   const { tenderId } = useParams<{ tenderId: string }>();
   const navigate = useNavigate();
   const { user, profile } = useAuth();
+  const { createRFI } = useRFIs();
   const [tender, setTender] = useState<any>(null);
   const [packageDocs, setPackageDocs] = useState<TenderPackageDoc[]>([]);
   const [loading, setLoading] = useState(true);
@@ -526,25 +528,17 @@ const TenderBuilder = () => {
     }
 
     try {
-      // Create RFI assigned to the architect
-      const { error } = await supabase
-        .from('rfis')
-        .insert({
-          project_id: tender.project_id,
-          question: rfiMessage,
-          subject: `Tender Document Query: ${rfiDocumentName}`,
-          rfi_type: 'request_for_information',
-          priority: 'medium',
-          status: 'sent',
-          raised_by: user!.id,
-          assigned_to: tender.issued_by, // Assign to the architect who created the tender
-          sender_name: profile?.name || 'Builder',
-          recipient_name: architectProfile?.name || architectProfile?.full_name || 'Architect',
-          category: 'Tender Document',
-          attachments: [{ type: 'tender_document', document_id: rfiDocumentId, document_name: rfiDocumentName, tender_id: tender.id }]
-        } as any);
-
-      if (error) throw error;
+      await createRFI({
+        project_id: tender.project_id,
+        question: rfiMessage,
+        priority: 'medium',
+        category: 'Tender Document',
+        assigned_to: tender.issued_by,
+        rfi_type: 'request_for_information',
+        subject: `Tender Document Query: ${rfiDocumentName}`,
+        recipient_name: architectProfile?.name || 'Architect',
+        sender_name: profile?.name || 'Builder'
+      });
 
       toast.success('RFI submitted successfully - Architect will see this in their Mail tab');
       setShowRFIDialog(false);
@@ -1600,17 +1594,17 @@ const TenderBuilder = () => {
 
       {/* RFI Dialog */}
       <Dialog open={showRFIDialog} onOpenChange={setShowRFIDialog}>
-        <DialogContent className="max-w-2xl max-h-[90vh]">
+        <DialogContent className="max-w-2xl max-h-[90vh] text-sm">
           <DialogHeader>
-            <DialogTitle className="text-lg">Create New RFI</DialogTitle>
+            <DialogTitle className="text-base">Create New RFI</DialogTitle>
           </DialogHeader>
           
-          <div className="space-y-2.5">
+          <div className="space-y-2">
             {/* Mail Type */}
             <div className="space-y-1">
-              <Label className="text-sm">Mail Type</Label>
+              <Label className="text-xs">Mail Type</Label>
               <Select defaultValue="Request For Information">
-                <SelectTrigger>
+                <SelectTrigger className="h-8 text-sm">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -1624,9 +1618,9 @@ const TenderBuilder = () => {
 
             {/* Priority */}
             <div className="space-y-1">
-              <Label htmlFor="rfi-priority" className="text-sm">Priority *</Label>
+              <Label htmlFor="rfi-priority" className="text-xs">Priority *</Label>
               <Select defaultValue="medium">
-                <SelectTrigger id="rfi-priority">
+                <SelectTrigger id="rfi-priority" className="h-8 text-sm">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -1639,65 +1633,66 @@ const TenderBuilder = () => {
 
             {/* To (Recipient) */}
             <div className="space-y-1">
-              <Label htmlFor="rfi-recipient" className="text-sm">To (Recipient)</Label>
+              <Label htmlFor="rfi-recipient" className="text-xs">To (Recipient)</Label>
               <Input
                 id="rfi-recipient"
-                value={architectProfile?.name || architectProfile?.full_name || 'Architect'}
+                value={architectProfile?.name || 'Architect'}
                 disabled
-                className="bg-muted"
+                className="bg-muted h-8 text-sm"
               />
             </div>
 
             {/* Subject */}
             <div className="space-y-1">
-              <Label htmlFor="rfi-subject" className="text-sm">Subject</Label>
+              <Label htmlFor="rfi-subject" className="text-xs">Subject</Label>
               <Input
                 id="rfi-subject"
                 placeholder="Enter subject"
                 defaultValue={`Tender Document Query: ${rfiDocumentName}`}
+                className="h-8 text-sm"
               />
             </div>
 
             {/* Message */}
             <div className="space-y-1">
-              <Label htmlFor="rfi-message" className="text-sm">Message *</Label>
+              <Label htmlFor="rfi-message" className="text-xs">Message *</Label>
               <Textarea
                 id="rfi-message"
                 placeholder="Describe your question or concern..."
                 value={rfiMessage}
                 onChange={(e) => setRfiMessage(e.target.value)}
                 rows={3}
-                className="resize-none"
+                className="resize-none text-sm"
               />
             </div>
 
             {/* Notes */}
             <div className="space-y-1">
-              <Label htmlFor="rfi-notes" className="text-sm">Notes</Label>
+              <Label htmlFor="rfi-notes" className="text-xs">Notes</Label>
               <Textarea
                 id="rfi-notes"
                 placeholder="Add any additional notes..."
                 rows={2}
-                className="resize-none"
+                className="resize-none text-sm"
               />
             </div>
 
             {/* Related Document */}
             <div className="space-y-1">
-              <Label className="text-sm">Related Document</Label>
-              <div className="p-3 bg-muted rounded-lg text-sm">
-                <FileText className="h-4 w-4 inline mr-2" />
+              <Label className="text-xs">Related Document</Label>
+              <div className="p-2 bg-muted rounded-lg text-xs">
+                <FileText className="h-3 w-3 inline mr-2" />
                 {rfiDocumentName}
               </div>
             </div>
           </div>
           
-          <DialogFooter className="gap-2 mt-4">
-            <Button variant="outline" onClick={() => setShowRFIDialog(false)}>
+          <DialogFooter className="gap-2 mt-3">
+            <Button variant="outline" size="sm" onClick={() => setShowRFIDialog(false)}>
               Cancel
             </Button>
-            <Button onClick={handleSubmitRFI} disabled={!rfiMessage.trim()}>
-              <Send className="h-4 w-4 mr-2" />
+            <Button size="sm" onClick={handleSubmitRFI} disabled={!rfiMessage.trim()}>
+              <Send className="h-3 w-3 mr-2" />
               Submit RFI
             </Button>
           </DialogFooter>
