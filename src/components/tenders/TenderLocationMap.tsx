@@ -95,7 +95,7 @@ export const TenderLocationMap: React.FC<TenderLocationMapProps> = ({ address, t
 
   if (!address) {
     return (
-      <div className="h-[300px] rounded-lg border bg-muted/50 flex items-center justify-center">
+      <div className="h-[200px] rounded-lg border bg-muted/50 flex items-center justify-center">
         <p className="text-sm text-muted-foreground">No project address available</p>
       </div>
     );
@@ -103,19 +103,18 @@ export const TenderLocationMap: React.FC<TenderLocationMapProps> = ({ address, t
 
   if (error) {
     return (
-      <div className="h-[300px] rounded-lg border bg-muted/50 flex flex-col items-center justify-center gap-2">
-        <MapPin className="h-8 w-8 text-muted-foreground" />
-        <p className="text-sm text-muted-foreground">{error}</p>
-        <p className="text-xs text-muted-foreground">{address}</p>
+      <div className="h-[200px] rounded-lg border bg-muted/50 flex flex-col items-center justify-center gap-2">
+        <MapPin className="h-6 w-6 text-muted-foreground" />
+        <p className="text-xs text-muted-foreground text-center px-4">{error}</p>
       </div>
     );
   }
 
   return (
-    <div className="relative h-[300px] rounded-lg overflow-hidden border">
+    <div className="relative h-[200px] rounded-lg overflow-hidden border">
       {loading && (
         <div className="absolute inset-0 bg-muted/50 flex items-center justify-center z-10">
-          <p className="text-sm text-muted-foreground">Loading map...</p>
+          <p className="text-xs text-muted-foreground">Loading map...</p>
         </div>
       )}
       <div ref={mapContainer} className="absolute inset-0" />

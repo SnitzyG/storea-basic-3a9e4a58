@@ -931,87 +931,94 @@ const TenderBuilder = () => {
                   Tender ID: <span className="font-mono">{tender.tender_id}</span>
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {tender.profiles && (
-                    <>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  {/* Left column - Details */}
+                  <div className="lg:col-span-2 space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="flex items-start gap-3">
                         <Building className="h-5 w-5 text-muted-foreground mt-0.5" />
                         <div>
                           <p className="text-sm font-medium">Architect Name</p>
-                          <p className="text-sm text-muted-foreground">{tender.profiles.full_name || 'Not specified'}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {tender.profiles?.full_name || 'Not specified'}
+                          </p>
                         </div>
                       </div>
 
-                      {tender.profiles.companies && (
-                        <div className="flex items-start gap-3">
-                          <Building className="h-5 w-5 text-muted-foreground mt-0.5" />
-                          <div>
-                            <p className="text-sm font-medium">Architect Company</p>
-                            <p className="text-sm text-muted-foreground">{tender.profiles.companies.name || 'Not specified'}</p>
-                          </div>
+                      <div className="flex items-start gap-3">
+                        <Building className="h-5 w-5 text-muted-foreground mt-0.5" />
+                        <div>
+                          <p className="text-sm font-medium">Architect Company</p>
+                          <p className="text-sm text-muted-foreground">
+                            {tender.profiles?.companies?.name || 'Not specified'}
+                          </p>
                         </div>
-                      )}
-                    </>
+                      </div>
+
+                      <div className="flex items-start gap-3">
+                        <Building className="h-5 w-5 text-muted-foreground mt-0.5" />
+                        <div>
+                          <p className="text-sm font-medium">Client</p>
+                          <p className="text-sm text-muted-foreground">{tender.client_name || 'Not specified'}</p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-start gap-3">
+                        <MapPin className="h-5 w-5 text-muted-foreground mt-0.5" />
+                        <div>
+                          <p className="text-sm font-medium">Project Address</p>
+                          <p className="text-sm text-muted-foreground">{tender.project_address || 'Not specified'}</p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-start gap-3">
+                        <Calendar className="h-5 w-5 text-muted-foreground mt-0.5" />
+                        <div>
+                          <p className="text-sm font-medium">Submission Deadline</p>
+                          <p className="text-sm text-muted-foreground">
+                            {tender.deadline 
+                              ? new Date(tender.deadline).toLocaleDateString('en-US', {
+                                  year: 'numeric',
+                                  month: 'long',
+                                  day: 'numeric',
+                                  hour: '2-digit',
+                                  minute: '2-digit'
+                                })
+                              : 'Not specified'}
+                          </p>
+                          {tender.deadline && !isExpired && (
+                            <p className="text-xs text-primary mt-1">
+                              {formatDistanceToNow(new Date(tender.deadline), { addSuffix: true })}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="flex items-start gap-3">
+                        <DollarSign className="h-5 w-5 text-muted-foreground mt-0.5" />
+                        <div>
+                          <p className="text-sm font-medium">Budget</p>
+                          <p className="text-sm text-muted-foreground">
+                            {tender.budget ? `$${tender.budget.toLocaleString()}` : 'Not specified'}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Right column - Map */}
+                  {tender.project_address && (
+                    <div className="lg:col-span-1">
+                      <div className="sticky top-4">
+                        <TenderLocationMap 
+                          address={tender.project_address} 
+                          tenderTitle={tender.title}
+                        />
+                      </div>
+                    </div>
                   )}
-
-                  <div className="flex items-start gap-3">
-                    <Building className="h-5 w-5 text-muted-foreground mt-0.5" />
-                    <div>
-                      <p className="text-sm font-medium">Client</p>
-                      <p className="text-sm text-muted-foreground">{tender.client_name || 'Not specified'}</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-3">
-                    <Calendar className="h-5 w-5 text-muted-foreground mt-0.5" />
-                    <div>
-                      <p className="text-sm font-medium">Submission Deadline</p>
-                      <p className="text-sm text-muted-foreground">
-                        {tender.deadline 
-                          ? new Date(tender.deadline).toLocaleDateString('en-US', {
-                              year: 'numeric',
-                              month: 'long',
-                              day: 'numeric',
-                              hour: '2-digit',
-                              minute: '2-digit'
-                            })
-                          : 'Not specified'}
-                      </p>
-                      {tender.deadline && !isExpired && (
-                        <p className="text-xs text-primary mt-1">
-                          {formatDistanceToNow(new Date(tender.deadline), { addSuffix: true })}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-3">
-                    <DollarSign className="h-5 w-5 text-muted-foreground mt-0.5" />
-                    <div>
-                      <p className="text-sm font-medium">Budget</p>
-                      <p className="text-sm text-muted-foreground">
-                        {tender.budget ? `$${tender.budget.toLocaleString()}` : 'Not specified'}
-                      </p>
-                    </div>
-                  </div>
                 </div>
-
-                {tender.project_address && (
-                  <>
-                    <Separator />
-                    <div className="space-y-3">
-                      <div className="flex items-center gap-2">
-                        <MapPin className="h-5 w-5 text-muted-foreground" />
-                        <p className="text-sm font-medium">Project Location</p>
-                      </div>
-                      <TenderLocationMap 
-                        address={tender.project_address} 
-                        tenderTitle={tender.title}
-                      />
-                    </div>
-                  </>
-                )}
 
                 {tender.description && (
                   <>
