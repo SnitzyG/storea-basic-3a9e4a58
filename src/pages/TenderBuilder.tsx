@@ -535,7 +535,7 @@ const TenderBuilder = () => {
           subject: `Tender Document Query: ${rfiDocumentName}`,
           rfi_type: 'request_for_information',
           priority: 'medium',
-          status: 'open',
+          status: 'sent',
           raised_by: user!.id,
           assigned_to: tender.issued_by, // Assign to the architect who created the tender
           sender_name: profile?.name || 'Builder',
@@ -1600,15 +1600,15 @@ const TenderBuilder = () => {
 
       {/* RFI Dialog */}
       <Dialog open={showRFIDialog} onOpenChange={setShowRFIDialog}>
-        <DialogContent className="max-w-2xl max-h-[85vh] flex flex-col">
-          <DialogHeader className="flex-shrink-0">
-            <DialogTitle className="text-xl font-semibold">Create New RFI</DialogTitle>
+        <DialogContent className="max-w-2xl max-h-[90vh]">
+          <DialogHeader>
+            <DialogTitle className="text-lg">Create New RFI</DialogTitle>
           </DialogHeader>
           
-          <div className="flex-1 overflow-y-auto space-y-3 px-1">
+          <div className="space-y-2.5">
             {/* Mail Type */}
-            <div className="space-y-1.5">
-              <Label>Mail Type</Label>
+            <div className="space-y-1">
+              <Label className="text-sm">Mail Type</Label>
               <Select defaultValue="Request For Information">
                 <SelectTrigger>
                   <SelectValue />
@@ -1623,8 +1623,8 @@ const TenderBuilder = () => {
             </div>
 
             {/* Priority */}
-            <div className="space-y-1.5">
-              <Label htmlFor="rfi-priority">Priority *</Label>
+            <div className="space-y-1">
+              <Label htmlFor="rfi-priority" className="text-sm">Priority *</Label>
               <Select defaultValue="medium">
                 <SelectTrigger id="rfi-priority">
                   <SelectValue />
@@ -1638,8 +1638,8 @@ const TenderBuilder = () => {
             </div>
 
             {/* To (Recipient) */}
-            <div className="space-y-1.5">
-              <Label htmlFor="rfi-recipient">To (Recipient)</Label>
+            <div className="space-y-1">
+              <Label htmlFor="rfi-recipient" className="text-sm">To (Recipient)</Label>
               <Input
                 id="rfi-recipient"
                 value={architectProfile?.name || architectProfile?.full_name || 'Architect'}
@@ -1649,8 +1649,8 @@ const TenderBuilder = () => {
             </div>
 
             {/* Subject */}
-            <div className="space-y-1.5">
-              <Label htmlFor="rfi-subject">Subject</Label>
+            <div className="space-y-1">
+              <Label htmlFor="rfi-subject" className="text-sm">Subject</Label>
               <Input
                 id="rfi-subject"
                 placeholder="Enter subject"
@@ -1659,21 +1659,21 @@ const TenderBuilder = () => {
             </div>
 
             {/* Message */}
-            <div className="space-y-1.5">
-              <Label htmlFor="rfi-message">Message *</Label>
+            <div className="space-y-1">
+              <Label htmlFor="rfi-message" className="text-sm">Message *</Label>
               <Textarea
                 id="rfi-message"
                 placeholder="Describe your question or concern..."
                 value={rfiMessage}
                 onChange={(e) => setRfiMessage(e.target.value)}
-                rows={4}
+                rows={3}
                 className="resize-none"
               />
             </div>
 
             {/* Notes */}
-            <div className="space-y-1.5">
-              <Label htmlFor="rfi-notes">Notes</Label>
+            <div className="space-y-1">
+              <Label htmlFor="rfi-notes" className="text-sm">Notes</Label>
               <Textarea
                 id="rfi-notes"
                 placeholder="Add any additional notes..."
@@ -1683,8 +1683,8 @@ const TenderBuilder = () => {
             </div>
 
             {/* Related Document */}
-            <div className="space-y-1.5">
-              <Label>Related Document</Label>
+            <div className="space-y-1">
+              <Label className="text-sm">Related Document</Label>
               <div className="p-3 bg-muted rounded-lg text-sm">
                 <FileText className="h-4 w-4 inline mr-2" />
                 {rfiDocumentName}
@@ -1692,7 +1692,7 @@ const TenderBuilder = () => {
             </div>
           </div>
           
-          <DialogFooter className="flex-shrink-0 gap-2 pt-4">
+          <DialogFooter className="gap-2 mt-4">
             <Button variant="outline" onClick={() => setShowRFIDialog(false)}>
               Cancel
             </Button>
