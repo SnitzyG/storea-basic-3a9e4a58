@@ -1019,11 +1019,20 @@ const TenderBuilder = () => {
           {/* Tender Details Tab */}
           <TabsContent value="overview" className="space-y-6">
             <Card>
-              <CardHeader>
-                <CardTitle className="text-2xl">{tender.title}</CardTitle>
-                <CardDescription>
-                  Tender ID: <span className="font-mono">{tender.tender_id}</span>
-                </CardDescription>
+              <CardHeader className="flex flex-row items-start justify-between">
+                <div>
+                  <CardTitle className="text-2xl">{tender.title}</CardTitle>
+                  <CardDescription>
+                    Tender ID: <span className="font-mono">{tender.tender_id}</span>
+                  </CardDescription>
+                </div>
+                {tender.profiles?.company_logo_url && (
+                  <img 
+                    src={tender.profiles.company_logo_url} 
+                    alt="Company logo"
+                    className="h-20 w-20 rounded-lg object-contain border border-border"
+                  />
+                )}
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -1040,23 +1049,14 @@ const TenderBuilder = () => {
                         </div>
                       </div>
 
-                      <div className="flex items-start gap-3 justify-between">
-                        <div className="flex items-start gap-3">
-                          <Building className="h-5 w-5 text-muted-foreground mt-0.5" />
-                          <div>
-                            <p className="text-sm font-medium">Architect Company</p>
-                            <p className="text-sm text-muted-foreground">
-                              {tender.profiles?.companies?.name || 'Not specified'}
-                            </p>
-                          </div>
+                      <div className="flex items-start gap-3">
+                        <Building className="h-5 w-5 text-muted-foreground mt-0.5" />
+                        <div>
+                          <p className="text-sm font-medium">Architect Company</p>
+                          <p className="text-sm text-muted-foreground">
+                            {tender.profiles?.companies?.name || 'Not specified'}
+                          </p>
                         </div>
-                        {tender.profiles?.company_logo_url && (
-                          <img 
-                            src={tender.profiles.company_logo_url} 
-                            alt="Company logo"
-                            className="h-12 w-12 rounded-lg object-contain border border-border"
-                          />
-                        )}
                       </div>
 
                       <div className="flex items-start gap-3">
