@@ -155,7 +155,14 @@ const TenderBuilder = () => {
         // Build query based on ID type
         let query = supabase
           .from('tenders')
-          .select('*');
+          .select(`
+            *,
+            projects!inner(
+              id,
+              name,
+              client_name
+            )
+          `);
         
         if (isUUID) {
           query = query.eq('id', tenderId);
@@ -1062,8 +1069,10 @@ const TenderBuilder = () => {
                       <div className="flex items-start gap-3">
                         <Building className="h-5 w-5 text-muted-foreground mt-0.5" />
                         <div>
-                          <p className="text-sm font-medium">Client</p>
-                          <p className="text-sm text-muted-foreground">{tender.client_name || 'Not specified'}</p>
+                          <p className="text-sm font-medium">Client / Homeowner</p>
+                          <p className="text-sm text-muted-foreground">
+                            {tender.projects?.client_name || tender.client_name || 'Not specified'}
+                          </p>
                         </div>
                       </div>
 
