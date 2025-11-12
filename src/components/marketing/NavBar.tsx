@@ -72,9 +72,7 @@ export const NavBar = () => {
 
         {/* Mobile Navigation */}
         {isOpen && <div className="md:hidden py-4 space-y-3">
-            <Link to="/about" className="block py-2 text-foreground/80 hover:text-foreground transition-colors" onClick={() => setIsOpen(false)}>
-              About
-            </Link>
+            
             <Link to="/features" className="block py-2 text-foreground/80 hover:text-foreground transition-colors" onClick={() => setIsOpen(false)}>
               Features
             </Link>
