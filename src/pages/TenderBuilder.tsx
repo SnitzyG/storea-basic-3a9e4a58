@@ -185,7 +185,7 @@ const TenderBuilder = () => {
         if (tenderData.issued_by) {
           const { data: profileData } = await supabase
             .from('profiles')
-            .select('full_name, name, company_name, company_id')
+            .select('full_name, name, company_id')
             .eq('user_id', tenderData.issued_by)
             .single();
           
@@ -1045,7 +1045,7 @@ const TenderBuilder = () => {
                         <div>
                           <p className="text-sm font-medium">Architect Company</p>
                           <p className="text-sm text-muted-foreground">
-                            {tender.profiles?.company_name || tender.profiles?.companies?.name || 'Not specified'}
+                            {tender.profiles?.companies?.name || 'Not specified'}
                           </p>
                         </div>
                       </div>
