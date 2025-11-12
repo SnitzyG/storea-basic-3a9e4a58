@@ -5,7 +5,8 @@ import { usePageMeta } from '@/hooks/usePageMeta';
 const Home = () => {
   usePageMeta({
     title: 'STOREA – Modern Construction Project Management',
-    description: 'Streamline your construction projects with STOREA. Plan, organize, and deliver on time effortlessly.'
+    description: 'Streamline your construction projects with STOREA. Plan, organize, and deliver on time effortlessly.',
+    canonicalPath: '/'
   });
 
   return (

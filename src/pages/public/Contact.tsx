@@ -1,8 +1,15 @@
 import { PublicLayout } from '@/components/marketing/PublicLayout';
 import { ContactForm } from '@/components/marketing/ContactForm';
 import { Mail, MapPin, Phone } from 'lucide-react';
+import { usePageMeta } from '@/hooks/usePageMeta';
 
 const Contact = () => {
+  usePageMeta({
+    title: 'Contact STOREA – Get in Touch',
+    description: 'Have questions about STOREA? Contact our team for support, demos, or inquiries about construction project management.',
+    canonicalPath: '/contact'
+  });
+
   return (
     <PublicLayout>
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 h-full flex flex-col">

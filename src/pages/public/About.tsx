@@ -1,8 +1,15 @@
 import { PublicLayout } from '@/components/marketing/PublicLayout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Target, Lightbulb, Users } from 'lucide-react';
+import { usePageMeta } from '@/hooks/usePageMeta';
 
 const About = () => {
+  usePageMeta({
+    title: 'About STOREA – Our Mission & Vision',
+    description: 'Learn about STOREA\'s mission to revolutionize construction project management with modern tools for seamless collaboration.',
+    canonicalPath: '/about'
+  });
+
   return (
     <PublicLayout>
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 h-full flex flex-col">

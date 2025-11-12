@@ -8,7 +8,8 @@ const Pricing = () => {
   
   usePageMeta({
     title: 'STOREA Pricing – Choose Your Plan',
-    description: 'Flexible pricing plans to fit your construction project needs. Start free or upgrade to premium.'
+    description: 'Flexible pricing plans to fit your construction project needs. Start free or upgrade to premium.',
+    canonicalPath: '/pricing'
   });
 
   const calculatePrice = (monthlyPrice: number) => {
