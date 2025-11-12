@@ -45,6 +45,7 @@ export interface Tender {
     budget?: number;
     status: string;
     timeline?: any;
+    homeowner_name?: string;
   };
   // Legacy fields for backwards compatibility
   budget?: number;
@@ -109,7 +110,8 @@ export const useTenders = (projectId?: string) => {
             address,
             budget,
             status,
-            timeline
+            timeline,
+            homeowner_name
           )
         `)
         .eq('project_id', projectId)
@@ -144,7 +146,8 @@ export const useTenders = (projectId?: string) => {
                 address,
                 budget,
                 status,
-                timeline
+                timeline,
+                homeowner_name
               )
             `)
             .in('id', approvedTenderIds)

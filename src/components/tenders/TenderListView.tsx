@@ -70,7 +70,6 @@ export const TenderListView = ({ tenders, onView }: TenderListViewProps) => {
               <TableHead className="text-foreground/80 font-semibold text-sm h-12 px-4">Deadline</TableHead>
               <TableHead className="text-foreground/80 font-semibold text-sm h-12 px-4">Project Reference</TableHead>
               <TableHead className="text-foreground/80 font-semibold text-sm h-12 px-4">Project Name</TableHead>
-              <TableHead className="text-foreground/80 font-semibold text-sm h-12 px-4">Project ID</TableHead>
               <TableHead className="text-foreground/80 font-semibold text-sm h-12 px-4">Tender ID</TableHead>
               <TableHead className="text-foreground/80 font-semibold text-sm h-12 px-4">Client</TableHead>
               <TableHead className="text-foreground/80 font-semibold text-sm h-12 px-4">Budget</TableHead>
@@ -122,24 +121,6 @@ export const TenderListView = ({ tenders, onView }: TenderListViewProps) => {
                     <div className="flex items-center gap-2">
                       <div className="flex items-center gap-1 text-xs text-primary font-mono bg-primary/10 px-2 py-1 rounded border border-primary/20">
                         <Hash className="h-3 w-3" />
-                        {tender.project?.id?.substring(0, 8) || '-'}
-                      </div>
-                      {tender.project?.id && (
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          onClick={(e) => copyTenderId(e, tender.project.id)}
-                          className="h-6 w-6 p-0"
-                        >
-                          <Copy className="h-3 w-3" />
-                        </Button>
-                      )}
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-sm px-4 py-3 text-foreground/90">
-                    <div className="flex items-center gap-2">
-                      <div className="flex items-center gap-1 text-xs text-primary font-mono bg-primary/10 px-2 py-1 rounded border border-primary/20">
-                        <Hash className="h-3 w-3" />
                         {tender.tender_id}
                       </div>
                       <Button 
@@ -153,12 +134,12 @@ export const TenderListView = ({ tenders, onView }: TenderListViewProps) => {
                     </div>
                   </TableCell>
                   <TableCell className="text-sm px-4 py-3 text-foreground/90">
-                    {tender.issued_by_profile?.name ? (
+                    {tender.project?.homeowner_name ? (
                       <div className="flex items-center gap-2">
                         <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center">
                           <User className="h-3 w-3 text-primary" />
                         </div>
-                        <span className="text-xs text-muted-foreground">{tender.issued_by_profile.name}</span>
+                        <span className="text-xs text-muted-foreground">{tender.project.homeowner_name}</span>
                       </div>
                     ) : (
                       <span className="text-xs text-muted-foreground">-</span>
