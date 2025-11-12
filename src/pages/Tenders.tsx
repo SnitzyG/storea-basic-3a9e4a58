@@ -1,5 +1,4 @@
 import React, { useState, useMemo } from 'react';
-
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -26,8 +25,6 @@ import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useTenderAccess } from '@/hooks/useTenderAccess';
 import { formatDistanceToNow } from 'date-fns';
-
-
 const Tenders = () => {
   const {
     tenderId
@@ -68,17 +65,16 @@ const Tenders = () => {
   // Combine tenders from project and context (for builders who joined via tender)
   const allTenders = useMemo(() => {
     const tenderMap = new Map();
-    
+
     // Add tenders from project
     tenders.forEach(t => tenderMap.set(t.id, t));
-    
+
     // Add tenders from context (for builders)
     availableTenders.forEach(t => {
       if (!tenderMap.has(t.id)) {
         tenderMap.set(t.id, t);
       }
     });
-    
     const combined = Array.from(tenderMap.values());
     console.log('[Tenders] Combined tenders:', combined.length, 'from project:', tenders.length, 'from context:', availableTenders.length);
     return combined;
@@ -156,7 +152,6 @@ const Tenders = () => {
       autoCloseExpired();
     }
   }, [expiredOpenTenders.length]);
-
   if (selectedProject?.id && loading) {
     return <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">Loading tenders...</div>
@@ -180,8 +175,7 @@ const Tenders = () => {
 
       {/* Main Content Tabs */}
       <Tabs defaultValue="tenders" className="w-full" value={activeTab} onValueChange={value => setActiveTab(value as any)}>
-        {userRole === 'architect' ? (
-          <TabsList className="grid w-full grid-cols-3">
+        {userRole === 'architect' ? <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="tenders" className="flex items-center gap-2">
               <FileText className="h-4 w-4" />
               My Tenders
@@ -194,9 +188,7 @@ const Tenders = () => {
               <UserPlus className="h-4 w-4" />
               Join Tender
             </TabsTrigger>
-          </TabsList>
-        ) : (
-          <TabsList className="grid w-full grid-cols-2">
+          </TabsList> : <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="tenders" className="flex items-center gap-2">
               <FileText className="h-4 w-4" />
               My Tenders
@@ -205,8 +197,7 @@ const Tenders = () => {
               <UserPlus className="h-4 w-4" />
               Join Tender
             </TabsTrigger>
-          </TabsList>
-        )}
+          </TabsList>}
 
         <TabsContent value="tenders" className="space-y-6">
           {/* Expired Tenders Alert */}
@@ -222,34 +213,25 @@ const Tenders = () => {
             </Card>}
 
           {/* Tenders List View */}
-          {filteredTenders.length > 0 ? (
-            <TenderListView
-              tenders={filteredTenders}
-              onView={(t) => {
-                if (userRole === 'builder' || userRole === 'contractor') {
-                  navigate(`/tenders/${t.tender_id}/builder`);
-                } else {
-                  navigate(`/tenders/${t.id}`);
-                }
-              }}
-            />
-          ) : (
-            <Card>
+          {filteredTenders.length > 0 ? <TenderListView tenders={filteredTenders} onView={t => {
+            if (userRole === 'builder' || userRole === 'contractor') {
+              navigate(`/tenders/${t.tender_id}/builder`);
+            } else {
+              navigate(`/tenders/${t.id}`);
+            }
+          }} /> : <Card>
               <CardContent className="text-center py-12">
                 <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                 <h3 className="text-lg font-medium mb-2">No tenders yet</h3>
                 <p className="text-muted-foreground mb-4">
                   Check back soon for new opportunities.
                 </p>
-                {userRole === 'architect' && (
-                  <Button onClick={() => setCreateDialogOpen(true)}>
+                {userRole === 'architect' && <Button onClick={() => setCreateDialogOpen(true)}>
                     <Plus className="h-4 w-4 mr-2" />
                     Create Tender
-                  </Button>
-                )}
+                  </Button>}
               </CardContent>
-            </Card>
-          )}
+            </Card>}
 
           {/* Access Requests Section - Only for Architects */}
           {userRole === 'architect' && <TenderAccessApprovals projectId={selectedProject?.id} />}
@@ -258,12 +240,7 @@ const Tenders = () => {
         {/* Compare Quotes Tab */}
         <TabsContent value="compare" className="space-y-6">
           {userRole === 'architect' ? <>
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <h3 className="text-lg font-semibold">Compare Builder Quotes</h3>
-                  <p className="text-sm text-muted-foreground">View and compare submitted bids from builders</p>
-                </div>
-              </div>
+              
               <ProjectQuotesComparison projectId={selectedProject?.id} />
             </> : <Card>
               <CardContent className="text-center py-12">
