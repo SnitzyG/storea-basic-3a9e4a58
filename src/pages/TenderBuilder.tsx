@@ -1040,24 +1040,23 @@ const TenderBuilder = () => {
                         </div>
                       </div>
 
-                      <div className="flex items-start gap-3">
-                        {tender.profiles?.company_logo_url ? (
+                      <div className="flex items-start gap-3 justify-between">
+                        <div className="flex items-start gap-3">
+                          <Building className="h-5 w-5 text-muted-foreground mt-0.5" />
+                          <div>
+                            <p className="text-sm font-medium">Architect Company</p>
+                            <p className="text-sm text-muted-foreground">
+                              {tender.profiles?.companies?.name || 'Not specified'}
+                            </p>
+                          </div>
+                        </div>
+                        {tender.profiles?.company_logo_url && (
                           <img 
                             src={tender.profiles.company_logo_url} 
                             alt="Company logo"
                             className="h-12 w-12 rounded-lg object-contain border border-border"
                           />
-                        ) : (
-                          <div className="h-12 w-12 rounded-lg bg-muted flex items-center justify-center border border-border">
-                            <Building className="h-6 w-6 text-muted-foreground" />
-                          </div>
                         )}
-                        <div>
-                          <p className="text-sm font-medium">Architect Company</p>
-                          <p className="text-sm text-muted-foreground">
-                            {tender.profiles?.companies?.name || 'Not specified'}
-                          </p>
-                        </div>
                       </div>
 
                       <div className="flex items-start gap-3">
