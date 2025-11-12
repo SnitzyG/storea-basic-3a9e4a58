@@ -160,7 +160,7 @@ const TenderBuilder = () => {
             projects!inner(
               id,
               name,
-              client_name
+              homeowner_name
             )
           `);
         
@@ -1071,7 +1071,7 @@ const TenderBuilder = () => {
                         <div>
                           <p className="text-sm font-medium">Client / Homeowner</p>
                           <p className="text-sm text-muted-foreground">
-                            {tender.projects?.client_name || tender.client_name || 'Not specified'}
+                            {tender.projects?.homeowner_name || tender.client_name || 'Not specified'}
                           </p>
                         </div>
                       </div>
