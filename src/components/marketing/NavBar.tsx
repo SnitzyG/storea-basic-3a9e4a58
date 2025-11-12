@@ -36,7 +36,7 @@ export const NavBar = () => {
   return <nav className="sticky top-0 z-50 bg-background/80 backdrop-blur-lg border-b border-border">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-          <StorealiteLogo className="h-14" />
+          <StorealiteLogo className="h-20" />
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-8">
