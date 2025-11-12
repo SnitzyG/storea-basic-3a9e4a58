@@ -185,7 +185,7 @@ const TenderBuilder = () => {
         if (tenderData.issued_by) {
           const { data: profileData } = await supabase
             .from('profiles')
-            .select('full_name, name, company_id')
+            .select('full_name, name, company_id, company_logo_url')
             .eq('user_id', tenderData.issued_by)
             .single();
           
@@ -1041,7 +1041,17 @@ const TenderBuilder = () => {
                       </div>
 
                       <div className="flex items-start gap-3">
-                        <Building className="h-5 w-5 text-muted-foreground mt-0.5" />
+                        {tender.profiles?.company_logo_url ? (
+                          <img 
+                            src={tender.profiles.company_logo_url} 
+                            alt="Company logo"
+                            className="h-12 w-12 rounded-lg object-contain border border-border"
+                          />
+                        ) : (
+                          <div className="h-12 w-12 rounded-lg bg-muted flex items-center justify-center border border-border">
+                            <Building className="h-6 w-6 text-muted-foreground" />
+                          </div>
+                        )}
                         <div>
                           <p className="text-sm font-medium">Architect Company</p>
                           <p className="text-sm text-muted-foreground">
