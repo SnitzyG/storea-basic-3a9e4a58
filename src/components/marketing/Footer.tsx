@@ -5,13 +5,10 @@ export const Footer = () => {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4">
         <div className="flex items-center justify-between gap-4 w-full relative">
           <div className="flex items-center gap-6 text-xs text-muted-foreground">
-            <Link to="/" className="hover:text-foreground transition-colors">Home</Link>
             <Link to="/about" className="hover:text-foreground transition-colors">About</Link>
             <Link to="/contact" className="hover:text-foreground transition-colors">Contact</Link>
             <Link to="/features" className="hover:text-foreground transition-colors">Features</Link>
             <Link to="/pricing" className="hover:text-foreground transition-colors">Pricing</Link>
-            <Link to="/privacy" className="hover:text-foreground transition-colors">Privacy</Link>
-            <Link to="/terms" className="hover:text-foreground transition-colors">Terms</Link>
           </div>
           
           <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-4">
@@ -31,7 +28,11 @@ export const Footer = () => {
             </a>
           </div>
           
-          <p className="text-xs text-muted-foreground">&copy; {new Date().getFullYear()} STOREA</p>
+          <div className="flex items-center gap-4 text-xs text-muted-foreground">
+            <Link to="/privacy" className="hover:text-foreground transition-colors">Privacy</Link>
+            <Link to="/terms" className="hover:text-foreground transition-colors">Terms</Link>
+            <p>&copy; {new Date().getFullYear()} STOREA</p>
+          </div>
         </div>
       </div>
     </footer>;
