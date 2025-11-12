@@ -23,7 +23,7 @@ const NotFound = () => {
         {/* Logo with pulse animation */}
         <div className="flex justify-center">
           <div className="animate-pulse">
-            <StorealiteLogo className="text-4xl" />
+            <StorealiteLogo className="h-10" />
           </div>
         </div>
         

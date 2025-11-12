@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Badge } from '@/components/ui/badge';
+import { StorealiteLogo } from '@/components/ui/storealite-logo';
 export const NavBar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const {
@@ -35,11 +36,7 @@ export const NavBar = () => {
   return <nav className="sticky top-0 z-50 bg-background/80 backdrop-blur-lg border-b border-border">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-          <Link to="/" className="flex items-center gap-2">
-            <div className="text-2xl font-black uppercase tracking-wide text-primary">
-              STOREA
-            </div>
-          </Link>
+          <StorealiteLogo className="h-7" />
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-8">
