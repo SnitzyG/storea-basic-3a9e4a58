@@ -315,7 +315,7 @@ export const TenderComparisonDashboard: React.FC<TenderComparisonDashboardProps>
               const isFastest = bid.timeline_days === timelineAnalysis.fastest;
               const overallScore = bid.evaluation ? (bid.evaluation.price_score + bid.evaluation.experience_score + bid.evaluation.timeline_score + bid.evaluation.technical_score + bid.evaluation.communication_score) / 5 : 0;
               const attachments = bid.attachments || [];
-              const isOpen = collapsedBids[bid.id] ?? false; // default to closed/minimized
+              const isOpen = collapsedBids[bid.id] !== false; // default to open
               
               return (
                 <Card key={bid.id} className="border-2">

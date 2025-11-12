@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2, ChevronDown, ChevronUp } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 
 interface BidLineItemsTableProps {
   bidId: string;
@@ -13,7 +11,6 @@ interface BidLineItemsTableProps {
 export const BidLineItemsTable: React.FC<BidLineItemsTableProps> = ({ bidId, tenderId }) => {
   const [lineItems, setLineItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [collapsedCategories, setCollapsedCategories] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     fetchLineItems();
@@ -81,66 +78,55 @@ export const BidLineItemsTable: React.FC<BidLineItemsTableProps> = ({ bidId, ten
             </TableRow>
           </TableHeader>
           <TableBody>
-            {Object.entries(groupedItems).map(([category, items]: [string, any[]]) => {
-              const categorySubtotal = (items as any[]).reduce((sum, item) => sum + ((item.quantity || 0) * (item.unit_price || 0)), 0);
-              const isOpen = collapsedCategories[category] ?? false; // default closed
-              
-              return (
-                <React.Fragment key={category}>
-                  <Collapsible open={isOpen} onOpenChange={(open) => setCollapsedCategories(prev => ({ ...prev, [category]: open }))}>
-                    {/* Category Header with Subtotal */}
-                    <CollapsibleTrigger asChild>
-                      <TableRow className="bg-muted/30 hover:bg-muted/40 cursor-pointer">
-                        <TableCell className="w-16">
-                          <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
-                            {isOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                          </Button>
-                        </TableCell>
-                        <TableCell colSpan={4} className="font-semibold text-sm">
-                          {category}
-                        </TableCell>
-                        <TableCell className="text-right font-semibold text-sm">
-                          ${categorySubtotal.toFixed(2)}
-                        </TableCell>
-                      </TableRow>
-                    </CollapsibleTrigger>
-                    
-                    <CollapsibleContent asChild>
-                      <>
-                        {/* Line Items */}
-                        {items.map((item, index) => (
-                          <TableRow key={item.id}>
-                            <TableCell className="font-mono text-sm text-muted-foreground">
-                              {item.line_number || index + 1}
-                            </TableCell>
-                            <TableCell>
-                              <div>
-                                <p className="font-medium">{item.item_description}</p>
-                                {item.notes && (
-                                  <p className="text-xs text-muted-foreground mt-1">{item.notes}</p>
-                                )}
-                              </div>
-                            </TableCell>
-                            <TableCell className="text-right font-mono">
-                              {item.quantity?.toFixed(2) || '0.00'}
-                            </TableCell>
-                            <TableCell className="text-sm text-muted-foreground">
-                              {item.unit || 'ea'}
-                            </TableCell>
-                            <TableCell className="text-right font-mono">
-                              ${item.unit_price?.toFixed(2) || '0.00'}
-                            </TableCell>
-                            <TableCell className="text-right font-mono font-medium">
-                              ${((item.quantity || 0) * (item.unit_price || 0)).toFixed(2)}
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </>
-                    </CollapsibleContent>
-                  </Collapsible>
-                </React.Fragment>
-              );
-            })}
+            {Object.entries(groupedItems).map(([category, items]: [string, any[]]) => (
+              <React.Fragment key={category}>
+                {/* Category Header */}
+                <TableRow className="bg-muted/30">
+                  <TableCell colSpan={6} className="font-semibold text-sm">
+                    {category}
+                  </TableCell>
+                </TableRow>
+                
+                {/* Line Items */}
+                {items.map((item, index) => (
+                  <TableRow key={item.id}>
+                    <TableCell className="font-mono text-sm text-muted-foreground">
+                      {item.line_number || index + 1}
+                    </TableCell>
+                    <TableCell>
+                      <div>
+                        <p className="font-medium">{item.item_description}</p>
+                        {item.notes && (
+                          <p className="text-xs text-muted-foreground mt-1">{item.notes}</p>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-right font-mono">
+                      {item.quantity?.toFixed(2) || '0.00'}
+                    </TableCell>
+                    <TableCell className="text-sm text-muted-foreground">
+                      {item.unit || 'ea'}
+                    </TableCell>
+                    <TableCell className="text-right font-mono">
+                      ${item.unit_price?.toFixed(2) || '0.00'}
+                    </TableCell>
+                    <TableCell className="text-right font-mono font-medium">
+                      ${((item.quantity || 0) * (item.unit_price || 0)).toFixed(2)}
+                    </TableCell>
+                  </TableRow>
+                ))}
+
+                {/* Category Subtotal */}
+                <TableRow className="bg-muted/20 font-semibold">
+                  <TableCell colSpan={5} className="text-right">
+                    {category} Subtotal:
+                  </TableCell>
+                  <TableCell className="text-right font-mono">
+                    ${(items as any[]).reduce((sum, item) => sum + ((item.quantity || 0) * (item.unit_price || 0)), 0).toFixed(2)}
+                  </TableCell>
+                </TableRow>
+              </React.Fragment>
+            ))}
 
             {/* Grand Totals */}
             <TableRow className="border-t-2">
