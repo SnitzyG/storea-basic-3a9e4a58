@@ -26,56 +26,63 @@ export const ContactForm = () => {
   };
 
   return (
-    <Card className="max-w-2xl mx-auto">
-      <CardHeader>
-        <CardTitle className="text-2xl">Get in Touch</CardTitle>
-        <CardDescription>
-          Have questions? We'd love to hear from you. Send us a message and we'll respond as soon as possible.
-        </CardDescription>
-      </CardHeader>
-      
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="space-y-2">
-            <Label htmlFor="name">Name</Label>
-            <Input
-              id="name"
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              required
-              placeholder="Your name"
-            />
-          </div>
+    <Card className="max-w-2xl w-full">
+      {submitted ? (
+        <CardContent className="pt-6 pb-6 text-center">
+          <h3 className="text-lg font-semibold mb-2 text-primary">
+            Thank you for reaching out!
+          </h3>
+          <p className="text-sm text-muted-foreground">
+            We've received your message and will get back to you soon.
+          </p>
+        </CardContent>
+      ) : (
+        <CardContent className="pt-6">
+          <form onSubmit={handleSubmit} className="space-y-3">
+            <div className="space-y-1">
+              <Label htmlFor="name" className="text-sm">Name</Label>
+              <Input
+                id="name"
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                required
+                placeholder="Your name"
+                className="h-9"
+              />
+            </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              type="email"
-              value={formData.email}
-              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              required
-              placeholder="your.email@example.com"
-            />
-          </div>
+            <div className="space-y-1">
+              <Label htmlFor="email" className="text-sm">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                value={formData.email}
+                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                required
+                placeholder="your.email@example.com"
+                className="h-9"
+              />
+            </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="message">Message</Label>
-            <Textarea
-              id="message"
-              value={formData.message}
-              onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-              required
-              placeholder="Tell us what you're thinking..."
-              rows={6}
-            />
-          </div>
+            <div className="space-y-1">
+              <Label htmlFor="message" className="text-sm">Message</Label>
+              <Textarea
+                id="message"
+                value={formData.message}
+                onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+                required
+                placeholder="Tell us what you're thinking..."
+                rows={3}
+                className="resize-none"
+              />
+            </div>
 
-          <Button type="submit" className="w-full">
-            Send Message
-          </Button>
-        </form>
-      </CardContent>
+            <Button type="submit" className="w-full">
+              Send Message
+            </Button>
+          </form>
+        </CardContent>
+      )}
     </Card>
   );
 };

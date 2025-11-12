@@ -5,44 +5,46 @@ import { Mail, MapPin, Phone } from 'lucide-react';
 const Contact = () => {
   return (
     <PublicLayout>
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-20">
-        <div className="max-w-4xl mx-auto text-center mb-16">
-          <h1 className="text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 h-full flex flex-col">
+        <div className="max-w-4xl mx-auto text-center mb-6">
+          <h1 className="text-4xl md:text-5xl font-bold mb-4 text-gray-800">
             Let's Connect
           </h1>
           
-          <p className="text-xl text-muted-foreground">
+          <p className="text-lg text-muted-foreground">
             Have questions or need assistance? We're here to help.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-16">
-          <div className="text-center p-6">
-            <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-primary to-primary-glow flex items-center justify-center mx-auto mb-4">
-              <Mail className="h-6 w-6 text-white" />
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
+          <div className="text-center p-4">
+            <div className="w-10 h-10 rounded-lg bg-primary flex items-center justify-center mx-auto mb-3">
+              <Mail className="h-5 w-5 text-primary-foreground" />
             </div>
-            <h3 className="font-semibold mb-2 bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent">Email Us</h3>
-            <p className="text-muted-foreground">support@storea.com</p>
+            <h3 className="font-semibold mb-2 text-primary">Email Us</h3>
+            <p className="text-sm text-muted-foreground">support@storea.com</p>
           </div>
 
-          <div className="text-center p-6">
-            <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-primary to-primary-glow flex items-center justify-center mx-auto mb-4">
-              <Phone className="h-6 w-6 text-white" />
+          <div className="text-center p-4">
+            <div className="w-10 h-10 rounded-lg bg-primary flex items-center justify-center mx-auto mb-3">
+              <Phone className="h-5 w-5 text-primary-foreground" />
             </div>
-            <h3 className="font-semibold mb-2 bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent">Call Us</h3>
-            <p className="text-muted-foreground">1-800-STOREA</p>
+            <h3 className="font-semibold mb-2 text-primary">Call Us</h3>
+            <p className="text-sm text-muted-foreground">1-800-STOREA</p>
           </div>
 
-          <div className="text-center p-6">
-            <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-primary to-primary-glow flex items-center justify-center mx-auto mb-4">
-              <MapPin className="h-6 w-6 text-white" />
+          <div className="text-center p-4">
+            <div className="w-10 h-10 rounded-lg bg-primary flex items-center justify-center mx-auto mb-3">
+              <MapPin className="h-5 w-5 text-primary-foreground" />
             </div>
-            <h3 className="font-semibold mb-2 bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent">Visit Us</h3>
-            <p className="text-muted-foreground">Melbourne, Australia</p>
+            <h3 className="font-semibold mb-2 text-primary">Visit Us</h3>
+            <p className="text-sm text-muted-foreground">Melbourne, Australia</p>
           </div>
         </div>
 
-        <ContactForm />
+        <div className="flex-1 flex items-start justify-center">
+          <ContactForm />
+        </div>
       </div>
     </PublicLayout>
   );
