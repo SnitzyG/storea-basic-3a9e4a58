@@ -4,13 +4,26 @@ import 'leaflet/dist/leaflet.css';
 import { MapPin } from 'lucide-react';
 import { geocodeAddress } from '@/utils/geocoding';
 
-// Fix for default markers in Leaflet
-delete (L.Icon.Default.prototype as any)._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
-  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
-  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
-});
+// Create custom branded marker icon
+const createCustomIcon = () => {
+  const iconHtml = `
+    <svg width="32" height="42" viewBox="0 0 32 42" xmlns="http://www.w3.org/2000/svg">
+      <path d="M16 0C7.163 0 0 7.163 0 16c0 12 16 26 16 26s16-14 16-26c0-8.837-7.163-16-16-16z" 
+            fill="hsl(6 8% 17%)" 
+            stroke="white" 
+            stroke-width="2"/>
+      <circle cx="16" cy="16" r="6" fill="white"/>
+    </svg>
+  `;
+  
+  return L.divIcon({
+    html: iconHtml,
+    className: 'custom-marker-icon',
+    iconSize: [32, 42],
+    iconAnchor: [16, 42],
+    popupAnchor: [0, -42]
+  });
+};
 
 interface TenderLocationMapProps {
   address: string;
@@ -62,18 +75,10 @@ export const TenderLocationMap: React.FC<TenderLocationMapProps> = ({ address, t
           map.current.setView([coords.lat, coords.lng], 15);
         }
 
-        // Add marker
-        const marker = L.marker([coords.lat, coords.lng]).addTo(map.current);
-        
-        // Custom popup content
-        const popupContent = `
-          <div class="p-2">
-            <h3 class="font-semibold text-sm mb-1">${tenderTitle}</h3>
-            <p class="text-xs text-muted-foreground">${address}</p>
-          </div>
-        `;
-        
-        marker.bindPopup(popupContent).openPopup();
+        // Add custom branded marker without popup
+        L.marker([coords.lat, coords.lng], {
+          icon: createCustomIcon()
+        }).addTo(map.current);
 
         setLoading(false);
       } catch (err) {
