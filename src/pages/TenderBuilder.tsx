@@ -1236,14 +1236,12 @@ const TenderBuilder = () => {
                         return Object.entries(sections).flatMap(([sectionName, sectionItems], sectionIdx) => {
                           const rows = [];
 
-                          // Add section header row if it's not "General" or if there are multiple sections
-                          if (sectionName !== 'General' || Object.keys(sections).length > 1) {
-                            rows.push(<TableRow key={`section-${sectionIdx}`} className="bg-muted/50 hover:bg-muted/50">
-                                  <TableCell colSpan={9} className="font-bold text-base py-3">
-                                    {sectionName}
-                                  </TableCell>
-                                </TableRow>);
-                          }
+                          // Add section header row
+                          rows.push(<TableRow key={`section-${sectionIdx}`} className="bg-muted/50 hover:bg-muted/50">
+                                <TableCell colSpan={9} className="font-bold text-base py-3">
+                                  {sectionName}
+                                </TableCell>
+                              </TableRow>);
 
                           // Add line items for this section
                           sectionItems.forEach(item => {
