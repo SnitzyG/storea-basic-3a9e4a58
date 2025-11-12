@@ -1172,8 +1172,8 @@ const TenderBuilder = () => {
                         <div className="flex items-center gap-3">
                           <FileText className="h-5 w-5 text-primary" />
                           <div>
-                            <p className="font-medium">{doc.document_name}</p>
-                            <p className="text-xs text-muted-foreground">{doc.document_type}</p>
+                            <p className="font-medium">{doc.document_type}</p>
+                            <p className="text-xs text-muted-foreground">{doc.document_name}</p>
                           </div>
                         </div>
                         <div className="flex gap-2">
