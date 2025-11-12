@@ -69,6 +69,7 @@ createRoot(document.getElementById("root")!).render(
                   <Routes>
                     {/* Public marketing pages */}
                     <Route path="/" element={<Home />} />
+                    <Route path="/home" element={<Home />} />
                     <Route path="/about" element={<About />} />
                     <Route path="/features" element={<Features />} />
                     <Route path="/pricing" element={<Pricing />} />
