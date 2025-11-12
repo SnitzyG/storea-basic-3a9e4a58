@@ -37,6 +37,15 @@ export interface Tender {
   };
   bid_count?: number;
   my_bid?: TenderBid;
+  project?: {
+    id: string;
+    name: string;
+    project_reference_number?: string;
+    address?: string;
+    budget?: number;
+    status: string;
+    timeline?: any;
+  };
   // Legacy fields for backwards compatibility
   budget?: number;
   begin_date?: string;
@@ -91,7 +100,18 @@ export const useTenders = (projectId?: string) => {
       // Fetch tenders issued by the project
       const { data: projectTenders, error: projectError } = await supabase
         .from('tenders')
-        .select('*')
+        .select(`
+          *,
+          projects (
+            id,
+            name,
+            project_reference_number,
+            address,
+            budget,
+            status,
+            timeline
+          )
+        `)
         .eq('project_id', projectId)
         .order('created_at', { ascending: false });
 
@@ -115,7 +135,18 @@ export const useTenders = (projectId?: string) => {
           
           const { data: approvedTenders, error: approvedError } = await supabase
             .from('tenders')
-            .select('*')
+            .select(`
+              *,
+              projects (
+                id,
+                name,
+                project_reference_number,
+                address,
+                budget,
+                status,
+                timeline
+              )
+            `)
             .in('id', approvedTenderIds)
             .order('created_at', { ascending: false });
 
