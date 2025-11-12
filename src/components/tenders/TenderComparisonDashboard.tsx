@@ -5,8 +5,9 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar } from 'recharts';
-import { TrendingUp, TrendingDown, DollarSign, Calendar, Users, BarChart3, Download, Filter, Star, Clock, Award, Target, FileText, Package } from 'lucide-react';
+import { TrendingUp, TrendingDown, DollarSign, Calendar, Users, BarChart3, Download, Filter, Star, Clock, Award, Target, FileText, Package, ChevronDown, ChevronUp } from 'lucide-react';
 import { TenderBid, useTenders } from '@/hooks/useTenders';
 import { downloadFromStorage } from '@/utils/storageUtils';
 import { toast } from 'sonner';
@@ -313,142 +314,154 @@ export const TenderComparisonDashboard: React.FC<TenderComparisonDashboardProps>
               const isFastest = bid.timeline_days === timelineAnalysis.fastest;
               const overallScore = bid.evaluation ? (bid.evaluation.price_score + bid.evaluation.experience_score + bid.evaluation.timeline_score + bid.evaluation.technical_score + bid.evaluation.communication_score) / 5 : 0;
               const attachments = bid.attachments || [];
+              const [isOpen, setIsOpen] = useState(true);
               
               return (
                 <Card key={bid.id} className="border-2">
-                  <CardHeader className="bg-muted/50">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <span className="text-lg font-semibold">{bid.bidder_profile?.name || 'Unknown Bidder'}</span>
-                        {isLowest && <Badge variant="secondary" className="bg-green-100 text-green-700 border-green-200">Lowest Price</Badge>}
-                        {isFastest && <Badge variant="secondary" className="bg-blue-100 text-blue-700 border-blue-200">Fastest</Badge>}
-                      </div>
-                      <Badge variant={bid.status === 'submitted' ? 'default' : bid.status === 'accepted' ? 'default' : 'secondary'}>
-                        {bid.status.replace('_', ' ').toUpperCase()}
-                      </Badge>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="pt-6">
-                    {/* Summary Info */}
-                    <div className="grid grid-cols-4 gap-4 mb-6">
-                      <div className="text-center p-4 bg-primary/5 rounded-lg">
-                        <p className="text-sm text-muted-foreground mb-1">Bid Amount</p>
-                        <p className="text-2xl font-bold text-primary">${(bid.bid_amount / 1000).toFixed(0)}k</p>
-                      </div>
-                      <div className="text-center p-4 bg-blue-50 rounded-lg">
-                        <p className="text-sm text-muted-foreground mb-1">Timeline</p>
-                        <p className="text-2xl font-bold text-blue-600">{bid.timeline_days || 'N/A'}</p>
-                        <p className="text-xs text-muted-foreground">days</p>
-                      </div>
-                      <div className="text-center p-4 bg-green-50 rounded-lg">
-                        <p className="text-sm text-muted-foreground mb-1">Documents</p>
-                        <p className="text-2xl font-bold text-green-600">{attachments.length}</p>
-                        <p className="text-xs text-muted-foreground">files</p>
-                      </div>
-                      <div className="text-center p-4 bg-amber-50 rounded-lg">
-                        <p className="text-sm text-muted-foreground mb-1">Overall Score</p>
-                        <p className="text-2xl font-bold text-amber-600">{overallScore.toFixed(1)}</p>
-                        <p className="text-xs text-muted-foreground">out of 10</p>
-                      </div>
-                    </div>
-
-                    <Separator className="my-4" />
-
-                    {/* Bid Documents */}
-                    {attachments.length > 0 && (
-                      <div className="mb-6">
-                        <h4 className="font-semibold mb-3 flex items-center gap-2">
-                          <FileText className="h-4 w-4" />
-                          Supporting Documents ({attachments.length})
-                        </h4>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                          {attachments.map((doc: any, docIndex: number) => (
-                            <div key={docIndex} className="flex items-center justify-between p-3 border rounded-lg bg-background hover:bg-muted/50 transition-colors">
-                              <div className="flex items-center gap-3 flex-1 min-w-0">
-                                <FileText className="h-5 w-5 text-primary flex-shrink-0" />
-                                <div className="min-w-0 flex-1">
-                                  <p className="font-medium truncate">{doc.name || 'Document ' + (docIndex + 1)}</p>
-                                  {doc.file_size && (
-                                    <p className="text-xs text-muted-foreground">
-                                      {(doc.file_size / 1024).toFixed(2)} KB
-                                    </p>
-                                  )}
-                                </div>
-                              </div>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => {
-                                  if (doc.file_path) {
-                                    downloadFromStorage(doc.file_path, doc.name || 'document');
-                                  } else {
-                                    toast.error('File path not available');
-                                  }
-                                }}
-                              >
-                                <Download className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          ))}
+                  <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+                    <CardHeader className="bg-muted/50">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <span className="text-lg font-semibold">{bid.bidder_profile?.name || 'Unknown Bidder'}</span>
+                          {isLowest && <Badge variant="secondary" className="bg-green-100 text-green-700 border-green-200">Lowest Price</Badge>}
+                          {isFastest && <Badge variant="secondary" className="bg-blue-100 text-blue-700 border-blue-200">Fastest</Badge>}
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Badge variant={bid.status === 'submitted' ? 'default' : bid.status === 'accepted' ? 'default' : 'secondary'}>
+                            {bid.status.replace('_', ' ').toUpperCase()}
+                          </Badge>
+                          <CollapsibleTrigger asChild>
+                            <Button variant="ghost" size="sm">
+                              {isOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                            </Button>
+                          </CollapsibleTrigger>
                         </div>
                       </div>
-                    )}
+                    </CardHeader>
+                    <CollapsibleContent>
+                      <CardContent className="pt-6">
+                        {/* Summary Info */}
+                        <div className="grid grid-cols-4 gap-4 mb-6">
+                          <div className="text-center p-4 bg-primary/5 rounded-lg">
+                            <p className="text-sm text-muted-foreground mb-1">Bid Amount</p>
+                            <p className="text-2xl font-bold text-primary">${(bid.bid_amount / 1000).toFixed(0)}k</p>
+                          </div>
+                          <div className="text-center p-4 bg-blue-50 rounded-lg">
+                            <p className="text-sm text-muted-foreground mb-1">Timeline</p>
+                            <p className="text-2xl font-bold text-blue-600">{bid.timeline_days || 'N/A'}</p>
+                            <p className="text-xs text-muted-foreground">days</p>
+                          </div>
+                          <div className="text-center p-4 bg-green-50 rounded-lg">
+                            <p className="text-sm text-muted-foreground mb-1">Documents</p>
+                            <p className="text-2xl font-bold text-green-600">{attachments.length}</p>
+                            <p className="text-xs text-muted-foreground">files</p>
+                          </div>
+                          <div className="text-center p-4 bg-amber-50 rounded-lg">
+                            <p className="text-sm text-muted-foreground mb-1">Overall Score</p>
+                            <p className="text-2xl font-bold text-amber-600">{overallScore.toFixed(1)}</p>
+                            <p className="text-xs text-muted-foreground">out of 10</p>
+                          </div>
+                        </div>
 
-                    {/* Proposal Text */}
-                    {bid.proposal_text && (
-                      <div className="mb-6">
-                        <h4 className="font-semibold mb-2">Proposal Notes</h4>
-                        <p className="text-sm text-muted-foreground bg-muted/50 p-4 rounded-lg whitespace-pre-wrap">
-                          {bid.proposal_text}
-                        </p>
-                      </div>
-                    )}
+                        <Separator className="my-4" />
 
-                    <Separator className="my-4" />
-
-                    {/* Line Item Breakdown */}
-                    <div>
-                      <h4 className="font-semibold mb-3 flex items-center gap-2">
-                        <BarChart3 className="h-4 w-4" />
-                        Line Item Breakdown
-                      </h4>
-                      <BidLineItemsTable bidId={bid.id} tenderId={tenderId} />
-                    </div>
-
-                    {/* Award Button */}
-                    {(bid.status === 'submitted' || bid.status === 'under_review') && (
-                      <div className="mt-6 pt-4 border-t">
-                        <Button
-                          onClick={() => handleAwardTender(bid)}
-                          disabled={awardingBid !== null}
-                          className="w-full"
-                          size="lg"
-                        >
-                          {awardingBid === bid.id ? (
-                            <>
-                              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                              Awarding Tender...
-                            </>
-                          ) : (
-                            <>
-                              <Award className="h-4 w-4 mr-2" />
-                              Award Tender to {bid.bidder_profile?.name}
-                            </>
-                          )}
-                        </Button>
-                      </div>
-                    )}
-
-                    {/* Submission Details */}
-                    <div className="mt-6 pt-4 border-t">
-                      <div className="flex items-center justify-between text-sm text-muted-foreground">
-                        <span>Submitted: {new Date(bid.submitted_at).toLocaleString()}</span>
-                        {bid.updated_at !== bid.submitted_at && (
-                          <span>Last updated: {new Date(bid.updated_at).toLocaleString()}</span>
+                        {/* Bid Documents */}
+                        {attachments.length > 0 && (
+                          <div className="mb-6">
+                            <h4 className="font-semibold mb-3 flex items-center gap-2">
+                              <FileText className="h-4 w-4" />
+                              Supporting Documents ({attachments.length})
+                            </h4>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                              {attachments.map((doc: any, docIndex: number) => (
+                                <div key={docIndex} className="flex items-center justify-between p-3 border rounded-lg bg-background hover:bg-muted/50 transition-colors">
+                                  <div className="flex items-center gap-3 flex-1 min-w-0">
+                                    <FileText className="h-5 w-5 text-primary flex-shrink-0" />
+                                    <div className="min-w-0 flex-1">
+                                      <p className="font-medium truncate">{doc.name || 'Document ' + (docIndex + 1)}</p>
+                                      {doc.file_size && (
+                                        <p className="text-xs text-muted-foreground">
+                                          {(doc.file_size / 1024).toFixed(2)} KB
+                                        </p>
+                                      )}
+                                    </div>
+                                  </div>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => {
+                                      if (doc.file_path) {
+                                        downloadFromStorage(doc.file_path, doc.name || 'document');
+                                      } else {
+                                        toast.error('File path not available');
+                                      }
+                                    }}
+                                  >
+                                    <Download className="h-4 w-4" />
+                                  </Button>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
                         )}
-                      </div>
-                    </div>
-                  </CardContent>
+
+                        {/* Proposal Text */}
+                        {bid.proposal_text && (
+                          <div className="mb-6">
+                            <h4 className="font-semibold mb-2">Proposal Notes</h4>
+                            <p className="text-sm text-muted-foreground bg-muted/50 p-4 rounded-lg whitespace-pre-wrap">
+                              {bid.proposal_text}
+                            </p>
+                          </div>
+                        )}
+
+                        <Separator className="my-4" />
+
+                        {/* Line Item Breakdown */}
+                        <div>
+                          <h4 className="font-semibold mb-3 flex items-center gap-2">
+                            <BarChart3 className="h-4 w-4" />
+                            Line Item Breakdown
+                          </h4>
+                          <BidLineItemsTable bidId={bid.id} tenderId={tenderId} />
+                        </div>
+
+                        {/* Award Button */}
+                        {(bid.status === 'submitted' || bid.status === 'under_review') && (
+                          <div className="mt-6 pt-4 border-t">
+                            <Button
+                              onClick={() => handleAwardTender(bid)}
+                              disabled={awardingBid !== null}
+                              className="w-full"
+                              size="lg"
+                            >
+                              {awardingBid === bid.id ? (
+                                <>
+                                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                  Awarding Tender...
+                                </>
+                              ) : (
+                                <>
+                                  <Award className="h-4 w-4 mr-2" />
+                                  Award Tender to {bid.bidder_profile?.name}
+                                </>
+                              )}
+                            </Button>
+                          </div>
+                        )}
+
+                        {/* Submission Details */}
+                        <div className="mt-6 pt-4 border-t">
+                          <div className="flex items-center justify-between text-sm text-muted-foreground">
+                            <span>Submitted: {new Date(bid.submitted_at).toLocaleString()}</span>
+                            {bid.updated_at !== bid.submitted_at && (
+                              <span>Last updated: {new Date(bid.updated_at).toLocaleString()}</span>
+                            )}
+                          </div>
+                        </div>
+                      </CardContent>
+                    </CollapsibleContent>
+                  </Collapsible>
                 </Card>
               );
             })}
