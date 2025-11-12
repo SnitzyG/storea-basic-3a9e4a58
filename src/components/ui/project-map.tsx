@@ -20,12 +20,13 @@ L.Icon.Default.mergeOptions({
 
 // Create custom colored markers for different project statuses
 const createStatusIcon = (status: string) => {
+  // Using branding colors: Dune (primary) for active, Blue Haze (secondary) for other states
   const colors = {
-    active: '#10B981', // Green
-    planning: '#3B82F6', // Blue  
-    on_hold: '#F59E0B', // Orange
-    completed: '#6B7280', // Gray
-    cancelled: '#EF4444' // Red
+    active: 'hsl(6 8% 17%)', // Dune (primary)
+    planning: 'hsl(252 24% 84%)', // Blue Haze (secondary)
+    on_hold: 'hsl(38 92% 50%)', // Construction warning
+    completed: 'hsl(0 6% 90%)', // Muted
+    cancelled: 'hsl(0 86% 50%)' // Destructive
   };
   
   const color = colors[status as keyof typeof colors] || colors.active;
@@ -381,45 +382,7 @@ export const ProjectMap: React.FC<ProjectMapProps> = ({ projects, onGeocodeCompl
         icon: createStatusIcon(project.status)
       }).addTo(map.current);
 
-      // Custom popup content with project reference
-      const popupContent = `
-        <div class="p-3 min-w-[220px]">
-          <div class="mb-2">
-            <h3 class="font-semibold text-sm mb-1 text-foreground">${project.name}</h3>
-            ${project.project_reference_number ? 
-              `<p class="text-xs text-muted-foreground font-mono bg-muted/50 px-2 py-1 rounded">${project.project_reference_number}</p>` : 
-              ''
-            }
-          </div>
-          <p class="text-xs text-muted-foreground mb-3">${project.address}</p>
-          <div class="flex items-center gap-2 text-xs text-muted-foreground mb-3">
-            <span class="inline-flex items-center gap-1">
-              <span class="w-2 h-2 rounded-full" style="background-color: ${
-                project.status === 'active' ? '#10B981' :
-                project.status === 'planning' ? '#3B82F6' :
-                project.status === 'on_hold' ? '#F59E0B' :
-                project.status === 'completed' ? '#6B7280' : '#EF4444'
-              }"></span>
-              ${project.status.replace('_', ' ').toUpperCase()}
-            </span>
-            ${project.budget ? `<span>$${project.budget.toLocaleString()}</span>` : ''}
-          </div>
-          <button 
-            onclick="window.dispatchEvent(new CustomEvent('openProjectDetails', { detail: '${project.id}' }))"
-            class="inline-flex items-center gap-1 text-xs bg-primary text-primary-foreground hover:bg-primary/90 px-2 py-1 rounded transition-colors"
-          >
-            View Details
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M7 17l9.2-9.2M17 17V7H7"/>
-            </svg>
-          </button>
-        </div>
-      `;
-
-      marker.bindPopup(popupContent, {
-        maxWidth: 280,
-        className: 'custom-popup'
-      });
+      // No popup - just show the marker
 
       bounds.extend([project.latitude, project.longitude]);
     });
