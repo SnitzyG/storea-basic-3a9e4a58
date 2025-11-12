@@ -36,6 +36,7 @@ export const TenderComparisonDashboard: React.FC<TenderComparisonDashboardProps>
   const [showAwardDialog, setShowAwardDialog] = useState(false);
   const [selectedBid, setSelectedBid] = useState<TenderBid | null>(null);
   const [lineItemCount, setLineItemCount] = useState(0);
+  const [collapsedBids, setCollapsedBids] = useState<Record<string, boolean>>({});
 
   const { awardTender } = useTenders();
 
@@ -314,11 +315,14 @@ export const TenderComparisonDashboard: React.FC<TenderComparisonDashboardProps>
               const isFastest = bid.timeline_days === timelineAnalysis.fastest;
               const overallScore = bid.evaluation ? (bid.evaluation.price_score + bid.evaluation.experience_score + bid.evaluation.timeline_score + bid.evaluation.technical_score + bid.evaluation.communication_score) / 5 : 0;
               const attachments = bid.attachments || [];
-              const [isOpen, setIsOpen] = useState(true);
+              const isOpen = collapsedBids[bid.id] !== false; // default to open
               
               return (
                 <Card key={bid.id} className="border-2">
-                  <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+                  <Collapsible 
+                    open={isOpen} 
+                    onOpenChange={(open) => setCollapsedBids(prev => ({ ...prev, [bid.id]: open }))}
+                  >
                     <CardHeader className="bg-muted/50">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
