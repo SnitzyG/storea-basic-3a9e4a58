@@ -50,6 +50,12 @@ export const NavBar = () => {
             <Link to="/pricing" className="text-foreground/80 hover:text-foreground transition-colors">
               Pricing
             </Link>
+            <Link to="/about" className="text-foreground/80 hover:text-foreground transition-colors">
+              About
+            </Link>
+            <Link to="/contact" className="text-foreground/80 hover:text-foreground transition-colors">
+              Contact
+            </Link>
             {isAdmin && <Link to="/admin/dashboard" className="flex items-center gap-1.5 text-foreground/80 hover:text-foreground transition-colors">
                 <Shield className="h-4 w-4" />
                 <span>Admin</span>
@@ -78,6 +84,12 @@ export const NavBar = () => {
             </Link>
             <Link to="/pricing" className="block py-2 text-foreground/80 hover:text-foreground transition-colors" onClick={() => setIsOpen(false)}>
               Pricing
+            </Link>
+            <Link to="/about" className="block py-2 text-foreground/80 hover:text-foreground transition-colors" onClick={() => setIsOpen(false)}>
+              About
+            </Link>
+            <Link to="/contact" className="block py-2 text-foreground/80 hover:text-foreground transition-colors" onClick={() => setIsOpen(false)}>
+              Contact
             </Link>
             {isAdmin && <Link to="/admin/dashboard" className="flex items-center gap-1.5 py-2 text-foreground/80 hover:text-foreground transition-colors" onClick={() => setIsOpen(false)}>
                 <Shield className="h-4 w-4" />
