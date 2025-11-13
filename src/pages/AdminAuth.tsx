@@ -112,21 +112,21 @@ export default function AdminAuth() {
   return (
     <div className="min-h-screen flex flex-col lg:flex-row">
       {/* Left Panel - Brand & Features */}
-      <div className="lg:w-1/2 bg-gradient-to-br from-primary via-primary-glow to-primary p-8 lg:p-12 flex flex-col justify-between text-white">
+      <div className="lg:w-1/2 bg-gradient-to-br from-primary via-secondary to-accent p-8 lg:p-12 flex flex-col justify-between">
         <div>
           <div className="mb-12">
-            <StorealiteLogo className="h-10 brightness-0 invert" />
+            <StorealiteLogo className="h-10" />
           </div>
 
           <div className="space-y-6 mb-12">
             <div className="space-y-4">
-              <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-white/10 backdrop-blur-sm">
-                <Shield className="h-8 w-8 text-white" />
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-background/10 backdrop-blur-md border border-foreground/10">
+                <Shield className="h-8 w-8 text-primary" />
               </div>
-              <h1 className="text-4xl lg:text-5xl font-bold leading-tight">
+              <h1 className="text-4xl lg:text-5xl font-bold leading-tight text-foreground">
                 Admin Control Center
               </h1>
-              <p className="text-lg text-white/80">
+              <p className="text-lg text-foreground/80">
                 Secure access to manage your platform
               </p>
             </div>
@@ -136,22 +136,22 @@ export default function AdminAuth() {
             {features.map((feature, index) => (
               <div
                 key={feature.title}
-                className="animate-fade-in hover-scale p-4 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20"
+                className="animate-fade-in hover-scale p-4 rounded-xl bg-background/10 backdrop-blur-md border border-foreground/10"
                 style={{ animationDelay: `${index * 100}ms` }}
               >
-                <feature.icon className="h-6 w-6 text-white mb-3" />
-                <h3 className="font-semibold text-white mb-1">{feature.title}</h3>
-                <p className="text-sm text-white/70">{feature.description}</p>
+                <feature.icon className="h-6 w-6 text-primary mb-3" />
+                <h3 className="font-semibold text-foreground mb-1">{feature.title}</h3>
+                <p className="text-sm text-foreground/70">{feature.description}</p>
               </div>
             ))}
           </div>
         </div>
 
-        <div className="flex flex-wrap gap-6 pt-8 border-t border-white/20">
+        <div className="flex flex-wrap gap-6 pt-8 border-t border-foreground/10">
           {securityIndicators.map((indicator) => (
             <div key={indicator.text} className="flex items-center gap-2">
-              <indicator.icon className="h-4 w-4 text-white/80" />
-              <span className="text-sm text-white/80">{indicator.text}</span>
+              <indicator.icon className="h-4 w-4 text-foreground/70" />
+              <span className="text-sm text-foreground/70">{indicator.text}</span>
             </div>
           ))}
         </div>
@@ -166,13 +166,13 @@ export default function AdminAuth() {
             </div>
             
             <div className="flex justify-center">
-              <div className="rounded-full bg-gradient-to-br from-primary/20 to-primary-glow/10 p-4">
+              <div className="rounded-full bg-gradient-to-br from-secondary/20 to-accent/20 p-4">
                 <Shield className="h-10 w-10 text-primary" />
               </div>
             </div>
 
             <div className="text-center space-y-2">
-              <CardTitle className="text-2xl bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent">
+              <CardTitle className="text-2xl bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
                 Admin Portal
               </CardTitle>
               <CardDescription>
@@ -219,7 +219,7 @@ export default function AdminAuth() {
 
               <Button
                 type="submit"
-                className="w-full bg-gradient-to-r from-primary to-primary-glow"
+                className="w-full bg-gradient-to-r from-primary via-secondary to-accent hover:opacity-90 transition-opacity"
                 disabled={loading}
               >
                 {loading ? 'Signing in...' : 'Sign in as Admin'}
