@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { StorealiteLogo } from '@/components/ui/storealite-logo';
-import { Shield, AlertCircle } from 'lucide-react';
+import { Shield, AlertCircle, Users, BarChart3, Zap, Lock, FileText, Eye } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 export default function AdminAuth() {
@@ -80,86 +80,164 @@ export default function AdminAuth() {
     }
   };
 
+  const features = [
+    {
+      icon: Users,
+      title: 'User Management',
+      description: 'Manage user accounts and permissions',
+    },
+    {
+      icon: BarChart3,
+      title: 'System Analytics',
+      description: 'Monitor platform performance in real-time',
+    },
+    {
+      icon: Shield,
+      title: 'Security Controls',
+      description: 'Advanced security and audit logs',
+    },
+    {
+      icon: Zap,
+      title: 'Workflow Automation',
+      description: 'Streamline administrative tasks',
+    },
+  ];
+
+  const securityIndicators = [
+    { icon: Lock, text: 'Encrypted Connection' },
+    { icon: FileText, text: 'Audit Trail Active' },
+    { icon: Eye, text: '24/7 Monitoring' },
+  ];
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-muted/30 to-background p-4">
-      <Card className="w-full max-w-md shadow-glow">
-        <CardHeader className="space-y-4">
-          <div className="flex justify-center">
-            <StorealiteLogo className="h-12" />
-          </div>
-          
-          <div className="flex justify-center">
-            <div className="rounded-full bg-gradient-to-br from-primary/20 to-primary-glow/10 p-4">
-              <Shield className="h-12 w-12 bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent" />
-            </div>
+    <div className="min-h-screen flex flex-col lg:flex-row">
+      {/* Left Panel - Brand & Features */}
+      <div className="lg:w-1/2 bg-gradient-to-br from-primary via-primary-glow to-primary p-8 lg:p-12 flex flex-col justify-between text-white">
+        <div>
+          <div className="mb-12">
+            <StorealiteLogo className="h-10 brightness-0 invert" />
           </div>
 
-          <div className="text-center space-y-2">
-            <CardTitle className="text-2xl bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent">
-              Admin Portal
-            </CardTitle>
-            <CardDescription>
-              Sign in with your administrator credentials
-            </CardDescription>
-          </div>
-        </CardHeader>
-
-        <CardContent>
-          <form onSubmit={handleAdminLogin} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="admin@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                disabled={loading}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                disabled={loading}
-              />
-            </div>
-
-            <div className="bg-muted/50 rounded-lg p-3 flex items-start gap-2">
-              <AlertCircle className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
-              <p className="text-xs text-muted-foreground">
-                This portal is restricted to authorized administrators only. 
-                Unauthorized access attempts are logged.
+          <div className="space-y-6 mb-12">
+            <div className="space-y-4">
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-white/10 backdrop-blur-sm">
+                <Shield className="h-8 w-8 text-white" />
+              </div>
+              <h1 className="text-4xl lg:text-5xl font-bold leading-tight">
+                Admin Control Center
+              </h1>
+              <p className="text-lg text-white/80">
+                Secure access to manage your platform
               </p>
             </div>
+          </div>
 
-            <Button
-              type="submit"
-              className="w-full bg-gradient-to-r from-primary to-primary-glow"
-              disabled={loading}
-            >
-              {loading ? 'Signing in...' : 'Sign in as Admin'}
-            </Button>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 lg:gap-6">
+            {features.map((feature, index) => (
+              <div
+                key={feature.title}
+                className="animate-fade-in hover-scale p-4 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20"
+                style={{ animationDelay: `${index * 100}ms` }}
+              >
+                <feature.icon className="h-6 w-6 text-white mb-3" />
+                <h3 className="font-semibold text-white mb-1">{feature.title}</h3>
+                <p className="text-sm text-white/70">{feature.description}</p>
+              </div>
+            ))}
+          </div>
+        </div>
 
-            <Button
-              type="button"
-              variant="outline"
-              className="w-full"
-              onClick={() => navigate('/')}
-              disabled={loading}
-            >
-              Back to Home
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
+        <div className="flex flex-wrap gap-6 pt-8 border-t border-white/20">
+          {securityIndicators.map((indicator) => (
+            <div key={indicator.text} className="flex items-center gap-2">
+              <indicator.icon className="h-4 w-4 text-white/80" />
+              <span className="text-sm text-white/80">{indicator.text}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Right Panel - Form */}
+      <div className="lg:w-1/2 flex items-center justify-center bg-background p-4 lg:p-8">
+        <Card className="w-full max-w-md shadow-glow border-border">
+          <CardHeader className="space-y-4">
+            <div className="flex justify-center">
+              <StorealiteLogo className="h-10" />
+            </div>
+            
+            <div className="flex justify-center">
+              <div className="rounded-full bg-gradient-to-br from-primary/20 to-primary-glow/10 p-4">
+                <Shield className="h-10 w-10 text-primary" />
+              </div>
+            </div>
+
+            <div className="text-center space-y-2">
+              <CardTitle className="text-2xl bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent">
+                Admin Portal
+              </CardTitle>
+              <CardDescription>
+                Sign in with your administrator credentials
+              </CardDescription>
+            </div>
+          </CardHeader>
+
+          <CardContent>
+            <form onSubmit={handleAdminLogin} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="admin@example.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  disabled={loading}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="password">Password</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  disabled={loading}
+                />
+              </div>
+
+              <div className="bg-muted/50 rounded-lg p-3 flex items-start gap-2">
+                <AlertCircle className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+                <p className="text-xs text-muted-foreground">
+                  This portal is restricted to authorized administrators only. 
+                  Unauthorized access attempts are logged.
+                </p>
+              </div>
+
+              <Button
+                type="submit"
+                className="w-full bg-gradient-to-r from-primary to-primary-glow"
+                disabled={loading}
+              >
+                {loading ? 'Signing in...' : 'Sign in as Admin'}
+              </Button>
+
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full"
+                onClick={() => navigate('/')}
+                disabled={loading}
+              >
+                Back to Home
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
