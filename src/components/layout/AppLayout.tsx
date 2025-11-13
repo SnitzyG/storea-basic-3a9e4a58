@@ -105,6 +105,12 @@ export const AppLayout = ({
       </div>
     );
   }
+
+  // If approved but profile incomplete, redirect to profile setup
+  if (profile && profile.approved && (!profile.name || profile.name.trim() === '')) {
+    return <Navigate to="/profile-setup" replace />;
+  }
+
   const userRole = profile?.role ?? 'contractor';
 
   return (
