@@ -131,7 +131,7 @@ export const TenderComparisonDashboard: React.FC<TenderComparisonDashboardProps>
           const profile = profiles?.find(p => p.user_id === bid.bidder_id);
           const companyName = profile?.companies?.name;
           const bidderName = profile?.name || 'Unknown Bidder';
-          const displayName = companyName ? `${bidderName} (${companyName})` : bidderName;
+          const displayName = companyName ? `${companyName} - ${bidderName}` : bidderName;
           
           return {
             ...bid,
