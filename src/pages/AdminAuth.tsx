@@ -89,7 +89,7 @@ export default function AdminAuth() {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center space-y-6 pt-10 pb-6">
           <div className="flex justify-center">
-            <StorealiteLogo className="h-16" />
+            <StorealiteLogo variant="icon-only" className="h-16 w-auto" />
           </div>
           
           <div className="flex justify-center">
