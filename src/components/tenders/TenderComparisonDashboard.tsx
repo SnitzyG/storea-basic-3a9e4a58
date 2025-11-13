@@ -104,12 +104,20 @@ export const TenderComparisonDashboard: React.FC<TenderComparisonDashboardProps>
 
       console.log('Fetched bids:', data);
       
-      // Fetch bidder profiles separately with better error handling
+      // Fetch bidder profiles with company names
       if (data && data.length > 0) {
         const bidderIds = data.map(bid => bid.bidder_id).filter(Boolean);
         const { data: profiles, error: profileError } = await supabase
           .from('profiles')
-          .select('user_id, name, role, company_id')
+          .select(`
+            user_id, 
+            name, 
+            role, 
+            company_id,
+            companies (
+              name
+            )
+          `)
           .in('user_id', bidderIds);
         
         if (profileError) {
@@ -118,13 +126,20 @@ export const TenderComparisonDashboard: React.FC<TenderComparisonDashboardProps>
         
         console.log('Fetched profiles:', profiles);
         
-        // Enrich bids with profile data
+        // Enrich bids with profile and company data
         const enrichedBids = data.map(bid => {
           const profile = profiles?.find(p => p.user_id === bid.bidder_id);
+          const companyName = profile?.companies?.name;
+          const bidderName = profile?.name || 'Unknown Bidder';
+          const displayName = companyName ? `${bidderName} (${companyName})` : bidderName;
+          
           return {
             ...bid,
-            bidder_profile: profile,
-            bidder_name: profile?.name || 'Unknown Bidder'
+            bidder_profile: {
+              ...profile,
+              company_name: companyName
+            },
+            bidder_name: displayName
           };
         });
         
@@ -276,7 +291,7 @@ export const TenderComparisonDashboard: React.FC<TenderComparisonDashboardProps>
   }, [bids]);
   const chartData = useMemo(() => {
     return sortedBids.map(bid => ({
-      name: bid.bidder_profile?.name || 'Unknown Bidder',
+      name: (bid as any).bidder_name || bid.bidder_profile?.name || 'Unknown Bidder',
       price: bid.bid_amount,
       timeline: bid.timeline_days || 0,
       overallScore: bid.evaluation ? (bid.evaluation.price_score + bid.evaluation.experience_score + bid.evaluation.timeline_score + bid.evaluation.technical_score + bid.evaluation.communication_score) / 5 : 0
@@ -284,14 +299,14 @@ export const TenderComparisonDashboard: React.FC<TenderComparisonDashboardProps>
   }, [sortedBids]);
   const pieChartData = useMemo(() => {
     return sortedBids.map((bid, index) => ({
-      name: bid.bidder_profile?.name || 'Unknown Bidder',
+      name: (bid as any).bidder_name || bid.bidder_profile?.name || 'Unknown Bidder',
       value: bid.bid_amount,
       percentage: (bid.bid_amount / bids.reduce((sum, b) => sum + b.bid_amount, 0) * 100).toFixed(1)
     }));
   }, [sortedBids, bids]);
   const radarData = useMemo(() => {
     return sortedBids.map(bid => ({
-      bidder: bid.bidder_profile?.name || 'Unknown',
+      bidder: (bid as any).bidder_name || bid.bidder_profile?.name || 'Unknown',
       Price: bid.evaluation?.price_score || 0,
       Experience: bid.evaluation?.experience_score || 0,
       Timeline: bid.evaluation?.timeline_score || 0,
@@ -415,7 +430,7 @@ export const TenderComparisonDashboard: React.FC<TenderComparisonDashboardProps>
 
       return {
         bidId: bid.id,
-        bidderName: bid.bidder_profile?.name || 'Unknown',
+        bidderName: (bid as any).bidder_name || bid.bidder_profile?.name || 'Unknown',
         wordCount,
         hasWarranty,
         hasTimeline,
