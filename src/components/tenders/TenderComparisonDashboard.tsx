@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Separator } from '@/components/ui/separator';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar } from 'recharts';
-import { TrendingUp, TrendingDown, DollarSign, Calendar, Users, BarChart3, Download, Filter, Star, Clock, Award, Target, FileText, Package, ChevronDown, ChevronUp } from 'lucide-react';
+import { TrendingUp, TrendingDown, DollarSign, Calendar, Users, BarChart3, Download, Filter, Star, Clock, Award, Target, FileText, Package, ChevronDown, ChevronUp, AlertTriangle, Scale, MessageSquare, Lightbulb } from 'lucide-react';
 import { TenderBid, useTenders } from '@/hooks/useTenders';
 import { downloadFromStorage } from '@/utils/storageUtils';
 import { toast } from 'sonner';
@@ -15,6 +15,18 @@ import { BidLineItemsTable } from './BidLineItemsTable';
 import { supabase } from '@/integrations/supabase/client';
 import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
 import { Loader2 } from 'lucide-react';
+
+interface TenderBidLineItem {
+  id: string;
+  bid_id: string;
+  tender_line_item_id: string;
+  line_number: number;
+  item_description: string;
+  quantity: number | null;
+  unit_price: number | null;
+  total: number;
+  notes: string | null;
+}
 
 interface TenderComparisonDashboardProps {
   tenderId: string;
@@ -37,6 +49,9 @@ export const TenderComparisonDashboard: React.FC<TenderComparisonDashboardProps>
   const [selectedBid, setSelectedBid] = useState<TenderBid | null>(null);
   const [lineItemCount, setLineItemCount] = useState(0);
   const [collapsedBids, setCollapsedBids] = useState<Record<string, boolean>>({});
+  const [allBidLineItems, setAllBidLineItems] = useState<Record<string, TenderBidLineItem[]>>({});
+  const [tenderLineItems, setTenderLineItems] = useState<any[]>([]);
+  const [comparisonExpanded, setComparisonExpanded] = useState(true);
 
   const { awardTender } = useTenders();
 
@@ -47,6 +62,7 @@ export const TenderComparisonDashboard: React.FC<TenderComparisonDashboardProps>
     console.log('tenderId length:', tenderId?.length);
     fetchBids();
     fetchTenderData();
+    fetchTenderLineItems();
   }, [tenderId]);
 
   const fetchTenderData = async () => {
@@ -106,6 +122,9 @@ export const TenderComparisonDashboard: React.FC<TenderComparisonDashboardProps>
         }));
         
         setBids(enrichedBids as any);
+        
+        // Fetch line items for all bids
+        await fetchAllBidLineItems(data.map(b => b.id));
       } else {
         setBids([]);
       }
@@ -114,6 +133,46 @@ export const TenderComparisonDashboard: React.FC<TenderComparisonDashboardProps>
       toast.error('Failed to fetch bids');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchTenderLineItems = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('tender_line_items')
+        .select('*')
+        .eq('tender_id', tenderId)
+        .order('line_number', { ascending: true });
+
+      if (error) throw error;
+      setTenderLineItems(data || []);
+    } catch (error) {
+      console.error('Error fetching tender line items:', error);
+    }
+  };
+
+  const fetchAllBidLineItems = async (bidIds: string[]) => {
+    try {
+      const { data, error } = await supabase
+        .from('tender_bid_line_items')
+        .select('*')
+        .in('bid_id', bidIds)
+        .order('line_number', { ascending: true });
+
+      if (error) throw error;
+
+      // Group by bid_id
+      const groupedItems: Record<string, TenderBidLineItem[]> = {};
+      data?.forEach(item => {
+        if (!groupedItems[item.bid_id]) {
+          groupedItems[item.bid_id] = [];
+        }
+        groupedItems[item.bid_id].push(item);
+      });
+
+      setAllBidLineItems(groupedItems);
+    } catch (error) {
+      console.error('Error fetching bid line items:', error);
     }
   };
 
@@ -227,6 +286,115 @@ export const TenderComparisonDashboard: React.FC<TenderComparisonDashboardProps>
       Communication: bid.evaluation?.communication_score || 0
     }));
   }, [sortedBids]);
+
+  // Line item comparison analysis
+  const lineItemComparison = useMemo(() => {
+    if (tenderLineItems.length === 0 || bids.length === 0) return [];
+
+    return tenderLineItems.map(tenderItem => {
+      const bidPrices = bids.map(bid => {
+        const bidLineItem = allBidLineItems[bid.id]?.find(
+          item => item.tender_line_item_id === tenderItem.id
+        );
+        return {
+          bidId: bid.id,
+          bidderName: bid.bidder_profile?.name || 'Unknown',
+          price: bidLineItem?.total || 0,
+          unitPrice: bidLineItem?.unit_price || 0,
+          hasPricing: !!bidLineItem
+        };
+      });
+
+      const validPrices = bidPrices.filter(bp => bp.hasPricing).map(bp => bp.price);
+      const lowestPrice = validPrices.length > 0 ? Math.min(...validPrices) : 0;
+      const highestPrice = validPrices.length > 0 ? Math.max(...validPrices) : 0;
+      const averagePrice = validPrices.length > 0 
+        ? validPrices.reduce((sum, p) => sum + p, 0) / validPrices.length 
+        : 0;
+      const variance = lowestPrice > 0 
+        ? ((highestPrice - lowestPrice) / lowestPrice * 100) 
+        : 0;
+      const missingCount = bidPrices.filter(bp => !bp.hasPricing).length;
+
+      return {
+        itemId: tenderItem.id,
+        itemDescription: tenderItem.item_description,
+        lineNumber: tenderItem.line_number,
+        category: tenderItem.category,
+        bidPrices,
+        lowestPrice,
+        highestPrice,
+        averagePrice,
+        variance,
+        missingCount,
+        hasDifferences: variance > 5 || missingCount > 0
+      };
+    }).filter(item => item.hasDifferences)
+      .sort((a, b) => b.variance - a.variance); // Sort by highest variance first
+  }, [tenderLineItems, bids, allBidLineItems]);
+
+  // Proposal comparison analysis
+  const proposalComparison = useMemo(() => {
+    return sortedBids.map(bid => {
+      const proposalText = bid.proposal_text || '';
+      const wordCount = proposalText.split(/\s+/).filter(w => w.length > 0).length;
+      
+      // Extract key features
+      const hasWarranty = /warranty|guarantee/i.test(proposalText);
+      const hasTimeline = /timeline|schedule|duration|days|weeks|months/i.test(proposalText);
+      const hasExclusions = /exclude|excluding|not included|does not include/i.test(proposalText);
+      const hasSpecialTerms = /special|bonus|additional|extra|free/i.test(proposalText);
+
+      return {
+        bidId: bid.id,
+        bidderName: bid.bidder_profile?.name || 'Unknown',
+        wordCount,
+        hasWarranty,
+        hasTimeline,
+        hasExclusions,
+        hasSpecialTerms,
+        proposalText: proposalText.substring(0, 200) + (proposalText.length > 200 ? '...' : '')
+      };
+    });
+  }, [sortedBids]);
+
+  // Smart insights
+  const smartInsights = useMemo(() => {
+    const insights: string[] = [];
+
+    // Missing items insight
+    const totalMissingItems = lineItemComparison.reduce((sum, item) => sum + item.missingCount, 0);
+    if (totalMissingItems > 0) {
+      const bidsWithMissing = new Set<string>();
+      lineItemComparison.forEach(item => {
+        item.bidPrices.forEach(bp => {
+          if (!bp.hasPricing) bidsWithMissing.add(bp.bidderName);
+        });
+      });
+      insights.push(`${bidsWithMissing.size} bid(s) are missing pricing for some items (${totalMissingItems} total missing items)`);
+    }
+
+    // Highest variance insight
+    if (lineItemComparison.length > 0) {
+      const highestVarianceItem = lineItemComparison[0];
+      if (highestVarianceItem.variance > 20) {
+        insights.push(`Highest price variance on "${highestVarianceItem.itemDescription}" - ${highestVarianceItem.variance.toFixed(1)}% difference ($${((highestVarianceItem.highestPrice - highestVarianceItem.lowestPrice) / 1000).toFixed(1)}k)`);
+      }
+    }
+
+    // Proposal insights
+    const bidsWithWarranty = proposalComparison.filter(p => p.hasWarranty);
+    if (bidsWithWarranty.length > 0 && bidsWithWarranty.length < bids.length) {
+      insights.push(`${bidsWithWarranty.length} out of ${bids.length} bids mention warranty terms`);
+    }
+
+    const bidsWithExclusions = proposalComparison.filter(p => p.hasExclusions);
+    if (bidsWithExclusions.length > 0) {
+      insights.push(`${bidsWithExclusions.length} bid(s) include scope exclusions - review carefully`);
+    }
+
+    return insights;
+  }, [lineItemComparison, proposalComparison, bids]);
   const exportData = () => {
     const csvContent = [['Bidder', 'Price', 'Timeline (Days)', 'Overall Score', 'Status'], ...sortedBids.map(bid => [bid.bidder_profile?.name || 'Unknown', bid.bid_amount.toString(), (bid.timeline_days || 0).toString(), bid.evaluation ? ((bid.evaluation.price_score + bid.evaluation.experience_score + bid.evaluation.timeline_score + bid.evaluation.technical_score + bid.evaluation.communication_score) / 5).toFixed(1) : '0', bid.status])].map(row => row.join(',')).join('\n');
     const blob = new Blob([csvContent], {
@@ -299,6 +467,182 @@ export const TenderComparisonDashboard: React.FC<TenderComparisonDashboardProps>
           </CardContent>
         </Card>
       </div>
+
+      {/* Bid Comparison Analysis */}
+      {(lineItemComparison.length > 0 || smartInsights.length > 0) && (
+        <Card>
+          <Collapsible open={comparisonExpanded} onOpenChange={setComparisonExpanded}>
+            <CardHeader className="cursor-pointer" onClick={() => setComparisonExpanded(!comparisonExpanded)}>
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center gap-2">
+                  <Scale className="h-5 w-5" />
+                  Bid Comparison Analysis
+                </CardTitle>
+                <Button variant="ghost" size="sm">
+                  {comparisonExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                </Button>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Key differences in pricing and proposal details between bids
+              </p>
+            </CardHeader>
+            <CollapsibleContent>
+              <CardContent className="space-y-6">
+                {/* Smart Insights */}
+                {smartInsights.length > 0 && (
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <h4 className="font-semibold mb-2 flex items-center gap-2 text-blue-900">
+                      <Lightbulb className="h-4 w-4" />
+                      Key Insights
+                    </h4>
+                    <ul className="space-y-1">
+                      {smartInsights.map((insight, idx) => (
+                        <li key={idx} className="text-sm text-blue-800 flex items-start gap-2">
+                          <span className="mt-1">•</span>
+                          <span>{insight}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {/* Line Item Price Differences */}
+                {lineItemComparison.length > 0 && (
+                  <div>
+                    <h4 className="font-semibold mb-3 flex items-center gap-2">
+                      <BarChart3 className="h-4 w-4" />
+                      Line Item Price Differences ({lineItemComparison.length} items with variance)
+                    </h4>
+                    <div className="border rounded-lg overflow-hidden">
+                      <div className="overflow-x-auto">
+                        <table className="w-full">
+                          <thead className="bg-muted">
+                            <tr>
+                              <th className="text-left p-3 font-medium text-sm">Item</th>
+                              {sortedBids.map(bid => (
+                                <th key={bid.id} className="text-right p-3 font-medium text-sm">
+                                  {bid.bidder_profile?.name || 'Unknown'}
+                                </th>
+                              ))}
+                              <th className="text-right p-3 font-medium text-sm">Variance</th>
+                              <th className="text-center p-3 font-medium text-sm">Status</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {lineItemComparison.slice(0, 10).map(item => {
+                              const varianceLevel = item.variance > 20 ? 'high' : item.variance > 5 ? 'medium' : 'low';
+                              const statusColor = varianceLevel === 'high' ? 'text-red-600' : varianceLevel === 'medium' ? 'text-yellow-600' : 'text-green-600';
+                              const statusBg = varianceLevel === 'high' ? 'bg-red-50 border-red-200' : varianceLevel === 'medium' ? 'bg-yellow-50 border-yellow-200' : 'bg-green-50 border-green-200';
+                              
+                              return (
+                                <tr key={item.itemId} className="border-t hover:bg-muted/50">
+                                  <td className="p-3 text-sm font-medium max-w-xs">
+                                    <div className="truncate" title={item.itemDescription}>
+                                      {item.itemDescription}
+                                    </div>
+                                    <div className="text-xs text-muted-foreground">
+                                      Line #{item.lineNumber} • {item.category}
+                                    </div>
+                                  </td>
+                                  {sortedBids.map(bid => {
+                                    const bidPrice = item.bidPrices.find(bp => bp.bidId === bid.id);
+                                    const isLowest = bidPrice?.price === item.lowestPrice && bidPrice?.hasPricing;
+                                    const isHighest = bidPrice?.price === item.highestPrice && bidPrice?.hasPricing;
+                                    
+                                    return (
+                                      <td key={bid.id} className="p-3 text-right text-sm">
+                                        {bidPrice?.hasPricing ? (
+                                          <span className={`font-medium ${isLowest ? 'text-green-600' : isHighest ? 'text-red-600' : ''}`}>
+                                            ${(bidPrice.price / 1000).toFixed(1)}k
+                                          </span>
+                                        ) : (
+                                          <span className="text-muted-foreground italic">Missing</span>
+                                        )}
+                                      </td>
+                                    );
+                                  })}
+                                  <td className="p-3 text-right text-sm">
+                                    <span className={`font-semibold ${statusColor}`}>
+                                      {item.variance.toFixed(1)}%
+                                    </span>
+                                  </td>
+                                  <td className="p-3 text-center">
+                                    <Badge variant="outline" className={`text-xs ${statusBg} ${statusColor}`}>
+                                      {varianceLevel === 'high' ? '🔴 High' : varianceLevel === 'medium' ? '🟡 Review' : '🟢 OK'}
+                                    </Badge>
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                      {lineItemComparison.length > 10 && (
+                        <div className="p-3 bg-muted/50 text-center text-sm text-muted-foreground border-t">
+                          Showing top 10 items with highest variance. {lineItemComparison.length - 10} more items with differences.
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Proposal Comments Summary */}
+                {proposalComparison.length > 0 && (
+                  <div>
+                    <h4 className="font-semibold mb-3 flex items-center gap-2">
+                      <MessageSquare className="h-4 w-4" />
+                      Proposal Highlights & Key Differences
+                    </h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {proposalComparison.map(proposal => (
+                        <Card key={proposal.bidId} className="border">
+                          <CardHeader className="pb-3">
+                            <div className="flex items-center justify-between">
+                              <span className="font-semibold">{proposal.bidderName}</span>
+                              <span className="text-xs text-muted-foreground">
+                                {proposal.wordCount} words
+                              </span>
+                            </div>
+                          </CardHeader>
+                          <CardContent className="space-y-2">
+                            <div className="flex flex-wrap gap-1.5">
+                              {proposal.hasWarranty && (
+                                <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200">
+                                  ✓ Warranty
+                                </Badge>
+                              )}
+                              {proposal.hasTimeline && (
+                                <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200">
+                                  ✓ Timeline Details
+                                </Badge>
+                              )}
+                              {proposal.hasExclusions && (
+                                <Badge variant="outline" className="text-xs bg-yellow-50 text-yellow-700 border-yellow-200">
+                                  ⚠ Exclusions
+                                </Badge>
+                              )}
+                              {proposal.hasSpecialTerms && (
+                                <Badge variant="outline" className="text-xs bg-purple-50 text-purple-700 border-purple-200">
+                                  ★ Special Terms
+                                </Badge>
+                              )}
+                            </div>
+                            {proposal.proposalText && (
+                              <p className="text-xs text-muted-foreground bg-muted/50 p-2 rounded mt-2">
+                                {proposal.proposalText}
+                              </p>
+                            )}
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </CollapsibleContent>
+          </Collapsible>
+        </Card>
+      )}
 
       {/* Detailed Bid Overview */}
       <Card>
