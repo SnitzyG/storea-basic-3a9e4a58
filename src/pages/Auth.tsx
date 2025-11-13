@@ -314,6 +314,9 @@ const Auth = () => {
     label: 'Contractor'
   }];
   return <div className="min-h-screen flex items-center justify-center bg-background px-4 relative">
+      <div className="fixed top-3 right-4 z-[60]">
+        <StorealiteLogo variant="icon-only" className="h-10 w-auto" />
+      </div>
       {loading && <div className="fixed inset-0 grid place-items-center bg-background/80 z-50">
           <div className="text-center">Loading...</div>
         </div>}
@@ -328,7 +331,7 @@ const Auth = () => {
         <Card className="w-full">
           <CardHeader className="text-center space-y-6 pt-10 pb-6">
             <div className="flex justify-center">
-              <StorealiteLogo className="h-16" />
+              <StorealiteLogo variant="icon-only" className="h-16 w-auto" />
             </div>
             
             <div className="space-y-2">

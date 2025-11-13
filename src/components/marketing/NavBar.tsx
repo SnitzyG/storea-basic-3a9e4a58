@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Menu, X, Shield } from 'lucide-react';
 import { useState, useEffect } from 'react';
@@ -8,9 +8,9 @@ import { Badge } from '@/components/ui/badge';
 import { StorealiteLogo } from '@/components/ui/storealite-logo';
 export const NavBar = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const {
-    user
-  } = useAuth();
+  const { user } = useAuth();
+  const location = useLocation();
+  const isHome = location.pathname === '/';
   const [isAdmin, setIsAdmin] = useState(false);
   useEffect(() => {
     const checkAdmin = async () => {
@@ -36,7 +36,7 @@ export const NavBar = () => {
   return <nav className="sticky top-0 z-50 bg-background/80 backdrop-blur-lg border-b border-border">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-          <StorealiteLogo className="h-8" />
+          {!isHome && <StorealiteLogo className="h-8" />}
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-8">
