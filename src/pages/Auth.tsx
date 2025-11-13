@@ -314,9 +314,6 @@ const Auth = () => {
     label: 'Contractor'
   }];
   return <div className="min-h-screen flex items-center justify-center bg-background px-4 relative">
-      <div className="fixed top-3 right-4 z-[60]">
-        <StorealiteLogo variant="icon-only" className="h-10 w-auto" />
-      </div>
       {loading && <div className="fixed inset-0 grid place-items-center bg-background/80 z-50">
           <div className="text-center">Loading...</div>
         </div>}

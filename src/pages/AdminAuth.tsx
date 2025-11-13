@@ -85,10 +85,7 @@ export default function AdminAuth() {
       setLoading(false);
     }
   };
-  return <div className="min-h-screen flex items-center justify-center bg-background px-4 relative">
-      <div className="fixed top-3 right-4 z-[60]">
-        <StorealiteLogo variant="icon-only" className="h-10 w-auto" />
-      </div>
+  return <div className="min-h-screen flex items-center justify-center bg-background px-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center space-y-6 pt-10 pb-6">
           <div className="flex justify-center">
