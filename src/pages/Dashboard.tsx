@@ -9,6 +9,8 @@ import { RecentActivity } from '@/components/dashboard/RecentActivity';
 import { ToDoList } from '@/components/dashboard/ToDoList';
 import { InfoPanel } from '@/components/dashboard/InfoPanel';
 import { CalendarWidget } from '@/components/dashboard/CalendarWidget';
+import { QuickActions } from '@/components/dashboard/QuickActions';
+import { OpenRFIs } from '@/components/dashboard/OpenRFIs';
 import { NotificationCenter } from '@/components/notifications/NotificationCenter';
 import { GlobalSearch } from '@/components/search/GlobalSearch';
 import { useTheme } from '@/context/ThemeContext';
@@ -109,28 +111,34 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Compact Dashboard Content - No Scroll Layout */}
-      <div className="flex-1 p-2 overflow-hidden">
-        <div className="h-full max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-2 h-full">
+      {/* Enhanced Dashboard Content - 3 Column Layout */}
+      <div className="flex-1 p-4 overflow-auto">
+        <div className="max-w-[1600px] mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             
-            {/* Recent Activity - Fixed compact height */}
-            <div className="h-[calc(50vh-4rem)] min-h-[220px]">
+            {/* Row 1 */}
+            <div className="min-h-[300px]">
               <RecentActivity selectedProjectFilter={selectedProjectFilter} />
             </div>
 
-            {/* Calendar Widget - Fixed compact height */}
-            <div className="h-[calc(50vh-4rem)] min-h-[220px]">
-              <CalendarWidget selectedProjectFilter={selectedProjectFilter} />
+            <div className="min-h-[300px]">
+              <QuickActions />
             </div>
 
-            {/* To-Do List - Fixed compact height */}
-            <div className="h-[calc(50vh-4rem)] min-h-[220px]">
+            <div className="min-h-[300px]">
+              <OpenRFIs />
+            </div>
+
+            {/* Row 2 */}
+            <div className="min-h-[300px]">
               <ToDoList selectedProjectFilter={selectedProjectFilter} />
             </div>
 
-            {/* Info Panel - Fixed compact height */}
-            <div className="h-[calc(50vh-4rem)] min-h-[220px]">
+            <div className="min-h-[300px]">
+              <CalendarWidget selectedProjectFilter={selectedProjectFilter} />
+            </div>
+
+            <div className="min-h-[300px]">
               <InfoPanel selectedProjectFilter={selectedProjectFilter} />
             </div>
             
