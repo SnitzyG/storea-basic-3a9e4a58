@@ -1169,4 +1169,22 @@ export const useDocuments = (projectId?: string) => {
       channels.forEach(channel => supabase.removeChannel(channel));
     };
   }, [projectId]);
+
+  // Listen to global real-time events for instant updates
+  useEffect(() => {
+    const handleDocumentChange = () => {
+      console.log('[useDocuments] Document change detected, refetching...');
+      fetchDocuments(projectId);
+    };
+
+    window.addEventListener('supabase:documents:change', handleDocumentChange);
+    window.addEventListener('supabase:document_groups:change', handleDocumentChange);
+    window.addEventListener('supabase:document_revisions:change', handleDocumentChange);
+
+    return () => {
+      window.removeEventListener('supabase:documents:change', handleDocumentChange);
+      window.removeEventListener('supabase:document_groups:change', handleDocumentChange);
+      window.removeEventListener('supabase:document_revisions:change', handleDocumentChange);
+    };
+  }, [projectId]);
 };

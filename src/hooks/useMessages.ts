@@ -102,6 +102,25 @@ export const useMessages = (projectId?: string) => {
     fetchThreads();
   }, [activeProjectId, fetchThreads]);
 
+  // Listen to global real-time events for instant updates
+  useEffect(() => {
+    const handleMessageChange = () => {
+      console.log('[useMessages] Message change detected, refetching...');
+      fetchThreads();
+      if (currentThread) {
+        fetchMessages(currentThread);
+      }
+    };
+
+    window.addEventListener('supabase:messages:change', handleMessageChange);
+    window.addEventListener('supabase:message_threads:change', handleMessageChange);
+
+    return () => {
+      window.removeEventListener('supabase:messages:change', handleMessageChange);
+      window.removeEventListener('supabase:message_threads:change', handleMessageChange);
+    };
+  }, [currentThread]);
+
   const fetchMessages = useCallback(async (threadId?: string) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();

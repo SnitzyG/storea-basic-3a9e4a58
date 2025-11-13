@@ -652,6 +652,22 @@ export const useTenders = (projectId?: string) => {
     fetchTenders();
   }, [projectId]);
 
+  // Listen to global real-time events for instant updates
+  useEffect(() => {
+    const handleTenderChange = () => {
+      console.log('[useTenders] Tender change detected, refetching...');
+      fetchTenders();
+    };
+
+    window.addEventListener('supabase:tenders:change', handleTenderChange);
+    window.addEventListener('supabase:tender_bids:change', handleTenderChange);
+
+    return () => {
+      window.removeEventListener('supabase:tenders:change', handleTenderChange);
+      window.removeEventListener('supabase:tender_bids:change', handleTenderChange);
+    };
+  }, [projectId]);
+
   // Set up real-time subscriptions
   useEffect(() => {
     if (!projectId) return;
