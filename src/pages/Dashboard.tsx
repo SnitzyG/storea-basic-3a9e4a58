@@ -111,35 +111,30 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Enhanced Dashboard Content - 3 Column Layout */}
+      {/* Hero Top with Sidebar Layout */}
       <div className="flex-1 p-4 overflow-auto">
         <div className="max-w-[1600px] mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
             
-            {/* Row 1 */}
-            <div className="min-h-[300px]">
+            {/* Hero Top - Recent Activity (2/3 width, prominent) */}
+            <div className="lg:col-span-2 min-h-[600px]">
               <RecentActivity selectedProjectFilter={selectedProjectFilter} />
             </div>
 
-            <div className="min-h-[300px]">
+            {/* Right Sidebar (1/3 width) - stacked widgets */}
+            <div className="lg:col-span-1 flex flex-col gap-4">
               <QuickActions />
-            </div>
-
-            <div className="min-h-[300px]">
               <OpenRFIs />
+              <InfoPanel selectedProjectFilter={selectedProjectFilter} />
             </div>
 
-            {/* Row 2 */}
-            <div className="min-h-[300px]">
+            {/* Bottom Row - To-Do and Calendar */}
+            <div className="lg:col-span-2 min-h-[300px]">
               <ToDoList selectedProjectFilter={selectedProjectFilter} />
             </div>
-
-            <div className="min-h-[300px]">
+            
+            <div className="lg:col-span-1 min-h-[300px]">
               <CalendarWidget selectedProjectFilter={selectedProjectFilter} />
-            </div>
-
-            <div className="min-h-[300px]">
-              <InfoPanel selectedProjectFilter={selectedProjectFilter} />
             </div>
             
           </div>
