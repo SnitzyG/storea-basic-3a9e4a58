@@ -26,6 +26,7 @@ interface TenderBidLineItem {
   unit_price: number | null;
   total: number;
   notes: string | null;
+  category?: string;
 }
 
 interface TenderComparisonDashboardProps {
@@ -97,29 +98,35 @@ export const TenderComparisonDashboard: React.FC<TenderComparisonDashboardProps>
 
       if (error) {
         console.error('Error fetching bids:', error);
-        console.error('Error details:', JSON.stringify(error, null, 2));
         toast.error(`Failed to fetch bids: ${error.message}`);
         return;
       }
 
       console.log('Fetched bids:', data);
-      console.log('Number of bids:', data?.length || 0);
       
-      // Fetch bidder profiles separately
+      // Fetch bidder profiles separately with better error handling
       if (data && data.length > 0) {
-        const bidderIds = data.map(bid => bid.bidder_id);
-        const { data: profiles } = await supabase
+        const bidderIds = data.map(bid => bid.bidder_id).filter(Boolean);
+        const { data: profiles, error: profileError } = await supabase
           .from('profiles')
-          .select('user_id, name, role')
+          .select('user_id, name, role, company_id')
           .in('user_id', bidderIds);
+        
+        if (profileError) {
+          console.error('Error fetching profiles:', profileError);
+        }
         
         console.log('Fetched profiles:', profiles);
         
         // Enrich bids with profile data
-        const enrichedBids = data.map(bid => ({
-          ...bid,
-          bidder_profile: profiles?.find(p => p.user_id === bid.bidder_id)
-        }));
+        const enrichedBids = data.map(bid => {
+          const profile = profiles?.find(p => p.user_id === bid.bidder_id);
+          return {
+            ...bid,
+            bidder_profile: profile,
+            bidder_name: profile?.name || 'Unknown Bidder'
+          };
+        });
         
         setBids(enrichedBids as any);
         
@@ -155,19 +162,25 @@ export const TenderComparisonDashboard: React.FC<TenderComparisonDashboardProps>
     try {
       const { data, error } = await supabase
         .from('tender_bid_line_items')
-        .select('*')
+        .select(`
+          *,
+          tender_line_items!inner(category)
+        `)
         .in('bid_id', bidIds)
         .order('line_number', { ascending: true });
 
       if (error) throw error;
 
-      // Group by bid_id
+      // Group by bid_id and flatten the structure
       const groupedItems: Record<string, TenderBidLineItem[]> = {};
-      data?.forEach(item => {
+      data?.forEach((item: any) => {
         if (!groupedItems[item.bid_id]) {
           groupedItems[item.bid_id] = [];
         }
-        groupedItems[item.bid_id].push(item);
+        groupedItems[item.bid_id].push({
+          ...item,
+          category: item.tender_line_items?.category
+        });
       });
 
       setAllBidLineItems(groupedItems);
@@ -287,51 +300,106 @@ export const TenderComparisonDashboard: React.FC<TenderComparisonDashboardProps>
     }));
   }, [sortedBids]);
 
-  // Line item comparison analysis
-  const lineItemComparison = useMemo(() => {
-    if (tenderLineItems.length === 0 || bids.length === 0) return [];
+  // Category-level comparison analysis
+  const categoryComparison = useMemo(() => {
+    if (Object.keys(allBidLineItems).length === 0 || sortedBids.length === 0) {
+      return {
+        categories: [],
+        summary: '',
+        totalDifference: 0,
+        totalDifferencePercent: 0,
+        bidTotals: []
+      };
+    }
 
-    return tenderLineItems.map(tenderItem => {
-      const bidPrices = bids.map(bid => {
-        const bidLineItem = allBidLineItems[bid.id]?.find(
-          item => item.tender_line_item_id === tenderItem.id
-        );
-        return {
-          bidId: bid.id,
-          bidderName: bid.bidder_profile?.name || 'Unknown',
-          price: bidLineItem?.total || 0,
-          unitPrice: bidLineItem?.unit_price || 0,
-          hasPricing: !!bidLineItem
-        };
+    // Group by category for each bid
+    const categoryTotals: Record<string, Record<string, number>> = {};
+    const bidTotals: Record<string, number> = {};
+
+    sortedBids.forEach(bid => {
+      const bidLineItems = allBidLineItems[bid.id] || [];
+      bidTotals[bid.id] = 0;
+
+      bidLineItems.forEach(item => {
+        const category = item.category || 'Uncategorized';
+        const total = item.total || 0;
+
+        if (!categoryTotals[category]) {
+          categoryTotals[category] = {};
+        }
+        if (!categoryTotals[category][bid.id]) {
+          categoryTotals[category][bid.id] = 0;
+        }
+
+        categoryTotals[category][bid.id] += total;
+        bidTotals[bid.id] += total;
       });
+    });
 
-      const validPrices = bidPrices.filter(bp => bp.hasPricing).map(bp => bp.price);
-      const lowestPrice = validPrices.length > 0 ? Math.min(...validPrices) : 0;
-      const highestPrice = validPrices.length > 0 ? Math.max(...validPrices) : 0;
-      const averagePrice = validPrices.length > 0 
-        ? validPrices.reduce((sum, p) => sum + p, 0) / validPrices.length 
-        : 0;
-      const variance = lowestPrice > 0 
-        ? ((highestPrice - lowestPrice) / lowestPrice * 100) 
-        : 0;
-      const missingCount = bidPrices.filter(bp => !bp.hasPricing).length;
+    // Create category comparison array
+    const categories = Object.entries(categoryTotals).map(([category, bidAmounts]) => {
+      const amounts = sortedBids.map(bid => ({
+        bidId: bid.id,
+        bidderName: (bid as any).bidder_name || bid.bidder_profile?.name || 'Unknown',
+        amount: bidAmounts[bid.id] || 0
+      }));
+
+      const values = amounts.map(a => a.amount);
+      const minAmount = Math.min(...values);
+      const maxAmount = Math.max(...values);
+      const difference = maxAmount - minAmount;
+      const differencePercent = minAmount > 0 ? ((difference / minAmount) * 100) : 0;
 
       return {
-        itemId: tenderItem.id,
-        itemDescription: tenderItem.item_description,
-        lineNumber: tenderItem.line_number,
-        category: tenderItem.category,
-        bidPrices,
-        lowestPrice,
-        highestPrice,
-        averagePrice,
-        variance,
-        missingCount,
-        hasDifferences: variance > 5 || missingCount > 0
+        category,
+        amounts,
+        difference,
+        differencePercent
       };
-    }).filter(item => item.hasDifferences)
-      .sort((a, b) => b.variance - a.variance); // Sort by highest variance first
-  }, [tenderLineItems, bids, allBidLineItems]);
+    }).sort((a, b) => b.difference - a.difference);
+
+    // Calculate overall totals
+    const bidTotalValues = sortedBids.map(bid => bidTotals[bid.id] || 0);
+    const minTotal = Math.min(...bidTotalValues);
+    const maxTotal = Math.max(...bidTotalValues);
+    const totalDifference = maxTotal - minTotal;
+    const totalDifferencePercent = minTotal > 0 ? ((totalDifference / minTotal) * 100) : 0;
+
+    // Generate summary
+    const lowestBid = sortedBids.find(bid => bidTotals[bid.id] === minTotal);
+    const highestBid = sortedBids.find(bid => bidTotals[bid.id] === maxTotal);
+    const topDifferenceCategory = categories[0];
+
+    let summary = '';
+    if (lowestBid && highestBid && sortedBids.length >= 2) {
+      const lowestName = (lowestBid as any).bidder_name || lowestBid.bidder_profile?.name || 'Unknown';
+      const highestName = (highestBid as any).bidder_name || highestBid.bidder_profile?.name || 'Unknown';
+      
+      summary = `${lowestName}'s bid ($${(minTotal / 1000).toFixed(0)}k) is $${(totalDifference / 1000).toFixed(0)}k (${totalDifferencePercent.toFixed(0)}%) lower than ${highestName}'s bid ($${(maxTotal / 1000).toFixed(0)}k). `;
+      
+      if (topDifferenceCategory && topDifferenceCategory.differencePercent > 5) {
+        summary += `The largest variance is in ${topDifferenceCategory.category}, with a difference of $${(topDifferenceCategory.difference / 1000).toFixed(0)}k (${topDifferenceCategory.differencePercent.toFixed(0)}%). `;
+      } else {
+        summary += `Category pricing is relatively consistent across both bids. `;
+      }
+
+      // Count priced items
+      const firstBidItemCount = allBidLineItems[sortedBids[0]?.id]?.length || 0;
+      summary += `Both bids priced ${firstBidItemCount} line items.`;
+    }
+
+    return {
+      categories,
+      bidTotals: sortedBids.map(bid => ({
+        bidId: bid.id,
+        bidderName: (bid as any).bidder_name || bid.bidder_profile?.name || 'Unknown',
+        total: bidTotals[bid.id] || 0
+      })),
+      summary,
+      totalDifference,
+      totalDifferencePercent
+    };
+  }, [allBidLineItems, sortedBids]);
 
   // Proposal comparison analysis
   const proposalComparison = useMemo(() => {
@@ -358,28 +426,32 @@ export const TenderComparisonDashboard: React.FC<TenderComparisonDashboardProps>
     });
   }, [sortedBids]);
 
-  // Smart insights
+  // Smart insights based on category comparison
   const smartInsights = useMemo(() => {
     const insights: string[] = [];
 
-    // Missing items insight
-    const totalMissingItems = lineItemComparison.reduce((sum, item) => sum + item.missingCount, 0);
-    if (totalMissingItems > 0) {
-      const bidsWithMissing = new Set<string>();
-      lineItemComparison.forEach(item => {
-        item.bidPrices.forEach(bp => {
-          if (!bp.hasPricing) bidsWithMissing.add(bp.bidderName);
-        });
-      });
-      insights.push(`${bidsWithMissing.size} bid(s) are missing pricing for some items (${totalMissingItems} total missing items)`);
+    if (categoryComparison.categories.length === 0) return insights;
+
+    // High variance categories
+    const highVarianceCategories = categoryComparison.categories.filter(
+      cat => cat.differencePercent > 20
+    );
+    
+    if (highVarianceCategories.length > 0) {
+      insights.push(
+        `${highVarianceCategories.length} ${highVarianceCategories.length === 1 ? 'category has' : 'categories have'} significant price differences (>20%)`
+      );
     }
 
-    // Highest variance insight
-    if (lineItemComparison.length > 0) {
-      const highestVarianceItem = lineItemComparison[0];
-      if (highestVarianceItem.variance > 20) {
-        insights.push(`Highest price variance on "${highestVarianceItem.itemDescription}" - ${highestVarianceItem.variance.toFixed(1)}% difference ($${((highestVarianceItem.highestPrice - highestVarianceItem.lowestPrice) / 1000).toFixed(1)}k)`);
-      }
+    // Consistent categories
+    const consistentCategories = categoryComparison.categories.filter(
+      cat => cat.differencePercent < 5
+    );
+    
+    if (consistentCategories.length > 0) {
+      insights.push(
+        `${consistentCategories.length} ${consistentCategories.length === 1 ? 'category shows' : 'categories show'} consistent pricing across bids`
+      );
     }
 
     // Proposal insights
@@ -390,11 +462,11 @@ export const TenderComparisonDashboard: React.FC<TenderComparisonDashboardProps>
 
     const bidsWithExclusions = proposalComparison.filter(p => p.hasExclusions);
     if (bidsWithExclusions.length > 0) {
-      insights.push(`${bidsWithExclusions.length} bid(s) include scope exclusions - review carefully`);
+      insights.push(`${bidsWithExclusions.length} bid(s) include scope exclusions`);
     }
 
     return insights;
-  }, [lineItemComparison, proposalComparison, bids]);
+  }, [categoryComparison, proposalComparison, bids]);
   const exportData = () => {
     const csvContent = [['Bidder', 'Price', 'Timeline (Days)', 'Overall Score', 'Status'], ...sortedBids.map(bid => [bid.bidder_profile?.name || 'Unknown', bid.bid_amount.toString(), (bid.timeline_days || 0).toString(), bid.evaluation ? ((bid.evaluation.price_score + bid.evaluation.experience_score + bid.evaluation.timeline_score + bid.evaluation.technical_score + bid.evaluation.communication_score) / 5).toFixed(1) : '0', bid.status])].map(row => row.join(',')).join('\n');
     const blob = new Blob([csvContent], {
@@ -469,7 +541,7 @@ export const TenderComparisonDashboard: React.FC<TenderComparisonDashboardProps>
       </div>
 
       {/* Bid Comparison Analysis */}
-      {(lineItemComparison.length > 0 || smartInsights.length > 0) && (
+      {sortedBids.length >= 2 && categoryComparison.categories.length > 0 && (
         <Card>
           <Collapsible open={comparisonExpanded} onOpenChange={setComparisonExpanded}>
             <CardHeader className="cursor-pointer" onClick={() => setComparisonExpanded(!comparisonExpanded)}>
@@ -483,128 +555,135 @@ export const TenderComparisonDashboard: React.FC<TenderComparisonDashboardProps>
                 </Button>
               </div>
               <p className="text-sm text-muted-foreground">
-                Key differences in pricing and proposal details between bids
+                Category-level price comparison and key differences
               </p>
             </CardHeader>
             <CollapsibleContent>
               <CardContent className="space-y-6">
-                {/* Smart Insights */}
-                {smartInsights.length > 0 && (
+                {/* Summary */}
+                {categoryComparison.summary && (
                   <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                    <h4 className="font-semibold mb-2 flex items-center gap-2 text-blue-900">
-                      <Lightbulb className="h-4 w-4" />
-                      Key Insights
-                    </h4>
-                    <ul className="space-y-1">
-                      {smartInsights.map((insight, idx) => (
-                        <li key={idx} className="text-sm text-blue-800 flex items-start gap-2">
-                          <span className="mt-1">•</span>
-                          <span>{insight}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-
-                {/* Line Item Price Differences */}
-                {lineItemComparison.length > 0 && (
-                  <div>
-                    <h4 className="font-semibold mb-3 flex items-center gap-2">
-                      <BarChart3 className="h-4 w-4" />
-                      Line Item Price Differences ({lineItemComparison.length} items with variance)
-                    </h4>
-                    <div className="border rounded-lg overflow-hidden">
-                      <div className="overflow-x-auto">
-                        <table className="w-full">
-                          <thead className="bg-muted">
-                            <tr>
-                              <th className="text-left p-3 font-medium text-sm">Item</th>
-                              {sortedBids.map(bid => (
-                                <th key={bid.id} className="text-right p-3 font-medium text-sm">
-                                  {bid.bidder_profile?.name || 'Unknown'}
-                                </th>
-                              ))}
-                              <th className="text-right p-3 font-medium text-sm">Variance</th>
-                              <th className="text-center p-3 font-medium text-sm">Status</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {lineItemComparison.slice(0, 10).map(item => {
-                              const varianceLevel = item.variance > 20 ? 'high' : item.variance > 5 ? 'medium' : 'low';
-                              const statusColor = varianceLevel === 'high' ? 'text-red-600' : varianceLevel === 'medium' ? 'text-yellow-600' : 'text-green-600';
-                              const statusBg = varianceLevel === 'high' ? 'bg-red-50 border-red-200' : varianceLevel === 'medium' ? 'bg-yellow-50 border-yellow-200' : 'bg-green-50 border-green-200';
-                              
-                              return (
-                                <tr key={item.itemId} className="border-t hover:bg-muted/50">
-                                  <td className="p-3 text-sm font-medium max-w-xs">
-                                    <div className="truncate" title={item.itemDescription}>
-                                      {item.itemDescription}
-                                    </div>
-                                    <div className="text-xs text-muted-foreground">
-                                      Line #{item.lineNumber} • {item.category}
-                                    </div>
-                                  </td>
-                                  {sortedBids.map(bid => {
-                                    const bidPrice = item.bidPrices.find(bp => bp.bidId === bid.id);
-                                    const isLowest = bidPrice?.price === item.lowestPrice && bidPrice?.hasPricing;
-                                    const isHighest = bidPrice?.price === item.highestPrice && bidPrice?.hasPricing;
-                                    
-                                    return (
-                                      <td key={bid.id} className="p-3 text-right text-sm">
-                                        {bidPrice?.hasPricing ? (
-                                          <span className={`font-medium ${isLowest ? 'text-green-600' : isHighest ? 'text-red-600' : ''}`}>
-                                            ${(bidPrice.price / 1000).toFixed(1)}k
-                                          </span>
-                                        ) : (
-                                          <span className="text-muted-foreground italic">Missing</span>
-                                        )}
-                                      </td>
-                                    );
-                                  })}
-                                  <td className="p-3 text-right text-sm">
-                                    <span className={`font-semibold ${statusColor}`}>
-                                      {item.variance.toFixed(1)}%
-                                    </span>
-                                  </td>
-                                  <td className="p-3 text-center">
-                                    <Badge variant="outline" className={`text-xs ${statusBg} ${statusColor}`}>
-                                      {varianceLevel === 'high' ? '🔴 High' : varianceLevel === 'medium' ? '🟡 Review' : '🟢 OK'}
-                                    </Badge>
-                                  </td>
-                                </tr>
-                              );
-                            })}
-                          </tbody>
-                        </table>
-                      </div>
-                      {lineItemComparison.length > 10 && (
-                        <div className="p-3 bg-muted/50 text-center text-sm text-muted-foreground border-t">
-                          Showing top 10 items with highest variance. {lineItemComparison.length - 10} more items with differences.
-                        </div>
-                      )}
+                    <div className="flex items-start gap-2">
+                      <Lightbulb className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
+                      <p className="text-sm text-blue-900 leading-relaxed">{categoryComparison.summary}</p>
                     </div>
                   </div>
                 )}
 
-                {/* Proposal Comments Summary */}
-                {proposalComparison.length > 0 && (
+                {/* Smart Insights */}
+                {smartInsights.length > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    {smartInsights.map((insight, idx) => (
+                      <Badge key={idx} variant="secondary" className="text-xs py-1.5 px-3">
+                        {insight}
+                      </Badge>
+                    ))}
+                  </div>
+                )}
+
+                {/* Category Comparison Table */}
+                <div>
+                  <h4 className="font-semibold mb-3 flex items-center gap-2">
+                    <BarChart3 className="h-4 w-4" />
+                    Category Breakdown
+                  </h4>
+
+                  <div className="border rounded-lg overflow-hidden">
+                    <div className="overflow-x-auto">
+                      <table className="w-full">
+                        <thead className="bg-muted">
+                          <tr>
+                            <th className="text-left p-3 font-medium text-sm">Category</th>
+                            {sortedBids.map(bid => (
+                              <th key={bid.id} className="text-right p-3 font-medium text-sm">
+                                {(bid as any).bidder_name || bid.bidder_profile?.name || 'Unknown'}
+                              </th>
+                            ))}
+                            <th className="text-right p-3 font-medium text-sm">Difference</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {categoryComparison.categories.map((category) => {
+                            const varianceClass =
+                              category.differencePercent > 20
+                                ? 'bg-red-50'
+                                : category.differencePercent > 5
+                                ? 'bg-yellow-50'
+                                : '';
+
+                            return (
+                              <tr key={category.category} className={`border-t hover:bg-muted/50 ${varianceClass}`}>
+                                <td className="p-3 text-sm font-medium">
+                                  {category.category}
+                                </td>
+                                {category.amounts.map((amount, idx) => (
+                                  <td key={idx} className="p-3 text-right text-sm">
+                                    ${amount.amount.toLocaleString()}
+                                  </td>
+                                ))}
+                                <td className="p-3 text-right text-sm">
+                                  <div className="flex flex-col items-end gap-1">
+                                    <span className="font-semibold">
+                                      ${category.difference.toLocaleString()}
+                                    </span>
+                                    {category.differencePercent > 0 && (
+                                      <Badge
+                                        variant={
+                                          category.differencePercent > 20
+                                            ? 'destructive'
+                                            : category.differencePercent > 5
+                                            ? 'secondary'
+                                            : 'outline'
+                                        }
+                                        className="text-xs"
+                                      >
+                                        {category.differencePercent.toFixed(1)}%
+                                      </Badge>
+                                    )}
+                                  </div>
+                                </td>
+                              </tr>
+                            );
+                          })}
+                          {/* Total Row */}
+                          <tr className="bg-muted font-semibold border-t-2">
+                            <td className="p-3 text-sm">Total</td>
+                            {categoryComparison.bidTotals.map((bidTotal) => (
+                              <td key={bidTotal.bidId} className="p-3 text-right text-sm">
+                                ${bidTotal.total.toLocaleString()}
+                              </td>
+                            ))}
+                            <td className="p-3 text-right text-sm">
+                              <div className="flex flex-col items-end gap-1">
+                                <span>${categoryComparison.totalDifference.toLocaleString()}</span>
+                                {categoryComparison.totalDifferencePercent > 0 && (
+                                  <Badge variant="destructive" className="text-xs">
+                                    {categoryComparison.totalDifferencePercent.toFixed(1)}%
+                                  </Badge>
+                                )}
+                              </div>
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Proposal Notes - Only show if there are meaningful differences */}
+                {proposalComparison.some(p => p.hasWarranty || p.hasTimeline || p.hasSpecialTerms || p.hasExclusions) && (
                   <div>
                     <h4 className="font-semibold mb-3 flex items-center gap-2">
                       <MessageSquare className="h-4 w-4" />
-                      Proposal Highlights & Key Differences
+                      Additional Proposal Notes
                     </h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {proposalComparison.map(proposal => (
                         <Card key={proposal.bidId} className="border">
                           <CardHeader className="pb-3">
-                            <div className="flex items-center justify-between">
-                              <span className="font-semibold">{proposal.bidderName}</span>
-                              <span className="text-xs text-muted-foreground">
-                                {proposal.wordCount} words
-                              </span>
-                            </div>
+                            <span className="font-semibold">{proposal.bidderName}</span>
                           </CardHeader>
-                          <CardContent className="space-y-2">
+                          <CardContent>
                             <div className="flex flex-wrap gap-1.5">
                               {proposal.hasWarranty && (
                                 <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200">
@@ -627,11 +706,6 @@ export const TenderComparisonDashboard: React.FC<TenderComparisonDashboardProps>
                                 </Badge>
                               )}
                             </div>
-                            {proposal.proposalText && (
-                              <p className="text-xs text-muted-foreground bg-muted/50 p-2 rounded mt-2">
-                                {proposal.proposalText}
-                              </p>
-                            )}
                           </CardContent>
                         </Card>
                       ))}
