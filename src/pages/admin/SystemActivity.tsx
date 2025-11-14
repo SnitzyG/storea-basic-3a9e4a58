@@ -55,12 +55,12 @@ const actionColors: Record<string, string> = {
 
 export default function SystemActivity() {
   const [searchTerm, setSearchTerm] = useState('');
-  const [entityTypeFilter, setEntityTypeFilter] = useState<string>('');
-  const [actionFilter, setActionFilter] = useState<string>('');
+  const [entityTypeFilter, setEntityTypeFilter] = useState<string>('all');
+  const [actionFilter, setActionFilter] = useState<string>('all');
 
   const { data: activities, isLoading, refetch } = useSystemActivity({
-    entityType: entityTypeFilter || undefined,
-    action: actionFilter || undefined,
+    entityType: entityTypeFilter !== 'all' ? entityTypeFilter : undefined,
+    action: actionFilter !== 'all' ? actionFilter : undefined,
   });
 
   const filteredActivities = activities?.filter((activity) =>
@@ -131,7 +131,7 @@ export default function SystemActivity() {
                   <SelectValue placeholder="All Entity Types" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Entity Types</SelectItem>
+                  <SelectItem value="all">All Entity Types</SelectItem>
                   <SelectItem value="document">Documents</SelectItem>
                   <SelectItem value="message">Messages</SelectItem>
                   <SelectItem value="rfi">RFIs</SelectItem>
@@ -145,7 +145,7 @@ export default function SystemActivity() {
                   <SelectValue placeholder="All Actions" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Actions</SelectItem>
+                  <SelectItem value="all">All Actions</SelectItem>
                   <SelectItem value="created">Created</SelectItem>
                   <SelectItem value="updated">Updated</SelectItem>
                   <SelectItem value="deleted">Deleted</SelectItem>
