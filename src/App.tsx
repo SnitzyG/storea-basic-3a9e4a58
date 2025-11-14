@@ -13,6 +13,7 @@ import AdminEmails from "./pages/AdminEmails";
 import AdminSettings from "./pages/AdminSettings";
 import AdminAuth from "./pages/AdminAuth";
 import AdminIndex from "./pages/AdminIndex";
+import AdminTelemetry from "./pages/AdminTelemetry";
 import Dashboard from "./pages/Dashboard";
 import Projects from "./pages/Projects";
 import Documents from "./pages/Documents";
@@ -97,6 +98,7 @@ const App = () => (
           <Route path="/admin/login" element={<AdminAuth />} />
           <Route path="/admin" element={<AdminIndex />} />
           <Route path="/admin/dashboard" element={<AdminDashboard />} />
+          <Route path="/admin/telemetry" element={<AdminTelemetry />} />
           <Route path="/admin/approvals" element={<AdminApprovals />} />
           <Route path="/admin/emails" element={<AdminEmails />} />
           <Route path="/admin/settings" element={<AdminSettings />} />

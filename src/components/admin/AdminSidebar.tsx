@@ -26,6 +26,7 @@ import {
   Mail,
   Settings,
   Palette,
+  Activity,
 } from 'lucide-react';
 
 export function AdminSidebar() {
@@ -41,6 +42,7 @@ export function AdminSidebar() {
       label: 'Overview',
       items: [
         { title: 'Dashboard', url: '/admin/dashboard', icon: LayoutDashboard },
+        { title: 'Telemetry', url: '/admin/telemetry', icon: Activity },
       ],
     },
     {
