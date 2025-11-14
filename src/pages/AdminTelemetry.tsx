@@ -1,8 +1,10 @@
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Activity, TrendingUp, AlertTriangle, Clock, Users, Zap } from 'lucide-react';
+import { Activity, TrendingUp, AlertTriangle, Clock, Users, Zap, Info } from 'lucide-react';
 import { LineChart, Line, AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { TelemetryImplementationGuide } from '@/components/admin/TelemetryImplementationGuide';
 
 // Mock data for demonstration - will be replaced with real data once types are regenerated
 const performanceData = [
@@ -50,6 +52,13 @@ export default function AdminTelemetry() {
             Real-time monitoring and performance analytics across the platform
           </p>
         </div>
+
+        <Alert>
+          <Info className="h-4 w-4" />
+          <AlertDescription>
+            <strong>Demo Mode:</strong> Showing sample data. Real telemetry will be enabled once Supabase regenerates the types.ts file.
+          </AlertDescription>
+        </Alert>
 
         {/* Key Metrics Overview */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -303,6 +312,9 @@ export default function AdminTelemetry() {
             </div>
           </TabsContent>
         </Tabs>
+
+        {/* Implementation Guide */}
+        <TelemetryImplementationGuide />
       </div>
     </AdminLayout>
   );
