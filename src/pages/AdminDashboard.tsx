@@ -7,6 +7,10 @@ import { TenderRFIPipelineCard } from '@/components/admin/TenderRFIPipelineCard'
 import { AlertsIssuesCard } from '@/components/admin/AlertsIssuesCard';
 import { RealtimeActivityLog } from '@/components/admin/RealtimeActivityLog';
 import { SystemHealthWidget } from '@/components/admin/SystemHealthWidget';
+import { DocumentsOverviewCard } from '@/components/admin/DocumentsOverviewCard';
+import { MessagesOverviewCard } from '@/components/admin/MessagesOverviewCard';
+import { UserActivityCard } from '@/components/admin/UserActivityCard';
+import { StorageOverviewCard } from '@/components/admin/StorageOverviewCard';
 import { useAdminStats } from '@/hooks/useAdminStats';
 import { useSystemHealth } from '@/hooks/useSystemHealth';
 import { useAdminAlerts } from '@/hooks/useAdminAlerts';
@@ -57,6 +61,16 @@ export default function AdminDashboard() {
             <SystemHealthWidget health={health} />
           )}
 
+          {/* Documents Overview - New */}
+          <DocumentsOverviewCard />
+
+          {/* Messages Overview - New */}
+          <MessagesOverviewCard />
+
+          {/* User Activity - New */}
+          <UserActivityCard />
+          )}
+
           {/* Financial Dashboard - Takes 1 column */}
           {statsLoading ? (
             <Skeleton className="h-96 w-full" />
@@ -81,6 +95,10 @@ export default function AdminDashboard() {
             <Skeleton className="h-96 w-full" />
           ) : (
             <TenderRFIPipelineCard stats={stats?.tenders || null} />
+          )}
+
+          {/* Storage Overview - New */}
+          <StorageOverviewCard />
           )}
         </div>
 
