@@ -1,10 +1,10 @@
+import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { FileText, HelpCircle, ArrowRight, Clock } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useRFIs } from '@/hooks/useRFIs';
-import { useTenders } from '@/hooks/useTenders';
+import { supabase } from '@/integrations/supabase/client';
 import { formatDistanceToNow } from 'date-fns';
 
 interface TenderRFIPipelineCardProps {
@@ -18,8 +18,22 @@ interface TenderRFIPipelineCardProps {
 
 export const TenderRFIPipelineCard = ({ stats }: TenderRFIPipelineCardProps) => {
   const navigate = useNavigate();
-  const { rfis } = useRFIs();
-  const { tenders } = useTenders();
+  const [rfis, setRfis] = useState<any[]>([]);
+  const [tenders, setTenders] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const [rfisData, tendersData] = await Promise.all([
+        supabase.from('rfis').select('*').order('created_at', { ascending: false }).limit(5),
+        supabase.from('tenders').select('*').order('created_at', { ascending: false }).limit(3),
+      ]);
+      
+      if (rfisData.data) setRfis(rfisData.data);
+      if (tendersData.data) setTenders(tendersData.data);
+    };
+
+    fetchData();
+  }, []);
 
   const getStatusColor = (status: string) => {
     switch (status) {
