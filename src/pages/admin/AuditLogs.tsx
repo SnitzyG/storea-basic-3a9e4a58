@@ -30,18 +30,18 @@ export default function AuditLogs() {
     }),
   });
 
-  const filteredLogs = logs?.filter(log =>
+  const filteredLogs = logs?.filter((log: any) =>
     log.resource_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     log.action?.toLowerCase().includes(searchTerm.toLowerCase())
   ) || [];
 
-  const uniqueActions = Array.from(new Set(logs?.map(l => l.action) || []));
+  const uniqueActions = Array.from(new Set(logs?.map((l: any) => l.action) || []));
 
   const handleExportCSV = () => {
     if (!filteredLogs || filteredLogs.length === 0) return;
 
     const headers = ['Timestamp', 'Action', 'Resource Type', 'Resource Name', 'Status', 'Error Message'];
-    const rows = filteredLogs.map(log => [
+    const rows = filteredLogs.map((log: any) => [
       format(new Date(log.created_at), 'yyyy-MM-dd HH:mm:ss'),
       log.action,
       log.resource_type || '',
@@ -92,7 +92,7 @@ export default function AuditLogs() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Actions</SelectItem>
-                    {uniqueActions.map(action => (
+                    {uniqueActions.map((action: string) => (
                       <SelectItem key={action} value={action}>{action}</SelectItem>
                     ))}
                   </SelectContent>
@@ -131,7 +131,7 @@ export default function AuditLogs() {
                   <div>Status</div>
                   <div>Details</div>
                 </div>
-                {filteredLogs.map((log) => (
+                {filteredLogs.map((log: any) => (
                   <div key={log.id} className="grid grid-cols-6 gap-4 py-3 items-center border-b text-sm">
                     <div className="text-muted-foreground">
                       {format(new Date(log.created_at), 'MMM d, HH:mm:ss')}

@@ -24,7 +24,7 @@ export default function AdminDashboard() {
   // Fetch active users count
   useEffect(() => {
     const fetchActiveUsers = async () => {
-      const { count } = await supabase
+      const { count } = await (supabase as any)
         .from('user_sessions')
         .select('*', { count: 'exact', head: true })
         .eq('is_active', true);

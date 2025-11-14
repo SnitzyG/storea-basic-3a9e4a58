@@ -1,5 +1,12 @@
 import { supabase } from '@/integrations/supabase/client';
 
+// Temporary types until Supabase regenerates types
+type AuditLog = any;
+type AdminAlert = any;
+type SystemMetric = any;
+type UserSession = any;
+
+
 // GET AUDIT LOGS WITH REAL DATA
 export async function getAuditLogs(filters?: {
   action?: string;
@@ -7,7 +14,7 @@ export async function getAuditLogs(filters?: {
   dateFrom?: Date;
   dateTo?: Date;
 }) {
-  let query = supabase
+  let query = (supabase as any)
     .from('audit_logs')
     .select('id, admin_id, action, resource_type, resource_id, resource_name, status, created_at, error_message');
 
@@ -41,7 +48,7 @@ export async function getAllUsers() {
 
 // GET UNRESOLVED ALERTS ONLY
 export async function getAdminAlerts() {
-  const { data, error } = await supabase
+  const { data, error } = await (supabase as any)
     .from('admin_alerts')
     .select('*')
     .is('resolved_at', null)
@@ -55,7 +62,7 @@ export async function getAdminAlerts() {
 
 // GET SYSTEM METRICS - REAL TIME DATA
 export async function getSystemMetrics() {
-  const { data, error } = await supabase
+  const { data, error } = await (supabase as any)
     .from('system_metrics')
     .select('metric_type, value, unit, recorded_at')
     .order('recorded_at', { ascending: false })
@@ -99,7 +106,7 @@ export async function disableUser(userId: string, reason: string) {
     if (updateError) throw updateError;
 
     // Log to audit trail
-    await supabase.from('audit_logs').insert({
+    await (supabase as any).from('audit_logs').insert({
       admin_id: currentUser.id,
       action: 'user_disabled',
       resource_type: 'user',
@@ -118,7 +125,7 @@ export async function disableUser(userId: string, reason: string) {
     const result = await supabase.auth.getUser();
     const user2 = result.data.user;
     if (user2) {
-      await supabase.from('audit_logs').insert({
+      await (supabase as any).from('audit_logs').insert({
         admin_id: user2.id,
         action: 'user_disabled',
         resource_type: 'user',
@@ -149,7 +156,7 @@ export async function enableUser(userId: string) {
 
     if (error) throw error;
 
-    await supabase.from('audit_logs').insert({
+    await (supabase as any).from('audit_logs').insert({
       admin_id: currentUser.id,
       action: 'user_enabled',
       resource_type: 'user',
@@ -185,7 +192,7 @@ export async function changeUserRole(userId: string, newRole: string) {
 
     if (error) throw error;
 
-    await supabase.from('audit_logs').insert({
+    await (supabase as any).from('audit_logs').insert({
       admin_id: currentUser.id,
       action: 'user_role_changed',
       resource_type: 'user',
@@ -204,7 +211,7 @@ export async function changeUserRole(userId: string, newRole: string) {
 
 // MARK ALERT AS READ
 export async function markAlertAsRead(alertId: string) {
-  const { error } = await supabase
+  const { error } = await (supabase as any)
     .from('admin_alerts')
     .update({ is_read: true })
     .eq('id', alertId);
@@ -215,7 +222,7 @@ export async function markAlertAsRead(alertId: string) {
 
 // RESOLVE ALERT
 export async function resolveAlert(alertId: string) {
-  const { error } = await supabase
+  const { error } = await (supabase as any)
     .from('admin_alerts')
     .update({ resolved_at: new Date().toISOString() })
     .eq('id', alertId);
@@ -226,7 +233,7 @@ export async function resolveAlert(alertId: string) {
 
 // DELETE ALERT
 export async function deleteAlert(alertId: string) {
-  const { error } = await supabase
+  const { error } = await (supabase as any)
     .from('admin_alerts')
     .delete()
     .eq('id', alertId);
@@ -247,7 +254,7 @@ export async function logAction(
   const { data: { user: currentUser } } = await supabase.auth.getUser();
   if (!currentUser) throw new Error('Not authenticated');
 
-  const { error } = await supabase.from('audit_logs').insert({
+  const { error } = await (supabase as any).from('audit_logs').insert({
     admin_id: currentUser.id,
     action,
     resource_type: resourceType,
