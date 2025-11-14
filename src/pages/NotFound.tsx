@@ -9,9 +9,13 @@ const NotFound = () => {
   useEffect(() => {
     console.log('404 - Page not found:', location.pathname);
     
-    // Automatically redirect to dashboard after 3 seconds
+    // Determine redirect target based on path
+    const isAdminPath = location.pathname.startsWith('/admin');
+    const redirectPath = isAdminPath ? '/admin/dashboard' : '/dashboard';
+    
+    // Automatically redirect after 3 seconds
     const redirectTimer = setTimeout(() => {
-      navigate('/dashboard', { replace: true });
+      navigate(redirectPath, { replace: true });
     }, 3000);
 
     return () => clearTimeout(redirectTimer);
@@ -30,7 +34,9 @@ const NotFound = () => {
         {/* Error message */}
         <div className="space-y-2">
           <h1 className="text-2xl font-bold text-foreground">
-            Oh no! Something went wrong.
+            {location.pathname.startsWith('/admin') 
+              ? 'Admin page not found' 
+              : 'Oh no! Something went wrong.'}
           </h1>
           <p className="text-muted-foreground">
             Redirecting to your dashboard...
