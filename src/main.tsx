@@ -30,9 +30,11 @@ import TodoList from "./pages/TodoList.tsx";
 // Admin pages
 import AdminAuth from "./pages/AdminAuth.tsx";
 import AdminIndex from "./pages/AdminIndex.tsx";
-import AdminDashboard from "./pages/AdminDashboard.tsx";
+import AdminDashboard from "./pages/admin/AdminDashboard.tsx";
+import UserManagement from "./pages/admin/UserManagement.tsx";
+import AuditLogs from "./pages/admin/AuditLogs.tsx";
+import SystemAlerts from "./pages/admin/SystemAlerts.tsx";
 import AdminApprovals from "./pages/AdminApprovals.tsx";
-import AdminEmails from "./pages/AdminEmails.tsx";
 import AdminSettings from "./pages/AdminSettings.tsx";
 
 // Public marketing pages
@@ -106,8 +108,10 @@ createRoot(document.getElementById("root")!).render(
                     <Route path="/admin/login" element={<AdminAuth />} />
                     <Route path="/admin" element={<AdminIndex />} />
                     <Route path="/admin/dashboard" element={<AdminDashboard />} />
+                    <Route path="/admin/users" element={<UserManagement />} />
+                    <Route path="/admin/logs" element={<AuditLogs />} />
+                    <Route path="/admin/alerts" element={<SystemAlerts />} />
                     <Route path="/admin/approvals" element={<AdminApprovals />} />
-                    <Route path="/admin/emails" element={<AdminEmails />} />
                     <Route path="/admin/settings" element={<AdminSettings />} />
                     <Route path="/admin/style-guide" element={<StyleGuide />} />
 
