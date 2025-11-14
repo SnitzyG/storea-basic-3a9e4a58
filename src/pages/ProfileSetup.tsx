@@ -7,6 +7,24 @@ const ProfileSetup = () => {
   const navigate = useNavigate();
   const { user, profile, loading } = useAuth();
 
+  // Check if profile is complete based on role
+  const isProfileComplete = (prof: any) => {
+    if (!prof || !prof.name || !prof.phone) return false;
+    
+    switch(prof.role) {
+      case 'homeowner':
+        return !!(prof.property_address && prof.project_type);
+      case 'architect':
+        return !!(prof.company_id && prof.professional_license_number && prof.years_experience !== null);
+      case 'builder':
+        return !!(prof.company_id && prof.business_registration_number && prof.company_address);
+      case 'contractor':
+        return !!(prof.professional_license_number && prof.years_experience !== null);
+      default:
+        return false;
+    }
+  };
+
   useEffect(() => {
     if (!loading) {
       // If not authenticated, redirect to auth
@@ -15,8 +33,8 @@ const ProfileSetup = () => {
         return;
       }
 
-      // If profile is already complete (has name), redirect to projects
-      if (profile && profile.name && profile.name.trim() !== '') {
+      // If profile is already complete, redirect to projects
+      if (profile && isProfileComplete(profile)) {
         navigate('/projects', { replace: true });
         return;
       }
@@ -38,7 +56,7 @@ const ProfileSetup = () => {
   }
 
   // Don't render if profile already complete (will redirect)
-  if (profile && profile.name && profile.name.trim() !== '') {
+  if (profile && isProfileComplete(profile)) {
     return null;
   }
 
