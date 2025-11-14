@@ -49,6 +49,8 @@ export const Step3CompanyInfo: React.FC<Step3CompanyInfoProps> = ({
         .getPublicUrl(filePath);
 
       onChange('company_logo_url', data.publicUrl);
+      // Keep profile avatar in sync with company logo
+      onChange('avatar_url', data.publicUrl);
       
       toast({
         title: "Logo uploaded",
