@@ -5,7 +5,7 @@ import { FinancialDashboardCard } from '@/components/admin/FinancialDashboardCar
 import { TeamCollaborationCard } from '@/components/admin/TeamCollaborationCard';
 import { TenderRFIPipelineCard } from '@/components/admin/TenderRFIPipelineCard';
 import { AlertsIssuesCard } from '@/components/admin/AlertsIssuesCard';
-import { RealtimeActivityLog } from '@/components/admin/RealtimeActivityLog';
+import { EnhancedRealtimeActivityLog } from '@/components/admin/EnhancedRealtimeActivityLog';
 import { SystemHealthWidget } from '@/components/admin/SystemHealthWidget';
 import { DocumentsOverviewCard } from '@/components/admin/DocumentsOverviewCard';
 import { MessagesOverviewCard } from '@/components/admin/MessagesOverviewCard';
@@ -132,8 +132,8 @@ export default function AdminDashboard() {
           <StorageOverviewCard />
         </div>
 
-        {/* Real-time Activity Log - Full Width */}
-        <RealtimeActivityLog />
+        {/* Enhanced Real-time Activity Log with Advanced Filters - Full Width */}
+        <EnhancedRealtimeActivityLog />
       </div>
     </AdminLayout>
   );
