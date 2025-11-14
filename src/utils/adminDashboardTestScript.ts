@@ -264,7 +264,7 @@ export class AdminDashboardTester {
       createUser: await this.createTestAdminUser(),
       dashboardStats: await this.testDashboardStats(),
       notifications: await this.testNotificationSystem(),
-      realtimeBadges: await this.testRealtimeBadges(),
+      realtimeBadges: await this.testRealtimeBadges() as { success: boolean; alertsReceived?: number },
       activityLogging: await this.testActivityLogging(),
     };
 

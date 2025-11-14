@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { useTabNotifications } from '@/hooks/useTabNotifications';
 import { StorealiteLogo } from '@/components/ui/storealite-logo';
 interface SidebarProps {
-  userRole: 'architect' | 'builder' | 'homeowner' | 'contractor';
+  userRole: 'architect' | 'builder' | 'homeowner' | 'contractor' | 'system_admin';
   profile?: {
     company_logo_url?: string;
     company_name?: string;
