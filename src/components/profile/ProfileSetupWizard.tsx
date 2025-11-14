@@ -175,16 +175,39 @@ export const ProfileSetupWizard: React.FC<ProfileSetupWizardProps> = ({ onComple
       });
 
       toast({
-        title: "Profile created",
-        description: "Welcome! Your profile has been set up successfully."
+        title: "Profile complete!",
+        description: "Taking you to your dashboard..."
       });
 
       onComplete();
     } catch (error: any) {
       console.error('Profile setup error:', error);
+      
+      // User-friendly error messages
+      let errorTitle = "Could not complete profile";
+      let errorDescription = "Please check your information and try again.";
+      
+      if (error.name === 'ZodError') {
+        errorTitle = "Please check your information";
+        const fieldErrors = error.errors?.map((e: any) => e.path[0]).join(', ') || 'some fields';
+        errorDescription = `There are issues with: ${fieldErrors}. Please review and correct them.`;
+      } else if (error.message?.includes('company')) {
+        errorTitle = "Company information error";
+        errorDescription = "There was a problem saving your company details. Please try again.";
+      } else if (error.message?.includes('duplicate') || error.message?.includes('unique')) {
+        errorTitle = "Profile already exists";
+        errorDescription = "Your profile is already set up. Redirecting to dashboard...";
+        setTimeout(() => onComplete(), 2000);
+      } else if (error.message?.includes('network') || error.message?.includes('fetch')) {
+        errorTitle = "Connection problem";
+        errorDescription = "Please check your internet connection and try again.";
+      } else if (error.message) {
+        errorDescription = error.message;
+      }
+      
       toast({
-        title: "Error creating profile",
-        description: error.message,
+        title: errorTitle,
+        description: errorDescription,
         variant: "destructive"
       });
     } finally {

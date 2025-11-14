@@ -33,9 +33,9 @@ const ProfileSetup = () => {
         return;
       }
 
-      // If profile is already complete, redirect to projects
+      // If profile is already complete, redirect to dashboard
       if (profile && isProfileComplete(profile)) {
-        navigate('/projects', { replace: true });
+        navigate('/dashboard', { replace: true });
         return;
       }
     }
@@ -70,7 +70,8 @@ const ProfileSetup = () => {
       sessionStorage.removeItem('pendingInvitationUrl');
       navigate(pendingUrl, { replace: true });
     } else {
-      navigate('/projects', { replace: true });
+      // Redirect to dashboard as home page
+      navigate('/dashboard', { replace: true });
     }
   };
 
