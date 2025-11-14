@@ -69,7 +69,6 @@ export default function AdminDashboard() {
 
           {/* User Activity - New */}
           <UserActivityCard />
-          )}
 
           {/* Financial Dashboard - Takes 1 column */}
           {statsLoading ? (
@@ -99,7 +98,6 @@ export default function AdminDashboard() {
 
           {/* Storage Overview - New */}
           <StorageOverviewCard />
-          )}
         </div>
 
         {/* Real-time Activity Log - Full Width */}
