@@ -156,7 +156,7 @@ export const ProfileSetupWizard: React.FC<ProfileSetupWizardProps> = ({ onComple
           timeline: formData.timeline,
           insurance_details: formData.insurance_details,
           number_of_employees: formData.number_of_employees,
-        });
+        }, { onConflict: 'user_id' });
 
       if (profileError) throw profileError;
 
