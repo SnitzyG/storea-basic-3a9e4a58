@@ -62,14 +62,14 @@ export const Step1PersonalInfo: React.FC<Step1PersonalInfoProps> = ({
           type="tel"
           value={formData.phone || ''}
           onChange={(e) => onChange('phone', e.target.value)}
-          placeholder="+1 (555) 000-0000"
+          placeholder="0403190409 or +61403190409"
           className={errors.phone ? 'border-destructive' : ''}
         />
         {errors.phone && (
           <p className="text-sm text-destructive">{errors.phone}</p>
         )}
         <p className="text-xs text-muted-foreground">
-          Your primary contact number
+          Enter at least 10 digits (formatting will be removed)
         </p>
       </div>
 
