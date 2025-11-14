@@ -6,6 +6,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AppLayout } from "./components/layout/AppLayout.tsx";
+import { RequireCompleteProfile } from "./components/auth/RequireCompleteProfile.tsx";
 import Index from "./pages/Index.tsx";
 import Dashboard from "./pages/Dashboard.tsx";
 import Projects from "./pages/Projects.tsx";
@@ -18,6 +19,7 @@ import TenderResponse from "./pages/TenderResponse.tsx";
 import TenderReviewDemo from "./pages/TenderReviewDemo.tsx";
 import TenderBuilder from "./pages/TenderBuilder.tsx";
 import Auth from "./pages/Auth.tsx";
+import ProfileSetup from "./pages/ProfileSetup.tsx";
 import Testing from "./pages/Testing.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import AcceptInvitation from "./pages/AcceptInvitation.tsx";
@@ -82,22 +84,23 @@ createRoot(document.getElementById("root")!).render(
                     
                     {/* Auth pages */}
                     <Route path="/auth" element={<Auth />} />
+                    <Route path="/profile-setup" element={<ProfileSetup />} />
                     
-                    {/* App pages (authenticated) */}
-                    <Route path="/app" element={<AppLayout><Index /></AppLayout>} />
-                    <Route path="/dashboard" element={<AppLayout><Dashboard /></AppLayout>} />
-                    <Route path="/projects" element={<AppLayout><Projects /></AppLayout>} />
-                    <Route path="/documents" element={<AppLayout><Documents /></AppLayout>} />
-                    <Route path="/rfis" element={<AppLayout><RFIs /></AppLayout>} />
-                    <Route path="/messages" element={<AppLayout><Messages /></AppLayout>} />
-                    <Route path="/tenders" element={<AppLayout><Tenders /></AppLayout>} />
-                    <Route path="/tenders/:tenderId" element={<AppLayout><Tenders /></AppLayout>} />
-                    <Route path="/tenders/:tenderId/builder" element={<AppLayout><TenderBuilder /></AppLayout>} />
-                    <Route path="/calendar" element={<AppLayout><Calendar /></AppLayout>} />
-                    <Route path="/todo-list" element={<AppLayout><TodoList /></AppLayout>} />
-                    <Route path="/financials" element={<AppLayout><Financials /></AppLayout>} />
+                    {/* App pages (authenticated and profile complete) */}
+                    <Route path="/app" element={<RequireCompleteProfile><AppLayout><Index /></AppLayout></RequireCompleteProfile>} />
+                    <Route path="/dashboard" element={<RequireCompleteProfile><AppLayout><Dashboard /></AppLayout></RequireCompleteProfile>} />
+                    <Route path="/projects" element={<RequireCompleteProfile><AppLayout><Projects /></AppLayout></RequireCompleteProfile>} />
+                    <Route path="/documents" element={<RequireCompleteProfile><AppLayout><Documents /></AppLayout></RequireCompleteProfile>} />
+                    <Route path="/rfis" element={<RequireCompleteProfile><AppLayout><RFIs /></AppLayout></RequireCompleteProfile>} />
+                    <Route path="/messages" element={<RequireCompleteProfile><AppLayout><Messages /></AppLayout></RequireCompleteProfile>} />
+                    <Route path="/tenders" element={<RequireCompleteProfile><AppLayout><Tenders /></AppLayout></RequireCompleteProfile>} />
+                    <Route path="/tenders/:tenderId" element={<RequireCompleteProfile><AppLayout><Tenders /></AppLayout></RequireCompleteProfile>} />
+                    <Route path="/tenders/:tenderId/builder" element={<RequireCompleteProfile><AppLayout><TenderBuilder /></AppLayout></RequireCompleteProfile>} />
+                    <Route path="/calendar" element={<RequireCompleteProfile><AppLayout><Calendar /></AppLayout></RequireCompleteProfile>} />
+                    <Route path="/todo-list" element={<RequireCompleteProfile><AppLayout><TodoList /></AppLayout></RequireCompleteProfile>} />
+                    <Route path="/financials" element={<RequireCompleteProfile><AppLayout><Financials /></AppLayout></RequireCompleteProfile>} />
                     <Route path="/tender-review-demo" element={<TenderReviewDemo />} />
-                    <Route path="/testing" element={<AppLayout><Testing /></AppLayout>} />
+                    <Route path="/testing" element={<RequireCompleteProfile><AppLayout><Testing /></AppLayout></RequireCompleteProfile>} />
                     
                     {/* Invitation and join pages */}
                     <Route path="/accept-invitation" element={<AcceptInvitation />} />
