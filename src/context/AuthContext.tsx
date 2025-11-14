@@ -206,11 +206,43 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         return { error: { message: "Email not verified" } };
       }
 
-      // Activity logging will be enabled after migration is applied
-      toast({
-        title: "Welcome back!",
-        description: "Successfully signed in."
-      });
+      // Log successful login activity
+      if (data.user && data.session) {
+        setTimeout(async () => {
+          try {
+            await supabase.rpc('log_activity', {
+              p_user_id: data.user!.id,
+              p_entity_type: 'auth',
+              p_entity_id: data.user!.id,
+              p_action: 'login',
+              p_description: `User logged in: ${data.user!.email}`,
+              p_metadata: { email: data.user!.email },
+              p_user_agent: navigator.userAgent,
+              p_session_id: data.session!.access_token.substring(0, 36),
+            });
+
+            // Create user session record
+            await supabase.from('user_sessions').insert({
+              user_id: data.user!.id,
+              session_id: data.session!.access_token.substring(0, 36),
+              started_at: new Date().toISOString(),
+              is_active: true,
+              user_agent: navigator.userAgent,
+              device_info: {
+                platform: navigator.platform,
+                language: navigator.language,
+              },
+            });
+          } catch (err) {
+            console.error('Failed to log login activity:', err);
+          }
+        }, 0);
+
+        toast({
+          title: "Welcome back!",
+          description: "Successfully signed in."
+        });
+      }
 
       return { error: null };
     } catch (error) {
@@ -220,7 +252,34 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   };
 
   const signOut = async () => {
-    // Activity logging will be enabled after migration is applied
+    const currentUser = user;
+    const currentSession = session;
+
+    if (currentUser && currentSession) {
+      setTimeout(async () => {
+        try {
+          await supabase.rpc('log_activity', {
+            p_user_id: currentUser.id,
+            p_entity_type: 'auth',
+            p_entity_id: currentUser.id,
+            p_action: 'logout',
+            p_description: `User logged out: ${currentUser.email}`,
+            p_metadata: { email: currentUser.email },
+            p_session_id: currentSession.access_token.substring(0, 36),
+          });
+          await supabase.from('user_sessions').update({
+            ended_at: new Date().toISOString(),
+            is_active: false,
+          }).match({ 
+            session_id: currentSession.access_token.substring(0, 36),
+            is_active: true 
+          });
+        } catch (err) {
+          console.error('Failed to log logout:', err);
+        }
+      }, 0);
+    }
+
     try {
       const { error } = await supabase.auth.signOut();
       if (error) {
