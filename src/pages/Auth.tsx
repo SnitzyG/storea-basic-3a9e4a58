@@ -7,12 +7,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useSecureAuth } from '@/hooks/useSecureAuth';
+import { useAuth } from '@/hooks/useAuth';
 import { PasswordStrengthIndicator } from '@/components/security/PasswordStrengthIndicator';
 import { CaptchaChallenge } from '@/components/security/CaptchaChallenge';
 import { StorealiteLogo } from '@/components/ui/storealite-logo';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { usePageMeta } from '@/hooks/usePageMeta';
+import { isProfileComplete } from '@/utils/profileUtils';
 
 const Auth = () => {
   usePageMeta({
@@ -34,6 +36,7 @@ const Auth = () => {
     verifyCaptcha,
     resetSecurityState
   } = useSecureAuth();
+  const { profile } = useAuth();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
@@ -67,7 +70,7 @@ const Auth = () => {
     }
   }, [searchParams]);
   useEffect(() => {
-    if (user) {
+    if (user && !loading) {
       // Check for redirect_to parameter first
       const redirectTo = searchParams.get('redirect_to');
       if (redirectTo) {
@@ -78,21 +81,40 @@ const Auth = () => {
       // Check for pending invitation tokens
       const pendingToken = localStorage.getItem('pending_project_token') || sessionStorage.getItem('pending_invitation_token');
       if (pendingToken) {
-        // Clear the stored token
+        // Store for later use after profile setup
+        sessionStorage.setItem('pendingInvitationToken', pendingToken);
+        
+        // Determine the invitation URL
+        let invitationUrl = '';
+        if (pendingToken.startsWith('proj_')) {
+          invitationUrl = `/invite/${pendingToken}`;
+        } else {
+          invitationUrl = `/join/${pendingToken}`;
+        }
+        sessionStorage.setItem('pendingInvitationUrl', invitationUrl);
+        
+        // Clear the old tokens
         localStorage.removeItem('pending_project_token');
         sessionStorage.removeItem('pending_invitation_token');
+      }
 
-        // Navigate to the appropriate invitation handler
-        if (pendingToken.startsWith('proj_')) {
-          navigate(`/invite/${pendingToken}`);
-        } else {
-          navigate(`/join/${pendingToken}`);
-        }
+      // Check if profile is complete
+      if (!isProfileComplete(profile)) {
+        navigate('/profile-setup');
+        return;
+      }
+
+      // If there was a pending invitation and profile is complete, go there
+      const pendingUrl = sessionStorage.getItem('pendingInvitationUrl');
+      if (pendingUrl) {
+        sessionStorage.removeItem('pendingInvitationToken');
+        sessionStorage.removeItem('pendingInvitationUrl');
+        navigate(pendingUrl);
       } else {
         navigate('/projects');
       }
     }
-  }, [user, navigate, searchParams]);
+  }, [user, profile, loading, navigate, searchParams]);
   // Remove this since navigation is now handled in useEffect
   // This prevents double navigation
   const handleSignIn = async (e: React.FormEvent) => {

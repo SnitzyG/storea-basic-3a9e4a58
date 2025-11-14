@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -18,6 +19,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { ProjectFiltersPanel } from '@/components/projects-v2/ProjectFiltersPanel';
 import { BulkProjectActions } from '@/components/projects-v2/BulkProjectActions';
 import { ProjectTemplateManager } from '@/components/projects-v2/ProjectTemplateManager';
+import { isProfileComplete } from '@/utils/profileUtils';
 
 const ArchitecturalStageSelector = ({
   project,
@@ -130,8 +132,9 @@ const AdvancedProjects = () => {
     updateProjectCoordinates,
     setSearchQuery
   } = useAdvancedProjects();
-  const { profile } = useAuth();
+  const { profile, loading: authLoading } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [wizardOpen, setWizardOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState<AdvancedProject | null>(null);
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
@@ -152,9 +155,21 @@ const AdvancedProjects = () => {
   });
   const [savedFilters, setSavedFilters] = useState<Array<{ id: string; name: string; config: any }>>([]);
   
+  // Guard: Redirect to profile setup if profile is incomplete
+  useEffect(() => {
+    if (!authLoading && !isProfileComplete(profile)) {
+      navigate('/profile-setup');
+    }
+  }, [profile, authLoading, navigate]);
+  
   // CRITICAL: Only architects can create projects
   const isArchitect = profile?.role === 'architect';
   const canCreateProjects = isArchitect;
+
+  // Don't render if profile is incomplete (will redirect)
+  if (!authLoading && !isProfileComplete(profile)) {
+    return null;
+  }
 
   const statusColors = {
     active: 'bg-green-100 text-green-800',
