@@ -95,51 +95,51 @@ export const useMonitoringData = (timeRange: '1h' | '24h' | '7d' | '30d' = '24h'
 
       // Fetch issue groups
       const { data: issues } = await supabase
-        .from('issue_groups')
+        .from('issue_groups' as any)
         .select('*')
         .gte('last_seen', startTime)
         .order('last_seen', { ascending: false });
 
-      if (issues) setIssueGroups(issues as IssueGroup[]);
+      if (issues) setIssueGroups(issues as any as IssueGroup[]);
 
       // Fetch recent errors
       const { data: errors } = await supabase
-        .from('telemetry_errors')
+        .from('telemetry_errors' as any)
         .select('*')
         .gte('created_at', startTime)
-        .order('created_at', { ascending: false })
+        .order('created_at', { ascending: false})
         .limit(100);
 
-      if (errors) setRecentErrors(errors);
+      if (errors) setRecentErrors(errors as any as ErrorDetail[]);
 
       // Fetch performance metrics
       const { data: perf } = await supabase
-        .from('telemetry_performance')
+        .from('telemetry_performance' as any)
         .select('*')
         .gte('created_at', startTime)
         .order('created_at', { ascending: false })
         .limit(1000);
 
-      if (perf) setPerformance(perf);
+      if (perf) setPerformance(perf as any as PerformanceMetric[]);
 
       // Fetch active alerts
       const { data: activeAlerts } = await supabase
-        .from('alert_notifications')
+        .from('alert_notifications' as any)
         .select('*')
         .eq('acknowledged', false)
         .order('triggered_at', { ascending: false });
 
-      if (activeAlerts) setAlerts(activeAlerts);
+      if (activeAlerts) setAlerts(activeAlerts as any as AlertNotification[]);
 
       // Calculate summary
-      const openIssuesCount = issues?.filter(i => i.status === 'open').length || 0;
-      const uniqueUsers = new Set(errors?.map(e => e.user_affected).filter(Boolean)).size;
+      const openIssuesCount = issues?.filter((i: any) => i.status === 'open').length || 0;
+      const uniqueUsers = new Set(errors?.map((e: any) => e.user_affected).filter(Boolean)).size;
       const avgPerf = perf && perf.length > 0
-        ? perf.reduce((sum, p) => sum + p.duration_ms, 0) / perf.length
+        ? perf.reduce((sum: number, p: any) => sum + p.duration_ms, 0) / perf.length
         : 0;
 
       const totalSessions = 1000; // Would need session tracking
-      const errorSessions = new Set(errors?.map(e => e.user_affected)).size;
+      const errorSessions = new Set(errors?.map((e: any) => e.user_affected)).size;
       const crashFree = ((totalSessions - errorSessions) / totalSessions) * 100;
 
       setSummary({
@@ -168,17 +168,17 @@ export const useMonitoringData = (timeRange: '1h' | '24h' | '7d' | '30d' = '24h'
     // Setup realtime subscription
     const subscription = supabase
       .channel('monitoring')
-      .on('postgres_changes', {
+      .on('postgres_changes' as any, {
         event: '*',
         schema: 'public',
         table: 'telemetry_errors',
       }, fetchData)
-      .on('postgres_changes', {
+      .on('postgres_changes' as any, {
         event: '*',
         schema: 'public',
         table: 'issue_groups',
       }, fetchData)
-      .on('postgres_changes', {
+      .on('postgres_changes' as any, {
         event: '*',
         schema: 'public',
         table: 'alert_notifications',
@@ -193,7 +193,7 @@ export const useMonitoringData = (timeRange: '1h' | '24h' | '7d' | '30d' = '24h'
 
   const resolveIssue = async (issueId: string) => {
     await supabase
-      .from('issue_groups')
+      .from('issue_groups' as any)
       .update({
         status: 'resolved',
         resolved_at: new Date().toISOString(),
@@ -205,7 +205,7 @@ export const useMonitoringData = (timeRange: '1h' | '24h' | '7d' | '30d' = '24h'
 
   const acknowledgeAlert = async (alertId: string) => {
     await supabase
-      .from('alert_notifications')
+      .from('alert_notifications' as any)
       .update({
         acknowledged: true,
         acknowledged_at: new Date().toISOString(),

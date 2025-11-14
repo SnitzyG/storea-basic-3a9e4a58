@@ -173,7 +173,7 @@ class TelemetrySDK {
     try {
       // Insert error
       const { data: errorData, error: insertError } = await supabase
-        .from('telemetry_errors')
+        .from('telemetry_errors' as any)
         .insert({
           error_type: error.name,
           error_message: error.message,
@@ -200,9 +200,9 @@ class TelemetrySDK {
 
       // Insert breadcrumbs
       if (errorData && this.breadcrumbs.length > 0) {
-        await supabase.from('error_breadcrumbs').insert(
+        await supabase.from('error_breadcrumbs' as any).insert(
           this.breadcrumbs.map(bc => ({
-            error_id: errorData.id,
+            error_id: (errorData as any).id,
             category: bc.category,
             message: bc.message,
             data: bc.data || {},
@@ -212,7 +212,7 @@ class TelemetrySDK {
       }
 
       // Update or create issue group
-      await this.updateIssueGroup(fingerprint, error, errorData?.id);
+      await this.updateIssueGroup(fingerprint, error, (errorData as any)?.id);
 
       // Check alert rules
       await this.checkAlertRules();
@@ -224,29 +224,29 @@ class TelemetrySDK {
 
   private async updateIssueGroup(fingerprint: string, error: Error, errorId?: string) {
     const { data: existing } = await supabase
-      .from('issue_groups')
+      .from('issue_groups' as any)
       .select('*')
       .eq('fingerprint', fingerprint)
       .single();
 
     if (existing) {
       await supabase
-        .from('issue_groups')
+        .from('issue_groups' as any)
         .update({
           last_seen: new Date().toISOString(),
-          occurrence_count: existing.occurrence_count + 1,
+          occurrence_count: (existing as any).occurrence_count + 1,
         })
-        .eq('id', existing.id);
+        .eq('id', (existing as any).id);
 
       if (errorId) {
         await supabase
-          .from('telemetry_errors')
-          .update({ issue_group_id: existing.id })
+          .from('telemetry_errors' as any)
+          .update({ issue_group_id: (existing as any).id })
           .eq('id', errorId);
       }
     } else {
       const { data: newGroup } = await supabase
-        .from('issue_groups')
+        .from('issue_groups' as any)
         .insert({
           fingerprint,
           title: error.message,
@@ -260,8 +260,8 @@ class TelemetrySDK {
 
       if (newGroup && errorId) {
         await supabase
-          .from('telemetry_errors')
-          .update({ issue_group_id: newGroup.id })
+          .from('telemetry_errors' as any)
+          .update({ issue_group_id: (newGroup as any).id })
           .eq('id', errorId);
       }
     }
@@ -280,13 +280,13 @@ class TelemetrySDK {
     const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
     
     const { count } = await supabase
-      .from('telemetry_errors')
+      .from('telemetry_errors' as any)
       .select('*', { count: 'exact', head: true })
       .gte('created_at', fiveMinutesAgo);
 
     if (count && count > 10) {
       // Trigger alert
-      await supabase.from('alert_notifications').insert({
+      await supabase.from('alert_notifications' as any).insert({
         alert_rule_id: null,
         severity: 'high',
         title: 'High Error Rate Detected',
@@ -310,7 +310,7 @@ class TelemetrySDK {
 
   async captureEvent(eventName: string, properties: Record<string, any> = {}) {
     try {
-      await supabase.from('telemetry_events').insert({
+      await supabase.from('telemetry_events' as any).insert({
         event_type: 'custom',
         event_category: 'user_action',
         event_name: eventName,
@@ -327,7 +327,7 @@ class TelemetrySDK {
 
   async capturePerformance(metric: PerformanceMetric) {
     try {
-      await supabase.from('telemetry_performance').insert({
+      await supabase.from('telemetry_performance' as any).insert({
         metric_name: metric.metric_name,
         metric_type: 'timing',
         duration_ms: metric.metric_value,

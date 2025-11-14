@@ -26,12 +26,12 @@ export const BreadcrumbsViewer = ({ errorId }: BreadcrumbsViewerProps) => {
 
   const fetchBreadcrumbs = async () => {
     const { data } = await supabase
-      .from('error_breadcrumbs')
+      .from('error_breadcrumbs' as any)
       .select('*')
       .eq('error_id', errorId)
       .order('timestamp', { ascending: true });
 
-    if (data) setBreadcrumbs(data);
+    if (data) setBreadcrumbs(data as any as Breadcrumb[]);
   };
 
   const getIcon = (category: string) => {
