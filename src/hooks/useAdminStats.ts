@@ -197,9 +197,11 @@ export const useAdminStats = () => {
   };
 
   useEffect(() => {
+    if (!user) return;
+
     fetchStats();
 
-    // Set up real-time subscriptions
+    // Set up real-time subscriptions with proper error handling
     const channel = supabase
       .channel('admin-stats-changes')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'projects' }, fetchStats)
@@ -209,10 +211,18 @@ export const useAdminStats = () => {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'documents' }, fetchStats)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'project_budgets' }, fetchStats)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, fetchStats)
-      .subscribe();
+      .subscribe((status) => {
+        if (status === 'CHANNEL_ERROR') {
+          console.error('Admin stats channel error');
+        }
+      });
+
+    // Auto-refresh every 30 seconds as fallback
+    const interval = setInterval(fetchStats, 30 * 1000);
 
     return () => {
       supabase.removeChannel(channel);
+      clearInterval(interval);
     };
   }, [user]);
 

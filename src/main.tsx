@@ -29,7 +29,7 @@ import TodoList from "./pages/TodoList.tsx";
 
 // Admin pages
 import AdminAuth from "./pages/AdminAuth.tsx";
-import AdminIndex from "./pages/AdminIndex.tsx";
+
 import AdminDashboard from "./pages/admin/AdminDashboard.tsx";
 import UserManagement from "./pages/admin/UserManagement.tsx";
 import AuditLogs from "./pages/admin/AuditLogs.tsx";
@@ -107,7 +107,7 @@ createRoot(document.getElementById("root")!).render(
                     
                     {/* Admin pages */}
                     <Route path="/admin/login" element={<AdminAuth />} />
-                    <Route path="/admin" element={<AdminIndex />} />
+                    <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
                     <Route path="/admin/dashboard" element={<AdminDashboard />} />
                     <Route path="/admin/users" element={<UserManagement />} />
                     <Route path="/admin/activity" element={<SystemActivity />} />

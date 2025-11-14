@@ -14,7 +14,8 @@ import SystemAlerts from "./pages/admin/SystemAlerts";
 import AdminApprovals from "./pages/AdminApprovals";
 import AdminSettings from "./pages/AdminSettings";
 import AdminAuth from "./pages/AdminAuth";
-import AdminIndex from "./pages/AdminIndex";
+import { AdminLayout } from "./components/admin/AdminLayout";
+import SystemActivity from "./pages/admin/SystemActivity";
 import Dashboard from "./pages/Dashboard";
 import Projects from "./pages/Projects";
 import Documents from "./pages/Documents";
@@ -97,13 +98,14 @@ const App = () => (
             </AppLayout>
           } />
           <Route path="/admin/login" element={<AdminAuth />} />
-          <Route path="/admin" element={<AdminIndex />} />
-          <Route path="/admin/dashboard" element={<AdminDashboard />} />
-          <Route path="/admin/users" element={<UserManagement />} />
-          <Route path="/admin/logs" element={<AuditLogs />} />
-          <Route path="/admin/alerts" element={<SystemAlerts />} />
-          <Route path="/admin/approvals" element={<AdminApprovals />} />
-          <Route path="/admin/settings" element={<AdminSettings />} />
+          <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
+          <Route path="/admin/dashboard" element={<AdminLayout><AdminDashboard /></AdminLayout>} />
+          <Route path="/admin/users" element={<AdminLayout><UserManagement /></AdminLayout>} />
+          <Route path="/admin/logs" element={<AdminLayout><AuditLogs /></AdminLayout>} />
+          <Route path="/admin/alerts" element={<AdminLayout><SystemAlerts /></AdminLayout>} />
+          <Route path="/admin/activity" element={<AdminLayout><SystemActivity /></AdminLayout>} />
+          <Route path="/admin/approvals" element={<AdminLayout><AdminApprovals /></AdminLayout>} />
+          <Route path="/admin/settings" element={<AdminLayout><AdminSettings /></AdminLayout>} />
           <Route path="/tender/:tenderId" element={<TenderResponse />} />
           <Route path="/join-tender/:tenderId" element={<JoinTender />} />
           <Route path="/tenders/:tenderId" element={<Tenders />} />

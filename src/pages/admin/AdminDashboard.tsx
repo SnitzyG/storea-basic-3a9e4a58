@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { AdminLayout } from '@/components/admin/AdminLayout';
+import { AdminErrorBoundary } from '@/components/admin/AdminErrorBoundary';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -98,7 +98,7 @@ export default function AdminDashboard() {
   const criticalAlerts = alerts?.filter(a => !a.resolved_at) || [];
 
   return (
-    <AdminLayout>
+    <AdminErrorBoundary>
       <div className="space-y-6">
         <div>
           <h1 className="text-3xl font-bold">Admin Dashboard</h1>
@@ -260,6 +260,6 @@ export default function AdminDashboard() {
           </CardContent>
         </Card>
       </div>
-    </AdminLayout>
+    </AdminErrorBoundary>
   );
 }
