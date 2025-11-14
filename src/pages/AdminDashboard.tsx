@@ -11,6 +11,12 @@ import { DocumentsOverviewCard } from '@/components/admin/DocumentsOverviewCard'
 import { MessagesOverviewCard } from '@/components/admin/MessagesOverviewCard';
 import { UserActivityCard } from '@/components/admin/UserActivityCard';
 import { StorageOverviewCard } from '@/components/admin/StorageOverviewCard';
+import { CalendarOverviewCard } from '@/components/admin/CalendarOverviewCard';
+import { TasksOverviewCard } from '@/components/admin/TasksOverviewCard';
+import { DatabasePerformanceCard } from '@/components/admin/DatabasePerformanceCard';
+import { EdgeFunctionsCard } from '@/components/admin/EdgeFunctionsCard';
+import { SecurityOverviewCard } from '@/components/admin/SecurityOverviewCard';
+import { APIMonitoringCard } from '@/components/admin/APIMonitoringCard';
 import { useAdminStats } from '@/hooks/useAdminStats';
 import { useSystemHealth } from '@/hooks/useSystemHealth';
 import { useAdminAlerts } from '@/hooks/useAdminAlerts';
@@ -34,8 +40,16 @@ export default function AdminDashboard() {
         {/* Header Section */}
         <AdminHeader
           stats={stats ? {
-            projects: stats.projects,
-            team: stats.team,
+            projects: {
+              total: stats.projects.total,
+              on_track: stats.projects.onTrack,
+              at_risk: stats.projects.atRisk,
+              delayed: stats.projects.delayed,
+            },
+            team: {
+              total: stats.team.totalUsers,
+              online: stats.team.onlineUsers,
+            },
             financial: stats.financial,
           } : null}
           lastUpdate={lastUpdate}
@@ -95,6 +109,24 @@ export default function AdminDashboard() {
           ) : (
             <TenderRFIPipelineCard stats={stats?.tenders || null} />
           )}
+
+          {/* Calendar Overview */}
+          <CalendarOverviewCard />
+
+          {/* Tasks Overview */}
+          <TasksOverviewCard />
+
+          {/* Database Performance */}
+          <DatabasePerformanceCard />
+
+          {/* Edge Functions */}
+          <EdgeFunctionsCard />
+
+          {/* Security Overview */}
+          <SecurityOverviewCard />
+
+          {/* API Monitoring */}
+          <APIMonitoringCard />
 
           {/* Storage Overview - New */}
           <StorageOverviewCard />
