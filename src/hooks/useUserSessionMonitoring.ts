@@ -26,24 +26,12 @@ export const useUserSessionMonitoring = () => {
 
   const fetchStats = async () => {
     try {
-      // Get total users
+      setLoading(true);
+
+      // Get total users count
       const { count: totalUsers } = await supabase
         .from('profiles')
         .select('*', { count: 'exact', head: true });
-
-      // Get online users (active in last 5 minutes)
-      const fiveMinutesAgo = subMinutes(new Date(), 5).toISOString();
-      const { count: onlineUsers } = await supabase
-        .from('profiles')
-        .select('*', { count: 'exact', head: true })
-        .eq('online_status', true)
-        .gte('last_seen', fiveMinutesAgo);
-
-      // Get active sessions
-      const { count: activeSessions } = await supabase
-        .from('user_sessions')
-        .select('*', { count: 'exact', head: true })
-        .is('ended_at', null);
 
       // Get pending approvals
       const { count: pendingApprovals } = await supabase
@@ -51,27 +39,43 @@ export const useUserSessionMonitoring = () => {
         .select('*', { count: 'exact', head: true })
         .eq('approved', false);
 
+      // Get active sessions (users who logged in within last 15 minutes)
+      const fifteenMinutesAgo = subMinutes(new Date(), 15).toISOString();
+      const { count: activeSessions } = await supabase
+        .from('user_sessions')
+        .select('*', { count: 'exact', head: true })
+        .is('ended_at', null)
+        .gte('started_at', fifteenMinutesAgo);
+
+      // Get online users (users active in last 5 minutes)
+      const fiveMinutesAgo = subMinutes(new Date(), 5).toISOString();
+      const { count: onlineUsers } = await supabase
+        .from('profiles')
+        .select('*', { count: 'exact', head: true })
+        .gte('last_seen', fiveMinutesAgo);
+
       // Get users by role
       const { data: roleData } = await supabase
         .from('profiles')
         .select('role');
-      
-      const usersByRole = roleData?.reduce((acc: { role: string; count: number }[], user) => {
-        const existing = acc.find(r => r.role === user.role);
+
+      const usersByRole = roleData?.reduce((acc: { role: string; count: number }[], profile) => {
+        const role = profile.role || 'unknown';
+        const existing = acc.find(r => r.role === role);
         if (existing) {
           existing.count++;
         } else {
-          acc.push({ role: user.role, count: 1 });
+          acc.push({ role, count: 1 });
         }
         return acc;
       }, []) || [];
 
-      // Get recent logins (from activity_log)
+      // Get recent logins (last 10)
       const { data: recentLogins } = await supabase
         .from('activity_log')
         .select(`
           *,
-          user:profiles!activity_log_user_id_fkey(name, email, avatar_url)
+          user:profiles!activity_log_user_id_fkey(name, email)
         `)
         .eq('action', 'login')
         .order('created_at', { ascending: false })
@@ -95,7 +99,7 @@ export const useUserSessionMonitoring = () => {
         failedLoginAttempts: failedLoginAttempts || 0,
       });
     } catch (error) {
-      console.error('Error fetching user session stats:', error);
+      console.error('Error fetching user session monitoring stats:', error);
     } finally {
       setLoading(false);
     }
@@ -121,7 +125,7 @@ export const useUserSessionMonitoring = () => {
       .on(
         'postgres_changes',
         {
-          event: 'UPDATE',
+          event: '*',
           schema: 'public',
           table: 'profiles',
         },
