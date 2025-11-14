@@ -26,15 +26,15 @@ export const IssueDetailsDialog = ({ issue, open, onClose }: IssueDetailsDialogP
 
   const fetchErrors = async () => {
     const { data } = await supabase
-      .from('telemetry_errors')
+      .from('telemetry_errors' as any)
       .select('*')
       .eq('issue_group_id', issue.id)
       .order('created_at', { ascending: false })
       .limit(20);
 
     if (data) {
-      setErrors(data);
-      if (data.length > 0) setSelectedError(data[0]);
+      setErrors(data as any as ErrorDetail[]);
+      if (data.length > 0) setSelectedError(data[0] as any as ErrorDetail);
     }
   };
 
