@@ -110,6 +110,7 @@ createRoot(document.getElementById("root")!).render(
                     <Route path="/admin" element={<AdminIndex />} />
                     <Route path="/admin/dashboard" element={<AdminDashboard />} />
                     <Route path="/admin/users" element={<UserManagement />} />
+                    <Route path="/admin/activity" element={<SystemActivity />} />
                     <Route path="/admin/logs" element={<AuditLogs />} />
                     <Route path="/admin/alerts" element={<SystemAlerts />} />
                     <Route path="/admin/approvals" element={<AdminApprovals />} />
