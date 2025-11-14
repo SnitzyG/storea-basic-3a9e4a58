@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { subHours } from 'date-fns';
 
 interface DatabaseMonitoring {
   avgQueryResponseTime: number;
@@ -23,18 +24,45 @@ export const useDatabaseMonitoring = () => {
       
       const responseTime = Date.now() - startTime;
 
-      // Determine status based on response time
+      // Get slow queries from activity_log (queries taking > 1 second)
+      const oneHourAgo = subHours(new Date(), 1).toISOString();
+      const { count: slowQueries } = await supabase
+        .from('activity_log')
+        .select('*', { count: 'exact', head: true })
+        .gte('created_at', oneHourAgo)
+        .neq('metadata->>response_time', null);
+
+      // Get recent errors from activity_log
+      const { data: recentErrors } = await supabase
+        .from('activity_log')
+        .select('*')
+        .eq('action', 'error')
+        .gte('created_at', oneHourAgo)
+        .order('created_at', { ascending: false })
+        .limit(10);
+
+      // Calculate error rate
+      const { count: totalActivities } = await supabase
+        .from('activity_log')
+        .select('*', { count: 'exact', head: true })
+        .gte('created_at', oneHourAgo);
+
+      const errorRate = totalActivities && recentErrors 
+        ? (recentErrors.length / totalActivities) * 100 
+        : 0;
+
+      // Determine status based on response time and error rate
       let status: 'healthy' | 'degraded' | 'down' = 'healthy';
-      if (responseTime > 2000) status = 'down';
-      else if (responseTime > 1000) status = 'degraded';
+      if (responseTime > 2000 || errorRate > 10) status = 'down';
+      else if (responseTime > 1000 || errorRate > 5) status = 'degraded';
 
       setStats({
         avgQueryResponseTime: responseTime,
-        slowQueries: 0, // Would need analytics/logs to track
+        slowQueries: slowQueries || 0,
         activeConnections: 0, // Would need pg_stat_activity access
-        errorRate: 0, // Would need error logging
+        errorRate: Math.round(errorRate * 100) / 100,
         status,
-        recentErrors: [],
+        recentErrors: recentErrors || [],
       });
     } catch (error) {
       console.error('Error fetching database monitoring stats:', error);

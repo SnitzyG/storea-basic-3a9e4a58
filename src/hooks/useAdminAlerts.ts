@@ -155,10 +155,29 @@ export const useAdminAlerts = () => {
   useEffect(() => {
     generateAlerts();
 
+    // Set up real-time subscription for admin alerts
+    const channel = supabase
+      .channel('admin-alerts-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'admin_alerts',
+        },
+        () => {
+          generateAlerts();
+        }
+      )
+      .subscribe();
+
     // Refresh alerts every 5 minutes
     const interval = setInterval(generateAlerts, 5 * 60 * 1000);
 
-    return () => clearInterval(interval);
+    return () => {
+      supabase.removeChannel(channel);
+      clearInterval(interval);
+    };
   }, [user]);
 
   return { alerts, loading, dismissAlert, refetch: generateAlerts };
