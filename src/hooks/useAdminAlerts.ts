@@ -153,9 +153,11 @@ export const useAdminAlerts = () => {
   };
 
   useEffect(() => {
+    if (!user) return;
+
     generateAlerts();
 
-    // Set up real-time subscription for admin alerts
+    // Set up real-time subscription for admin alerts with error handling
     const channel = supabase
       .channel('admin-alerts-changes')
       .on(
@@ -169,7 +171,11 @@ export const useAdminAlerts = () => {
           generateAlerts();
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        if (status === 'CHANNEL_ERROR') {
+          console.error('Admin alerts channel error');
+        }
+      });
 
     // Refresh alerts every 5 minutes
     const interval = setInterval(generateAlerts, 5 * 60 * 1000);

@@ -66,14 +66,6 @@ export default function AdminAuth() {
         description: 'Successfully logged in to admin dashboard'
       });
       navigate('/admin/dashboard');
-      return;
-
-      // Success - navigate to admin dashboard
-      toast({
-        title: 'Welcome Admin',
-        description: 'Successfully logged in to admin dashboard'
-      });
-      navigate('/admin/dashboard');
     } catch (error: any) {
       console.error('Admin login error:', error);
       toast({
