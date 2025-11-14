@@ -33,6 +33,7 @@ import AdminIndex from "./pages/AdminIndex.tsx";
 import AdminDashboard from "./pages/admin/AdminDashboard.tsx";
 import UserManagement from "./pages/admin/UserManagement.tsx";
 import AuditLogs from "./pages/admin/AuditLogs.tsx";
+import SystemActivity from "./pages/admin/SystemActivity.tsx";
 import SystemAlerts from "./pages/admin/SystemAlerts.tsx";
 import AdminApprovals from "./pages/AdminApprovals.tsx";
 import AdminSettings from "./pages/AdminSettings.tsx";

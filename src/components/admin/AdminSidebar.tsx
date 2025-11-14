@@ -44,7 +44,8 @@ export function AdminSidebar() {
       items: [
         { title: 'Dashboard', url: '/admin/dashboard', icon: LayoutDashboard },
         { title: 'User Management', url: '/admin/users', icon: Users },
-        { title: 'Audit Logs', url: '/admin/logs', icon: Activity },
+        { title: 'System Activity', url: '/admin/activity', icon: Activity },
+        { title: 'Audit Logs', url: '/admin/logs', icon: FileText },
         { title: 'System Alerts', url: '/admin/alerts', icon: Monitor },
       ],
     },

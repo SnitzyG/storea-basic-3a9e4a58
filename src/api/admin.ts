@@ -6,6 +6,40 @@ type AdminAlert = any;
 type SystemMetric = any;
 type UserSession = any;
 
+// GET SYSTEM ACTIVITY WITH FILTERS
+export async function getSystemActivity(filters?: {
+  userId?: string;
+  entityType?: string;
+  action?: string;
+  projectId?: string;
+  dateFrom?: Date;
+  dateTo?: Date;
+}) {
+  let query = (supabase as any)
+    .from('activity_log')
+    .select(`
+      *,
+      user:profiles!activity_log_user_id_fkey (
+        name,
+        user_id
+      )
+    `);
+
+  if (filters?.userId) query = query.eq('user_id', filters.userId);
+  if (filters?.entityType) query = query.eq('entity_type', filters.entityType);
+  if (filters?.action) query = query.eq('action', filters.action);
+  if (filters?.projectId) query = query.eq('project_id', filters.projectId);
+  if (filters?.dateFrom) query = query.gte('created_at', filters.dateFrom.toISOString());
+  if (filters?.dateTo) query = query.lte('created_at', filters.dateTo.toISOString());
+
+  const { data, error } = await query
+    .order('created_at', { ascending: false })
+    .limit(100);
+
+  if (error) throw new Error(error.message);
+  return data || [];
+}
+
 
 // GET AUDIT LOGS WITH REAL DATA
 export async function getAuditLogs(filters?: {
