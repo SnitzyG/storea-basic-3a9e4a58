@@ -28,15 +28,8 @@ serve(async (req) => {
     const { password }: WipeRequest = await req.json()
 
     // Verify password from environment variable
-    const correctPassword = Deno.env.get('WIPE_PASSWORD')
-    if (!correctPassword) {
-      return new Response(
-        JSON.stringify({ error: 'Wipe password not configured' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
-    }
-    
-    if (password !== correctPassword) {
+    const expectedPassword = Deno.env.get('WIPE_PASSWORD')
+    if (!expectedPassword || password !== expectedPassword) {
       return new Response(
         JSON.stringify({ error: 'Invalid password' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -64,29 +57,35 @@ serve(async (req) => {
     
     const adminUserIds = adminRoles?.map(r => r.user_id) || []
     console.log(`Found ${adminUserIds.length} admin users to preserve`)
-    
-    // Step 0.5: Get all auth users (paginated)
-    let allAuthUsers: any[] = []
-    let page = 0
+
+    // Get all auth users (paginated if necessary)
+    const allAuthUsers: string[] = []
+    let page = 1
     const perPage = 1000
     let hasMore = true
     
     while (hasMore) {
-      const { data: usersPage } = await supabase.auth.admin.listUsers({ page, perPage })
-      if (usersPage && usersPage.users.length > 0) {
-        allAuthUsers = allAuthUsers.concat(usersPage.users)
+      const { data, error } = await supabase.auth.admin.listUsers({
+        page,
+        perPage
+      })
+      
+      if (error) {
+        console.error('Error fetching users:', error)
+        break
+      }
+      
+      if (data?.users) {
+        allAuthUsers.push(...data.users.map(u => u.id))
+        hasMore = data.users.length === perPage
         page++
-        hasMore = usersPage.users.length === perPage
       } else {
         hasMore = false
       }
     }
     
-    // Compute non-admin user IDs for targeted deletion
-    const nonAdminUserIds = allAuthUsers
-      .filter(user => !adminUserIds.includes(user.id))
-      .map(user => user.id)
-    
+    // Calculate non-admin user IDs
+    const nonAdminUserIds = allAuthUsers.filter(id => !adminUserIds.includes(id))
     console.log(`Total users: ${allAuthUsers.length}, Non-admin users to delete: ${nonAdminUserIds.length}`)
 
     // Step 1: Unlock all documents to avoid foreign key issues
@@ -118,7 +117,6 @@ serve(async (req) => {
       'line_item_budgets',
       'progress_claims',
       'payments',
-      'invoices',
       'client_contributions',
       'change_orders',
       'cashflow_items',
@@ -166,18 +164,20 @@ serve(async (req) => {
       'calendar_events',
       
       // Todos
-      'todo_items',
+      'todos',
       
       // Activity and notifications (clear before deleting users)
       'activity_log',
       'notifications',
       
-      // Admin tracking
+      // Admin and monitoring tables
+      'user_sessions',
       'admin_activity_log',
+      'admin_alerts',
       
-      // Project related
-      'project_pending_invitations',
+      // Project related (do these after activity_log)
       'project_join_requests',
+      'project_pending_invitations',
       'project_users',
       'invitations',
     ]
@@ -197,7 +197,7 @@ serve(async (req) => {
     const { error: projectsError } = await supabase.from('projects').delete().not('id', 'is', null)
     if (projectsError) console.error('Error clearing projects:', projectsError)
 
-    // Step 5: Clear non-admin profiles using IN filter (avoids UUID quoting issues)
+    // Step 5: Clear non-admin profiles using IN filter
     console.log('Clearing non-admin profiles...')
     if (nonAdminUserIds.length > 0) {
       const { error: profilesError } = await supabase
@@ -206,7 +206,7 @@ serve(async (req) => {
         .in('user_id', nonAdminUserIds)
       if (profilesError) console.error('Error clearing profiles:', profilesError)
     } else {
-      console.log('No non-admin profiles to clear')
+      console.log('No non-admin profiles to delete')
     }
 
     // Step 6: Clear companies (after profiles)
@@ -216,44 +216,43 @@ serve(async (req) => {
 
     // Step 7: Recursively clear storage buckets
     const buckets = ['documents', 'avatars', 'company-logos']
-    
-    async function clearBucket(bucketName: string, prefix = '') {
+    for (const bucket of buckets) {
       try {
-        const { data: files } = await supabase.storage.from(bucketName).list(prefix)
-        if (!files || files.length === 0) return
-        
-        const filesToDelete: string[] = []
-        const foldersToRecurse: string[] = []
-        
-        for (const file of files) {
-          const fullPath = prefix ? `${prefix}/${file.name}` : file.name
-          if (file.id === null) {
-            // It's a folder
-            foldersToRecurse.push(fullPath)
-          } else {
-            // It's a file
-            filesToDelete.push(fullPath)
+        // Recursive function to delete all files and folders
+        async function clearFolder(path: string = '') {
+          const { data: items } = await supabase.storage.from(bucket).list(path)
+          if (!items || items.length === 0) return
+
+          const filesToDelete: string[] = []
+          const foldersToRecurse: string[] = []
+
+          for (const item of items) {
+            const itemPath = path ? `${path}/${item.name}` : item.name
+            if (item.id === null) {
+              // It's a folder
+              foldersToRecurse.push(itemPath)
+            } else {
+              // It's a file
+              filesToDelete.push(itemPath)
+            }
+          }
+
+          // Delete files in current folder
+          if (filesToDelete.length > 0) {
+            await supabase.storage.from(bucket).remove(filesToDelete)
+          }
+
+          // Recurse into subfolders
+          for (const folder of foldersToRecurse) {
+            await clearFolder(folder)
           }
         }
-        
-        // Delete files
-        if (filesToDelete.length > 0) {
-          await supabase.storage.from(bucketName).remove(filesToDelete)
-        }
-        
-        // Recurse into folders
-        for (const folder of foldersToRecurse) {
-          await clearBucket(bucketName, folder)
-        }
+
+        await clearFolder()
+        console.log(`Recursively cleared storage bucket: ${bucket}`)
       } catch (err) {
-        console.error(`Error clearing ${bucketName}/${prefix}:`, err)
+        console.error(`Error clearing bucket ${bucket}:`, err)
       }
-    }
-    
-    for (const bucket of buckets) {
-      console.log(`Clearing storage bucket: ${bucket}`)
-      await clearBucket(bucket)
-      console.log(`Completed clearing bucket: ${bucket}`)
     }
 
     // Step 8: Delete all non-admin auth users with fallback
@@ -261,36 +260,35 @@ serve(async (req) => {
     let disabledCount = 0
     let preservedCount = adminUserIds.length
     
-    console.log(`Attempting to delete ${nonAdminUserIds.length} non-admin auth users...`)
-    
     for (const userId of nonAdminUserIds) {
-      const user = allAuthUsers.find(u => u.id === userId)
       try {
-        // Try to delete the user
         const { error } = await supabase.auth.admin.deleteUser(userId)
-        
         if (error) {
-          // If deletion fails with 500, try to disable by rotating password
-          if (error.message?.includes('500') || error.message?.includes('unexpected_failure')) {
-            console.log(`Delete failed for ${user?.email}, rotating password to disable...`)
-            const randomPassword = crypto.randomUUID() + crypto.randomUUID() + '!A1a'
-            const { error: updateError } = await supabase.auth.admin.updateUserById(userId, {
-              password: randomPassword
-            })
-            if (updateError) {
-              console.error(`Failed to disable user ${user?.email}:`, updateError)
-            } else {
+          // If deletion fails with 500, try disabling the account by rotating password
+          if (error.message?.includes('500') || error.message?.includes('unexpected')) {
+            console.log(`Failed to delete user ${userId}, attempting to disable via password rotation`)
+            try {
+              // Generate a strong random password to block sign-in
+              const randomPassword = Array.from(crypto.getRandomValues(new Uint8Array(32)))
+                .map(b => b.toString(16).padStart(2, '0'))
+                .join('')
+              
+              await supabase.auth.admin.updateUserById(userId, {
+                password: randomPassword
+              })
               disabledCount++
-              console.log(`Disabled user ${user?.email} via password rotation`)
+              console.log(`Disabled user ${userId} by rotating password`)
+            } catch (disableErr) {
+              console.error(`Failed to disable user ${userId}:`, disableErr)
             }
           } else {
-            console.error(`Error deleting user ${user?.email}:`, error)
+            console.error(`Error deleting user ${userId}:`, error)
           }
         } else {
           deletedCount++
         }
       } catch (err) {
-        console.error(`Exception deleting user ${user?.email}:`, err)
+        console.error(`Error processing user ${userId}:`, err)
       }
     }
     
@@ -307,7 +305,7 @@ serve(async (req) => {
           deletedUsers: deletedCount,
           disabledUsers: disabledCount,
           preservedAdmins: preservedCount,
-          totalNonAdminUsers: nonAdminUserIds.length
+          totalProcessed: deletedCount + disabledCount + preservedCount
         }
       }),
       { 
