@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useGlobalRealtime } from "@/hooks/useGlobalRealtime";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AppLayout } from "@/components/layout/AppLayout";
+import { RequireCompleteProfile } from "@/components/auth/RequireCompleteProfile";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import AdminDashboard from "./pages/admin/AdminDashboard";
@@ -56,16 +57,20 @@ const App = () => (
             </AppLayout>
           } />
           <Route path="/dashboard" element={
-            <AppLayout>
-              <Dashboard />
-            </AppLayout>
+            <RequireCompleteProfile>
+              <AppLayout>
+                <Dashboard />
+              </AppLayout>
+            </RequireCompleteProfile>
           } />
           <Route path="/auth" element={<Auth />} />
           <Route path="/profile-setup" element={<ProfileSetup />} />
           <Route path="/projects" element={
-            <AppLayout>
-              <Projects />
-            </AppLayout>
+            <RequireCompleteProfile>
+              <AppLayout>
+                <Projects />
+              </AppLayout>
+            </RequireCompleteProfile>
           } />
           <Route path="/tenders" element={
             <AppLayout>

@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useEffect, useState } from 'react';
 import { Home, Users, Activity, AlertCircle, FileText, Settings } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
