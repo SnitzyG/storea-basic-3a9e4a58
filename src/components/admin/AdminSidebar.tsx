@@ -27,6 +27,7 @@ import {
   Settings,
   Palette,
   Activity,
+  Monitor,
 } from 'lucide-react';
 
 export function AdminSidebar() {
@@ -42,6 +43,7 @@ export function AdminSidebar() {
       label: 'Overview',
       items: [
         { title: 'Dashboard', url: '/admin/dashboard', icon: LayoutDashboard },
+        { title: 'Monitoring', url: '/admin/monitoring', icon: Monitor },
         { title: 'Telemetry', url: '/admin/telemetry', icon: Activity },
       ],
     },
