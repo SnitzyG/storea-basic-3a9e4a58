@@ -83,17 +83,11 @@ export default function Financials() {
 
   const renderFinancialTabs = (viewRole: string, userId: string | null) => (
     <Tabs defaultValue="budgets">
-      <TabsList className={cn("grid w-full", isClientView ? "grid-cols-2" : "grid-cols-5")}>
+      <TabsList className={cn("grid w-full", isClientView ? "grid-cols-2" : "grid-cols-4")}>
         <TabsTrigger value="budgets" className="flex items-center gap-2">
           <DollarSign className="h-4 w-4" />
           Budgets
         </TabsTrigger>
-        {!isClientView && (
-          <TabsTrigger value="commitments" className="flex items-center gap-2">
-            <FileText className="h-4 w-4" />
-            Commitments
-          </TabsTrigger>
-        )}
         {!isClientView && (
           <TabsTrigger value="claims" className="flex items-center gap-2">
             <Receipt className="h-4 w-4" />
@@ -136,67 +130,6 @@ export default function Financials() {
         </Tabs>
       </TabsContent>
 
-      {/* Commitments Section */}
-      {!isClientView && (
-        <TabsContent value="commitments">
-          <Tabs defaultValue="subcontracts">
-            <TabsList className="grid w-full grid-cols-4">
-              <TabsTrigger value="subcontracts">Subcontracts</TabsTrigger>
-              <TabsTrigger value="purchase-orders">Purchase Orders</TabsTrigger>
-              <TabsTrigger value="creditor-invoices">Creditor Invoices</TabsTrigger>
-              <TabsTrigger value="committed-costs">Committed Costs</TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="subcontracts">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Subcontracts</CardTitle>
-                  <CardDescription>Manage subcontractor agreements and commitments</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground">Subcontract management coming soon.</p>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="purchase-orders">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Purchase Orders</CardTitle>
-                  <CardDescription>Track material and equipment purchase orders</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground">Purchase order tracking coming soon.</p>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="creditor-invoices">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Creditor Invoices</CardTitle>
-                  <CardDescription>Manage invoices from suppliers and subcontractors</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground">Creditor invoice management coming soon.</p>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="committed-costs">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Committed Costs</CardTitle>
-                  <CardDescription>Overview of all committed project costs</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground">Committed costs summary coming soon.</p>
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
-        </TabsContent>
-      )}
 
       {/* Claims & Variations Section */}
       {!isClientView && (
