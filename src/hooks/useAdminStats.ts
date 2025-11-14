@@ -39,7 +39,11 @@ export interface AdminStats {
     approvalsWaiting: number;
   };
   tenders: {
-    totalOpen: number;
+    total: number;
+    draft: number;
+    open: number;
+    awarded: number;
+    closed: number;
     dueThisWeek: number;
     rfisWaitingResponse: number;
     rfisPendingClient: number;
@@ -121,11 +125,24 @@ export const useAdminStats = () => {
       // Approvals waiting - simplified
       const approvalsWaiting = pendingApprovals;
 
-      // Process tenders
+      // Process tenders & RFIs
       const tenders = tendersData.data || [];
-      const totalOpen = tenders.filter(t => t.status === 'open').length;
-      const weekFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
-      const dueThisWeek = 0; // Tenders don't have due_date field
+      
+      // Count tenders by status
+      const tendersByStatus = {
+        draft: tenders.filter(t => t.status === 'draft').length,
+        open: tenders.filter(t => t.status === 'open').length,
+        awarded: tenders.filter(t => t.status === 'awarded').length,
+        closed: tenders.filter(t => t.status === 'closed').length,
+      };
+      const totalTenders = tenders.length;
+      
+      const dueThisWeek = tenders.filter(t => {
+        if (!t.submission_deadline_time) return false;
+        const daysUntilDue = Math.floor((new Date(t.submission_deadline_time).getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+        return daysUntilDue <= 7 && daysUntilDue >= 0;
+      }).length;
+      
       const rfisWaitingResponse = rfis.filter(r => r.status === 'outstanding' || r.status === 'sent').length;
       const rfisPendingClient = rfis.filter(r => r.status === 'received' || r.status === 'answered').length;
 
@@ -160,7 +177,11 @@ export const useAdminStats = () => {
           approvalsWaiting,
         },
         tenders: {
-          totalOpen,
+          total: totalTenders,
+          draft: tendersByStatus.draft,
+          open: tendersByStatus.open,
+          awarded: tendersByStatus.awarded,
+          closed: tendersByStatus.closed,
           dueThisWeek,
           rfisWaitingResponse,
           rfisPendingClient,

@@ -9,7 +9,11 @@ import { formatDistanceToNow } from 'date-fns';
 
 interface TenderRFIPipelineCardProps {
   stats: {
-    totalOpen: number;
+    total: number;
+    draft: number;
+    open: number;
+    awarded: number;
+    closed: number;
     dueThisWeek: number;
     rfisWaitingResponse: number;
     rfisPendingClient: number;
@@ -59,24 +63,48 @@ export const TenderRFIPipelineCard = ({ stats }: TenderRFIPipelineCardProps) => 
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
-        {/* Quick Stats */}
+        {/* Tender Status Breakdown */}
         {stats && (
-          <div className="grid grid-cols-2 gap-3">
-            <div className="p-3 rounded-lg bg-green-500/10 text-center">
-              <div className="text-2xl font-bold text-green-600">{stats.totalOpen}</div>
-              <div className="text-xs text-muted-foreground">Open Tenders</div>
+          <div className="space-y-3">
+            <div className="grid grid-cols-4 gap-2">
+              <div className="p-2 rounded-lg bg-yellow-500/10 text-center">
+                <div className="text-xl font-bold text-yellow-600">{stats.draft}</div>
+                <div className="text-xs text-muted-foreground">Draft</div>
+              </div>
+              <div className="p-2 rounded-lg bg-green-500/10 text-center">
+                <div className="text-xl font-bold text-green-600">{stats.open}</div>
+                <div className="text-xs text-muted-foreground">Open</div>
+              </div>
+              <div className="p-2 rounded-lg bg-blue-500/10 text-center">
+                <div className="text-xl font-bold text-blue-600">{stats.awarded}</div>
+                <div className="text-xs text-muted-foreground">Awarded</div>
+              </div>
+              <div className="p-2 rounded-lg bg-gray-500/10 text-center">
+                <div className="text-xl font-bold text-gray-600">{stats.closed}</div>
+                <div className="text-xs text-muted-foreground">Closed</div>
+              </div>
             </div>
-            <div className="p-3 rounded-lg bg-orange-500/10 text-center">
-              <div className="text-2xl font-bold text-orange-600">{stats.dueThisWeek}</div>
-              <div className="text-xs text-muted-foreground">Due This Week</div>
+            
+            <div className="grid grid-cols-2 gap-3">
+              <div className="p-3 rounded-lg bg-orange-500/10 text-center">
+                <div className="text-2xl font-bold text-orange-600">{stats.dueThisWeek}</div>
+                <div className="text-xs text-muted-foreground">Due This Week</div>
+              </div>
+              <div className="p-3 rounded-lg bg-purple-500/10 text-center">
+                <div className="text-2xl font-bold text-purple-600">{stats.total}</div>
+                <div className="text-xs text-muted-foreground">Total Tenders</div>
+              </div>
             </div>
-            <div className="p-3 rounded-lg bg-blue-500/10 text-center">
-              <div className="text-2xl font-bold text-blue-600">{stats.rfisWaitingResponse}</div>
-              <div className="text-xs text-muted-foreground">RFIs Waiting</div>
-            </div>
-            <div className="p-3 rounded-lg bg-purple-500/10 text-center">
-              <div className="text-2xl font-bold text-purple-600">{stats.rfisPendingClient}</div>
-              <div className="text-xs text-muted-foreground">Pending Client</div>
+            
+            <div className="grid grid-cols-2 gap-3">
+              <div className="p-3 rounded-lg bg-blue-500/10 text-center">
+                <div className="text-2xl font-bold text-blue-600">{stats.rfisWaitingResponse}</div>
+                <div className="text-xs text-muted-foreground">RFIs Waiting</div>
+              </div>
+              <div className="p-3 rounded-lg bg-indigo-500/10 text-center">
+                <div className="text-2xl font-bold text-indigo-600">{stats.rfisPendingClient}</div>
+                <div className="text-xs text-muted-foreground">Pending Client</div>
+              </div>
             </div>
           </div>
         )}
