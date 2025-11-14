@@ -7,14 +7,14 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AppLayout } from "@/components/layout/AppLayout";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
-import AdminDashboard from "./pages/AdminDashboard";
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import UserManagement from "./pages/admin/UserManagement";
+import AuditLogs from "./pages/admin/AuditLogs";
+import SystemAlerts from "./pages/admin/SystemAlerts";
 import AdminApprovals from "./pages/AdminApprovals";
-import AdminEmails from "./pages/AdminEmails";
 import AdminSettings from "./pages/AdminSettings";
 import AdminAuth from "./pages/AdminAuth";
 import AdminIndex from "./pages/AdminIndex";
-import AdminTelemetry from "./pages/AdminTelemetry";
-import AdminMonitoring from "./pages/AdminMonitoring";
 import Dashboard from "./pages/Dashboard";
 import Projects from "./pages/Projects";
 import Documents from "./pages/Documents";
@@ -99,10 +99,10 @@ const App = () => (
           <Route path="/admin/login" element={<AdminAuth />} />
           <Route path="/admin" element={<AdminIndex />} />
           <Route path="/admin/dashboard" element={<AdminDashboard />} />
-          <Route path="/admin/telemetry" element={<AdminTelemetry />} />
-          <Route path="/admin/monitoring" element={<AdminMonitoring />} />
+          <Route path="/admin/users" element={<UserManagement />} />
+          <Route path="/admin/logs" element={<AuditLogs />} />
+          <Route path="/admin/alerts" element={<SystemAlerts />} />
           <Route path="/admin/approvals" element={<AdminApprovals />} />
-          <Route path="/admin/emails" element={<AdminEmails />} />
           <Route path="/admin/settings" element={<AdminSettings />} />
           <Route path="/tender/:tenderId" element={<TenderResponse />} />
           <Route path="/join-tender/:tenderId" element={<JoinTender />} />

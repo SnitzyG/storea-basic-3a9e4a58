@@ -43,35 +43,16 @@ export function AdminSidebar() {
       label: 'Overview',
       items: [
         { title: 'Dashboard', url: '/admin/dashboard', icon: LayoutDashboard },
-        { title: 'Monitoring', url: '/admin/monitoring', icon: Monitor },
-        { title: 'Telemetry', url: '/admin/telemetry', icon: Activity },
+        { title: 'User Management', url: '/admin/users', icon: Users },
+        { title: 'Audit Logs', url: '/admin/logs', icon: Activity },
+        { title: 'System Alerts', url: '/admin/alerts', icon: Monitor },
       ],
     },
     {
-      label: 'User Management',
+      label: 'Administration',
       items: [
-        { title: 'User Approvals', url: '/admin/approvals', icon: Users },
-        { title: 'Email Monitoring', url: '/admin/emails', icon: Mail },
-      ],
-    },
-    {
-      label: 'Application Modules',
-      items: [
-        { title: 'Projects', url: '/admin', icon: FolderOpen },
-        { title: 'Documents', url: '/documents', icon: FileText },
-        { title: 'Messages', url: '/messages', icon: MessageSquare },
-        { title: 'RFIs', url: '/rfis', icon: HelpCircle },
-        { title: 'Tenders', url: '/tenders', icon: Briefcase },
-        { title: 'Financials', url: '/financials', icon: DollarSign },
-        { title: 'Calendar', url: '/calendar', icon: Calendar },
-        { title: 'Tasks', url: '/todos', icon: CheckSquare },
-      ],
-    },
-    {
-      label: 'Settings',
-      items: [
-        { title: 'Admin Settings', url: '/admin/settings', icon: Settings },
-        { title: 'Style Guide', url: '/style-guide', icon: Palette },
+        { title: 'User Approvals', url: '/admin/approvals', icon: Shield },
+        { title: 'Settings', url: '/admin/settings', icon: Settings },
       ],
     },
   ];
