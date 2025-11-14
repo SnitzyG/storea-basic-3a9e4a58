@@ -6,6 +6,7 @@ import { Sidebar } from './Sidebar';
 import { Header } from './Header';
 import { ProjectSelectionProvider } from '@/context/ProjectSelectionContext';
 import { supabase } from '@/integrations/supabase/client';
+import { isProfileComplete } from '@/utils/profileUtils';
 interface AppLayoutProps {
   children: React.ReactNode;
 }
@@ -107,7 +108,8 @@ export const AppLayout = ({
   }
 
   // If approved but profile incomplete, redirect to profile setup
-  if (profile && profile.approved && (!profile.name || profile.name.trim() === '')) {
+  // Safety net: redirect to profile setup if profile is incomplete
+  if (profile && !isProfileComplete(profile)) {
     return <Navigate to="/profile-setup" replace />;
   }
 
