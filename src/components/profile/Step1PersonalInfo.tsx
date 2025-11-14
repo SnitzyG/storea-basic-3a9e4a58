@@ -2,7 +2,7 @@ import React from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { AvatarUpload } from './AvatarUpload';
+
 
 interface Step1PersonalInfoProps {
   formData: any;
@@ -24,11 +24,22 @@ export const Step1PersonalInfo: React.FC<Step1PersonalInfoProps> = ({
         </p>
       </div>
 
-      <AvatarUpload
-        avatarUrl={formData.avatar_url}
-        userName={formData.name || 'User'}
-        onUpload={(url) => onChange('avatar_url', url)}
-      />
+      {formData.company_logo_url ? (
+        <div className="flex items-center gap-3">
+          <img
+            src={formData.company_logo_url}
+            alt="Company logo"
+            className="h-12 w-12 object-contain rounded border"
+          />
+          <p className="text-sm text-muted-foreground">
+            Your profile picture will use your company logo.
+          </p>
+        </div>
+      ) : (
+        <p className="text-sm text-muted-foreground">
+          Your profile picture will use your company logo (set in Company Details).
+        </p>
+      )}
 
       <div className="space-y-2">
         <Label htmlFor="name">Full Name *</Label>

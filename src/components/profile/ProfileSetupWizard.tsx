@@ -98,8 +98,17 @@ export const ProfileSetupWizard: React.FC<ProfileSetupWizardProps> = ({ onComple
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('No authenticated user');
 
+      // Normalize inputs (phones) and mirror avatar to company logo
+      const normalizePhone = (v: any) => (typeof v === 'string' ? v.replace(/\D/g, '') : v);
+      const sanitized = { ...formData } as any;
+      sanitized.phone = normalizePhone(formData.phone);
+      sanitized.company_phone = normalizePhone(formData.company_phone);
+      if (!sanitized.avatar_url && sanitized.company_logo_url) {
+        sanitized.avatar_url = sanitized.company_logo_url;
+      }
+
       // Validate all data
-      validateProfileData(formData.role, formData);
+      validateProfileData(sanitized.role, sanitized);
 
       // Update/create company if needed
       let companyId = null;
@@ -133,29 +142,29 @@ export const ProfileSetupWizard: React.FC<ProfileSetupWizardProps> = ({ onComple
         .from('profiles')
         .upsert({
           user_id: user.id,
-          name: formData.name,
-          phone: formData.phone,
-          role: formData.role,
-          bio: formData.bio,
-          avatar_url: formData.avatar_url,
+          name: sanitized.name,
+          phone: sanitized.phone,
+          role: sanitized.role,
+          bio: sanitized.bio,
+          avatar_url: sanitized.avatar_url,
           company_id: companyId,
-          company_position: formData.company_position,
-          company_phone: formData.company_phone,
-          company_address: formData.company_address,
-          company_website: formData.company_website,
-          company_logo_url: formData.company_logo_url,
-          business_registration_number: formData.business_registration_number,
-          abn: formData.abn,
-          professional_license_number: formData.professional_license_number,
-          years_experience: formData.years_experience,
-          specialization: formData.specialization,
-          linkedin_url: formData.linkedin_url,
-          property_address: formData.property_address,
-          project_type: formData.project_type,
-          budget_range: formData.budget_range,
-          timeline: formData.timeline,
-          insurance_details: formData.insurance_details,
-          number_of_employees: formData.number_of_employees,
+          company_position: sanitized.company_position,
+          company_phone: sanitized.company_phone,
+          company_address: sanitized.company_address,
+          company_website: sanitized.company_website,
+          company_logo_url: sanitized.company_logo_url,
+          business_registration_number: sanitized.business_registration_number,
+          abn: sanitized.abn,
+          professional_license_number: sanitized.professional_license_number,
+          years_experience: sanitized.years_experience,
+          specialization: sanitized.specialization,
+          linkedin_url: sanitized.linkedin_url,
+          property_address: sanitized.property_address,
+          project_type: sanitized.project_type,
+          budget_range: sanitized.budget_range,
+          timeline: sanitized.timeline,
+          insurance_details: sanitized.insurance_details,
+          number_of_employees: sanitized.number_of_employees,
         }, { onConflict: 'user_id' });
 
       if (profileError) throw profileError;
