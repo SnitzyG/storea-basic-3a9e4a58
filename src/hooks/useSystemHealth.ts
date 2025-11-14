@@ -105,10 +105,30 @@ export const useSystemHealth = () => {
   useEffect(() => {
     checkHealth();
 
+    // Set up real-time subscription for activity logs (errors)
+    const channel = supabase
+      .channel('system-health-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'activity_log',
+          filter: 'action=eq.error',
+        },
+        () => {
+          checkHealth();
+        }
+      )
+      .subscribe();
+
     // Check health every 30 seconds
     const interval = setInterval(checkHealth, 30000);
 
-    return () => clearInterval(interval);
+    return () => {
+      supabase.removeChannel(channel);
+      clearInterval(interval);
+    };
   }, []);
 
   return { health, loading, refetch: checkHealth };

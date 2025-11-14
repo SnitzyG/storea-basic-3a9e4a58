@@ -20,17 +20,22 @@ import { APIMonitoringCard } from '@/components/admin/APIMonitoringCard';
 import { useAdminStats } from '@/hooks/useAdminStats';
 import { useSystemHealth } from '@/hooks/useSystemHealth';
 import { useAdminAlerts } from '@/hooks/useAdminAlerts';
+import { useRealtimeAdminStats } from '@/hooks/useRealtimeAdminStats';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useCallback } from 'react';
 
 export default function AdminDashboard() {
   const { stats, loading: statsLoading, lastUpdate, refetch: refetchStats } = useAdminStats();
   const { health, loading: healthLoading, refetch: refetchHealth } = useSystemHealth();
   const { alerts, dismissAlert } = useAdminAlerts();
 
-  const handleRefresh = () => {
+  const handleRefresh = useCallback(() => {
     refetchStats();
     refetchHealth();
-  };
+  }, [refetchStats, refetchHealth]);
+
+  // Set up real-time monitoring for all admin stats
+  useRealtimeAdminStats(handleRefresh);
 
   const loading = statsLoading || healthLoading;
 
