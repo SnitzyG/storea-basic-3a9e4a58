@@ -9,12 +9,14 @@ import { Step3CompanyInfo } from './Step3CompanyInfo';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { validateProfileData } from '@/lib/validations/profileSchemas';
+import { useAuth } from '@/hooks/useAuth';
 
 interface ProfileSetupWizardProps {
   onComplete: () => void;
 }
 
 export const ProfileSetupWizard: React.FC<ProfileSetupWizardProps> = ({ onComplete }) => {
+  const { user, refreshProfile } = useAuth();
   const [currentStep, setCurrentStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -173,6 +175,9 @@ export const ProfileSetupWizard: React.FC<ProfileSetupWizardProps> = ({ onComple
       await supabase.functions.invoke('link-pending-projects', {
         body: { userEmail: user.email, userId: user.id }
       });
+
+      // Refresh profile to ensure it's loaded before redirect
+      await refreshProfile();
 
       toast({
         title: "Profile complete!",
