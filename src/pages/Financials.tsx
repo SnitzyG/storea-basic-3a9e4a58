@@ -20,7 +20,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
 
 interface UserRole {
-  role: 'homeowner' | 'architect' | 'contractor' | 'builder';
+  role: 'homeowner' | 'architect' | 'contractor' | 'builder' | 'system_admin';
 }
 
 export default function Financials() {
