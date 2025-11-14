@@ -3,7 +3,7 @@ import { z } from 'zod';
 // Base schema for all users
 const basePersonalSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters").max(100, "Name must be less than 100 characters"),
-  phone: z.string().regex(/^[0-9+\-\s()]+$/, "Invalid phone number").min(10, "Phone number must be at least 10 digits"),
+  phone: z.string().regex(/^[0-9]{10,}$/, "Phone must be at least 10 digits").min(10, "Phone number must be at least 10 digits"),
   bio: z.string().max(200, "Bio must be less than 200 characters").optional(),
   avatar_url: z.string().url().optional().or(z.literal('')),
 });
@@ -43,7 +43,7 @@ export const builderSchema = basePersonalSchema.extend({
   years_experience: z.number().min(0).max(70),
   specialization: z.array(z.string()).min(1, "Select at least one specialization"),
   company_address: z.string().min(5, "Company address is required"),
-  company_phone: z.string().regex(/^[0-9+\-\s()]+$/, "Invalid phone number").min(10),
+  company_phone: z.string().regex(/^[0-9]{10,}$/, "Company phone must be at least 10 digits").min(10),
   company_website: z.string().url("Invalid URL").optional().or(z.literal('')),
   professional_license_number: z.string().min(1, "Professional licenses are required"),
   company_logo_url: z.string().url().optional().or(z.literal('')),

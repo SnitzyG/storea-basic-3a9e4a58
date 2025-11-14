@@ -138,12 +138,15 @@ export const Step3CompanyInfo: React.FC<Step3CompanyInfoProps> = ({
           type="tel"
           value={formData.company_phone || ''}
           onChange={(e) => onChange('company_phone', e.target.value)}
-          placeholder="+1 (555) 000-0000"
+          placeholder="0403190409 or +61403190409"
           className={errors.company_phone ? 'border-destructive' : ''}
         />
         {errors.company_phone && (
           <p className="text-sm text-destructive">{errors.company_phone}</p>
         )}
+        <p className="text-xs text-muted-foreground">
+          Enter at least 10 digits (formatting will be removed)
+        </p>
       </div>
 
       <div className="space-y-2">
