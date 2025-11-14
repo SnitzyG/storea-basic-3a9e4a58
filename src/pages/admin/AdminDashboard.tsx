@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { AdminErrorBoundary } from '@/components/admin/AdminErrorBoundary';
+import { DashboardOverviewWidget } from '@/components/admin/DashboardOverviewWidget';
+import { useAdminNotifications } from '@/hooks/useAdminNotifications';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -14,6 +16,9 @@ import { format } from 'date-fns';
 export default function AdminDashboard() {
   const { toast } = useToast();
   const [activeUsersCount, setActiveUsersCount] = useState(0);
+  
+  // Enable real-time admin notifications
+  useAdminNotifications();
 
   // Fetch system metrics
   const { data: metrics, isLoading: metricsLoading } = useQuery({
@@ -104,6 +109,9 @@ export default function AdminDashboard() {
           <h1 className="text-3xl font-bold">Admin Dashboard</h1>
           <p className="text-muted-foreground">System overview and monitoring</p>
         </div>
+
+        {/* Dashboard Overview Widget */}
+        <DashboardOverviewWidget />
 
         {/* Metric Cards */}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
