@@ -8,6 +8,8 @@ interface ProfileSetupProps {
 }
 
 export const ProfileSetup: React.FC<ProfileSetupProps> = ({ onComplete, onSkip }) => {
+  console.log('ProfileSetup component - onSkip prop:', onSkip);
+  
   return (
     <div className="min-h-screen flex items-center justify-center bg-background px-4 py-8">
       <div className="w-full max-w-2xl">

@@ -269,7 +269,10 @@ export const ProfileSetupWizard: React.FC<ProfileSetupWizardProps> = ({ onComple
               <Button
                 type="button"
                 variant="ghost"
-                onClick={onSkip}
+                onClick={() => {
+                  console.log('Skip for now button clicked, calling onSkip');
+                  onSkip();
+                }}
                 disabled={loading}
               >
                 Skip for now
