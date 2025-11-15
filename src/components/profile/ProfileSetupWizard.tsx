@@ -228,70 +228,75 @@ export const ProfileSetupWizard: React.FC<ProfileSetupWizardProps> = ({ onComple
       </CardHeader>
       
       <CardContent>
-        <div className="min-h-[400px]">
-          {currentStep === 1 && (
-            <Step1PersonalInfo
-              formData={formData}
-              onChange={handleFieldChange}
-              errors={errors}
-            />
-          )}
-          {currentStep === 2 && (
-            <Step2ProfessionalInfo
-              role={formData.role}
-              formData={formData}
-              onChange={handleFieldChange}
-              errors={errors}
-            />
-          )}
-          {currentStep === 3 && formData.role !== 'homeowner' && (
-            <Step3CompanyInfo
-              formData={formData}
-              onChange={handleFieldChange}
-              errors={errors}
-            />
-          )}
-        </div>
-
-        <div className="flex justify-between mt-8">
-          <div className="flex gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={handleBack}
-              disabled={currentStep === 1 || loading}
-            >
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back
-            </Button>
-            
-            {onSkip && (
-              <Button
-                type="button"
-                variant="ghost"
-                onClick={() => {
-                  console.log('Skip for now button clicked, calling onSkip');
-                  onSkip();
-                }}
-                disabled={loading}
-              >
-                Skip for now
-              </Button>
+        <form onSubmit={(e) => {
+          e.preventDefault();
+          console.log('Form submit prevented');
+        }}>
+          <div className="min-h-[400px]">
+            {currentStep === 1 && (
+              <Step1PersonalInfo
+                formData={formData}
+                onChange={handleFieldChange}
+                errors={errors}
+              />
+            )}
+            {currentStep === 2 && (
+              <Step2ProfessionalInfo
+                role={formData.role}
+                formData={formData}
+                onChange={handleFieldChange}
+                errors={errors}
+              />
+            )}
+            {currentStep === 3 && formData.role !== 'homeowner' && (
+              <Step3CompanyInfo
+                formData={formData}
+                onChange={handleFieldChange}
+                errors={errors}
+              />
             )}
           </div>
 
-          {currentStep < totalSteps ? (
-            <Button type="button" onClick={handleNext} disabled={loading}>
-              Next
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </Button>
-          ) : (
-            <Button type="button" onClick={handleSubmit} disabled={loading}>
-              {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Complete Setup
-            </Button>
-          )}
-        </div>
+          <div className="flex justify-between mt-8">
+            <div className="flex gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleBack}
+                disabled={currentStep === 1 || loading}
+              >
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Back
+              </Button>
+              
+              {onSkip && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() => {
+                    console.log('Skip for now button clicked, calling onSkip');
+                    onSkip();
+                  }}
+                  disabled={loading}
+                >
+                  Skip for now
+                </Button>
+              )}
+            </div>
+
+            {currentStep < totalSteps ? (
+              <Button type="button" onClick={handleNext} disabled={loading}>
+                Next
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            ) : (
+              <Button type="button" onClick={handleSubmit} disabled={loading}>
+                {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Complete Setup
+              </Button>
+            )}
+          </div>
+        </form>
       </CardContent>
     </Card>
   );
