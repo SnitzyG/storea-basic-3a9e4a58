@@ -1,65 +1,20 @@
-import { ReactNode, useEffect, useState } from 'react';
-import { Navigate, useLocation } from 'react-router-dom';
+import { ReactNode } from 'react';
+import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { isProfileComplete } from '@/utils/profileUtils';
-import { supabase } from '@/integrations/supabase/client';
 
 interface RequireCompleteProfileProps {
   children: ReactNode;
 }
 
 export const RequireCompleteProfile = ({ children }: RequireCompleteProfileProps) => {
-  const { user, profile, loading } = useAuth();
-  const location = useLocation();
-  const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
-  const [adminCheckLoading, setAdminCheckLoading] = useState(true);
+  const { user, loading } = useAuth();
 
-  useEffect(() => {
-    const checkAdminStatus = async () => {
-      if (!user) {
-        setAdminCheckLoading(false);
-        return;
-      }
+  // While auth is loading, don't show anything
+  if (loading) return null;
 
-      try {
-        const { data, error } = await supabase.rpc('has_role', {
-          _user_id: user.id,
-          _role: 'admin'
-        });
-
-        if (error) {
-          console.error('Error checking admin status:', error);
-          setIsAdmin(false);
-        } else {
-          setIsAdmin(data === true);
-        }
-      } catch (error) {
-        console.error('Error checking admin status:', error);
-        setIsAdmin(false);
-      } finally {
-        setAdminCheckLoading(false);
-      }
-    };
-
-    checkAdminStatus();
-  }, [user]);
-
-  // While auth/profile/admin status loading, don't flicker
-  if (loading || adminCheckLoading) return null;
-
+  // If not authenticated, redirect to auth page
   if (!user) return <Navigate to="/auth" replace />;
 
-  // Allow the profile setup page itself
-  if (location.pathname === '/profile-setup') return <>{children}</>;
-
-  // Allow admin routes without profile completion
-  if (location.pathname.startsWith('/admin') && isAdmin) {
-    return <>{children}</>;
-  }
-
-  // Allow users to skip profile completion - they can complete it later
-  // Only redirect to profile-setup if they're navigating to a non-setup route
-  // This allows them to use the app and complete profile when ready
-  
+  // User is authenticated, allow access to app
   return <>{children}</>;
 };

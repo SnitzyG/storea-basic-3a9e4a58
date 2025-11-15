@@ -19,7 +19,7 @@ import TenderResponse from "./pages/TenderResponse.tsx";
 import TenderReviewDemo from "./pages/TenderReviewDemo.tsx";
 import TenderBuilder from "./pages/TenderBuilder.tsx";
 import Auth from "./pages/Auth.tsx";
-import ProfileSetup from "./pages/ProfileSetup.tsx";
+
 import Testing from "./pages/Testing.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import AcceptInvitation from "./pages/AcceptInvitation.tsx";
@@ -85,7 +85,6 @@ createRoot(document.getElementById("root")!).render(
                     
                     {/* Auth pages */}
                     <Route path="/auth" element={<Auth />} />
-                    <Route path="/profile-setup" element={<ProfileSetup />} />
                     
                     {/* App pages (authenticated and profile complete) */}
                     <Route path="/app" element={<RequireCompleteProfile><AppLayout><Index /></AppLayout></RequireCompleteProfile>} />
