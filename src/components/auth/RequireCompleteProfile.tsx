@@ -1,20 +1,66 @@
-import { ReactNode } from 'react';
-import { Navigate } from 'react-router-dom';
+import { ReactNode, useEffect, useState } from 'react';
+import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { isProfileComplete } from '@/utils/profileUtils';
+import { supabase } from '@/integrations/supabase/client';
 
 interface RequireCompleteProfileProps {
   children: ReactNode;
 }
 
 export const RequireCompleteProfile = ({ children }: RequireCompleteProfileProps) => {
-  const { user, loading } = useAuth();
+  const { user, profile, loading } = useAuth();
+  const location = useLocation();
+  const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
+  const [adminCheckLoading, setAdminCheckLoading] = useState(true);
 
-  // While auth is loading, don't show anything
-  if (loading) return null;
+  useEffect(() => {
+    const checkAdminStatus = async () => {
+      if (!user) {
+        setAdminCheckLoading(false);
+        return;
+      }
 
-  // If not authenticated, redirect to auth page
+      try {
+        const { data, error } = await supabase.rpc('has_role', {
+          _user_id: user.id,
+          _role: 'admin'
+        });
+
+        if (error) {
+          console.error('Error checking admin status:', error);
+          setIsAdmin(false);
+        } else {
+          setIsAdmin(data === true);
+        }
+      } catch (error) {
+        console.error('Error checking admin status:', error);
+        setIsAdmin(false);
+      } finally {
+        setAdminCheckLoading(false);
+      }
+    };
+
+    checkAdminStatus();
+  }, [user]);
+
+  // While auth/profile/admin status loading, don't flicker
+  if (loading || adminCheckLoading) return null;
+
   if (!user) return <Navigate to="/auth" replace />;
 
-  // User is authenticated, allow access to app
+  // Allow the profile setup page itself
+  if (location.pathname === '/profile-setup') return <>{children}</>;
+
+  // Allow admin routes without profile completion
+  if (location.pathname.startsWith('/admin') && isAdmin) {
+    return <>{children}</>;
+  }
+
+  // If incomplete and not admin, force users to profile setup first
+  if (!isProfileComplete(profile) && !isAdmin) {
+    return <Navigate to="/profile-setup" replace />;
+  }
+
   return <>{children}</>;
 };

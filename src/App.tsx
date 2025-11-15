@@ -34,7 +34,7 @@ import ProjectJoin from "./pages/ProjectJoin";
 import PropertyZoning from "./pages/PropertyZoning";
 import StyleGuide from "./pages/StyleGuide";
 import NotFound from "./pages/NotFound";
-
+import ProfileSetup from "./pages/ProfileSetup";
 
 const queryClient = new QueryClient();
 
@@ -64,6 +64,7 @@ const App = () => (
             </RequireCompleteProfile>
           } />
           <Route path="/auth" element={<Auth />} />
+          <Route path="/profile-setup" element={<ProfileSetup />} />
           <Route path="/projects" element={
             <RequireCompleteProfile>
               <AppLayout>
