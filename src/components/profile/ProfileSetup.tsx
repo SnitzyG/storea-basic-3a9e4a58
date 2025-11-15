@@ -4,9 +4,10 @@ import { ProfileSetupWizard } from './ProfileSetupWizard';
 
 interface ProfileSetupProps {
   onComplete: () => void;
+  onSkip?: () => void;
 }
 
-export const ProfileSetup: React.FC<ProfileSetupProps> = ({ onComplete }) => {
+export const ProfileSetup: React.FC<ProfileSetupProps> = ({ onComplete, onSkip }) => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-background px-4 py-8">
       <div className="w-full max-w-2xl">
@@ -20,7 +21,7 @@ export const ProfileSetup: React.FC<ProfileSetupProps> = ({ onComplete }) => {
           </p>
         </div>
         
-        <ProfileSetupWizard onComplete={onComplete} />
+        <ProfileSetupWizard onComplete={onComplete} onSkip={onSkip} />
       </div>
     </div>
   );

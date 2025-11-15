@@ -13,9 +13,10 @@ import { useAuth } from '@/hooks/useAuth';
 
 interface ProfileSetupWizardProps {
   onComplete: () => void;
+  onSkip?: () => void;
 }
 
-export const ProfileSetupWizard: React.FC<ProfileSetupWizardProps> = ({ onComplete }) => {
+export const ProfileSetupWizard: React.FC<ProfileSetupWizardProps> = ({ onComplete, onSkip }) => {
   const { user, refreshProfile } = useAuth();
   const [currentStep, setCurrentStep] = useState(1);
   const [loading, setLoading] = useState(false);
@@ -253,15 +254,28 @@ export const ProfileSetupWizard: React.FC<ProfileSetupWizardProps> = ({ onComple
         </div>
 
         <div className="flex justify-between mt-8">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={handleBack}
-            disabled={currentStep === 1 || loading}
-          >
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleBack}
+              disabled={currentStep === 1 || loading}
+            >
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back
+            </Button>
+            
+            {onSkip && (
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={onSkip}
+                disabled={loading}
+              >
+                Skip for now
+              </Button>
+            )}
+          </div>
 
           {currentStep < totalSteps ? (
             <Button type="button" onClick={handleNext} disabled={loading}>
