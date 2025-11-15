@@ -76,10 +76,13 @@ const ProfileSetup = () => {
   };
 
   const handleSkip = () => {
+    console.log('Skip button clicked - navigating to dashboard');
     // Allow users to skip and go to dashboard
     // They can complete their profile later from settings
     navigate('/dashboard', { replace: true });
   };
+
+  console.log('ProfileSetup page rendering, onSkip handler:', handleSkip);
 
   return <ProfileSetupComponent onComplete={handleComplete} onSkip={handleSkip} />;
 };
