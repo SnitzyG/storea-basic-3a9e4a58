@@ -57,10 +57,9 @@ export const RequireCompleteProfile = ({ children }: RequireCompleteProfileProps
     return <>{children}</>;
   }
 
-  // If incomplete and not admin, force users to profile setup first
-  if (!isProfileComplete(profile) && !isAdmin) {
-    return <Navigate to="/profile-setup" replace />;
-  }
-
+  // Allow users to skip profile completion - they can complete it later
+  // Only redirect to profile-setup if they're navigating to a non-setup route
+  // This allows them to use the app and complete profile when ready
+  
   return <>{children}</>;
 };
