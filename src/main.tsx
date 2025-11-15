@@ -113,13 +113,13 @@ createRoot(document.getElementById("root")!).render(
                     <Route path="/admin/login" element={<AdminAuth />} />
                     <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
                     <Route path="/admin/dashboard" element={<AdminDashboard />} />
-                    <Route path="/admin/users" element={<AdminLayout><UserManagement /></AdminLayout>} />
-                    <Route path="/admin/activity" element={<AdminLayout><SystemActivity /></AdminLayout>} />
-                    <Route path="/admin/logs" element={<AdminLayout><AuditLogs /></AdminLayout>} />
-                    <Route path="/admin/alerts" element={<AdminLayout><SystemAlerts /></AdminLayout>} />
-                    <Route path="/admin/approvals" element={<AdminLayout><AdminApprovals /></AdminLayout>} />
-                    <Route path="/admin/settings" element={<AdminLayout><AdminSettings /></AdminLayout>} />
-                    <Route path="/admin/style-guide" element={<AdminLayout><StyleGuide /></AdminLayout>} />
+                    <Route path="/admin/users" element={<UserManagement />} />
+                    <Route path="/admin/activity" element={<SystemActivity />} />
+                    <Route path="/admin/logs" element={<AuditLogs />} />
+                    <Route path="/admin/alerts" element={<SystemAlerts />} />
+                    <Route path="/admin/approvals" element={<AdminApprovals />} />
+                    <Route path="/admin/settings" element={<AdminSettings />} />
+                    <Route path="/admin/style-guide" element={<StyleGuide />} />
 
                     <Route path="/style-guide" element={<Navigate to="/admin/style-guide" replace />} />
                     
