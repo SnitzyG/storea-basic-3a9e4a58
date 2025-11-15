@@ -22,8 +22,11 @@ export type Database = {
           entity_id: string | null
           entity_type: string
           id: string
+          ip_address: unknown
           metadata: Json | null
           project_id: string | null
+          session_id: string | null
+          user_agent: string | null
           user_id: string
         }
         Insert: {
@@ -33,8 +36,11 @@ export type Database = {
           entity_id?: string | null
           entity_type: string
           id?: string
+          ip_address?: unknown
           metadata?: Json | null
           project_id?: string | null
+          session_id?: string | null
+          user_agent?: string | null
           user_id: string
         }
         Update: {
@@ -44,9 +50,229 @@ export type Database = {
           entity_id?: string | null
           entity_type?: string
           id?: string
+          ip_address?: unknown
           metadata?: Json | null
           project_id?: string | null
+          session_id?: string | null
+          user_agent?: string | null
           user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "activity_log_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      admin_activity_log: {
+        Row: {
+          action: string
+          admin_id: string
+          changes: Json | null
+          created_at: string | null
+          id: string
+          ip_address: unknown
+          resource_id: string | null
+          resource_type: string | null
+          user_agent: string | null
+        }
+        Insert: {
+          action: string
+          admin_id: string
+          changes?: Json | null
+          created_at?: string | null
+          id?: string
+          ip_address?: unknown
+          resource_id?: string | null
+          resource_type?: string | null
+          user_agent?: string | null
+        }
+        Update: {
+          action?: string
+          admin_id?: string
+          changes?: Json | null
+          created_at?: string | null
+          id?: string
+          ip_address?: unknown
+          resource_id?: string | null
+          resource_type?: string | null
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
+      admin_alerts: {
+        Row: {
+          alert_type: string
+          created_at: string | null
+          id: string
+          is_read: boolean | null
+          message: string | null
+          metadata: Json | null
+          resolved_at: string | null
+          severity: string
+          title: string
+        }
+        Insert: {
+          alert_type: string
+          created_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          message?: string | null
+          metadata?: Json | null
+          resolved_at?: string | null
+          severity: string
+          title: string
+        }
+        Update: {
+          alert_type?: string
+          created_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          message?: string | null
+          metadata?: Json | null
+          resolved_at?: string | null
+          severity?: string
+          title?: string
+        }
+        Relationships: []
+      }
+      alert_notifications: {
+        Row: {
+          acknowledged: boolean | null
+          acknowledged_at: string | null
+          acknowledged_by: string | null
+          alert_rule_id: string | null
+          id: string
+          message: string
+          metadata: Json | null
+          severity: string | null
+          title: string
+          triggered_at: string | null
+        }
+        Insert: {
+          acknowledged?: boolean | null
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          alert_rule_id?: string | null
+          id?: string
+          message: string
+          metadata?: Json | null
+          severity?: string | null
+          title: string
+          triggered_at?: string | null
+        }
+        Update: {
+          acknowledged?: boolean | null
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          alert_rule_id?: string | null
+          id?: string
+          message?: string
+          metadata?: Json | null
+          severity?: string | null
+          title?: string
+          triggered_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "alert_notifications_alert_rule_id_fkey"
+            columns: ["alert_rule_id"]
+            isOneToOne: false
+            referencedRelation: "alert_rules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      alert_rules: {
+        Row: {
+          channels: Json | null
+          condition: Json
+          created_at: string | null
+          created_by: string
+          description: string | null
+          enabled: boolean | null
+          id: string
+          last_triggered_at: string | null
+          name: string
+          rule_type: string
+          updated_at: string | null
+        }
+        Insert: {
+          channels?: Json | null
+          condition: Json
+          created_at?: string | null
+          created_by: string
+          description?: string | null
+          enabled?: boolean | null
+          id?: string
+          last_triggered_at?: string | null
+          name: string
+          rule_type: string
+          updated_at?: string | null
+        }
+        Update: {
+          channels?: Json | null
+          condition?: Json
+          created_at?: string | null
+          created_by?: string
+          description?: string | null
+          enabled?: boolean | null
+          id?: string
+          last_triggered_at?: string | null
+          name?: string
+          rule_type?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      audit_logs: {
+        Row: {
+          action: string
+          admin_id: string
+          created_at: string | null
+          error_message: string | null
+          id: string
+          ip_address: unknown
+          new_value: Json | null
+          old_value: Json | null
+          resource_id: string | null
+          resource_name: string | null
+          resource_type: string | null
+          status: string | null
+          user_agent: string | null
+        }
+        Insert: {
+          action: string
+          admin_id: string
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          ip_address?: unknown
+          new_value?: Json | null
+          old_value?: Json | null
+          resource_id?: string | null
+          resource_name?: string | null
+          resource_type?: string | null
+          status?: string | null
+          user_agent?: string | null
+        }
+        Update: {
+          action?: string
+          admin_id?: string
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          ip_address?: unknown
+          new_value?: Json | null
+          old_value?: Json | null
+          resource_id?: string | null
+          resource_name?: string | null
+          resource_type?: string | null
+          status?: string | null
+          user_agent?: string | null
         }
         Relationships: []
       }
@@ -910,6 +1136,47 @@ export type Database = {
           },
         ]
       }
+      error_breadcrumbs: {
+        Row: {
+          category: string
+          created_at: string | null
+          data: Json | null
+          error_id: string | null
+          id: string
+          level: string | null
+          message: string
+          timestamp: string | null
+        }
+        Insert: {
+          category: string
+          created_at?: string | null
+          data?: Json | null
+          error_id?: string | null
+          id?: string
+          level?: string | null
+          message: string
+          timestamp?: string | null
+        }
+        Update: {
+          category?: string
+          created_at?: string | null
+          data?: Json | null
+          error_id?: string | null
+          id?: string
+          level?: string | null
+          message?: string
+          timestamp?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "error_breadcrumbs_error_id_fkey"
+            columns: ["error_id"]
+            isOneToOne: false
+            referencedRelation: "telemetry_errors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       event_templates: {
         Row: {
           category: string | null
@@ -995,6 +1262,57 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      issue_groups: {
+        Row: {
+          affected_users: number | null
+          environment: string | null
+          error_type: string
+          fingerprint: string
+          first_seen: string | null
+          id: string
+          last_seen: string | null
+          occurrence_count: number | null
+          release_version: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          severity: string | null
+          status: string | null
+          title: string
+        }
+        Insert: {
+          affected_users?: number | null
+          environment?: string | null
+          error_type: string
+          fingerprint: string
+          first_seen?: string | null
+          id?: string
+          last_seen?: string | null
+          occurrence_count?: number | null
+          release_version?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          severity?: string | null
+          status?: string | null
+          title: string
+        }
+        Update: {
+          affected_users?: number | null
+          environment?: string | null
+          error_type?: string
+          fingerprint?: string
+          first_seen?: string | null
+          id?: string
+          last_seen?: string | null
+          occurrence_count?: number | null
+          release_version?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          severity?: string | null
+          status?: string | null
+          title?: string
+        }
+        Relationships: []
       }
       line_item_budgets: {
         Row: {
@@ -1334,70 +1652,115 @@ export type Database = {
       }
       profiles: {
         Row: {
+          abn: string | null
           approved: boolean | null
           approved_at: string | null
           approved_by: string | null
           avatar_url: string | null
+          bio: string | null
+          budget_range: string | null
+          business_registration_number: string | null
+          certifications: Json | null
           company_address: string | null
           company_id: string | null
           company_logo_url: string | null
           company_name: string | null
+          company_phone: string | null
           company_position: string | null
           company_website: string | null
           created_at: string
           full_name: string | null
           id: string
+          insurance_details: string | null
           last_seen: string | null
+          linkedin_url: string | null
           name: string
+          number_of_employees: number | null
           online_status: boolean | null
           phone: string | null
+          professional_license_number: string | null
+          project_type: string | null
+          property_address: string | null
           role: Database["public"]["Enums"]["user_role"]
+          specialization: string[] | null
+          timeline: string | null
           updated_at: string
           user_id: string
+          years_experience: number | null
         }
         Insert: {
+          abn?: string | null
           approved?: boolean | null
           approved_at?: string | null
           approved_by?: string | null
           avatar_url?: string | null
+          bio?: string | null
+          budget_range?: string | null
+          business_registration_number?: string | null
+          certifications?: Json | null
           company_address?: string | null
           company_id?: string | null
           company_logo_url?: string | null
           company_name?: string | null
+          company_phone?: string | null
           company_position?: string | null
           company_website?: string | null
           created_at?: string
           full_name?: string | null
           id?: string
+          insurance_details?: string | null
           last_seen?: string | null
+          linkedin_url?: string | null
           name: string
+          number_of_employees?: number | null
           online_status?: boolean | null
           phone?: string | null
+          professional_license_number?: string | null
+          project_type?: string | null
+          property_address?: string | null
           role: Database["public"]["Enums"]["user_role"]
+          specialization?: string[] | null
+          timeline?: string | null
           updated_at?: string
           user_id: string
+          years_experience?: number | null
         }
         Update: {
+          abn?: string | null
           approved?: boolean | null
           approved_at?: string | null
           approved_by?: string | null
           avatar_url?: string | null
+          bio?: string | null
+          budget_range?: string | null
+          business_registration_number?: string | null
+          certifications?: Json | null
           company_address?: string | null
           company_id?: string | null
           company_logo_url?: string | null
           company_name?: string | null
+          company_phone?: string | null
           company_position?: string | null
           company_website?: string | null
           created_at?: string
           full_name?: string | null
           id?: string
+          insurance_details?: string | null
           last_seen?: string | null
+          linkedin_url?: string | null
           name?: string
+          number_of_employees?: number | null
           online_status?: boolean | null
           phone?: string | null
+          professional_license_number?: string | null
+          project_type?: string | null
+          property_address?: string | null
           role?: Database["public"]["Enums"]["user_role"]
+          specialization?: string[] | null
+          timeline?: string | null
           updated_at?: string
           user_id?: string
+          years_experience?: number | null
         }
         Relationships: [
           {
@@ -1870,6 +2233,42 @@ export type Database = {
         }
         Relationships: []
       }
+      releases: {
+        Row: {
+          affected_users: number | null
+          crash_free_rate: number | null
+          deployed_at: string | null
+          deployed_by: string | null
+          environment: string | null
+          error_count: number | null
+          id: string
+          metadata: Json | null
+          version: string
+        }
+        Insert: {
+          affected_users?: number | null
+          crash_free_rate?: number | null
+          deployed_at?: string | null
+          deployed_by?: string | null
+          environment?: string | null
+          error_count?: number | null
+          id?: string
+          metadata?: Json | null
+          version: string
+        }
+        Update: {
+          affected_users?: number | null
+          crash_free_rate?: number | null
+          deployed_at?: string | null
+          deployed_by?: string | null
+          environment?: string | null
+          error_count?: number | null
+          id?: string
+          metadata?: Json | null
+          version?: string
+        }
+        Relationships: []
+      }
       rfi_activities: {
         Row: {
           action: string
@@ -2186,6 +2585,309 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      system_metrics: {
+        Row: {
+          id: string
+          metadata: Json | null
+          metric_type: string
+          recorded_at: string | null
+          unit: string | null
+          value: number
+        }
+        Insert: {
+          id?: string
+          metadata?: Json | null
+          metric_type: string
+          recorded_at?: string | null
+          unit?: string | null
+          value: number
+        }
+        Update: {
+          id?: string
+          metadata?: Json | null
+          metric_type?: string
+          recorded_at?: string | null
+          unit?: string | null
+          value?: number
+        }
+        Relationships: []
+      }
+      telemetry_business_metrics: {
+        Row: {
+          created_at: string | null
+          id: string
+          metadata: Json | null
+          metric_category: string
+          metric_name: string
+          metric_unit: string | null
+          metric_value: number
+          period_end: string
+          period_start: string
+          time_period: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          metric_category: string
+          metric_name: string
+          metric_unit?: string | null
+          metric_value: number
+          period_end: string
+          period_start: string
+          time_period?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          metric_category?: string
+          metric_name?: string
+          metric_unit?: string | null
+          metric_value?: number
+          period_end?: string
+          period_start?: string
+          time_period?: string | null
+        }
+        Relationships: []
+      }
+      telemetry_errors: {
+        Row: {
+          browser: string | null
+          context: Json | null
+          created_at: string | null
+          device_type: string | null
+          environment: string | null
+          error_code: string | null
+          error_message: string
+          error_stack: string | null
+          error_type: string
+          id: string
+          ip_address: string | null
+          issue_fingerprint: string | null
+          issue_group_id: string | null
+          os: string | null
+          page_url: string | null
+          release_version: string | null
+          resolved: boolean | null
+          resolved_at: string | null
+          resolved_by: string | null
+          session_id: string | null
+          severity: string
+          url: string | null
+          user_affected: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          browser?: string | null
+          context?: Json | null
+          created_at?: string | null
+          device_type?: string | null
+          environment?: string | null
+          error_code?: string | null
+          error_message: string
+          error_stack?: string | null
+          error_type: string
+          id?: string
+          ip_address?: string | null
+          issue_fingerprint?: string | null
+          issue_group_id?: string | null
+          os?: string | null
+          page_url?: string | null
+          release_version?: string | null
+          resolved?: boolean | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          session_id?: string | null
+          severity: string
+          url?: string | null
+          user_affected?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          browser?: string | null
+          context?: Json | null
+          created_at?: string | null
+          device_type?: string | null
+          environment?: string | null
+          error_code?: string | null
+          error_message?: string
+          error_stack?: string | null
+          error_type?: string
+          id?: string
+          ip_address?: string | null
+          issue_fingerprint?: string | null
+          issue_group_id?: string | null
+          os?: string | null
+          page_url?: string | null
+          release_version?: string | null
+          resolved?: boolean | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          session_id?: string | null
+          severity?: string
+          url?: string | null
+          user_affected?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      telemetry_events: {
+        Row: {
+          created_at: string | null
+          environment: string | null
+          event_category: string
+          event_name: string
+          event_properties: Json | null
+          event_type: string
+          id: string
+          ip_address: unknown
+          page_url: string | null
+          referrer_url: string | null
+          release_version: string | null
+          session_id: string
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          environment?: string | null
+          event_category: string
+          event_name: string
+          event_properties?: Json | null
+          event_type: string
+          id?: string
+          ip_address?: unknown
+          page_url?: string | null
+          referrer_url?: string | null
+          release_version?: string | null
+          session_id: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          environment?: string | null
+          event_category?: string
+          event_name?: string
+          event_properties?: Json | null
+          event_type?: string
+          id?: string
+          ip_address?: unknown
+          page_url?: string | null
+          referrer_url?: string | null
+          release_version?: string | null
+          session_id?: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      telemetry_performance: {
+        Row: {
+          created_at: string | null
+          duration_ms: number
+          endpoint: string | null
+          environment: string | null
+          error_message: string | null
+          id: string
+          metadata: Json | null
+          metric_name: string
+          metric_type: string
+          operation_type: string | null
+          release_version: string | null
+          session_id: string | null
+          status: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          duration_ms: number
+          endpoint?: string | null
+          environment?: string | null
+          error_message?: string | null
+          id?: string
+          metadata?: Json | null
+          metric_name: string
+          metric_type: string
+          operation_type?: string | null
+          release_version?: string | null
+          session_id?: string | null
+          status?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          duration_ms?: number
+          endpoint?: string | null
+          environment?: string | null
+          error_message?: string | null
+          id?: string
+          metadata?: Json | null
+          metric_name?: string
+          metric_type?: string
+          operation_type?: string | null
+          release_version?: string | null
+          session_id?: string | null
+          status?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      telemetry_sessions: {
+        Row: {
+          browser: string | null
+          device_type: string | null
+          duration_seconds: number | null
+          ended_at: string | null
+          events_count: number | null
+          id: string
+          ip_address: unknown
+          location_city: string | null
+          location_country: string | null
+          os: string | null
+          page_views_count: number | null
+          session_id: string
+          started_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          browser?: string | null
+          device_type?: string | null
+          duration_seconds?: number | null
+          ended_at?: string | null
+          events_count?: number | null
+          id?: string
+          ip_address?: unknown
+          location_city?: string | null
+          location_country?: string | null
+          os?: string | null
+          page_views_count?: number | null
+          session_id: string
+          started_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          browser?: string | null
+          device_type?: string | null
+          duration_seconds?: number | null
+          ended_at?: string | null
+          events_count?: number | null
+          id?: string
+          ip_address?: unknown
+          location_city?: string | null
+          location_country?: string | null
+          os?: string | null
+          page_views_count?: number | null
+          session_id?: string
+          started_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
       }
       tender_access: {
         Row: {
@@ -3044,6 +3746,48 @@ export type Database = {
         }
         Relationships: []
       }
+      user_sessions: {
+        Row: {
+          created_at: string
+          device_info: Json | null
+          duration_seconds: number | null
+          ended_at: string | null
+          id: string
+          ip_address: unknown
+          is_active: boolean
+          session_id: string
+          started_at: string
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          device_info?: Json | null
+          duration_seconds?: number | null
+          ended_at?: string | null
+          id?: string
+          ip_address?: unknown
+          is_active?: boolean
+          session_id: string
+          started_at?: string
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          device_info?: Json | null
+          duration_seconds?: number | null
+          ended_at?: string | null
+          id?: string
+          ip_address?: unknown
+          is_active?: boolean
+          session_id?: string
+          started_at?: string
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -3075,6 +3819,7 @@ export type Database = {
         Args: { tender_id_param: string }
         Returns: Json
       }
+      generate_admin_alerts: { Args: never; Returns: undefined }
       generate_document_group_number: {
         Args: {
           category_param: string
@@ -3111,6 +3856,26 @@ export type Database = {
           }
       generate_unique_project_id: { Args: never; Returns: string }
       generate_unique_tender_id: { Args: never; Returns: string }
+      get_active_users_count: { Args: never; Returns: number }
+      get_db_performance_metrics: { Args: never; Returns: Json }
+      get_system_health: {
+        Args: never
+        Returns: {
+          active_projects: number
+          active_users: number
+          critical_alerts: number
+          messages_24h: number
+          open_rfis: number
+          open_tenders: number
+          pending_approvals: number
+          total_documents: number
+          total_projects: number
+          total_rfis: number
+          total_tenders: number
+          total_users: number
+        }[]
+      }
+      get_user_activity_summary: { Args: { days_back?: number }; Returns: Json }
       grant_admin_by_email: { Args: { target_email: string }; Returns: Json }
       has_role: {
         Args: {
@@ -3133,6 +3898,21 @@ export type Database = {
       }
       link_pending_users_to_projects: {
         Args: { target_user_id: string; user_email: string }
+        Returns: undefined
+      }
+      log_activity: {
+        Args: {
+          p_action: string
+          p_description: string
+          p_entity_id: string
+          p_entity_type: string
+          p_ip_address?: unknown
+          p_metadata?: Json
+          p_project_id?: string
+          p_session_id?: string
+          p_user_agent?: string
+          p_user_id: string
+        }
         Returns: undefined
       }
       migrate_existing_documents: { Args: never; Returns: undefined }
@@ -3182,7 +3962,12 @@ export type Database = {
         | "request_for_information"
         | "general_advice"
       tender_status: "draft" | "open" | "closed" | "awarded" | "cancelled"
-      user_role: "architect" | "homeowner" | "builder" | "contractor"
+      user_role:
+        | "architect"
+        | "homeowner"
+        | "builder"
+        | "contractor"
+        | "system_admin"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -3338,7 +4123,13 @@ export const Constants = {
         "general_advice",
       ],
       tender_status: ["draft", "open", "closed", "awarded", "cancelled"],
-      user_role: ["architect", "homeowner", "builder", "contractor"],
+      user_role: [
+        "architect",
+        "homeowner",
+        "builder",
+        "contractor",
+        "system_admin",
+      ],
     },
   },
 } as const

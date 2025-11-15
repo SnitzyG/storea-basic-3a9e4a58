@@ -1,6 +1,6 @@
 // @ts-nocheck
 import { useEffect, useState } from 'react';
-import { Home, Users, Activity, AlertCircle, FileText, Settings } from 'lucide-react';
+import { Home, Users, Activity, AlertCircle, FileText, Settings, UserCheck } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
@@ -9,6 +9,7 @@ import { supabase } from '@/integrations/supabase/client';
 export function AdminSidebar() {
   const location = useLocation();
   const [alertCount, setAlertCount] = useState(0);
+  const [pendingApprovalsCount, setPendingApprovalsCount] = useState(0);
 
   useEffect(() => {
     const fetchAlertCount = async () => {
@@ -35,9 +36,34 @@ export function AdminSidebar() {
     };
   }, []);
 
+  useEffect(() => {
+    const fetchPendingApprovalsCount = async () => {
+      const { count } = await supabase
+        .from('profiles')
+        .select('*', { count: 'exact', head: true })
+        .eq('approved', false);
+      
+      setPendingApprovalsCount(count || 0);
+    };
+
+    fetchPendingApprovalsCount();
+
+    const channel = supabase
+      .channel('admin-pending-approvals-sidebar')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, () => {
+        fetchPendingApprovalsCount();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
   const navigation = [
     { name: 'Dashboard', href: '/admin/dashboard', icon: Home },
     { name: 'User Management', href: '/admin/users', icon: Users },
+    { name: 'User Approvals', href: '/admin/approvals', icon: UserCheck, badge: pendingApprovalsCount },
     { name: 'System Activity', href: '/admin/activity', icon: Activity },
     { name: 'Alerts & Issues', href: '/admin/alerts', icon: AlertCircle, badge: alertCount },
     { name: 'Audit Logs', href: '/admin/logs', icon: FileText },
