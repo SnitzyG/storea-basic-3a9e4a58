@@ -8,7 +8,7 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import { RequireCompleteProfile } from "@/components/auth/RequireCompleteProfile";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
-import AdminDashboard from "./pages/admin/AdminDashboard";
+import AdminDashboard from "./pages/AdminDashboard";
 import UserManagement from "./pages/admin/UserManagement";
 import AuditLogs from "./pages/admin/AuditLogs";
 import SystemAlerts from "./pages/admin/SystemAlerts";
@@ -104,7 +104,7 @@ const App = () => (
           } />
           <Route path="/admin/login" element={<AdminAuth />} />
           <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
-          <Route path="/admin/dashboard" element={<AdminLayout><AdminDashboard /></AdminLayout>} />
+          <Route path="/admin/dashboard" element={<AdminDashboard />} />
           <Route path="/admin/users" element={<AdminLayout><UserManagement /></AdminLayout>} />
           <Route path="/admin/logs" element={<AdminLayout><AuditLogs /></AdminLayout>} />
           <Route path="/admin/alerts" element={<AdminLayout><SystemAlerts /></AdminLayout>} />
