@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Check } from 'lucide-react';
+import { useAnalytics } from '@/hooks/useAnalytics';
 
 interface PricingCardProps {
   name: string;
@@ -13,6 +14,12 @@ interface PricingCardProps {
 }
 
 export const PricingCard = ({ name, price, description, features, highlighted, isYearly }: PricingCardProps) => {
+  const { trackPricingSelection } = useAnalytics();
+
+  const handleGetStarted = () => {
+    trackPricingSelection(name, isYearly || false);
+  };
+
   return (
     <Card className={`relative h-full flex flex-col transition-all duration-300 hover:scale-105 hover:shadow-elegant ${highlighted ? 'border-primary shadow-xl' : 'border-border'}`}>
       <CardHeader className="text-center pb-6 pt-6">
@@ -25,7 +32,7 @@ export const PricingCard = ({ name, price, description, features, highlighted, i
       </CardHeader>
 
       <CardContent className="space-y-4 flex-1 flex flex-col">
-        <Link to="/auth" aria-label={`Get started with ${name} plan`}>
+        <Link to="/auth" aria-label={`Get started with ${name} plan`} onClick={handleGetStarted}>
           <Button 
             className="w-full" 
             variant="outline"

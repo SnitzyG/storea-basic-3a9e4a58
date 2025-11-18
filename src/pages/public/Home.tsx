@@ -6,7 +6,7 @@ const Home = () => {
     title: 'STOREA – Modern Construction Project Management',
     description: 'Streamline your construction projects with STOREA. Plan, organize, and deliver on time effortlessly.',
     canonicalPath: '/',
-    imageUrl: 'https://www.storea.com.au/og-image.jpg'
+    imageUrl: '/og-image.jpg'
   });
 
   return (

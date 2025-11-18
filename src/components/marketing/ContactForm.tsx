@@ -5,6 +5,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
+import { useAnalytics } from '@/hooks/useAnalytics';
 
 export const ContactForm = () => {
   const [submitted, setSubmitted] = useState(false);
@@ -13,9 +14,13 @@ export const ContactForm = () => {
     email: '',
     message: ''
   });
+  const { trackContactForm } = useAnalytics();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Track the contact form submission
+    trackContactForm();
     
     // Simulate form submission
     setTimeout(() => {

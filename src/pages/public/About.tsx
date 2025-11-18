@@ -7,10 +7,10 @@ import { Breadcrumbs } from '@/components/marketing/Breadcrumbs';
 
 const About = () => {
   usePageMeta({
-    title: 'About STOREA – Our Mission & Vision',
-    description: 'Learn about STOREA\'s mission to revolutionize construction project management with modern tools for seamless collaboration.',
+    title: 'About STOREA - Modern Construction Management Platform',
+    description: 'Learn about STOREA\'s mission to revolutionize construction project management with modern tools for seamless collaboration. Built for Australian builders.',
     canonicalPath: '/about',
-    imageUrl: 'https://www.storea.com.au/og-image.jpg'
+    imageUrl: '/og-about.jpg'
   });
 
   useEffect(() => {

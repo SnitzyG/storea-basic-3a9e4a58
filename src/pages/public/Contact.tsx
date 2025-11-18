@@ -7,10 +7,10 @@ import { Breadcrumbs } from '@/components/marketing/Breadcrumbs';
 
 const Contact = () => {
   usePageMeta({
-    title: 'Contact STOREA – Get in Touch',
-    description: 'Have questions about STOREA? Contact our team for support, demos, or inquiries about construction project management.',
+    title: 'Contact STOREA - Get in Touch with Our Team',
+    description: 'Have questions about STOREA? Contact our team for support, demos, or inquiries about construction project management software.',
     canonicalPath: '/contact',
-    imageUrl: 'https://www.storea.com.au/og-image.jpg'
+    imageUrl: '/og-contact.jpg'
   });
 
   useEffect(() => {

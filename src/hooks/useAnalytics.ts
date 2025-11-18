@@ -36,5 +36,43 @@ export const useAnalytics = () => {
     }
   };
 
-  return { trackEvent, trackConversion };
+  const trackSignup = (method: 'email' | 'google') => {
+    trackEvent('sign_up', { method });
+    trackConversion('signup_complete', 0);
+  };
+
+  const trackContactForm = () => {
+    trackEvent('contact_form_submit');
+    trackConversion('contact_form', 0);
+  };
+
+  const trackPricingSelection = (plan: string, isYearly: boolean) => {
+    trackEvent('pricing_plan_selected', { 
+      plan, 
+      billing: isYearly ? 'yearly' : 'monthly' 
+    });
+  };
+
+  const trackFeatureView = (featureName: string) => {
+    trackEvent('feature_viewed', { feature: featureName });
+  };
+
+  const trackDownload = (fileName: string) => {
+    trackEvent('file_download', { file: fileName });
+  };
+
+  const trackScrollDepth = (depth: number) => {
+    trackEvent('scroll_depth', { depth });
+  };
+
+  return { 
+    trackEvent, 
+    trackConversion,
+    trackSignup,
+    trackContactForm,
+    trackPricingSelection,
+    trackFeatureView,
+    trackDownload,
+    trackScrollDepth
+  };
 };
