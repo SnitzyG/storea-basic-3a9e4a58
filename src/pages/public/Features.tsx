@@ -1,6 +1,8 @@
+import { useEffect } from 'react';
 import { PublicLayout } from '@/components/marketing/PublicLayout';
 import { FeatureCard } from '@/components/marketing/FeatureCard';
 import { usePageMeta } from '@/hooks/usePageMeta';
+import { Breadcrumbs } from '@/components/marketing/Breadcrumbs';
 import { 
   FileText, 
   Users, 
@@ -23,6 +25,106 @@ const Features = () => {
     canonicalPath: '/features',
     imageUrl: 'https://www.storea.com.au/og-image.jpg'
   });
+
+  useEffect(() => {
+    // Add ItemList structured data for features
+    const itemListSchema = {
+      "@context": "https://schema.org",
+      "@type": "ItemList",
+      "name": "STOREA Construction Management Features",
+      "description": "Comprehensive list of features offered by STOREA for construction project management",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Document Management",
+          "description": "Centralize all project documents with version control, easy sharing, and powerful search capabilities."
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Team Collaboration",
+          "description": "Real-time collaboration tools keep your entire team connected and informed throughout the project."
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "name": "RFI Management",
+          "description": "Streamline requests for information with automated tracking, routing, and response management."
+        },
+        {
+          "@type": "ListItem",
+          "position": 4,
+          "name": "Financial Tracking",
+          "description": "Monitor budgets, track expenses, manage invoices, and generate financial reports with ease."
+        },
+        {
+          "@type": "ListItem",
+          "position": 5,
+          "name": "Project Scheduling",
+          "description": "Integrated calendar and Gantt charts help you track milestones and keep projects on schedule."
+        },
+        {
+          "@type": "ListItem",
+          "position": 6,
+          "name": "Tender Management",
+          "description": "Create, distribute, and evaluate tenders efficiently with built-in comparison tools."
+        },
+        {
+          "@type": "ListItem",
+          "position": 7,
+          "name": "Smart Notifications",
+          "description": "Stay updated with intelligent notifications for important project events and deadlines."
+        },
+        {
+          "@type": "ListItem",
+          "position": 8,
+          "name": "Activity Tracking",
+          "description": "Comprehensive audit logs and activity feeds keep you informed of all project changes."
+        },
+        {
+          "@type": "ListItem",
+          "position": 9,
+          "name": "Global Search",
+          "description": "Find any document, message, or project detail instantly with powerful search functionality."
+        },
+        {
+          "@type": "ListItem",
+          "position": 10,
+          "name": "Project Organization",
+          "description": "Organize multiple projects with customizable folders, tags, and filtering options."
+        },
+        {
+          "@type": "ListItem",
+          "position": 11,
+          "name": "Enterprise Security",
+          "description": "Bank-level encryption, role-based access control, and compliance with industry standards."
+        },
+        {
+          "@type": "ListItem",
+          "position": 12,
+          "name": "Analytics & Reports",
+          "description": "Generate detailed insights and custom reports to track project performance and trends."
+        }
+      ]
+    };
+
+    let script = document.querySelector('script[data-features-schema]');
+    if (!script) {
+      script = document.createElement('script');
+      script.setAttribute('type', 'application/ld+json');
+      script.setAttribute('data-features-schema', 'true');
+      document.head.appendChild(script);
+    }
+    script.textContent = JSON.stringify(itemListSchema);
+
+    return () => {
+      const existingScript = document.querySelector('script[data-features-schema]');
+      if (existingScript) {
+        existingScript.remove();
+      }
+    };
+  }, []);
 
   const features = [
     {
@@ -90,6 +192,7 @@ const Features = () => {
   return (
     <PublicLayout>
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 h-full flex flex-col">
+        <Breadcrumbs />
         <div className="max-w-4xl mx-auto text-center mb-6">
           <h1 className="text-4xl md:text-5xl font-bold mb-4 text-gray-800">
             Powerful Features for Modern Construction

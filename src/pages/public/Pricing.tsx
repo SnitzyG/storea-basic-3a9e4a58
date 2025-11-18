@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { PublicLayout } from '@/components/marketing/PublicLayout';
 import { PricingCard } from '@/components/marketing/PricingCard';
 import { usePageMeta } from '@/hooks/usePageMeta';
+import { Breadcrumbs } from '@/components/marketing/Breadcrumbs';
 
 const Pricing = () => {
   const [isYearly, setIsYearly] = useState(false);
@@ -12,6 +13,72 @@ const Pricing = () => {
     canonicalPath: '/pricing',
     imageUrl: 'https://www.storea.com.au/og-image.jpg'
   });
+
+  useEffect(() => {
+    // Add FAQPage structured data for pricing questions
+    const faqSchema = {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "What pricing plans does STOREA offer?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "STOREA offers three pricing plans: Basic (Free) for small projects with up to 2 active projects and 5 team members, Pro ($49/month) for growing teams with unlimited projects and 25 team members, and Team ($149/month) for large teams requiring enterprise features with unlimited team members and advanced capabilities."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Can I try STOREA for free?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes! STOREA offers a free Basic plan that allows you to manage up to 2 active projects with 5 team members. This is perfect for small projects or trying out the platform before upgrading."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Is there a discount for yearly subscriptions?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes, we offer a 5% discount on yearly subscriptions compared to monthly billing. Simply toggle to yearly billing to see the discounted rates."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Can I upgrade or downgrade my plan?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes, you can upgrade or downgrade your plan at any time. Changes will be reflected in your next billing cycle."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What payment methods do you accept?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "We accept all major credit cards and bank transfers for enterprise plans. All payments are processed securely through our payment partners."
+          }
+        }
+      ]
+    };
+
+    let script = document.querySelector('script[data-pricing-faq-schema]');
+    if (!script) {
+      script = document.createElement('script');
+      script.setAttribute('type', 'application/ld+json');
+      script.setAttribute('data-pricing-faq-schema', 'true');
+      document.head.appendChild(script);
+    }
+    script.textContent = JSON.stringify(faqSchema);
+
+    return () => {
+      const existingScript = document.querySelector('script[data-pricing-faq-schema]');
+      if (existingScript) {
+        existingScript.remove();
+      }
+    };
+  }, []);
 
   const calculatePrice = (monthlyPrice: number) => {
     if (isYearly) {
@@ -72,6 +139,7 @@ const Pricing = () => {
   return (
     <PublicLayout>
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 h-full flex flex-col">
+        <Breadcrumbs />
         <div className="max-w-4xl mx-auto text-center mb-8">
           <h1 className="text-4xl md:text-5xl font-bold mb-4 text-gray-800">
             Simple, Transparent Pricing
