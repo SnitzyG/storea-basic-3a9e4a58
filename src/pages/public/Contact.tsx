@@ -1,7 +1,9 @@
+import { useEffect } from 'react';
 import { PublicLayout } from '@/components/marketing/PublicLayout';
 import { ContactForm } from '@/components/marketing/ContactForm';
 import { Mail, MapPin, Phone } from 'lucide-react';
 import { usePageMeta } from '@/hooks/usePageMeta';
+import { Breadcrumbs } from '@/components/marketing/Breadcrumbs';
 
 const Contact = () => {
   usePageMeta({
@@ -11,9 +13,58 @@ const Contact = () => {
     imageUrl: 'https://www.storea.com.au/og-image.jpg'
   });
 
+  useEffect(() => {
+    // Add ContactPage structured data
+    const contactSchema = {
+      "@context": "https://schema.org",
+      "@type": "ContactPage",
+      "name": "Contact STOREA",
+      "description": "Get in touch with STOREA for support, demos, or inquiries about construction project management.",
+      "url": "https://www.storea.com.au/contact",
+      "mainEntity": {
+        "@type": "Organization",
+        "name": "STOREA",
+        "url": "https://www.storea.com.au",
+        "contactPoint": [
+          {
+            "@type": "ContactPoint",
+            "telephone": "1-800-STOREA",
+            "contactType": "customer service",
+            "areaServed": "AU",
+            "availableLanguage": "English"
+          }
+        ],
+        "email": "support@storea.com",
+        "address": {
+          "@type": "PostalAddress",
+          "addressLocality": "Melbourne",
+          "addressRegion": "VIC",
+          "addressCountry": "AU"
+        }
+      }
+    };
+
+    let script = document.querySelector('script[data-contact-schema]');
+    if (!script) {
+      script = document.createElement('script');
+      script.setAttribute('type', 'application/ld+json');
+      script.setAttribute('data-contact-schema', 'true');
+      document.head.appendChild(script);
+    }
+    script.textContent = JSON.stringify(contactSchema);
+
+    return () => {
+      const existingScript = document.querySelector('script[data-contact-schema]');
+      if (existingScript) {
+        existingScript.remove();
+      }
+    };
+  }, []);
+
   return (
     <PublicLayout>
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 h-full flex flex-col">
+        <Breadcrumbs />
         <div className="max-w-4xl mx-auto text-center mb-6">
           <h1 className="text-4xl md:text-5xl font-bold mb-4 text-gray-800">
             Let's Connect

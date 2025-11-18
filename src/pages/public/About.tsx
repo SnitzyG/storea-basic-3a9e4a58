@@ -1,7 +1,9 @@
+import { useEffect } from 'react';
 import { PublicLayout } from '@/components/marketing/PublicLayout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Target, Lightbulb, Users } from 'lucide-react';
 import { usePageMeta } from '@/hooks/usePageMeta';
+import { Breadcrumbs } from '@/components/marketing/Breadcrumbs';
 
 const About = () => {
   usePageMeta({
@@ -11,9 +13,51 @@ const About = () => {
     imageUrl: 'https://www.storea.com.au/og-image.jpg'
   });
 
+  useEffect(() => {
+    // Add AboutPage structured data
+    const aboutSchema = {
+      "@context": "https://schema.org",
+      "@type": "AboutPage",
+      "name": "About STOREA",
+      "description": "Learn about STOREA's mission to revolutionize construction project management with modern tools for seamless collaboration.",
+      "url": "https://www.storea.com.au/about",
+      "mainEntity": {
+        "@type": "Organization",
+        "name": "STOREA",
+        "url": "https://www.storea.com.au",
+        "description": "Modern construction project management platform that brings together document management, team collaboration, RFI tracking, financial oversight, and scheduling into one unified experience.",
+        "foundingDate": "2024",
+        "logo": "https://www.storea.com.au/storea-logo.png",
+        "sameAs": [
+          "https://www.facebook.com/storeaau",
+          "https://x.com/storea_au",
+          "https://www.instagram.com/storea_au/",
+          "https://www.youtube.com/@storea_au"
+        ]
+      }
+    };
+
+    let script = document.querySelector('script[data-about-schema]');
+    if (!script) {
+      script = document.createElement('script');
+      script.setAttribute('type', 'application/ld+json');
+      script.setAttribute('data-about-schema', 'true');
+      document.head.appendChild(script);
+    }
+    script.textContent = JSON.stringify(aboutSchema);
+
+    return () => {
+      const existingScript = document.querySelector('script[data-about-schema]');
+      if (existingScript) {
+        existingScript.remove();
+      }
+    };
+  }, []);
+
   return (
     <PublicLayout>
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 h-full flex flex-col">
+        <Breadcrumbs />
         <div className="max-w-4xl mx-auto text-center mb-6">
           <h1 className="text-4xl md:text-5xl font-bold mb-4 text-gray-800">
             About STOREA

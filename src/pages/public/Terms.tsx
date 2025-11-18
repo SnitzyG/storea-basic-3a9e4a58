@@ -1,5 +1,6 @@
 import { PublicLayout } from '@/components/marketing/PublicLayout';
 import { usePageMeta } from '@/hooks/usePageMeta';
+import { Breadcrumbs } from '@/components/marketing/Breadcrumbs';
 import {
   Accordion,
   AccordionContent,
@@ -18,6 +19,7 @@ export default function Terms() {
   return (
     <PublicLayout>
       <div className="w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 overflow-y-auto max-h-[calc(100vh-120px)]">
+        <Breadcrumbs />
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-foreground mb-4">STOREA Terms and Conditions of Use</h1>
           <p className="text-sm text-muted-foreground mb-4">Last Modified: 10th November 2025</p>
