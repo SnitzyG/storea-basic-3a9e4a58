@@ -20,10 +20,10 @@ import {
 
 const Features = () => {
   usePageMeta({
-    title: 'STOREA Features – Tools to Simplify Project Management',
-    description: 'Discover all the tools STOREA offers to manage projects, teams, and documents in one place.',
+    title: 'Construction Project Management Features | STOREA',
+    description: 'Explore STOREA\'s comprehensive construction management features: document control, RFI tracking, tender management, team collaboration, and financial tools for Australian builders.',
     canonicalPath: '/features',
-    imageUrl: 'https://www.storea.com.au/og-image.jpg'
+    imageUrl: '/og-features.jpg'
   });
 
   useEffect(() => {

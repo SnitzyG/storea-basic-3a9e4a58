@@ -8,10 +8,10 @@ const Pricing = () => {
   const [isYearly, setIsYearly] = useState(false);
   
   usePageMeta({
-    title: 'STOREA Pricing – Choose Your Plan',
-    description: 'Flexible pricing plans to fit your construction project needs. Start free or upgrade to premium.',
+    title: 'Affordable Construction Management Software Pricing | STOREA',
+    description: 'Flexible pricing plans for construction project management. Start free or choose Pro/Team plans. Save 5% with yearly billing. Perfect for Australian builders of all sizes.',
     canonicalPath: '/pricing',
-    imageUrl: 'https://www.storea.com.au/og-image.jpg'
+    imageUrl: '/og-pricing.jpg'
   });
 
   useEffect(() => {
