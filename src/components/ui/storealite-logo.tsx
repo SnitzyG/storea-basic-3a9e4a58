@@ -21,7 +21,14 @@ export const StorealiteLogo = ({
   if (variant === 'icon-only') {
     return (
       <Link to="/" className="inline-flex items-center justify-center" aria-label="STOREA home">
-        <img src="/storea-logo.png" alt="STOREA logo" className={className} loading="eager" />
+        <img 
+          src="/storea-logo.png" 
+          alt="STOREA logo" 
+          className={className} 
+          loading="eager"
+          width="40"
+          height="40"
+        />
       </Link>
     );
   }
@@ -29,7 +36,14 @@ export const StorealiteLogo = ({
   if (variant === 'full') {
     return (
       <Link to="/" className="inline-flex items-center gap-2" aria-label="STOREA home">
-        <img src="/storea-logo.png" alt="STOREA logo" className={className} loading="eager" />
+        <img 
+          src="/storea-logo.png" 
+          alt="STOREA logo" 
+          className={className} 
+          loading="eager"
+          width="40"
+          height="40"
+        />
         <span style={logoStyle}>STOREA</span>
       </Link>
     );

@@ -913,7 +913,16 @@ const TenderBuilder = () => {
                     Tender ID: <span className="font-mono">{tender.tender_id}</span>
                   </CardDescription>
                 </div>
-                {tender.profiles?.company_logo_url && <img src={tender.profiles.company_logo_url} alt="Company logo" className="h-20 w-20 rounded-lg object-contain border border-border" />}
+                {tender.profiles?.company_logo_url && (
+                  <img 
+                    src={tender.profiles.company_logo_url} 
+                    alt="Company logo" 
+                    className="h-20 w-20 rounded-lg object-contain border border-border"
+                    loading="lazy"
+                    width="80"
+                    height="80"
+                  />
+                )}
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
