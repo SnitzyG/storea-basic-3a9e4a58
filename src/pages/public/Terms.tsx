@@ -1,5 +1,5 @@
 import { PublicLayout } from '@/components/marketing/PublicLayout';
-import { useEffect } from 'react';
+import { usePageMeta } from '@/hooks/usePageMeta';
 import {
   Accordion,
   AccordionContent,
@@ -8,13 +8,12 @@ import {
 } from "@/components/ui/accordion";
 
 export default function Terms() {
-  useEffect(() => {
-    document.title = 'Terms and Conditions - STOREA';
-    const metaDescription = document.querySelector('meta[name="description"]');
-    if (metaDescription) {
-      metaDescription.setAttribute('content', 'STOREA Terms and Conditions of Use - Learn about the terms governing your access and use of the STOREA platform and services.');
-    }
-  }, []);
+  usePageMeta({
+    title: 'Terms and Conditions - STOREA',
+    description: 'STOREA Terms and Conditions of Use - Learn about the terms governing your access and use of the STOREA platform and services.',
+    canonicalPath: '/terms',
+    imageUrl: 'https://www.storea.com.au/og-image.jpg'
+  });
 
   return (
     <PublicLayout>

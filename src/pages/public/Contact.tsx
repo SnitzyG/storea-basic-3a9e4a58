@@ -7,7 +7,8 @@ const Contact = () => {
   usePageMeta({
     title: 'Contact STOREA – Get in Touch',
     description: 'Have questions about STOREA? Contact our team for support, demos, or inquiries about construction project management.',
-    canonicalPath: '/contact'
+    canonicalPath: '/contact',
+    imageUrl: 'https://www.storea.com.au/og-image.jpg'
   });
 
   return (
