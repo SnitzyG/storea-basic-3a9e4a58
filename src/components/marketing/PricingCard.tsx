@@ -17,7 +17,7 @@ export const PricingCard = ({ name, price, description, features, highlighted, i
     <Card className={`relative h-full flex flex-col transition-all duration-300 hover:scale-105 hover:shadow-elegant ${highlighted ? 'border-primary shadow-xl' : 'border-border'}`}>
       <CardHeader className="text-center pb-6 pt-6">
         <CardTitle className="text-2xl">{name}</CardTitle>
-        <div className="mt-3">
+        <div className="mt-3" aria-label={`Price: ${price}${price !== 'Free' ? ` per ${isYearly ? 'year' : 'month'}` : ''}`}>
           <span className="text-4xl font-bold">{price}</span>
           {price !== 'Free' && <span className="text-muted-foreground">/{isYearly ? 'year' : 'month'}</span>}
         </div>
@@ -25,7 +25,7 @@ export const PricingCard = ({ name, price, description, features, highlighted, i
       </CardHeader>
 
       <CardContent className="space-y-4 flex-1 flex flex-col">
-        <Link to="/auth">
+        <Link to="/auth" aria-label={`Get started with ${name} plan`}>
           <Button 
             className="w-full" 
             variant="outline"
@@ -34,10 +34,10 @@ export const PricingCard = ({ name, price, description, features, highlighted, i
           </Button>
         </Link>
 
-        <ul className="space-y-2.5 pt-3 flex-1">
+        <ul className="space-y-2.5 pt-3 flex-1" aria-label={`${name} plan features`}>
           {features.map((feature, index) => (
             <li key={index} className="flex items-start gap-2.5">
-              <Check className="h-4 w-4 text-primary shrink-0 mt-0.5" />
+              <Check className="h-4 w-4 text-primary shrink-0 mt-0.5" aria-hidden="true" />
               <span className="text-sm text-muted-foreground">{feature}</span>
             </li>
           ))}
