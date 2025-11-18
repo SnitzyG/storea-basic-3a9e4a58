@@ -14,7 +14,7 @@ export const useAnalytics = () => {
   useEffect(() => {
     // Track page views
     if (typeof window.gtag !== 'undefined') {
-      window.gtag('config', 'GA_MEASUREMENT_ID', {
+      window.gtag('config', 'G-8EBGY1HGEE', {
         page_path: location.pathname + location.search,
       });
     }
