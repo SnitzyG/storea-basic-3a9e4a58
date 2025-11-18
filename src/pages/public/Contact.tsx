@@ -1,6 +1,8 @@
 import { useEffect } from 'react';
 import { PublicLayout } from '@/components/marketing/PublicLayout';
 import { ContactForm } from '@/components/marketing/ContactForm';
+import { FAQSection } from '@/components/marketing/FAQSection';
+import { RelatedPages } from '@/components/marketing/RelatedPages';
 import { Mail, MapPin, Phone } from 'lucide-react';
 import { usePageMeta } from '@/hooks/usePageMeta';
 import { Breadcrumbs } from '@/components/marketing/Breadcrumbs';
@@ -67,12 +69,32 @@ const Contact = () => {
         <Breadcrumbs />
         <div className="max-w-4xl mx-auto text-center mb-6">
           <h1 className="text-4xl md:text-5xl font-bold mb-4 text-gray-800">
-            Let's Connect
+            Contact STOREA - Get in Touch with Our Team
           </h1>
+          <h2 className="text-2xl md:text-3xl font-semibold mb-4 text-gray-700">
+            We're Here to Help with Your Construction Management Needs
+          </h2>
           
-          <p className="text-lg text-muted-foreground">
-            Have questions or need assistance? We're here to help.
-          </p>
+          <div className="text-base text-muted-foreground mb-6 max-w-3xl mx-auto leading-relaxed text-left space-y-4">
+            <p>
+              Have questions about STOREA? Want to schedule a demo? Need technical support? Our team 
+              is here to help. We're committed to providing exceptional customer service and support 
+              to all our users.
+            </p>
+            
+            <p>
+              Whether you're exploring STOREA for the first time, need help with a specific feature, 
+              or want to discuss how our platform can benefit your construction business, we'd love 
+              to hear from you. Fill out the form below and we'll get back to you within 24 hours 
+              (usually much sooner).
+            </p>
+            
+            <p>
+              For technical support, existing customers can also reach us through the in-app support 
+              chat or by emailing support@storea.com.au. Our Australian-based support team is available 
+              Monday to Friday, 9 AM to 6 PM AEST.
+            </p>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
@@ -104,6 +126,34 @@ const Contact = () => {
         <div className="flex-1 flex items-start justify-center">
           <ContactForm />
         </div>
+
+        <FAQSection 
+          title="Contact & Support FAQs"
+          faqs={[
+            {
+              question: "What's the best way to reach you?",
+              answer: "The quickest way to reach us is through the contact form on this page. We respond to all inquiries within 24 hours. For existing customers, you can also use the in-app support chat for immediate assistance."
+            },
+            {
+              question: "How quickly do you respond to inquiries?",
+              answer: "We typically respond to all contact form submissions within 2-4 hours during business hours (Monday-Friday, 9 AM - 6 PM AEST). For urgent support issues, existing customers can use our in-app chat for faster response."
+            },
+            {
+              question: "Do you offer phone support?",
+              answer: "Yes, phone support is available for customers on paid plans. After signing up, you'll receive direct phone support details in your welcome email. We also offer scheduled phone consultations for prospective customers."
+            },
+            {
+              question: "Can I schedule a demo?",
+              answer: "Absolutely! We offer personalized demos to show you how STOREA can benefit your construction business. Use the contact form and mention you'd like a demo, or email demo@storea.com.au to schedule a time."
+            },
+            {
+              question: "Where are you located?",
+              answer: "STOREA is based in Melbourne, Victoria, Australia. While we primarily operate online to serve customers across Australia, we're happy to arrange in-person meetings for Melbourne-based businesses."
+            }
+          ]}
+        />
+
+        <RelatedPages currentPage="contact" />
       </div>
     </PublicLayout>
   );

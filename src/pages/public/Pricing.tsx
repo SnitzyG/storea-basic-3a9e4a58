@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { PublicLayout } from '@/components/marketing/PublicLayout';
 import { PricingCard } from '@/components/marketing/PricingCard';
+import { FAQSection } from '@/components/marketing/FAQSection';
+import { RelatedPages } from '@/components/marketing/RelatedPages';
 import { usePageMeta } from '@/hooks/usePageMeta';
 import { Breadcrumbs } from '@/components/marketing/Breadcrumbs';
 
@@ -142,11 +144,33 @@ const Pricing = () => {
         <Breadcrumbs />
         <div className="max-w-4xl mx-auto text-center mb-8">
           <h1 className="text-4xl md:text-5xl font-bold mb-4 text-gray-800">
-            Simple, Transparent Pricing
+            Affordable Construction Management Software Pricing
           </h1>
-          
-          <p className="text-lg text-muted-foreground">
-            Choose the plan that fits your team's needs. Start free, upgrade when you're ready.
+          <h2 className="text-2xl md:text-3xl font-semibold mb-4 text-gray-700">
+            Choose the Best Plan for Your Construction Business
+          </h2>
+          <p className="text-base text-muted-foreground mb-4 max-w-3xl mx-auto leading-relaxed text-left">
+            STOREA offers flexible, transparent pricing designed to grow with your construction 
+            business. Whether you're a solo builder managing a few projects or a large construction 
+            company coordinating multiple teams and developments, we have a plan that fits your needs.
+          </p>
+          <p className="text-base text-muted-foreground mb-4 max-w-3xl mx-auto leading-relaxed text-left">
+            Our pricing philosophy is simple: you should only pay for what you use. Start with our 
+            free plan to explore STOREA's core features, then upgrade as your business grows. Every 
+            plan includes unlimited projects, secure cloud storage, mobile access, and our award-winning 
+            customer support.
+          </p>
+          <p className="text-base text-muted-foreground mb-4 max-w-3xl mx-auto leading-relaxed text-left">
+            We believe in providing exceptional value. That's why all paid plans include advanced 
+            features like document version control, unlimited RFI tracking, comprehensive reporting, 
+            and priority support. No hidden fees, no surprise charges – just straightforward pricing 
+            that helps you manage construction projects more effectively.
+          </p>
+          <p className="text-base text-muted-foreground mb-4 max-w-3xl mx-auto leading-relaxed text-left">
+            Many construction companies save 10-15 hours per week by switching to STOREA, eliminating 
+            manual data entry, reducing email chains, and centralizing project information. With our 
+            14-day money-back guarantee, you can try any paid plan risk-free and see the difference 
+            for yourself.
           </p>
           
           <div className="flex items-center justify-center gap-3 mt-6">
@@ -182,6 +206,46 @@ const Pricing = () => {
           ))}
         </div>
       </div>
+
+      <FAQSection 
+        title="Pricing FAQs"
+        faqs={[
+          {
+            question: "What's included in the free plan?",
+            answer: "The free plan includes up to 3 projects, basic document management, RFI tracking, team messaging, and access to our mobile app. It's perfect for solo builders or small teams getting started with construction management software."
+          },
+          {
+            question: "Can I change plans at any time?",
+            answer: "Yes! You can upgrade or downgrade your plan anytime from your account settings. When you upgrade, you'll only pay the prorated difference. When you downgrade, your new rate applies at the next billing cycle."
+          },
+          {
+            question: "Do you offer annual discounts?",
+            answer: "Yes, annual plans receive a 20% discount compared to monthly billing. You can switch to annual billing from your account settings and save immediately."
+          },
+          {
+            question: "Is there a setup fee or contract?",
+            answer: "No setup fees, no long-term contracts. You can start using STOREA immediately and cancel anytime. We believe in earning your business every month with exceptional service and features."
+          },
+          {
+            question: "What payment methods do you accept?",
+            answer: "We accept all major credit cards (Visa, Mastercard, Amex) and bank transfers for annual plans. All payments are processed securely through our payment provider."
+          },
+          {
+            question: "Do you offer refunds?",
+            answer: "Yes, we offer a 14-day money-back guarantee on all paid plans. If STOREA isn't right for your business, contact us within 14 days for a full refund, no questions asked."
+          },
+          {
+            question: "Can I cancel anytime?",
+            answer: "Absolutely. You can cancel your subscription anytime from your account settings. You'll retain access until the end of your current billing period, with no cancellation fees."
+          },
+          {
+            question: "What happens when I upgrade my plan?",
+            answer: "When you upgrade, you'll immediately get access to all features of your new plan. You'll only be charged the prorated difference for the remainder of your billing cycle."
+          }
+        ]}
+      />
+
+      <RelatedPages currentPage="pricing" />
     </PublicLayout>
   );
 };

@@ -1,6 +1,8 @@
 import { useEffect } from 'react';
 import { PublicLayout } from '@/components/marketing/PublicLayout';
 import { FeatureCard } from '@/components/marketing/FeatureCard';
+import { FAQSection } from '@/components/marketing/FAQSection';
+import { RelatedPages } from '@/components/marketing/RelatedPages';
 import { usePageMeta } from '@/hooks/usePageMeta';
 import { Breadcrumbs } from '@/components/marketing/Breadcrumbs';
 import { 
@@ -195,11 +197,31 @@ const Features = () => {
         <Breadcrumbs />
         <div className="max-w-4xl mx-auto text-center mb-6">
           <h1 className="text-4xl md:text-5xl font-bold mb-4 text-gray-800">
-            Powerful Features for Modern Construction
+            Construction Project Management Features
           </h1>
-          
-          <p className="text-lg text-muted-foreground">
-            Everything you need to manage construction projects efficiently, all in one integrated platform.
+          <h2 className="text-2xl md:text-3xl font-semibold mb-4 text-gray-700">
+            Complete Construction Management Software for Australian Builders
+          </h2>
+          <p className="text-base text-muted-foreground mb-4 max-w-3xl mx-auto leading-relaxed text-left">
+            STOREA is the leading construction project management platform designed specifically 
+            for Australian builders, contractors, and construction teams. Our comprehensive suite 
+            of features streamlines every aspect of construction management, from document control 
+            and RFI tracking to tender management and team collaboration.
+          </p>
+          <p className="text-base text-muted-foreground mb-4 max-w-3xl mx-auto leading-relaxed text-left">
+            With STOREA, you can manage construction projects more efficiently, reduce administrative 
+            overhead, and ensure all stakeholders stay aligned. Our platform includes powerful 
+            document management with version control, real-time RFI tracking, comprehensive tender 
+            and bid management, integrated messaging for team communication, financial oversight 
+            with progress claims and invoicing, and a centralized calendar for scheduling.
+          </p>
+          <p className="text-base text-muted-foreground mb-4 max-w-3xl mx-auto leading-relaxed text-left">
+            Whether you're managing a single residential project or multiple commercial developments, 
+            STOREA provides the tools you need to deliver on time and on budget. Our intuitive 
+            interface makes it easy for team members to collaborate, while powerful automation 
+            features reduce manual data entry and errors. Built by construction professionals 
+            for construction professionals, STOREA understands the unique challenges of the 
+            Australian construction industry.
           </p>
         </div>
 
@@ -209,6 +231,34 @@ const Features = () => {
           ))}
         </div>
       </div>
+
+      <FAQSection 
+        title="Frequently Asked Questions"
+        faqs={[
+          {
+            question: "What features does STOREA offer for construction management?",
+            answer: "STOREA offers comprehensive features including document management with version control, RFI tracking and management, tender and bid management, team messaging and collaboration, financial management with progress claims and invoicing, calendar and scheduling, project dashboards, and real-time notifications."
+          },
+          {
+            question: "How does document management work in STOREA?",
+            answer: "Our document management system allows you to upload, organize, and share construction documents with version control. You can categorize documents, track revisions, set permissions, and ensure everyone has access to the latest drawings, specifications, and contracts."
+          },
+          {
+            question: "Can I collaborate with my team in real-time?",
+            answer: "Yes! STOREA includes built-in messaging, real-time notifications, and collaborative tools that keep your entire team connected. Team members can discuss RFIs, review documents, and coordinate on tasks seamlessly."
+          },
+          {
+            question: "Is STOREA suitable for Australian construction projects?",
+            answer: "Absolutely. STOREA is built specifically for the Australian construction industry, with features tailored to local practices, compliance requirements, and workflows commonly used by Australian builders and contractors."
+          },
+          {
+            question: "What makes STOREA different from other construction management tools?",
+            answer: "STOREA combines powerful features with an intuitive interface, making it accessible for teams of all sizes. Our platform integrates all aspects of construction management in one place, eliminating the need for multiple disconnected tools and spreadsheets."
+          }
+        ]}
+      />
+
+      <RelatedPages currentPage="features" />
     </PublicLayout>
   );
 };
