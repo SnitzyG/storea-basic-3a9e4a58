@@ -1,5 +1,5 @@
 import { PublicLayout } from '@/components/marketing/PublicLayout';
-import { useEffect } from 'react';
+import { usePageMeta } from '@/hooks/usePageMeta';
 import {
   Accordion,
   AccordionContent,
@@ -8,13 +8,12 @@ import {
 } from "@/components/ui/accordion";
 
 export default function Privacy() {
-  useEffect(() => {
-    document.title = 'Privacy Policy - STOREA';
-    const metaDescription = document.querySelector('meta[name="description"]');
-    if (metaDescription) {
-      metaDescription.setAttribute('content', 'STOREA Privacy Policy - Learn how we collect, use, and protect your personal and business information in accordance with Australian privacy laws.');
-    }
-  }, []);
+  usePageMeta({
+    title: 'Privacy Policy - STOREA',
+    description: 'STOREA Privacy Policy - Learn how we collect, use, and protect your personal and business information in accordance with Australian privacy laws.',
+    canonicalPath: '/privacy',
+    imageUrl: 'https://www.storea.com.au/og-image.jpg'
+  });
 
 
   return (

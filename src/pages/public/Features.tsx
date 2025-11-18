@@ -20,7 +20,8 @@ const Features = () => {
   usePageMeta({
     title: 'STOREA Features – Tools to Simplify Project Management',
     description: 'Discover all the tools STOREA offers to manage projects, teams, and documents in one place.',
-    canonicalPath: '/features'
+    canonicalPath: '/features',
+    imageUrl: 'https://www.storea.com.au/og-image.jpg'
   });
 
   const features = [

@@ -9,7 +9,8 @@ const Pricing = () => {
   usePageMeta({
     title: 'STOREA Pricing – Choose Your Plan',
     description: 'Flexible pricing plans to fit your construction project needs. Start free or upgrade to premium.',
-    canonicalPath: '/pricing'
+    canonicalPath: '/pricing',
+    imageUrl: 'https://www.storea.com.au/og-image.jpg'
   });
 
   const calculatePrice = (monthlyPrice: number) => {
