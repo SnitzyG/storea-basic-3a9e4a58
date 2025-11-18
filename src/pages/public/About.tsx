@@ -1,6 +1,8 @@
 import { useEffect } from 'react';
 import { PublicLayout } from '@/components/marketing/PublicLayout';
 import { Card, CardContent } from '@/components/ui/card';
+import { FAQSection } from '@/components/marketing/FAQSection';
+import { RelatedPages } from '@/components/marketing/RelatedPages';
 import { Target, Lightbulb, Users } from 'lucide-react';
 import { usePageMeta } from '@/hooks/usePageMeta';
 import { Breadcrumbs } from '@/components/marketing/Breadcrumbs';
@@ -60,20 +62,53 @@ const About = () => {
         <Breadcrumbs />
         <div className="max-w-4xl mx-auto text-center mb-6">
           <h1 className="text-4xl md:text-5xl font-bold mb-4 text-gray-800">
-            About STOREA
+            About STOREA - Modern Construction Management Platform
           </h1>
+          <h2 className="text-2xl md:text-3xl font-semibold mb-4 text-gray-700">
+            Australia's Leading Construction Project Management Solution
+          </h2>
           
-          <p className="text-lg text-muted-foreground mb-6 max-w-2xl mx-auto">
-            We're on a mission to revolutionize how construction projects are managed, making collaboration seamless and projects more successful.
-          </p>
-
-          <div className="text-muted-foreground mb-6 text-sm leading-relaxed max-w-3xl mx-auto">
-            <p className="mb-3">
-              STOREA was born from the frustration of managing construction projects with outdated tools and fragmented communication. We recognized that the construction industry needed a modern, integrated platform that could keep pace with today's complex projects.
+          <div className="text-base text-muted-foreground mb-6 max-w-3xl mx-auto leading-relaxed text-left space-y-4">
+            <p>
+              STOREA was founded in 2024 by a team of construction professionals and software engineers 
+              who experienced firsthand the frustrations of managing construction projects with outdated 
+              tools, disconnected spreadsheets, and endless email chains. We knew there had to be a 
+              better way.
             </p>
             
-            <p className="mb-3">
-              Our platform brings together document management, team collaboration, RFI tracking, financial oversight, and scheduling into one unified experience.
+            <p>
+              Our mission is to empower Australian builders, contractors, and construction teams with 
+              modern, intuitive software that simplifies project management and enhances collaboration. 
+              We believe construction professionals deserve tools that work as hard as they do – reliable, 
+              powerful, and easy to use.
+            </p>
+            
+            <p>
+              Based in Melbourne, Victoria, STOREA serves construction companies across Australia, from 
+              small residential builders to large commercial contractors. Our platform is built specifically 
+              for the Australian construction industry, taking into account local practices, compliance 
+              requirements, and the unique challenges faced by builders down under.
+            </p>
+            
+            <p>
+              What sets STOREA apart is our commitment to listening to our users. Every feature we build, 
+              every update we release, is driven by feedback from real construction professionals using 
+              our platform daily. We're not just building software – we're building a community of 
+              construction professionals who believe there's a better way to manage projects.
+            </p>
+            
+            <p>
+              Our team combines deep construction industry expertise with cutting-edge technology. We 
+              understand construction workflows, documentation requirements, and the importance of real-time 
+              communication on job sites. This unique blend of industry knowledge and technical innovation 
+              allows us to create solutions that truly address the needs of modern construction teams.
+            </p>
+            
+            <p>
+              Looking ahead, we're committed to continuous improvement and innovation. We're constantly 
+              developing new features, integrations, and capabilities to help our users work more efficiently, 
+              reduce project delays, and deliver exceptional results for their clients. Join thousands of 
+              Australian builders who trust STOREA to manage their construction projects.
             </p>
           </div>
         </div>
@@ -116,6 +151,34 @@ const About = () => {
           </Card>
         </div>
       </div>
+
+      <FAQSection 
+        title="About STOREA FAQs"
+        faqs={[
+          {
+            question: "When was STOREA founded?",
+            answer: "STOREA was founded in 2024 by a team of construction professionals and software engineers passionate about modernizing construction project management."
+          },
+          {
+            question: "Where is STOREA based?",
+            answer: "STOREA is headquartered in Melbourne, Victoria, Australia. We're proud to serve construction companies across Australia with locally-focused solutions."
+          },
+          {
+            question: "Who uses STOREA?",
+            answer: "STOREA is used by builders, contractors, project managers, architects, engineers, and construction teams across Australia. From solo builders to large construction companies, our platform scales to meet diverse needs."
+          },
+          {
+            question: "What industries do you serve?",
+            answer: "We primarily serve the construction industry, including residential building, commercial construction, renovations, civil engineering, and project management. Our platform is designed specifically for construction workflows."
+          },
+          {
+            question: "How do you support customers?",
+            answer: "We offer comprehensive support including email support, in-app help documentation, video tutorials, and priority support for paid plans. Our Australian-based support team understands the local construction industry and is here to help."
+          }
+        ]}
+      />
+
+      <RelatedPages currentPage="about" />
     </PublicLayout>
   );
 };
