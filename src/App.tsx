@@ -6,7 +6,7 @@ import { useGlobalRealtime } from "@/hooks/useGlobalRealtime";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { RequireCompleteProfile } from "@/components/auth/RequireCompleteProfile";
-import Index from "./pages/Index";
+import Dashboard from "./pages/Dashboard";
 import Auth from "./pages/Auth";
 import AdminDashboard from "./pages/AdminDashboard";
 import UserManagement from "./pages/admin/UserManagement";
@@ -17,7 +17,6 @@ import AdminSettings from "./pages/AdminSettings";
 import AdminAuth from "./pages/AdminAuth";
 import { AdminLayout } from "./components/admin/AdminLayout";
 import SystemActivity from "./pages/admin/SystemActivity";
-import Dashboard from "./pages/Dashboard";
 import Projects from "./pages/Projects";
 import Documents from "./pages/Documents";
 import Messages from "./pages/Messages";
@@ -53,7 +52,7 @@ const App = () => (
         <Routes>
           <Route path="/" element={
             <AppLayout>
-              <Index />
+              <Dashboard />
             </AppLayout>
           } />
           <Route path="/dashboard" element={

@@ -1,4 +1,4 @@
-import { StrictMode } from "react";
+import { StrictMode, lazy, Suspense } from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster";
@@ -7,49 +7,50 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AppLayout } from "./components/layout/AppLayout.tsx";
 import { RequireCompleteProfile } from "./components/auth/RequireCompleteProfile.tsx";
-import Index from "./pages/Index.tsx";
-import Dashboard from "./pages/Dashboard.tsx";
-import Projects from "./pages/Projects.tsx";
-import Documents from "./pages/Documents.tsx";
-import RFIs from "./pages/RFIs.tsx";
-import Messages from "./pages/Messages.tsx";
-import Tenders from "./pages/Tenders.tsx";
-import Financials from "./pages/Financials.tsx";
-import TenderResponse from "./pages/TenderResponse.tsx";
-import TenderReviewDemo from "./pages/TenderReviewDemo.tsx";
-import TenderBuilder from "./pages/TenderBuilder.tsx";
-import Auth from "./pages/Auth.tsx";
-import ProfileSetup from "./pages/ProfileSetup.tsx";
-import Testing from "./pages/Testing.tsx";
-import NotFound from "./pages/NotFound.tsx";
-import AcceptInvitation from "./pages/AcceptInvitation.tsx";
-import ProjectJoin from "./pages/ProjectJoin.tsx";
-import ProjectInvite from "./pages/ProjectInvite.tsx";
-import JoinProject from "./pages/JoinProject.tsx";
-import Calendar from "./pages/Calendar.tsx";
-import TodoList from "./pages/TodoList.tsx";
 
-// Admin pages
-import AdminAuth from "./pages/AdminAuth.tsx";
-import { AdminLayout } from "./components/admin/AdminLayout.tsx";
-
-import AdminDashboard from "./pages/AdminDashboard.tsx";
-import UserManagement from "./pages/admin/UserManagement.tsx";
-import AuditLogs from "./pages/admin/AuditLogs.tsx";
-import SystemActivity from "./pages/admin/SystemActivity.tsx";
-import SystemAlerts from "./pages/admin/SystemAlerts.tsx";
-import AdminApprovals from "./pages/AdminApprovals.tsx";
-import AdminSettings from "./pages/AdminSettings.tsx";
-
-// Public marketing pages
+// Critical pages - loaded immediately
 import Home from "./pages/public/Home.tsx";
-import About from "./pages/public/About.tsx";
-import Features from "./pages/public/Features.tsx";
-import Pricing from "./pages/public/Pricing.tsx";
-import Contact from "./pages/public/Contact.tsx";
-import Privacy from "./pages/public/Privacy.tsx";
-import Terms from "./pages/public/Terms.tsx";
-import StyleGuide from "./pages/StyleGuide.tsx";
+import Auth from "./pages/Auth.tsx";
+import NotFound from "./pages/NotFound.tsx";
+
+// Lazy load non-critical pages for better performance
+const Dashboard = lazy(() => import("./pages/Dashboard.tsx"));
+const Projects = lazy(() => import("./pages/Projects.tsx"));
+const Documents = lazy(() => import("./pages/Documents.tsx"));
+const RFIs = lazy(() => import("./pages/RFIs.tsx"));
+const Messages = lazy(() => import("./pages/Messages.tsx"));
+const Tenders = lazy(() => import("./pages/Tenders.tsx"));
+const Financials = lazy(() => import("./pages/Financials.tsx"));
+const TenderResponse = lazy(() => import("./pages/TenderResponse.tsx"));
+const TenderReviewDemo = lazy(() => import("./pages/TenderReviewDemo.tsx"));
+const TenderBuilder = lazy(() => import("./pages/TenderBuilder.tsx"));
+const ProfileSetup = lazy(() => import("./pages/ProfileSetup.tsx"));
+const Testing = lazy(() => import("./pages/Testing.tsx"));
+const AcceptInvitation = lazy(() => import("./pages/AcceptInvitation.tsx"));
+const ProjectJoin = lazy(() => import("./pages/ProjectJoin.tsx"));
+const ProjectInvite = lazy(() => import("./pages/ProjectInvite.tsx"));
+const JoinProject = lazy(() => import("./pages/JoinProject.tsx"));
+const Calendar = lazy(() => import("./pages/Calendar.tsx"));
+const TodoList = lazy(() => import("./pages/TodoList.tsx"));
+
+// Admin pages - lazy loaded
+const AdminAuth = lazy(() => import("./pages/AdminAuth.tsx"));
+const AdminDashboard = lazy(() => import("./pages/AdminDashboard.tsx"));
+const UserManagement = lazy(() => import("./pages/admin/UserManagement.tsx"));
+const AuditLogs = lazy(() => import("./pages/admin/AuditLogs.tsx"));
+const SystemActivity = lazy(() => import("./pages/admin/SystemActivity.tsx"));
+const SystemAlerts = lazy(() => import("./pages/admin/SystemAlerts.tsx"));
+const AdminApprovals = lazy(() => import("./pages/AdminApprovals.tsx"));
+const AdminSettings = lazy(() => import("./pages/AdminSettings.tsx"));
+
+// Public marketing pages - lazy loaded
+const About = lazy(() => import("./pages/public/About.tsx"));
+const Features = lazy(() => import("./pages/public/Features.tsx"));
+const Pricing = lazy(() => import("./pages/public/Pricing.tsx"));
+const Contact = lazy(() => import("./pages/public/Contact.tsx"));
+const Privacy = lazy(() => import("./pages/public/Privacy.tsx"));
+const Terms = lazy(() => import("./pages/public/Terms.tsx"));
+const StyleGuide = lazy(() => import("./pages/StyleGuide.tsx"));
 
 import "./index.css";
 import { ThemeProvider } from "./context/ThemeContext.tsx";
@@ -72,10 +73,11 @@ createRoot(document.getElementById("root")!).render(
                 <Toaster />
                 <Sonner />
                 <BrowserRouter>
-                  <Routes>
-                    {/* Public marketing pages */}
-                    <Route path="/" element={<Home />} />
-                    <Route path="/home" element={<Home />} />
+                  <Suspense fallback={<div className="flex items-center justify-center min-h-screen"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>}>
+                    <Routes>
+                      {/* Public marketing pages */}
+                      <Route path="/" element={<Home />} />
+                      <Route path="/home" element={<Home />} />
                     <Route path="/about" element={<About />} />
                     <Route path="/features" element={<Features />} />
                     <Route path="/pricing" element={<Pricing />} />
@@ -88,7 +90,6 @@ createRoot(document.getElementById("root")!).render(
                     <Route path="/profile-setup" element={<ProfileSetup />} />
                     
                     {/* App pages (authenticated and profile complete) */}
-                    <Route path="/app" element={<RequireCompleteProfile><AppLayout><Index /></AppLayout></RequireCompleteProfile>} />
                     <Route path="/dashboard" element={<RequireCompleteProfile><AppLayout><Dashboard /></AppLayout></RequireCompleteProfile>} />
                     <Route path="/projects" element={<RequireCompleteProfile><AppLayout><Projects /></AppLayout></RequireCompleteProfile>} />
                     <Route path="/documents" element={<RequireCompleteProfile><AppLayout><Documents /></AppLayout></RequireCompleteProfile>} />
@@ -125,6 +126,7 @@ createRoot(document.getElementById("root")!).render(
                     
                     <Route path="*" element={<NotFound />} />
                   </Routes>
+                  </Suspense>
                 </BrowserRouter>
               </TooltipProvider>
             </QueryClientProvider>
