@@ -19,7 +19,8 @@ import { isProfileComplete } from '@/utils/profileUtils';
 const Auth = () => {
   usePageMeta({
     title: 'Login – STOREA',
-    description: 'Access your STOREA account and manage your projects securely.'
+    description: 'Access your STOREA account and manage your projects securely.',
+    index: false
   });
 
   const {

@@ -17,6 +17,7 @@ Allow: /
 Sitemap: https://www.storea.com.au/sitemap.xml
 
 # Disallow admin and app routes from search indexing
+Disallow: /auth/
 Disallow: /admin/
 Disallow: /app/
 Disallow: /dashboard/
