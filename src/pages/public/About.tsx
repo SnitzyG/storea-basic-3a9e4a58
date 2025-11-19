@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { PublicLayout } from '@/components/marketing/PublicLayout';
 import { Card, CardContent } from '@/components/ui/card';
 import { FAQSection } from '@/components/marketing/FAQSection';
@@ -65,7 +66,9 @@ const About = () => {
             <h1 className="text-4xl md:text-5xl font-bold mb-4 text-gray-800">
               About STOREA - Modern Construction Management Platform
             </h1>
-...
+            <p className="text-lg text-gray-600 leading-relaxed">
+              STOREA is revolutionizing construction project management with <Link to="/features" className="text-primary hover:underline font-medium">comprehensive features</Link> designed specifically for Australian builders. Our platform combines cutting-edge technology with intuitive design to help you deliver projects on time and within budget. Explore our <Link to="/pricing" className="text-primary hover:underline font-medium">flexible pricing plans</Link> or <Link to="/contact" className="text-primary hover:underline font-medium">contact us</Link> to learn more.
+            </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-6xl mx-auto mb-16">
