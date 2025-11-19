@@ -65,69 +65,47 @@ const Contact = () => {
 
   return (
     <PublicLayout>
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 h-full flex flex-col">
-        <Breadcrumbs />
-        <div className="max-w-4xl mx-auto text-center mb-6">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4 text-gray-800">
-            Contact STOREA - Get in Touch with Our Team
-          </h1>
-          <h2 className="text-2xl md:text-3xl font-semibold mb-4 text-gray-700">
-            We're Here to Help with Your Construction Management Needs
-          </h2>
-          
-          <div className="text-base text-muted-foreground mb-6 max-w-3xl mx-auto leading-relaxed text-left space-y-4">
-            <p>
-              Have questions about STOREA? Want to schedule a demo? Need technical support? Our team 
-              is here to help. We're committed to providing exceptional customer service and support 
-              to all our users.
-            </p>
-            
-            <p>
-              Whether you're exploring STOREA for the first time, need help with a specific feature, 
-              or want to discuss how our platform can benefit your construction business, we'd love 
-              to hear from you. Fill out the form below and we'll get back to you within 24 hours 
-              (usually much sooner).
-            </p>
-            
-            <p>
-              For technical support, existing customers can also reach us through the in-app support 
-              chat or by emailing support@storea.com.au. Our Australian-based support team is available 
-              Monday to Friday, 9 AM to 6 PM AEST.
-            </p>
+      <div className="w-full">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <Breadcrumbs />
+          <div className="max-w-4xl mx-auto text-center mb-6">
+            <h1 className="text-4xl md:text-5xl font-bold mb-4 text-gray-800">
+              Contact STOREA - Get in Touch with Our Team
+            </h1>
+...
           </div>
-        </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
-          <div className="text-center p-4">
-            <div className="w-10 h-10 rounded-lg bg-primary flex items-center justify-center mx-auto mb-3">
-              <Mail className="h-5 w-5 text-primary-foreground" />
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
+            <div className="text-center p-4">
+              <div className="w-10 h-10 rounded-lg bg-primary flex items-center justify-center mx-auto mb-3">
+                <Mail className="h-5 w-5 text-primary-foreground" />
+              </div>
+              <h3 className="font-semibold mb-2 text-primary">Email Us</h3>
+              <p className="text-sm text-muted-foreground">support@storea.com</p>
             </div>
-            <h3 className="font-semibold mb-2 text-primary">Email Us</h3>
-            <p className="text-sm text-muted-foreground">support@storea.com</p>
-          </div>
 
-          <div className="text-center p-4">
-            <div className="w-10 h-10 rounded-lg bg-primary flex items-center justify-center mx-auto mb-3">
-              <Phone className="h-5 w-5 text-primary-foreground" />
+            <div className="text-center p-4">
+              <div className="w-10 h-10 rounded-lg bg-primary flex items-center justify-center mx-auto mb-3">
+                <Phone className="h-5 w-5 text-primary-foreground" />
+              </div>
+              <h3 className="font-semibold mb-2 text-primary">Call Us</h3>
+              <p className="text-sm text-muted-foreground">1-800-STOREA</p>
             </div>
-            <h3 className="font-semibold mb-2 text-primary">Call Us</h3>
-            <p className="text-sm text-muted-foreground">1-800-STOREA</p>
-          </div>
 
-          <div className="text-center p-4">
-            <div className="w-10 h-10 rounded-lg bg-primary flex items-center justify-center mx-auto mb-3">
-              <MapPin className="h-5 w-5 text-primary-foreground" />
+            <div className="text-center p-4">
+              <div className="w-10 h-10 rounded-lg bg-primary flex items-center justify-center mx-auto mb-3">
+                <MapPin className="h-5 w-5 text-primary-foreground" />
+              </div>
+              <h3 className="font-semibold mb-2 text-primary">Visit Us</h3>
+              <p className="text-sm text-muted-foreground">Melbourne, Australia</p>
             </div>
-            <h3 className="font-semibold mb-2 text-primary">Visit Us</h3>
-            <p className="text-sm text-muted-foreground">Melbourne, Australia</p>
           </div>
-        </div>
 
-        <div className="flex-1 flex items-start justify-center">
+        <div className="mb-12 max-w-2xl mx-auto">
           <ContactForm />
         </div>
 
-        <FAQSection 
+        <FAQSection
           title="Contact & Support FAQs"
           faqs={[
             {
@@ -153,7 +131,10 @@ const Contact = () => {
           ]}
         />
 
-        <RelatedPages currentPage="contact" />
+        <div className="mt-12 mb-8">
+          <RelatedPages currentPage="contact" />
+        </div>
+        </div>
       </div>
     </PublicLayout>
   );
