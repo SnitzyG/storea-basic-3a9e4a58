@@ -262,7 +262,7 @@ const Features = () => {
             ]}
           />
 
-          <div className="mt-12">
+          <div className="mt-12 mb-8">
             <RelatedPages currentPage="features" />
           </div>
         </div>

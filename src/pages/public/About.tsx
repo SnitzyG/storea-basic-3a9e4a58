@@ -138,9 +138,9 @@ const About = () => {
       <div className="mt-12 mb-8">
         <RelatedPages currentPage="about" />
       </div>
-        </div>
-      </div>
-    </PublicLayout>
+    </div>
+  </div>
+</PublicLayout>
   );
 };
 
