@@ -26,56 +26,58 @@ export default defineConfig(({ mode }) => ({
     // Enable source maps for production debugging (optional)
     sourcemap: false,
     
+    // Enable CSS code splitting for faster rendering
+    cssCodeSplit: true,
+    
+    // Optimize asset inlining (4kb threshold)
+    assetsInlineLimit: 4096,
+    
     // Optimize chunk splitting
     rollupOptions: {
       output: {
         manualChunks: (id) => {
           // Separate vendor libraries into their own chunks
           if (id.includes('node_modules')) {
-            // Large PDF libraries
-            if (id.includes('pdfjs-dist')) {
-              return 'vendor-pdf';
+            // Critical chunks (always needed)
+            if (id.includes('react') || id.includes('react-dom')) {
+              return 'vendor-react';
             }
-            
-            // Excel/file processing
-            if (id.includes('xlsx') || id.includes('jszip')) {
-              return 'vendor-excel';
+            if (id.includes('@supabase')) {
+              return 'vendor-supabase';
             }
-            
-            // Maps
-            if (id.includes('leaflet')) {
-              return 'vendor-maps';
-            }
-            
-            // Charts
-            if (id.includes('recharts')) {
-              return 'vendor-charts';
-            }
-            
-            // Image processing
-            if (id.includes('html2canvas') || id.includes('jspdf')) {
-              return 'vendor-imaging';
-            }
-            
-            // Radix UI components (group together)
             if (id.includes('@radix-ui')) {
               return 'vendor-radix';
             }
             
-            // Supabase
-            if (id.includes('@supabase')) {
-              return 'vendor-supabase';
+            // Lazy-loaded chunks (only when needed)
+            if (id.includes('pdfjs-dist')) {
+              return 'vendor-pdf';
             }
-            
-            // React ecosystem
-            if (id.includes('react') || id.includes('react-dom') || id.includes('react-router')) {
-              return 'vendor-react';
+            if (id.includes('xlsx') || id.includes('jszip')) {
+              return 'vendor-excel';
+            }
+            if (id.includes('leaflet')) {
+              return 'vendor-maps';
+            }
+            if (id.includes('recharts')) {
+              return 'vendor-charts';
+            }
+            if (id.includes('html2canvas') || id.includes('jspdf')) {
+              return 'vendor-imaging';
+            }
+            if (id.includes('react-router')) {
+              return 'vendor-router';
             }
             
             // All other node_modules
             return 'vendor-other';
           }
         },
+        
+        // Add asset naming for better caching
+        assetFileNames: 'assets/[name]-[hash][extname]',
+        chunkFileNames: 'chunks/[name]-[hash].js',
+        entryFileNames: 'entries/[name]-[hash].js',
       },
     },
     
@@ -83,6 +85,7 @@ export default defineConfig(({ mode }) => ({
     minify: 'esbuild',
     esbuild: {
       drop: mode === 'production' ? ['console', 'debugger'] : [],
+      legalComments: 'none', // Remove comments for smaller bundles
     },
   },
 }));
