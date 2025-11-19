@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { PublicLayout } from '@/components/marketing/PublicLayout';
 import { FeatureCard } from '@/components/marketing/FeatureCard';
 import { FAQSection } from '@/components/marketing/FAQSection';
@@ -220,7 +221,8 @@ const Features = () => {
             <p className="text-base text-muted-foreground mb-4 max-w-3xl mx-auto leading-relaxed text-left">
               Whether you're managing a single residential project or multiple commercial developments, 
               STOREA provides the tools you need to deliver on time and on budget. Our intuitive 
-              interface eliminates the learning curve, allowing your team to get up and running quickly.
+              interface eliminates the learning curve, allowing your team to get up and running quickly. 
+              <Link to="/pricing" className="text-primary hover:underline font-medium">View our affordable pricing plans</Link> or <Link to="/contact" className="text-primary hover:underline font-medium">contact our team</Link> to get started today.
             </p>
           </div>
 

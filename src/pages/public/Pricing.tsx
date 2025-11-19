@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { PublicLayout } from '@/components/marketing/PublicLayout';
 import { PricingCard } from '@/components/marketing/PricingCard';
 import { FAQSection } from '@/components/marketing/FAQSection';
@@ -147,6 +148,9 @@ const Pricing = () => {
             <h1 className="text-4xl md:text-5xl font-bold mb-4 text-gray-800">
               Affordable Construction Management Software Pricing
             </h1>
+            <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+              Choose the perfect plan for your construction business. All plans include <Link to="/features" className="text-primary hover:underline font-medium">powerful project management features</Link>, with advanced capabilities available as you grow. Need help deciding? <Link to="/contact" className="text-primary hover:underline font-medium">Contact us</Link> for guidance.
+            </p>
 ...
           </div>
 

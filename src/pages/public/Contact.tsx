@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { PublicLayout } from '@/components/marketing/PublicLayout';
 import { ContactForm } from '@/components/marketing/ContactForm';
 import { FAQSection } from '@/components/marketing/FAQSection';
@@ -72,7 +73,9 @@ const Contact = () => {
             <h1 className="text-4xl md:text-5xl font-bold mb-4 text-gray-800">
               Contact STOREA - Get in Touch with Our Team
             </h1>
-...
+            <p className="text-lg text-gray-600 leading-relaxed">
+              Have questions about our <Link to="/features" className="text-primary hover:underline font-medium">construction management features</Link> or need help choosing the right <Link to="/pricing" className="text-primary hover:underline font-medium">pricing plan</Link>? Our team is here to help. Fill out the form below or use the contact information provided.
+            </p>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
