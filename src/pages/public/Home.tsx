@@ -10,7 +10,7 @@ const Home = () => {
   });
 
   return (
-    <PublicLayout>
+    <PublicLayout centered>
       <StorageAnimation />
     </PublicLayout>
   );

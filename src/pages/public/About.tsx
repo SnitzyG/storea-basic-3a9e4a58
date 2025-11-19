@@ -58,63 +58,18 @@ const About = () => {
 
   return (
     <PublicLayout>
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 h-full flex flex-col">
-        <Breadcrumbs />
-        <div className="max-w-4xl mx-auto text-center mb-6">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4 text-gray-800">
-            About STOREA - Modern Construction Management Platform
-          </h1>
-          <h2 className="text-2xl md:text-3xl font-semibold mb-4 text-gray-700">
-            Australia's Leading Construction Project Management Solution
-          </h2>
-          
-          <div className="text-base text-muted-foreground mb-6 max-w-3xl mx-auto leading-relaxed text-left space-y-4">
-            <p>
-              STOREA was founded in 2024 by a team of construction professionals and software engineers 
-              who experienced firsthand the frustrations of managing construction projects with outdated 
-              tools, disconnected spreadsheets, and endless email chains. We knew there had to be a 
-              better way.
-            </p>
-            
-            <p>
-              Our mission is to empower Australian builders, contractors, and construction teams with 
-              modern, intuitive software that simplifies project management and enhances collaboration. 
-              We believe construction professionals deserve tools that work as hard as they do – reliable, 
-              powerful, and easy to use.
-            </p>
-            
-            <p>
-              Based in Melbourne, Victoria, STOREA serves construction companies across Australia, from 
-              small residential builders to large commercial contractors. Our platform is built specifically 
-              for the Australian construction industry, taking into account local practices, compliance 
-              requirements, and the unique challenges faced by builders down under.
-            </p>
-            
-            <p>
-              What sets STOREA apart is our commitment to listening to our users. Every feature we build, 
-              every update we release, is driven by feedback from real construction professionals using 
-              our platform daily. We're not just building software – we're building a community of 
-              construction professionals who believe there's a better way to manage projects.
-            </p>
-            
-            <p>
-              Our team combines deep construction industry expertise with cutting-edge technology. We 
-              understand construction workflows, documentation requirements, and the importance of real-time 
-              communication on job sites. This unique blend of industry knowledge and technical innovation 
-              allows us to create solutions that truly address the needs of modern construction teams.
-            </p>
-            
-            <p>
-              Looking ahead, we're committed to continuous improvement and innovation. We're constantly 
-              developing new features, integrations, and capabilities to help our users work more efficiently, 
-              reduce project delays, and deliver exceptional results for their clients. Join thousands of 
-              Australian builders who trust STOREA to manage their construction projects.
-            </p>
+      <div className="w-full">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <Breadcrumbs />
+          <div className="max-w-4xl mx-auto text-center mb-6">
+            <h1 className="text-4xl md:text-5xl font-bold mb-4 text-gray-800">
+              About STOREA - Modern Construction Management Platform
+            </h1>
+...
           </div>
-        </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-6xl mx-auto flex-1">
-          <Card className="hover:shadow-elegant transition-all duration-300">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-6xl mx-auto mb-16">
+            <Card className="hover:shadow-elegant transition-all duration-300">
             <CardContent className="pt-4 text-center">
               <div className="w-10 h-10 rounded-lg bg-primary flex items-center justify-center mx-auto mb-3">
                 <Target className="h-5 w-5 text-primary-foreground" />
@@ -150,7 +105,6 @@ const About = () => {
             </CardContent>
           </Card>
         </div>
-      </div>
 
       <FAQSection 
         title="About STOREA FAQs"
@@ -178,7 +132,11 @@ const About = () => {
         ]}
       />
 
-      <RelatedPages currentPage="about" />
+      <div className="mt-12 mb-8">
+        <RelatedPages currentPage="about" />
+      </div>
+        </div>
+      </div>
     </PublicLayout>
   );
 };

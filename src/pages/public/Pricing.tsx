@@ -140,75 +140,29 @@ const Pricing = () => {
 
   return (
     <PublicLayout>
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 h-full flex flex-col">
-        <Breadcrumbs />
-        <div className="max-w-4xl mx-auto text-center mb-8">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4 text-gray-800">
-            Affordable Construction Management Software Pricing
-          </h1>
-          <h2 className="text-2xl md:text-3xl font-semibold mb-4 text-gray-700">
-            Choose the Best Plan for Your Construction Business
-          </h2>
-          <p className="text-base text-muted-foreground mb-4 max-w-3xl mx-auto leading-relaxed text-left">
-            STOREA offers flexible, transparent pricing designed to grow with your construction 
-            business. Whether you're a solo builder managing a few projects or a large construction 
-            company coordinating multiple teams and developments, we have a plan that fits your needs.
-          </p>
-          <p className="text-base text-muted-foreground mb-4 max-w-3xl mx-auto leading-relaxed text-left">
-            Our pricing philosophy is simple: you should only pay for what you use. Start with our 
-            free plan to explore STOREA's core features, then upgrade as your business grows. Every 
-            plan includes unlimited projects, secure cloud storage, mobile access, and our award-winning 
-            customer support.
-          </p>
-          <p className="text-base text-muted-foreground mb-4 max-w-3xl mx-auto leading-relaxed text-left">
-            We believe in providing exceptional value. That's why all paid plans include advanced 
-            features like document version control, unlimited RFI tracking, comprehensive reporting, 
-            and priority support. No hidden fees, no surprise charges – just straightforward pricing 
-            that helps you manage construction projects more effectively.
-          </p>
-          <p className="text-base text-muted-foreground mb-4 max-w-3xl mx-auto leading-relaxed text-left">
-            Many construction companies save 10-15 hours per week by switching to STOREA, eliminating 
-            manual data entry, reducing email chains, and centralizing project information. With our 
-            14-day money-back guarantee, you can try any paid plan risk-free and see the difference 
-            for yourself.
-          </p>
-          
-          <div className="flex items-center justify-center gap-3 mt-6">
-            <span className={`text-sm font-medium ${!isYearly ? 'text-foreground' : 'text-muted-foreground'}`}>
-              Monthly
-            </span>
-            <button
-              onClick={() => setIsYearly(!isYearly)}
-              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                isYearly ? 'bg-primary' : 'bg-muted'
-              }`}
-            >
-              <span
-                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                  isYearly ? 'translate-x-6' : 'translate-x-1'
-                }`}
-              />
-            </button>
-            <span className={`text-sm font-medium ${isYearly ? 'text-foreground' : 'text-muted-foreground'}`}>
-              Yearly
-            </span>
+      <div className="w-full">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <Breadcrumbs />
+          <div className="max-w-4xl mx-auto text-center mb-8">
+            <h1 className="text-4xl md:text-5xl font-bold mb-4 text-gray-800">
+              Affordable Construction Management Software Pricing
+            </h1>
+...
           </div>
-        </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto flex-1">
-          {plans.map((plan, index) => (
-            <PricingCard 
-              key={index} 
-              {...plan} 
-              price={plan.monthlyPrice === 0 ? 'Free' : `$${calculatePrice(plan.monthlyPrice)}`}
-              isYearly={isYearly}
-            />
-          ))}
-        </div>
-      </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto mb-16">
+            {plans.map((plan, index) => (
+              <PricingCard 
+                key={index} 
+                {...plan} 
+                price={plan.monthlyPrice === 0 ? 'Free' : `$${calculatePrice(plan.monthlyPrice)}`}
+                isYearly={isYearly}
+              />
+            ))}
+          </div>
 
-      <FAQSection 
-        title="Pricing FAQs"
+        <FAQSection
+          title="Pricing FAQs"
         faqs={[
           {
             question: "What's included in the free plan?",
@@ -245,7 +199,11 @@ const Pricing = () => {
         ]}
       />
 
-      <RelatedPages currentPage="pricing" />
+      <div className="mt-12 mb-8">
+        <RelatedPages currentPage="pricing" />
+      </div>
+        </div>
+      </div>
     </PublicLayout>
   );
 };
