@@ -43,14 +43,41 @@ const SystemAlerts = lazy(() => import("./pages/admin/SystemAlerts.tsx"));
 const AdminApprovals = lazy(() => import("./pages/AdminApprovals.tsx"));
 const AdminSettings = lazy(() => import("./pages/AdminSettings.tsx"));
 
-// Public marketing pages - lazy loaded
-const About = lazy(() => import("./pages/public/About.tsx"));
-const Features = lazy(() => import("./pages/public/Features.tsx"));
-const Pricing = lazy(() => import("./pages/public/Pricing.tsx"));
-const Contact = lazy(() => import("./pages/public/Contact.tsx"));
-const Privacy = lazy(() => import("./pages/public/Privacy.tsx"));
-const Terms = lazy(() => import("./pages/public/Terms.tsx"));
-const StyleGuide = lazy(() => import("./pages/StyleGuide.tsx"));
+// Public marketing pages - lazy loaded with error handling
+const About = lazy(() => import("./pages/public/About.tsx").catch(err => {
+  console.error('Failed to load About page:', err);
+  return { default: () => <div className="flex items-center justify-center min-h-screen"><p className="text-destructive">Error loading page. Please refresh.</p></div> };
+}));
+
+const Features = lazy(() => import("./pages/public/Features.tsx").catch(err => {
+  console.error('Failed to load Features page:', err);
+  return { default: () => <div className="flex items-center justify-center min-h-screen"><p className="text-destructive">Error loading page. Please refresh.</p></div> };
+}));
+
+const Pricing = lazy(() => import("./pages/public/Pricing.tsx").catch(err => {
+  console.error('Failed to load Pricing page:', err);
+  return { default: () => <div className="flex items-center justify-center min-h-screen"><p className="text-destructive">Error loading page. Please refresh.</p></div> };
+}));
+
+const Contact = lazy(() => import("./pages/public/Contact.tsx").catch(err => {
+  console.error('Failed to load Contact page:', err);
+  return { default: () => <div className="flex items-center justify-center min-h-screen"><p className="text-destructive">Error loading page. Please refresh.</p></div> };
+}));
+
+const Privacy = lazy(() => import("./pages/public/Privacy.tsx").catch(err => {
+  console.error('Failed to load Privacy page:', err);
+  return { default: () => <div className="flex items-center justify-center min-h-screen"><p className="text-destructive">Error loading page. Please refresh.</p></div> };
+}));
+
+const Terms = lazy(() => import("./pages/public/Terms.tsx").catch(err => {
+  console.error('Failed to load Terms page:', err);
+  return { default: () => <div className="flex items-center justify-center min-h-screen"><p className="text-destructive">Error loading page. Please refresh.</p></div> };
+}));
+
+const StyleGuide = lazy(() => import("./pages/StyleGuide.tsx").catch(err => {
+  console.error('Failed to load StyleGuide page:', err);
+  return { default: () => <div className="flex items-center justify-center min-h-screen"><p className="text-destructive">Error loading page. Please refresh.</p></div> };
+}));
 
 import "./index.css";
 import { ThemeProvider } from "./context/ThemeContext.tsx";
