@@ -15,6 +15,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { usePageMeta } from '@/hooks/usePageMeta';
 import { isProfileComplete } from '@/utils/profileUtils';
+import { useAnalytics } from '@/hooks/useAnalytics';
 
 const Auth = () => {
   usePageMeta({
@@ -38,6 +39,7 @@ const Auth = () => {
     resetSecurityState
   } = useSecureAuth();
   const { profile } = useAuth();
+  const { trackSignup } = useAnalytics();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
@@ -150,13 +152,19 @@ const Auth = () => {
       return;
     }
     setIsSubmitting(true);
-    await secureSignUp({
+    const result = await secureSignUp({
       email,
       password,
       name,
       role,
       company
     });
+    
+    // Track successful signup
+    if (!result?.error) {
+      trackSignup('email');
+    }
+    
     setIsSubmitting(false);
   };
   const handleForgotPassword = async (e: React.FormEvent) => {
