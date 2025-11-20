@@ -5342,34 +5342,5083 @@ System administration, user management, monitoring, and configuration for users 
 
 ---
 
+### 9.4 Admin Approvals (`/admin/approvals`)
+
+**Purpose**: Manage pending user approval queue
+
+**Features**:
+- List of users awaiting approval
+- User profile preview
+- Email and registration date
+- Role requested
+- Company information
+- Quick approve/reject buttons
+- Bulk approval actions
+- Filter by date, role
+- Search by name/email
+- Approval with optional message
+
+**Components**:
+- **AdminApprovals** page
+- **UserApprovalDashboard**
+- User approval cards
+- Bulk action toolbar
+
+---
+
+### 9.5 Audit Logs (`/admin/audit-logs`)
+
+**Purpose**: Complete system audit trail
+
+**Features**:
+- Comprehensive activity log
+- All user actions tracked
+- Admin actions highlighted
+- Filter by:
+  - User
+  - Action type
+  - Entity type (project, document, RFI, tender, etc.)
+  - Date range
+  - IP address
+- Search functionality
+- Export to CSV/Excel
+- Detailed view with metadata
+- IP address and user agent tracking
+- Session ID tracking
+
+**Log Details**:
+- Timestamp
+- User who performed action
+- Action type (created, updated, deleted, etc.)
+- Entity affected
+- Description
+- Metadata (JSON)
+- Project association
+- IP address
+- User agent
+- Session ID
+
+**Database**:
+- **Table**: `activity_log`
+- **Table**: `admin_activity_log`
+- **Table**: `audit_logs`
+
+---
+
+### 9.6 System Activity (`/admin/system-activity`)
+
+**Purpose**: Real-time system activity monitoring
+
+**Features**:
+- Live activity feed
+- Real-time updates via WebSocket
+- Activity filtering
+- User activity tracking
+- Entity-specific activity
+- Search across activities
+- Activity statistics
+- Most active users
+- Activity by hour/day charts
+- Export activity reports
+
+**Components**:
+- **SystemActivity** page
+- **RealtimeActivityLog**
+- **EnhancedRealtimeActivityLog**
+- Activity filters
+- Activity chart
+
+**Hooks**:
+- `useSystemActivity`
+- `useRealtimeMonitoring`
+
+---
+
+### 9.7 System Alerts (`/admin/system-alerts`)
+
+**Purpose**: System health and security alerts
+
+**Features**:
+- Alert dashboard
+- Alert severity levels:
+  - Critical (red)
+  - Warning (yellow)
+  - Info (blue)
+- Alert types:
+  - Security alerts (failed logins, suspicious activity)
+  - Performance alerts (slow queries, high CPU)
+  - Data alerts (overdue RFIs, pending approvals)
+  - System alerts (service outages, errors)
+- Alert status (new, acknowledged, resolved)
+- Acknowledge alerts
+- Resolve alerts
+- Alert history
+- Alert filters
+- Alert notifications
+- Email alert summaries
+
+**Components**:
+- **SystemAlerts** page
+- **AlertsIssuesCard**
+- Alert list
+- Alert details
+
+**Database**:
+- **Table**: `admin_alerts`
+- **Table**: `alert_notifications`
+- **Table**: `alert_rules`
+
+**Hooks**:
+- `useAdminAlerts`
+- `useAdminNotifications`
+
+---
+
+### 9.8 Admin Settings (`/admin/settings`)
+
+**Purpose**: System-wide configuration and settings
+
+**Features**:
+- General settings:
+  - Site name
+  - Default timezone
+  - Date/time formats
+  - Currency settings
+- Email settings:
+  - SMTP configuration
+  - Email templates
+  - Notification preferences
+- Security settings:
+  - Password requirements
+  - Session timeout
+  - Login attempt limits
+  - IP whitelisting/blacklisting
+- Feature flags:
+  - Enable/disable features
+  - Beta feature access
+- Integration settings:
+  - API keys
+  - Third-party service configs
+- User defaults:
+  - Default user role
+  - Auto-approval settings
+  - Default project permissions
+- System maintenance:
+  - Backup schedules
+  - Data retention policies
+  - Cleanup routines
+
+**Components**:
+- **AdminSettings** page
+- Settings forms
+- Configuration panels
+
+---
+
+## 10. Dialogs & Popups (Comprehensive List)
+
+All modal dialogs and popup interfaces throughout the application.
+
+---
+
+### 10.1 Project Management Dialogs
+
+#### **CreateProjectDialog**
+- Multi-step project creation wizard
+- Project name, description, address
+- Timeline configuration
+- Initial team member selection
+- Project type and budget
+
+#### **ProjectDetailsDialog** (`ProjectDetailsDialog.tsx` in `projects/`)
+- Full project information display
+- Tabs: Overview, Team, Documents, Activity, Settings
+- Edit mode for project details
+- Team management within dialog
+- Document quick access
+- Activity timeline
+
+#### **ProjectDetailsDialog** (`ProjectDetailsDialog.tsx` in `projects-v2/`)
+- Enhanced version with advanced features
+- Additional analytics
+- Project templates
+- Bulk actions
+
+#### **AddTeamMemberDialog**
+- Invite users to project
+- Select role (architect, builder, contractor, homeowner)
+- Email invitation or user search
+- Custom invitation message
+
+#### **AddUserDialog**
+- Invite new users to platform
+- User registration from within project
+- Pre-fill project association
+
+#### **PendingInvitationsDialog**
+- View all sent project invitations
+- Invitation status
+- Resend invitation
+- Cancel invitation
+- Filter by status, date
+
+#### **AdvancedProjectWizard**
+- Complex project setup
+- Multiple phases
+- Budget allocation
+- Team roles assignment
+- Document structure setup
+
+---
+
+### 10.2 Document Management Dialogs
+
+#### **DocumentUpload / DocumentUploadSystem**
+- Drag-and-drop file upload
+- Multiple file selection
+- File type validation
+- Progress indicators
+- Automatic categorization
+- Metadata entry
+
+#### **DocumentDetailsDialog**
+- View document information
+- Document metadata
+- Current revision details
+- Version history link
+- Download options
+- Sharing options
+- Lock/unlock document
+
+#### **EditDocumentDialog**
+- Edit document metadata
+- Change title, category
+- Update tags
+- Change status
+- Change visibility scope
+- Assign to user
+
+#### **DocumentHistoryDialog**
+- Complete version history
+- All revisions listed
+- View any revision
+- Download previous versions
+- Compare versions
+- Restore previous version
+- Audit trail
+
+#### **SupersedeDocumentDialog**
+- Upload new revision
+- Mark old version as superseded
+- Changes summary entry
+- Auto-increment revision number
+- Notification to team
+
+#### **DocumentSharingDialog**
+- Share document with users
+- Set permission level (view, edit)
+- Set expiration date
+- Share with external email
+- Generate share link
+- View current shares
+- Revoke shares
+
+#### **DocumentDeleteConfirmDialog**
+- Confirm document deletion
+- Warning about permanent action
+- Option to archive instead
+- Cascade delete information
+
+#### **CreateTenderPackageDialog**
+- Select documents for tender
+- Package name and description
+- Document organization
+- Preview package
+- Generate package
+
+---
+
+### 10.3 Message & Communication Dialogs
+
+#### **CreateThreadDialog**
+- New message thread creation
+- Thread title
+- Add participants
+- Project association
+- Initial message
+- Topics/tags
+
+#### **FormalInquiryDialog**
+- Convert message to formal RFI
+- Select RFI type
+- Add details
+- Set due date
+- Assign recipient
+
+#### **MessageSearch**
+- Search across all messages
+- Filter by thread, user, date
+- Full-text search
+- Search in attachments
+
+---
+
+### 10.4 RFI Dialogs
+
+#### **CreateRFIDialog**
+- Create new RFI
+- RFI type selection
+- Subject and description
+- Priority and due date
+- Assignee selection
+- Attachments
+- Project association
+
+#### **RFIDetailsDialog**
+- View RFI details
+- RFI information
+- Responses section
+- Activity log
+- Edit RFI
+- Change status
+- Add attachments
+
+#### **UnifiedRFIDetailsDialog**
+- Enhanced RFI details
+- Unified interface
+- Collaboration panel
+- Response composer
+- File attachments
+- Timeline view
+
+#### **QuickRFIRespondDialog**
+- Fast RFI response
+- Respond without opening full dialog
+- Text response
+- Quick attachments
+- Mark as resolved
+
+#### **AdvancedRFIComposer**
+- Complex RFI creation
+- Template selection
+- Rich text editor
+- Multiple attachments
+- Custom fields
+- Email notifications
+
+---
+
+### 10.5 Tender Dialogs
+
+#### **CreateTenderDialog**
+- Basic tender creation
+- Tender title and description
+- Closing date
+- Budget range
+- Trade category
+
+#### **EnhancedCreateTenderDialog**
+- Advanced tender creation
+- More detailed information
+- Prequalification requirements
+- Access control settings
+
+#### **CreateTenderWizard / EnhancedTenderWizard**
+- Multi-step tender creation
+- Step 1: Basic information
+- Step 2: Line items (bill of quantities)
+- Step 3: Documents
+- Step 4: Contractor selection
+- Step 5: Review and publish
+
+#### **TenderDetailsDialog**
+- View tender information
+- Tender details
+- Line items
+- Documents
+- Bids received
+- Access control
+- Edit tender
+
+#### **BidSubmissionDialog**
+- Submit bid to tender
+- Company details
+- Total bid amount
+- Delivery timeline
+- Notes
+- Attachments
+
+#### **TenderBidSubmissionWizard**
+- Multi-step bid submission
+- Step 1: Company information
+- Step 2: Line item pricing
+- Step 3: Documents/attachments
+- Step 4: Review and submit
+
+#### **TenderInviteDialog**
+- Invite contractors to tender
+- Select from database
+- Enter external emails
+- Custom message
+- Set access permissions
+
+#### **TenderBidDetailsDialog**
+- View submitted bid
+- Bid information
+- Line item breakdown
+- Documents
+- Contractor details
+- Accept/reject bid
+
+#### **DocumentCreatorDialog**
+- Create tender documents
+- Document templates
+- Custom document builder
+
+#### **DocumentTemplateDialog**
+- Select document templates
+- Pre-defined templates
+- Custom templates
+
+---
+
+### 10.6 User & Profile Dialogs
+
+#### **ManageProfileDialog**
+- Edit user profile
+- Personal information
+- Professional details
+- Company information
+- Avatar upload
+- Password change
+
+#### **AvatarUpload**
+- Upload profile picture
+- Crop and resize
+- Preview
+- Remove avatar
+
+---
+
+### 10.7 Confirmation Dialogs
+
+#### **ConfirmationDialog** (UI component)
+- Generic confirmation dialog
+- Customizable title and message
+- Confirm/cancel buttons
+- Destructive action warning
+- Used throughout app
+
+#### **AlertDialog** (Radix UI component)
+- Alert messages
+- Information dialogs
+- Warning dialogs
+- Error dialogs
+
+---
+
+## 11. Database Schema (Comprehensive)
+
+Complete database structure with all tables, columns, relationships, and policies.
+
+---
+
+### 11.1 Core User Tables
+
+#### **profiles**
+**Purpose**: User profile information
+
+**Columns**:
+- `id` (uuid, PK): Profile ID
+- `user_id` (uuid, FK → auth.users): Authentication user ID
+- `name` (text): Display name
+- `full_name` (text): Full legal name
+- `email` (text): Email address (mirrored from auth.users)
+- `phone` (text): Phone number
+- `avatar_url` (text): Profile picture URL
+- `bio` (text): User biography
+- `role` (user_role enum): User role (contractor, architect, builder, homeowner)
+- `company_id` (uuid, FK → companies): Associated company
+- `company_name` (text): Company name (denormalized)
+- `company_position` (text): Position in company
+- `company_logo_url` (text): Company logo
+- `company_address` (text): Company address
+- `company_phone` (text): Company phone
+- `company_website` (text): Company website
+- `number_of_employees` (int): Company size
+- `specialization` (text[]): Trade specializations
+- `years_experience` (int): Years of experience
+- `certifications` (jsonb): Licenses and certifications
+- `professional_license_number` (text): License number
+- `business_registration_number` (text): Business registration
+- `abn` (text): Australian Business Number
+- `insurance_details` (text): Insurance information
+- `linkedin_url` (text): LinkedIn profile
+- `approved` (boolean): Admin approval status
+- `approved_at` (timestamp): Approval timestamp
+- `approved_by` (uuid): Admin who approved
+- `online_status` (boolean): Currently online
+- `last_seen` (timestamp): Last activity time
+- `created_at` (timestamp): Account creation
+- `updated_at` (timestamp): Last profile update
+
+**Indexes**:
+- `user_id` (unique)
+- `email`
+- `company_id`
+- `role`
+- `approved`
+
+**RLS Policies**:
+- Users can view their own profile
+- Users can view profiles in their projects
+- Users can view profiles of tender participants
+- Users can update their own profile
+- Admins can view and update all profiles
+
+---
+
+#### **companies**
+**Purpose**: Company/organization information
+
+**Columns**:
+- `id` (uuid, PK): Company ID
+- `name` (text): Company name
+- `address` (text): Company address
+- `settings` (jsonb): Company-specific settings
+- `created_at` (timestamp)
+- `updated_at` (timestamp)
+
+**RLS Policies**:
+- Users can view their company
+- Users can view companies in their projects
+- Users can view companies of tender issuers
+
+---
+
+#### **user_roles**
+**Purpose**: Admin role assignments
+
+**Columns**:
+- `user_id` (uuid, PK): User ID
+- `role` (app_role enum): Role (admin, user)
+
+**RLS Policies**:
+- Admins can manage all roles
+- Users can view their own role
+
+---
+
+### 11.2 Project Tables
+
+#### **projects**
+**Purpose**: Construction project records
+
+**Columns**:
+- `id` (uuid, PK): Project ID
+- `project_id` (text, unique): Human-readable project code (15 chars)
+- `name` (text): Project name
+- `description` (text): Project description
+- `address` (text): Project location
+- `status` (text): Project status (planning, active, completed, on_hold)
+- `created_by` (uuid, FK → profiles): Project creator
+- `timeline` (jsonb): Project timeline and milestones
+- `invitation_token` (text, unique): Invitation link token
+- `created_at` (timestamp)
+- `updated_at` (timestamp)
+
+**Functions**:
+- `generate_unique_project_id()`: Auto-generate 15-char project ID
+- `set_project_invitation_token()`: Auto-generate invitation token
+- `generate_project_invitation_token()`: Create unique token
+
+**Triggers**:
+- `auto_generate_project_id`: Before insert
+- `set_project_invitation_token`: Before insert
+- `log_project_activity`: After insert/update/delete
+- `cleanup_orphaned_activity_logs`: After delete
+- `cleanup_orphaned_notifications`: After delete
+
+**RLS Policies**:
+- Users can create projects
+- Users can view projects they're members of
+- Users can update projects they created or are architects on
+- Admins can view all projects
+
+---
+
+#### **project_users**
+**Purpose**: Project team membership
+
+**Columns**:
+- `id` (uuid, PK): Membership ID
+- `project_id` (uuid, FK → projects): Project
+- `user_id` (uuid, FK → profiles): User
+- `role` (user_role enum): Role in project
+- `invited_by` (uuid, FK → profiles): Who invited
+- `joined_at` (timestamp): When joined
+
+**Unique Constraint**: (project_id, user_id)
+
+**Triggers**:
+- `log_project_user_activity`: After insert/update/delete
+
+**RLS Policies**:
+- Users can view team members of their projects
+- Project creators and architects can add/remove team members
+- Users can remove themselves from projects
+
+---
+
+#### **invitations**
+**Purpose**: Project invitations
+
+**Columns**:
+- `id` (uuid, PK)
+- `project_id` (uuid, FK → projects)
+- `email` (text): Invitee email
+- `role` (text): Role to assign
+- `token` (text, unique): Invitation token
+- `inviter_id` (uuid): Who sent invitation
+- `status` (text): pending, accepted, expired, rejected
+- `expires_at` (timestamp)
+- `created_at` (timestamp)
+- `updated_at` (timestamp)
+
+**RLS Policies**:
+- Project creators can manage invitations for their projects
+
+---
+
+#### **project_pending_invitations**
+**Purpose**: Pre-registration invitations (users who don't have accounts yet)
+
+**Columns**:
+- Stores invitations in project timeline JSONB
+
+---
+
+#### **project_join_requests**
+**Purpose**: User-initiated join requests
+
+**Columns**:
+- `id` (uuid, PK)
+- `project_id` (uuid, FK → projects)
+- `user_id` (uuid, FK → profiles)
+- `status` (text): pending, approved, rejected
+- `message` (text): Request message
+- `created_at` (timestamp)
+- `updated_at` (timestamp)
+
+**Triggers**:
+- `update_project_join_requests_updated_at`: Before update
+
+---
+
+### 11.3 Document Tables
+
+#### **document_groups**
+**Purpose**: Document collections with versioning
+
+**Columns**:
+- `id` (uuid, PK): Group ID
+- `project_id` (uuid, FK → projects): Project
+- `document_number` (text, unique): Auto-generated document number
+- `title` (text): Document title
+- `category` (text): Document category
+- `project_stage` (text): Project phase
+- `status` (text): Document status
+- `visibility_scope` (text): private, project, public
+- `current_revision_id` (uuid, FK → document_revisions): Current version
+- `is_locked` (boolean): Locked for editing
+- `locked_by` (uuid): Who locked
+- `locked_at` (timestamp): When locked
+- `created_by` (uuid): Who created
+- `created_at` (timestamp)
+- `updated_at` (timestamp)
+
+**Functions**:
+- `generate_document_group_number(project_id, category, stage)`: Generate doc number (COMPANY-STAGE-NNNN)
+- `toggle_document_lock(group_id, should_lock)`: Lock/unlock document
+- `update_document_group_metadata(...)`: Update metadata
+- `create_document_supersede(...)`: Create new revision
+
+**Triggers**:
+- `auto_generate_document_group_number`: Before insert
+
+**RLS Policies**:
+- Users can view documents for their projects
+- Users can create documents in their projects
+- Users can update documents they created
+- Users can delete documents they created
+
+---
+
+#### **document_revisions**
+**Purpose**: Document version history
+
+**Columns**:
+- `id` (uuid, PK): Revision ID
+- `document_group_id` (uuid, FK → document_groups): Parent document
+- `revision_number` (int): Sequential revision number
+- `file_name` (text): Original filename
+- `file_path` (text): Storage path
+- `file_type` (text): MIME type
+- `file_size` (bigint): File size in bytes
+- `file_extension` (text): File extension
+- `uploaded_by` (uuid): Who uploaded
+- `changes_summary` (text): What changed
+- `is_current` (boolean): Current active revision
+- `is_archived` (boolean): Archived/superseded
+- `created_at` (timestamp): Upload time
+
+**Triggers**:
+- `log_document_revision_activity`: After insert/update
+
+**RLS Policies**:
+- Users can view revisions for project documents
+- Users can create revisions
+- Users can update revisions they uploaded
+
+---
+
+#### **documents** (Legacy)
+**Purpose**: Original document table (being phased out for document_groups)
+
+**Columns**: Similar to document_groups but without versioning
+
+**Functions**:
+- `generate_document_number(project_id)`: Generate doc number
+- `auto_lock_new_document()`: Auto-lock on upload
+
+**Triggers**:
+- `auto_generate_document_number`: Before insert
+- `log_document_activity`: After insert/update/delete
+
+---
+
+#### **document_versions** (Legacy)
+**Purpose**: Old version tracking (replaced by document_revisions)
+
+---
+
+#### **document_categories**
+**Purpose**: Custom document categories per project
+
+**Columns**:
+- `id` (uuid, PK)
+- `project_id` (uuid, FK → projects)
+- `name` (text): Category name
+- `created_by` (uuid)
+- `created_at` (timestamp)
+
+**RLS Policies**:
+- Users can view categories for their projects
+- Architects/builders can manage categories
+
+---
+
+#### **document_status_options**
+**Purpose**: Custom document statuses per project
+
+**Columns**:
+- `id` (uuid, PK)
+- `project_id` (uuid, FK → projects)
+- `name` (text): Status name
+- `created_by` (uuid)
+- `created_at` (timestamp)
+
+**RLS Policies**:
+- Users can view statuses for their projects
+- Architects can manage statuses
+
+---
+
+#### **document_types**
+**Purpose**: Custom document types per project
+
+**Columns**:
+- `id` (uuid, PK)
+- `project_id` (uuid, FK → projects)
+- `name` (text): Type name
+- `created_by` (uuid)
+- `created_at` (timestamp)
+
+**RLS Policies**:
+- Users can view types for their projects
+- Architects can manage types
+
+---
+
+#### **document_shares**
+**Purpose**: Document sharing permissions
+
+**Columns**:
+- `id` (uuid, PK)
+- `document_id` (uuid, FK → documents)
+- `shared_by` (uuid): Who shared
+- `shared_with` (uuid): Recipient
+- `permission_level` (text): view, edit
+- `expires_at` (timestamp): Expiration
+- `created_at` (timestamp)
+
+**RLS Policies**:
+- Users can share their own documents
+- Users can view shares they created or received
+- Users can delete shares they created
+
+---
+
+#### **document_approvals**
+**Purpose**: Document approval workflow
+
+**Columns**:
+- `id` (uuid, PK)
+- `document_id` (uuid, FK → documents)
+- `approver_id` (uuid): Who approves
+- `status` (text): pending, approved, rejected
+- `comments` (text): Approval comments
+- `approved_date` (timestamp)
+- `created_at` (timestamp)
+
+**RLS Policies**:
+- Users can view approvals for project documents
+- Users can approve documents
+- Users can update their own approvals
+
+---
+
+#### **document_events**
+**Purpose**: Document activity audit trail
+
+**Columns**:
+- `id` (uuid, PK)
+- `document_id` (uuid, FK → documents)
+- `user_id` (uuid): Who performed action
+- `event_type` (text): Event type
+- `event_description` (text): Description
+- `metadata` (jsonb): Additional data
+- `created_at` (timestamp)
+
+**RLS Policies**:
+- System can create events
+- Users can view events for project documents
+
+---
+
+#### **document_transmittals**
+**Purpose**: Document transmittal tracking
+
+**Columns**:
+- `id` (uuid, PK)
+- `document_id` (uuid, FK → documents)
+- `transmittal_number` (text): Unique number
+- `sent_to` (text): Recipient
+- `sent_by` (uuid): Sender
+- `purpose` (text): Purpose
+- `notes` (text): Additional notes
+- `sent_at` (timestamp)
+- `created_at` (timestamp)
+
+**RLS Policies**:
+- Users can create transmittals for project documents
+- Users can view transmittals for project documents
+
+---
+
+### 11.4 Communication Tables
+
+#### **message_threads**
+**Purpose**: Message conversation threads
+
+**Columns**:
+- `id` (uuid, PK): Thread ID
+- `project_id` (uuid, FK → projects): Project
+- `title` (text): Thread title
+- `created_by` (uuid): Thread creator
+- `participants` (text[]): User IDs
+- `topics` (jsonb): Thread topics/tags
+- `status` (text): active, archived, closed
+- `is_archived` (boolean): Archived flag
+- `is_pinned` (boolean): Pinned flag
+- `created_at` (timestamp)
+- `updated_at` (timestamp)
+
+**Triggers**:
+- `log_thread_activity`: After insert/update/delete
+
+**RLS Policies**:
+- Users can view threads for their projects
+- Users can create threads in their projects
+- Users can update threads they created
+
+---
+
+#### **messages**
+**Purpose**: Individual messages within threads
+
+**Columns**:
+- `id` (uuid, PK): Message ID
+- `thread_id` (uuid, FK → message_threads): Parent thread
+- `project_id` (uuid, FK → projects): Project
+- `sender_id` (uuid): Message sender
+- `content` (text): Message content
+- `parent_message_id` (uuid): Reply to message (threading)
+- `quoted_content` (text): Quoted text
+- `message_type` (text): normal, inquiry, announcement
+- `inquiry_status` (text): Status if inquiry
+- `attachments` (jsonb): File attachments
+- `is_deleted` (boolean): Soft delete
+- `edited_at` (timestamp): Last edit time
+- `scheduled_at` (timestamp): Scheduled send time
+- `created_at` (timestamp)
+- `updated_at` (timestamp)
+
+**Triggers**:
+- `log_message_activity`: After insert/delete
+
+**RLS Policies**:
+- Users can view messages in project threads
+- Users can create messages
+- Users can update/delete their own messages
+
+---
+
+#### **message_participants**
+**Purpose**: Message read receipts
+
+**Columns**:
+- `id` (uuid, PK)
+- `message_id` (uuid, FK → messages)
+- `user_id` (uuid): Participant
+- `read_at` (timestamp): When read
+- `created_at` (timestamp)
+
+---
+
+#### **message_templates**
+**Purpose**: Reusable message templates
+
+**Columns**:
+- `id` (uuid, PK)
+- `user_id` (uuid): Template owner
+- `name` (text): Template name
+- `content` (text): Template content
+- `created_at` (timestamp)
+
+**RLS Policies**:
+- Users can manage their own templates
+
+---
+
+#### **rfis**
+**Purpose**: Request for Information records
+
+**Columns**:
+- `id` (uuid, PK): RFI ID
+- `project_id` (uuid, FK → projects): Project
+- `rfi_number` (text, unique): Auto-generated RFI number (COMPANY-TYPE-NNNN)
+- `rfi_type` (rfi_type enum): general_correspondence, request_for_information, general_advice
+- `subject` (text): RFI subject
+- `description` (text): RFI description
+- `category` (text): RFI category
+- `raised_by` (uuid): Who raised
+- `assigned_to` (uuid): Who responds
+- `status` (text): open, in_progress, closed
+- `priority` (text): urgent, high, normal, low
+- `required_date` (date): Due date
+- `closed_date` (date): When closed
+- `created_at` (timestamp)
+- `updated_at` (timestamp)
+
+**Functions**:
+- `generate_rfi_number(project_id, rfi_type, raised_by)`: Generate RFI number
+- `set_rfi_number()`: Auto-set RFI number trigger function
+
+**Triggers**:
+- `set_rfi_number`: Before insert
+- `log_rfi_activity`: After insert/update/delete
+
+**RLS Policies**:
+- Users can view RFIs for their projects
+- Users can create RFIs in their projects
+- Users can update RFIs they raised
+
+---
+
+#### **rfi_responses**
+**Purpose**: RFI responses
+
+**Columns**:
+- `id` (uuid, PK)
+- `rfi_id` (uuid, FK → rfis): Parent RFI
+- `response` (text): Response content
+- `response_by` (uuid): Who responded
+- `created_at` (timestamp)
+
+---
+
+#### **rfi_attachments**
+**Purpose**: RFI file attachments
+
+**Columns**:
+- `id` (uuid, PK)
+- `rfi_id` (uuid, FK → rfis): Parent RFI
+- `file_name` (text): Filename
+- `file_path` (text): Storage path
+- `file_type` (text): MIME type
+- `uploaded_by` (uuid): Who uploaded
+- `created_at` (timestamp)
+
+---
+
+### 11.5 Tender Tables
+
+#### **tenders**
+**Purpose**: Tender/bid request records
+
+**Columns**:
+- `id` (uuid, PK): Tender ID
+- `tender_id` (text, unique): 15-character unique code
+- `project_id` (uuid, FK → projects): Project
+- `title` (text): Tender title
+- `description` (text): Tender description
+- `issued_by` (uuid): Who issued
+- `issue_date` (date): Issue date
+- `closing_date` (date): Closing date
+- `status` (text): draft, issued, closed, awarded
+- `budget_range` (text): Budget estimate
+- `trade_category` (text): Trade/specialty
+- `created_at` (timestamp)
+- `updated_at` (timestamp)
+
+**Functions**:
+- `generate_unique_tender_id()`: Generate 15-char tender ID
+- `delete_tender_cascade(tender_id)`: Delete tender and related data
+
+**Triggers**:
+- `auto_generate_tender_id`: Before insert
+- `log_tender_activity`: After insert/update/delete
+
+**RLS Policies**:
+- Users can view tenders for their projects
+- Users can view tenders they have access to
+- Architects can create tenders
+- Tender issuers can update their tenders
+
+---
+
+#### **tender_line_items**
+**Purpose**: Bill of quantities
+
+**Columns**:
+- `id` (uuid, PK): Line item ID
+- `tender_id` (uuid, FK → tenders): Parent tender
+- `item_number` (int): Sequential number
+- `description` (text): Item description
+- `quantity` (numeric): Quantity
+- `unit` (text): Unit of measure
+- `estimated_rate` (numeric): Estimated unit rate
+- `category` (text): Category
+- `trade` (text): Trade specialty
+- `created_at` (timestamp)
+- `updated_at` (timestamp)
+
+---
+
+#### **tender_bids**
+**Purpose**: Submitted bids
+
+**Columns**:
+- `id` (uuid, PK): Bid ID
+- `tender_id` (uuid, FK → tenders): Tender
+- `contractor_id` (uuid): Bidder
+- `total_price` (numeric): Total bid amount
+- `delivery_time_weeks` (int): Delivery timeline
+- `status` (text): draft, submitted, under_review, accepted, rejected
+- `notes` (text): Bid notes
+- `attachments` (jsonb): File attachments
+- `excel_file_path` (text): Uploaded Excel file
+- `submitted_at` (timestamp): Submission time
+- `created_at` (timestamp)
+- `updated_at` (timestamp)
+
+**Triggers**:
+- `log_tender_bid_activity`: After insert/update/delete
+
+**RLS Policies**:
+- Contractors can view and manage their own bids
+- Tender issuers can view all bids for their tenders
+
+---
+
+#### **tender_bid_line_items**
+**Purpose**: Bid pricing per line item
+
+**Columns**:
+- `id` (uuid, PK)
+- `bid_id` (uuid, FK → tender_bids): Parent bid
+- `line_item_id` (uuid, FK → tender_line_items): Line item
+- `unit_rate` (numeric): Bid unit rate
+- `total_price` (numeric): Line total
+- `notes` (text): Line item notes
+- `created_at` (timestamp)
+- `updated_at` (timestamp)
+
+**Triggers**:
+- `update_tender_bid_line_items_updated_at`: Before update
+
+---
+
+#### **tender_access**
+**Purpose**: Tender access control
+
+**Columns**:
+- `id` (uuid, PK)
+- `tender_id` (uuid, FK → tenders): Tender
+- `user_id` (uuid): User requesting access
+- `status` (text): pending, approved, rejected
+- `requested_at` (timestamp): When requested
+- `approved_at` (timestamp): When approved
+- `approved_by` (uuid): Who approved
+
+**Functions**:
+- `user_has_tender_access(user_id, tender_id)`: Check access
+- `check_tender_access(user_id, tender_id)`: Verify access
+
+**RLS Policies**:
+- Users can request tender access
+- Tender issuers can manage access requests
+
+---
+
+#### **tender_package_documents**
+**Purpose**: Link documents to tenders
+
+**Columns**:
+- `id` (uuid, PK)
+- `tender_id` (uuid, FK → tenders): Tender
+- `document_group_id` (uuid, FK → document_groups): Document
+- `created_at` (timestamp)
+- `updated_at` (timestamp)
+
+**Triggers**:
+- `update_tender_package_documents_updated_at`: Before update
+
+---
+
+#### **contractor_prequalifications**
+**Purpose**: Contractor prequalification data
+
+**Columns**:
+- `id` (uuid, PK)
+- `contractor_id` (uuid): Contractor
+- `project_id` (uuid): Project (optional)
+- `experience_years` (int): Years of experience
+- `certifications` (jsonb): Licenses and certs
+- `insurance_details` (jsonb): Insurance info
+- `financial_capacity` (numeric): Financial capacity
+- `previous_projects` (jsonb): Past projects
+- `contractor_references` (jsonb): References
+- `documents` (jsonb): Supporting documents
+- `status` (text): pending, approved, rejected
+- `reviewed_by` (uuid): Who reviewed
+- `reviewed_at` (timestamp): When reviewed
+- `review_notes` (text): Review notes
+- `submitted_at` (timestamp): When submitted
+
+---
+
+### 11.6 Financial Tables
+
+#### **project_budgets**
+**Purpose**: Overall project budget
+
+**Columns**:
+- `id` (uuid, PK)
+- `project_id` (uuid, FK → projects): Project
+- `original_budget` (numeric): Original budget
+- `revised_budget` (numeric): Revised budget
+- `currency` (text): Currency code
+- `project_management_margin_percent` (numeric): PM margin
+- `provisional_sums_total` (numeric): Provisional sums
+- `prime_cost_sums_total` (numeric): Prime cost sums
+- `created_by` (uuid): Who created
+- `created_at` (timestamp)
+- `updated_at` (timestamp)
+
+---
+
+#### **line_item_budgets**
+**Purpose**: Detailed line-item budget tracking
+
+**Columns**:
+- `id` (uuid, PK)
+- `project_id` (uuid, FK → projects): Project
+- `item_number` (int): Item number
+- `item_name` (text): Item name
+- `description` (text): Description
+- `category` (text): Category
+- `quantity` (numeric): Quantity
+- `unit` (text): Unit
+- `rate` (numeric): Unit rate
+- `total` (numeric): Line total
+- `contract_budget` (numeric): Contract budget
+- `revised_budget` (numeric): Revised budget
+- `total_claimed_to_date` (numeric): Total claimed
+- `balance_to_claim` (numeric): Balance remaining
+- `percentage_complete` (numeric): % complete
+- `forecast_to_complete` (numeric): Forecast
+- `notes` (text): Notes
+- `created_at` (timestamp)
+- `updated_at` (timestamp)
+
+**RLS Policies**:
+- Users can view budgets for their projects
+- Architects/builders can manage budgets
+
+---
+
+#### **budget_categories**
+**Purpose**: Budget category allocations
+
+**Columns**:
+- `id` (uuid, PK)
+- `project_id` (uuid, FK → projects): Project
+- `name` (text): Category name
+- `category_type` (text): Category type
+- `allocated_amount` (numeric): Allocated
+- `spent_amount` (numeric): Spent
+- `created_at` (timestamp)
+- `updated_at` (timestamp)
+
+**RLS Policies**:
+- Users can view categories for their projects
+- Architects/builders can manage categories
+
+---
+
+#### **progress_claims**
+**Purpose**: Construction progress claims
+
+**Columns**:
+- `id` (uuid, PK)
+- `project_id` (uuid, FK → projects): Project
+- `claim_number` (text): Claim number
+- `claim_date` (date): Claim date
+- `month_period` (text): Period covered
+- `total_works_completed_to_date` (numeric): Total works
+- `total_variations_included` (numeric): Variations
+- `total_amount_excl_gst` (numeric): Amount excl GST
+- `gst_applicable` (numeric): GST amount
+- `total_amount_incl_gst` (numeric): Amount incl GST
+- `status` (text): draft, submitted, approved, paid
+- `created_by` (uuid): Who created
+- `created_at` (timestamp)
+- `updated_at` (timestamp)
+
+**RLS Policies**:
+- Users can view claims for their projects
+- Architects/builders can manage claims
+
+---
+
+#### **project_invoices**
+**Purpose**: Project invoices
+
+**Columns**:
+- `id` (uuid, PK)
+- `project_id` (uuid, FK → projects): Project
+- `invoice_number` (text): Invoice number
+- `invoice_date` (date): Invoice date
+- `due_date` (date): Due date
+- `vendor_name` (text): Vendor
+- `vendor_email` (text): Vendor email
+- `description` (text): Description
+- `amount` (numeric): Amount
+- `tax_amount` (numeric): Tax
+- `currency` (text): Currency
+- `status` (text): draft, sent, paid, overdue
+- `paid_date` (date): Paid date
+- `attachment_path` (text): Attachment
+- `category_id` (uuid): Budget category
+- `approved_by` (uuid): Who approved
+- `created_by` (uuid): Who created
+- `created_at` (timestamp)
+- `updated_at` (timestamp)
+
+---
+
+#### **change_orders**
+**Purpose**: Change orders and variations
+
+**Columns**:
+- `id` (uuid, PK)
+- `project_id` (uuid, FK → projects): Project
+- `order_number` (text): CO number
+- `title` (text): CO title
+- `description` (text): Description
+- `reason` (text): Reason
+- `financial_impact` (numeric): Cost impact
+- `timeline_impact_days` (int): Time impact
+- `status` (text): pending, approved, rejected
+- `requested_by` (uuid): Who requested
+- `approved_by` (uuid): Who approved
+- `approval_date` (date): Approval date
+- `variation_reference` (text): Variation ref
+- `percentage_complete` (numeric): % complete
+- `amount_claimed` (numeric): Claimed
+- `balance_remaining` (numeric): Balance
+- `claimed_in_claim_id` (uuid, FK → progress_claims): Claim
+- `created_at` (timestamp)
+- `updated_at` (timestamp)
+
+**RLS Policies**:
+- Users can view change orders for their projects
+- Project members can create change orders
+- Architects/builders can manage change orders
+
+---
+
+#### **cashflow_items**
+**Purpose**: Cash flow forecasting
+
+**Columns**:
+- `id` (uuid, PK)
+- `project_id` (uuid, FK → projects): Project
+- `item_type` (text): income, expense
+- `description` (text): Description
+- `category` (text): Category
+- `amount` (numeric): Amount
+- `forecast_date` (date): Forecast date
+- `status` (text): forecasted, actual
+- `linked_invoice_id` (uuid): Linked invoice
+- `linked_payment_id` (uuid): Linked payment
+- `created_by` (uuid): Who created
+- `created_at` (timestamp)
+- `updated_at` (timestamp)
+
+**RLS Policies**:
+- Users can view cashflow for their projects
+- Architects/builders can manage cashflow
+
+---
+
+#### **client_contributions**
+**Purpose**: Client/owner contributions
+
+**Columns**:
+- `id` (uuid, PK)
+- `project_id` (uuid, FK → projects): Project
+- `contribution_type` (text): deposit, payment, material
+- `description` (text): Description
+- `amount` (numeric): Amount
+- `expected_date` (date): Expected date
+- `received_date` (date): Received date
+- `status` (text): pending, received, overdue
+- `payment_method` (text): Payment method
+- `reference_number` (text): Reference
+- `created_by` (uuid): Who created
+- `created_at` (timestamp)
+- `updated_at` (timestamp)
+
+**RLS Policies**:
+- Users can view contributions for their projects
+- Architects/builders can manage contributions
+
+---
+
+#### **payment_stages**
+**Purpose**: Milestone-based payment schedule
+
+**Columns**:
+- `id` (uuid, PK)
+- `project_id` (uuid, FK → projects): Project
+- `stage_number` (int): Stage number
+- `stage_name` (text): Stage name
+- `milestone_order` (int): Order
+- `percentage_of_contract` (numeric): % of contract
+- `completion_criteria` (text): Criteria
+- `status` (text): not_started, in_progress, complete, paid
+- `created_at` (timestamp)
+- `updated_at` (timestamp)
+
+**RLS Policies**:
+- Users can view stages for their projects
+- Architects/builders can manage stages
+
+---
+
+### 11.7 Activity & Monitoring Tables
+
+#### **activity_log**
+**Purpose**: System-wide activity audit trail
+
+**Columns**:
+- `id` (uuid, PK): Activity ID
+- `user_id` (uuid): User who performed action
+- `entity_type` (text): Entity type (project, document, rfi, tender, etc.)
+- `entity_id` (uuid): Entity ID
+- `action` (text): Action (created, updated, deleted, etc.)
+- `description` (text): Human-readable description
+- `metadata` (jsonb): Additional data
+- `project_id` (uuid): Associated project
+- `ip_address` (inet): IP address
+- `user_agent` (text): User agent string
+- `session_id` (uuid): Session ID
+- `created_at` (timestamp): Timestamp
+
+**Functions**:
+- `log_activity(...)`: Manual activity logging
+
+**RLS Policies**:
+- System can create activity logs
+- Users can view activities for their projects
+- Users can update activity metadata (for dismissal)
+
+---
+
+#### **admin_activity_log**
+**Purpose**: Admin-specific actions
+
+**Columns**:
+- `id` (uuid, PK)
+- `admin_id` (uuid): Admin user
+- `action` (text): Action performed
+- `resource_type` (text): Resource type
+- `resource_id` (uuid): Resource ID
+- `changes` (jsonb): What changed
+- `ip_address` (inet): IP
+- `user_agent` (text): User agent
+- `created_at` (timestamp)
+
+**RLS Policies**:
+- System can insert admin activity
+- Admins can view all admin activity
+
+---
+
+#### **user_sessions**
+**Purpose**: User session tracking
+
+**Columns**:
+- `id` (uuid, PK)
+- `session_id` (uuid): Session ID
+- `user_id` (uuid): User
+- `started_at` (timestamp): Session start
+- `ended_at` (timestamp): Session end
+- `duration_seconds` (int): Duration
+- `is_active` (boolean): Currently active
+- `created_at` (timestamp)
+
+**Functions**:
+- `get_db_performance_metrics()`: Get session metrics
+
+**Triggers**:
+- `update_session_end_time`: Calculate duration
+
+---
+
+#### **telemetry_sessions**
+**Purpose**: Analytics session tracking
+
+**Columns**:
+- `session_id` (uuid, PK)
+- `user_id` (uuid): User
+- `started_at` (timestamp): Start time
+- `ended_at` (timestamp): End time
+- `page_views_count` (int): Page views
+- `events_count` (int): Events triggered
+
+---
+
+#### **telemetry_events**
+**Purpose**: Analytics event tracking
+
+**Columns**:
+- `id` (uuid, PK)
+- `session_id` (uuid): Session
+- `event_type` (text): Event type
+- `event_data` (jsonb): Event data
+- `timestamp` (timestamp)
+
+**Triggers**:
+- `increment_session_counts`: Update session counts
+
+---
+
+#### **telemetry_errors**
+**Purpose**: Error tracking
+
+**Columns**:
+- `id` (uuid, PK)
+- `error_type` (text): Error type
+- `error_message` (text): Message
+- `stack_trace` (text): Stack trace
+- `user_id` (uuid): User
+- `session_id` (uuid): Session
+- `timestamp` (timestamp)
+
+---
+
+#### **error_breadcrumbs**
+**Purpose**: Error context breadcrumbs
+
+**Columns**:
+- `id` (uuid, PK)
+- `error_id` (uuid, FK → telemetry_errors): Parent error
+- `category` (text): Breadcrumb category
+- `message` (text): Message
+- `level` (text): info, warn, error
+- `data` (jsonb): Additional data
+- `timestamp` (timestamp)
+- `created_at` (timestamp)
+
+**RLS Policies**:
+- System can create breadcrumbs
+- Users can view breadcrumbs
+
+---
+
+### 11.8 Alert & Notification Tables
+
+#### **notifications**
+**Purpose**: User notifications
+
+**Columns**:
+- `id` (uuid, PK)
+- `user_id` (uuid): Recipient
+- `type` (text): Notification type
+- `title` (text): Title
+- `message` (text): Message
+- `data` (jsonb): Additional data
+- `read` (boolean): Read status
+- `created_at` (timestamp)
+
+**RLS Policies**:
+- Users can view their own notifications
+- Users can update their own notifications
+
+---
+
+#### **admin_alerts**
+**Purpose**: System alerts for admins
+
+**Columns**:
+- `id` (uuid, PK)
+- `severity` (text): info, warn, error
+- `alert_type` (text): Alert type
+- `title` (text): Title
+- `message` (text): Message
+- `metadata` (jsonb): Additional data
+- `is_read` (boolean): Read status
+- `resolved_at` (timestamp): When resolved
+- `created_at` (timestamp)
+
+**Functions**:
+- `generate_admin_alerts()`: Auto-generate alerts
+
+**RLS Policies**:
+- System can create admin alerts
+- Admins can view, update, delete alerts
+
+---
+
+#### **alert_rules**
+**Purpose**: Alert rule configuration
+
+**Columns**:
+- `id` (uuid, PK)
+- `name` (text): Rule name
+- `description` (text): Description
+- `rule_type` (text): Rule type
+- `condition` (jsonb): Trigger condition
+- `channels` (jsonb): Notification channels
+- `enabled` (boolean): Active status
+- `created_by` (uuid): Creator
+- `last_triggered_at` (timestamp): Last trigger
+- `created_at` (timestamp)
+- `updated_at` (timestamp)
+
+**RLS Policies**:
+- Users can view all alert rules
+- Users can manage their own alert rules
+
+---
+
+#### **alert_notifications**
+**Purpose**: Alert notification instances
+
+**Columns**:
+- `id` (uuid, PK)
+- `alert_rule_id` (uuid, FK → alert_rules): Rule
+- `title` (text): Title
+- `message` (text): Message
+- `severity` (text): Severity
+- `metadata` (jsonb): Data
+- `acknowledged` (boolean): Acknowledged
+- `acknowledged_by` (uuid): Who acknowledged
+- `acknowledged_at` (timestamp): When acknowledged
+- `triggered_at` (timestamp): When triggered
+
+**RLS Policies**:
+- System can create alert notifications
+- Users can view all alert notifications
+- Users can acknowledge alerts
+
+---
+
+### 11.9 Calendar & Task Tables
+
+#### **calendar_events**
+**Purpose**: Calendar events and meetings
+
+**Columns**:
+- `id` (uuid, PK)
+- `title` (text): Event title
+- `description` (text): Description
+- `start_datetime` (timestamp): Start time
+- `end_datetime` (timestamp): End time
+- `project_id` (uuid, FK → projects): Project
+- `created_by` (uuid): Creator
+- `category` (text): Event category
+- `location` (text): Location
+- `meeting_link` (text): Meeting link
+- `attendees` (jsonb): Attendees
+- `external_attendees` (text[]): External emails
+- `priority` (text): Priority
+- `status` (text): Status
+- `reminder_minutes` (int): Reminder time
+- `is_meeting` (boolean): Is meeting
+- `created_at` (timestamp)
+- `updated_at` (timestamp)
+
+**RLS Policies**:
+- Users can view events for their projects
+- Users can create events
+- Users can update/delete their own events
+
+---
+
+#### **event_templates**
+**Purpose**: Reusable event templates
+
+**Columns**:
+- `id` (uuid, PK)
+- `user_id` (uuid): Template owner
+- `name` (text): Template name
+- `title_template` (text): Title template
+- `description_template` (text): Description template
+- `category` (text): Category
+- `priority` (text): Priority
+- `reminder_minutes` (int): Reminder
+- `is_meeting` (boolean): Is meeting
+- `created_at` (timestamp)
+
+**RLS Policies**:
+- Users can manage their own templates
+
+---
+
+#### **todos**
+**Purpose**: User task management
+
+**Columns**:
+- `id` (uuid, PK)
+- `user_id` (uuid): Task owner
+- `project_id` (uuid, FK → projects): Project
+- `title` (text): Task title
+- `description` (text): Description
+- `completed` (boolean): Completion status
+- `due_date` (date): Due date
+- `priority` (text): Priority
+- `category` (text): Category
+- `tags` (text[]): Tags
+- `reminder_date` (timestamp): Reminder
+- `created_at` (timestamp)
+- `updated_at` (timestamp)
+
+**RLS Policies**:
+- Users can manage their own todos
+
+---
+
+### 11.10 Audit & Compliance Tables
+
+#### **audit_logs**
+**Purpose**: Admin audit trail
+
+**Columns**:
+- `id` (uuid, PK)
+- `admin_id` (uuid): Admin user
+- `action` (text): Action
+- `resource_type` (text): Resource type
+- `resource_id` (uuid): Resource ID
+- `resource_name` (text): Resource name
+- `old_value` (jsonb): Before
+- `new_value` (jsonb): After
+- `status` (text): success, failure
+- `error_message` (text): Error if failed
+- `ip_address` (inet): IP
+- `user_agent` (text): User agent
+- `created_at` (timestamp)
+
+**RLS Policies**:
+- Admins can insert audit logs
+- Admins can view audit logs
+
+---
+
+#### **issue_groups**
+**Purpose**: Error grouping for monitoring
+
+**Columns**:
+- `id` (uuid, PK)
+- `fingerprint` (text): Error fingerprint
+- `title` (text): Error title
+- `error_type` (text): Error type
+- `severity` (text): Severity
+- `status` (text): open, resolved
+- `environment` (text): Environment
+- `release_version` (text): Version
+- `occurrence_count` (int): Occurrences
+- `affected_users` (int): Users affected
+- `first_seen` (timestamp): First occurrence
+- `last_seen` (timestamp): Last occurrence
+- `resolved_at` (timestamp): When resolved
+- `resolved_by` (uuid): Who resolved
+
+**RLS Policies**:
+- System can manage issue groups
+
+---
+
+### 11.11 Database Functions (Summary)
+
+**User Management**:
+- `handle_new_user()`: Auto-create profile on signup
+- `update_user_last_seen()`: Update online status
+- `approve_user(user_id)`: Approve user account
+- `grant_admin_by_email(email)`: Grant admin role
+- `revoke_admin_by_email(email)`: Revoke admin role
+- `has_role(user_id, role)`: Check user role
+
+**Project Management**:
+- `generate_unique_project_id()`: Generate project ID
+- `set_project_invitation_token()`: Set invitation token
+- `generate_project_invitation_token()`: Create token
+- `is_project_member(project_id, user_id)`: Check membership
+- `is_project_creator(project_id, user_id)`: Check creator
+- `is_project_architect(project_id, user_id)`: Check architect
+- `link_pending_users_to_projects(email, user_id)`: Auto-link
+- `handle_user_project_linking()`: Trigger project linking
+
+**Document Management**:
+- `generate_document_number(project_id)`: Generate doc number
+- `generate_document_group_number(project_id, category, stage)`: Generate group number
+- `auto_generate_document_number()`: Trigger function
+- `auto_generate_document_group_number()`: Trigger function
+- `create_document_supersede(...)`: Supersede document
+- `toggle_document_lock(group_id, should_lock)`: Lock/unlock
+- `update_document_group_metadata(...)`: Update metadata
+- `auto_lock_new_document()`: Auto-lock on upload
+- `migrate_existing_documents()`: Migration function
+
+**RFI Management**:
+- `generate_rfi_number(project_id, rfi_type, raised_by)`: Generate RFI number
+- `set_rfi_number()`: Trigger RFI number generation
+
+**Tender Management**:
+- `generate_unique_tender_id()`: Generate tender ID
+- `auto_generate_tender_id()`: Trigger tender ID
+- `user_has_tender_access(user_id, tender_id)`: Check access
+- `check_tender_access(user_id, tender_id)`: Verify access
+- `delete_tender_cascade(tender_id)`: Delete tender with cascade
+
+**Activity Logging**:
+- `log_activity(...)`: Manual activity logging
+- `log_project_activity()`: Auto-log project actions
+- `log_document_activity()`: Auto-log document actions
+- `log_document_revision_activity()`: Auto-log revision actions
+- `log_message_activity()`: Auto-log message actions
+- `log_thread_activity()`: Auto-log thread actions
+- `log_rfi_activity()`: Auto-log RFI actions
+- `log_tender_activity()`: Auto-log tender actions
+- `log_tender_bid_activity()`: Auto-log bid actions
+- `log_project_user_activity()`: Auto-log team actions
+
+**Monitoring**:
+- `get_active_users_count()`: Count active users
+- `get_db_performance_metrics()`: Get DB metrics
+- `get_user_activity_summary(days)`: User activity stats
+- `generate_admin_alerts()`: Generate system alerts
+
+**Cleanup**:
+- `cleanup_expired_invitations()`: Remove expired invitations
+- `cleanup_orphaned_activity_logs()`: Clean orphaned logs
+- `cleanup_orphaned_notifications()`: Clean orphaned notifications
+
+**Session Management**:
+- `update_session_end_time()`: Update session duration
+- `increment_session_counts()`: Update event counts
+
+**Miscellaneous**:
+- `update_updated_at_column()`: Auto-update timestamp
+- `update_project_join_requests_updated_at()`: Update timestamp
+- `update_tender_package_documents_updated_at()`: Update timestamp
+- `update_tender_bid_line_items_updated_at()`: Update timestamp
+
+---
+
+## 12. Supabase Edge Functions
+
+Serverless functions deployed on Supabase Edge (Deno runtime).
+
+---
+
+### 12.1 Available Edge Functions
+
+#### **generate-invite-link**
+**Purpose**: Generate project invitation links
+
+**Features**:
+- Creates unique invitation tokens
+- Sends invitation emails
+- Tracks invitation status
+
+**Usage**: Called when creating project invitations
+
+---
+
+#### **get-weather**
+**Purpose**: Fetch weather data for project locations
+
+**Features**:
+- External weather API integration
+- Location-based weather
+- Weather forecasts
+
+**Usage**: Display weather on project dashboard
+
+---
+
+#### **link-pending-projects**
+**Purpose**: Auto-link users to projects they were invited to before registration
+
+**Features**:
+- Checks for pending invitations by email
+- Auto-adds user to projects
+- Notifies user of added projects
+- Cleans up pending invitations
+
+**Usage**: Called after user completes profile setup
+
+---
+
+#### **parse-line-items**
+**Purpose**: AI-powered Excel line item parsing
+
+**Features**:
+- Parse Excel files
+- Extract line items
+- AI-based column mapping
+- Data validation
+- Return structured data
+
+**Usage**: Import tender/budget line items from Excel
+
+---
+
+#### **security-notifications**
+**Purpose**: Send security alert emails
+
+**Features**:
+- Failed login alerts
+- Suspicious activity notifications
+- Security event emails
+
+**Usage**: Triggered by security events
+
+---
+
+#### **send-password-reset**
+**Purpose**: Send password reset emails
+
+**Features**:
+- Generate reset token
+- Send email with reset link
+- Track reset requests
+
+**Usage**: Password reset flow
+
+---
+
+#### **send-rfi-notification**
+**Purpose**: Send RFI notification emails
+
+**Features**:
+- RFI created notification
+- RFI response notification
+- RFI status change notification
+- Email templates
+
+**Usage**: Triggered on RFI events
+
+---
+
+#### **send-team-invitation**
+**Purpose**: Send project team invitation emails
+
+**Features**:
+- Project invitation emails
+- Customizable invitation message
+- Invitation link generation
+- Track email delivery
+
+**Usage**: When inviting users to projects
+
+---
+
+#### **send-tender-invitation**
+**Purpose**: Send tender invitation emails
+
+**Features**:
+- Tender invitation emails
+- Contractor notifications
+- Tender details in email
+- Access link generation
+
+**Usage**: When inviting contractors to tender
+
+---
+
+#### **wipe-test-data**
+**Purpose**: Clean test data from database (admin only)
+
+**Features**:
+- Remove test projects
+- Remove test users
+- Remove test documents
+- Admin authentication required
+
+**Usage**: Testing and development cleanup
+
+---
+
+### 12.2 Edge Function Features
+
+**Runtime**: Deno (TypeScript/JavaScript)
+
+**Features**:
+- Automatic scaling
+- Global edge network
+- Low latency
+- CORS configuration
+- JWT authentication
+- Environment variables
+- Supabase client integration
+
+**Deployment**: Automatic via Lovable
+
+---
+
+## 13. Storage Buckets
+
+Supabase Storage buckets for file management.
+
+---
+
+### 13.1 Configured Buckets
+
+#### **avatars**
+**Purpose**: User profile pictures
+
+**Settings**:
+- Public bucket
+- Max file size: 5MB
+- Allowed types: image/*
+- Automatic resizing
+
+**RLS Policies**:
+- Anyone can view
+- Users can upload their own avatar
+- Users can update their own avatar
+
+---
+
+#### **company-logos**
+**Purpose**: Company branding images
+
+**Settings**:
+- Public bucket
+- Max file size: 5MB
+- Allowed types: image/*
+
+**RLS Policies**:
+- Anyone can view
+- Company members can upload/update
+
+---
+
+#### **documents**
+**Purpose**: Project documents and files
+
+**Settings**:
+- Private bucket
+- Max file size: 100MB
+- Allowed types: All file types
+- Signed URLs for access
+
+**RLS Policies**:
+- Project members can view
+- Project members can upload
+- Uploaders can delete their files
+
+---
+
+#### **tender-documents**
+**Purpose**: Tender-specific files
+
+**Settings**:
+- Private bucket
+- Max file size: 100MB
+- Allowed types: All file types
+- Signed URLs for access
+
+**RLS Policies**:
+- Tender creator can manage
+- Approved bidders can view
+- Bidders can upload bid documents
+
+---
+
+#### **rfi-attachments**
+**Purpose**: RFI supporting files
+
+**Settings**:
+- Private bucket
+- Max file size: 50MB
+- Allowed types: All file types
+
+**RLS Policies**:
+- Project members can view
+- RFI creator can upload
+- RFI responder can upload
+
+---
+
+#### **message-attachments**
+**Purpose**: Message files
+
+**Settings**:
+- Private bucket
+- Max file size: 50MB
+- Allowed types: All file types
+
+**RLS Policies**:
+- Thread participants can view
+- Thread participants can upload
+
+---
+
+### 13.2 Storage Features
+
+**File Upload**:
+- Drag-and-drop interface
+- Progress indicators
+- File type validation
+- Size limits
+- Automatic cleanup
+
+**Security**:
+- Row Level Security (RLS)
+- Signed URLs
+- Expiring URLs
+- Access control
+
+**Performance**:
+- CDN distribution
+- Automatic optimization
+- Image resizing
+- Lazy loading
+
+---
+
+## 14. Real-time Features
+
+WebSocket subscriptions for live data updates.
+
+---
+
+### 14.1 Real-time Channels
+
+#### **Messages**
+**Subscription**: `messages:project_id=eq.{projectId}`
+
+**Events**:
+- New messages
+- Message edits
+- Message deletions
+- Typing indicators
+
+**Components**: MessageBubble, MessageInput
+
+---
+
+#### **RFIs**
+**Subscription**: `rfis:project_id=eq.{projectId}`
+
+**Events**:
+- New RFIs
+- RFI updates
+- RFI status changes
+- New responses
+
+**Components**: RFICard, RFIDetailsDialog
+
+---
+
+#### **Documents**
+**Subscription**: `document_groups:project_id=eq.{projectId}`
+
+**Events**:
+- Document uploads
+- Document updates
+- New revisions
+- Document deletions
+
+**Components**: DocumentCard, DocumentDetailsDialog
+
+---
+
+#### **Activity**
+**Subscription**: `activity_log:project_id=eq.{projectId}`
+
+**Events**:
+- All project activities
+- Real-time activity feed
+- User actions
+
+**Components**: RecentActivity, EnhancedRealtimeActivityLog
+
+---
+
+#### **Admin Stats**
+**Subscription**: Multiple admin tables
+
+**Events**:
+- User approvals
+- System alerts
+- Performance metrics
+- Activity counts
+
+**Components**: Admin dashboard widgets
+
+---
+
+#### **User Presence**
+**Subscription**: Presence channel
+
+**Events**:
+- User online/offline
+- User typing
+- User viewing
+
+**Components**: OnlineIndicator, TeamMembersOverview
+
+---
+
+### 14.2 Real-time Implementation
+
+**Provider**: `RealtimeContext`
+
+**Hooks**:
+- `useGlobalRealtime`: Global subscriptions
+- `useRealtimeMonitoring`: Admin monitoring
+- `useRealtimeAdminStats`: Admin statistics
+- `useTeamSync`: Team synchronization
+
+**Features**:
+- Automatic reconnection
+- Optimistic UI updates
+- Event batching
+- Error handling
+- Connection status indicator
+
+---
+
+## 15. Analytics & Tracking
+
+User behavior tracking and analytics integration.
+
+---
+
+### 15.1 Google Analytics 4 (GA4)
+
+**Tracking ID**: `G-8EBGY1HGEE`
+
+**Automatic Tracking**:
+- Page views
+- User sessions
+- Bounce rate
+- Session duration
+- Geographic data
+- Device/browser info
+
+**Custom Events**:
+- User signup (by method: email, Google)
+- Contact form submission
+- Pricing plan selection
+- Feature page views
+- Document downloads
+- RFI creation
+- Tender submission
+- Project creation
+
+**Conversions**:
+- User registration
+- Contact form submission
+- Project creation
+- Document upload
+
+**Implementation**: `useAnalytics` hook
+
+**Functions**:
+- `trackEvent(name, params)`
+- `trackConversion(name, value)`
+- `trackSignup(method)`
+- `trackContactForm()`
+- `trackPricingSelection(plan)`
+- `trackFeatureView(feature)`
+- `trackDownload(fileType)`
+- `trackScrollDepth(percentage)`
+
+---
+
+### 15.2 Microsoft Clarity
+
+**Project ID**: `p3vxdyy2fc`
+
+**Features**:
+- Session recordings
+- Heatmaps
+- Click tracking
+- Scroll tracking
+- Rage clicks detection
+- Dead clicks detection
+- JavaScript error tracking
+- Form analytics
+
+**Integration**: Embedded in `index.html`
+
+---
+
+### 15.3 Google Ads Conversion Tracking
+
+**Status**: Ready for integration
+
+**Setup Required**:
+- Add Conversion ID to `useAnalytics`
+- Configure conversion goals
+- Link to Google Ads account
+
+**Tracked Conversions**:
+- User signups
+- Contact form submissions
+- Project creations
+
+---
+
+## 16. Security Features
+
+Comprehensive security implementation.
+
+---
+
+### 16.1 Authentication Security
+
+**Email Verification**:
+- Required before access
+- Verification email sent
+- Token-based verification
+- Resend option
+
+**Password Security**:
+- Minimum length: 8 characters
+- Complexity requirements
+- Strength indicator
+- Password reset flow
+- Secure reset tokens
+
+**CAPTCHA**:
+- Triggered on suspicious activity
+- Failed login attempts
+- Rapid form submissions
+- Bot detection
+
+**Login Attempt Tracking**:
+- Failed attempt logging
+- Rate limiting after 5 failures
+- Temporary account lock
+- IP tracking
+- Admin alerts
+
+**Session Management**:
+- JWT tokens
+- Session timeout (24 hours)
+- Auto-logout on inactivity
+- Session ID tracking
+- Concurrent session limits
+
+**CSRF Protection**:
+- CSRF tokens
+- Token validation
+- Request origin verification
+
+---
+
+### 16.2 Data Security
+
+**Row Level Security (RLS)**:
+- Enabled on all tables
+- User-based isolation
+- Project-based access
+- Role-based policies
+- Function security definer
+
+**Encryption**:
+- At-rest encryption (Supabase)
+- In-transit encryption (HTTPS)
+- Secure token storage
+- Password hashing (bcrypt)
+
+**Input Validation**:
+- Zod schemas
+- Server-side validation
+- XSS prevention
+- SQL injection prevention
+- File type validation
+
+**Access Control**:
+- Role-based access (RBAC)
+- Permission checks
+- Admin-only functions
+- Project-level permissions
+- Document visibility scopes
+
+---
+
+### 16.3 Security Monitoring
+
+**Activity Logging**:
+- All user actions logged
+- IP address tracking
+- User agent tracking
+- Timestamp logging
+- Metadata capture
+
+**Security Alerts**:
+- Failed login attempts
+- Suspicious activity
+- Rate limit violations
+- Unusual access patterns
+- Admin notifications
+
+**Audit Trail**:
+- Complete action history
+- Admin actions tracked
+- Resource changes logged
+- Old/new value tracking
+- Compliance reporting
+
+---
+
+## 17. User Workflows (Detailed)
+
+Complete user journey flows.
+
+---
+
+### 17.1 New User Onboarding
+
+**Step-by-Step**:
+
+1. **Signup**:
+   - Navigate to `/auth`
+   - Choose signup method (email or Google)
+   - Enter email and password (if email)
+   - Accept terms and conditions
+   - Click "Sign Up"
+
+2. **Email Verification**:
+   - Receive verification email
+   - Click verification link
+   - Redirect to login
+   - Login with credentials
+
+3. **Profile Setup** (`/profile-setup`):
+   - **Step 1: Personal Information**
+     - Full name
+     - Phone number
+     - Bio
+     - Avatar upload (optional)
+   - **Step 2: Professional Information**
+     - Role selection (contractor, architect, builder, homeowner)
+     - Trade/specialization (if contractor)
+     - Years of experience
+     - License numbers
+     - Certifications
+   - **Step 3: Company Information** (if contractor/architect/builder)
+     - Company selection (existing) or creation (new)
+     - Company name
+     - Company address
+     - Company phone
+     - Company website
+     - Number of employees
+     - Company logo upload
+   - Click "Complete Setup"
+
+4. **Admin Approval**:
+   - Redirect to `/user-approval`
+   - "Pending Approval" message displayed
+   - Wait for admin approval
+
+5. **Admin Reviews**:
+   - Admin navigates to `/admin/approvals`
+   - Reviews user profile
+   - Clicks "Approve" or "Reject"
+   - User receives notification
+
+6. **Access Granted**:
+   - User receives approval notification
+   - Login again (if needed)
+   - Redirect to `/dashboard`
+   - Full platform access
+
+7. **Auto-linking**:
+   - `link-pending-projects` edge function called
+   - User automatically added to any projects they were invited to
+   - Notification of added projects
+   - Projects appear in dashboard
+
+---
+
+### 17.2 Project Creation & Team Building
+
+**Step-by-Step**:
+
+1. **Create Project** (Architect):
+   - Navigate to `/projects`
+   - Click "Create Project"
+   - **CreateProjectDialog** opens
+   - Enter project details:
+     - Name
+     - Description
+     - Address
+     - Status
+     - Timeline/milestones
+   - Click "Create"
+   - Project created with unique 15-char ID
+   - Invitation token auto-generated
+
+2. **Invite Team Members**:
+   - Option A: Email Invitation
+     - Click "Invite Team" in project
+     - Enter email address
+     - Select role (builder, contractor, homeowner)
+     - Add custom message (optional)
+     - Click "Send Invitation"
+     - `send-team-invitation` edge function called
+     - Email sent with invitation link
+   
+   - Option B: Shareable Link
+     - Click "Get Invitation Link"
+     - Invitation link generated
+     - Copy link
+     - Share via any channel
+     - Same token system as email
+
+3. **Invitee Receives Invitation**:
+   - Email received (if email invitation)
+   - Or receives link (if shareable link)
+   - Clicks link
+   - Redirected to `/project-invite/:token`
+
+4. **Accept Invitation**:
+   - If not logged in:
+     - Redirect to `/auth` with return URL
+     - Complete signup/login
+     - Return to invitation page
+   - If logged in:
+     - Project details displayed
+     - Role shown
+     - Click "Accept Invitation"
+   - User added to project_users table
+   - Notification sent to project creator
+   - Redirect to project page
+
+5. **Team Collaboration Begins**:
+   - User appears in project team list
+   - Access to project documents
+   - Access to project RFIs
+   - Access to project messages
+   - Role-based permissions applied
+
+---
+
+### 17.3 Document Management Workflow
+
+**Step-by-Step**:
+
+1. **Upload Document**:
+   - Navigate to `/documents` (project context)
+   - Click "Upload Document" or drag-and-drop
+   - **DocumentUploadSystem** dialog opens
+   - Select file(s)
+   - File validation (type, size)
+   - Enter metadata:
+     - Title (optional, defaults to filename)
+     - Category (select or create)
+     - Project stage
+     - Status
+     - Tags
+     - Visibility scope (private, project, public)
+   - Click "Upload"
+   - File uploaded to storage bucket
+   - Document group created
+   - Initial revision created (Rev 1)
+   - Document number auto-generated (COMPANY-STAGE-0001)
+   - Document auto-locked for review
+
+2. **Document Review**:
+   - Team members notified of new document
+   - Open **DocumentDetailsDialog**
+   - View document details
+   - Preview document (if supported)
+   - Add comments
+   - Request changes
+
+3. **Unlock Document**:
+   - Document owner or architect
+   - Click "Unlock Document"
+   - `toggle_document_lock` function called
+   - Document unlocked
+   - Available for editing
+
+4. **Supersede Document** (Upload New Revision):
+   - Click "Supersede Document"
+   - **SupersedeDocumentDialog** opens
+   - Upload new file
+   - Enter changes summary
+   - Click "Supersede"
+   - `create_document_supersede` function called
+   - Old revision marked as archived
+   - New revision created (Rev 2)
+   - Revision number incremented
+   - Current revision updated
+   - Team notified of new revision
+   - Document remains locked
+
+5. **View Version History**:
+   - Click "Version History"
+   - **DocumentHistoryDialog** opens
+   - All revisions listed
+   - View any previous revision
+   - Download any revision
+   - See changes summary
+   - See who uploaded each revision
+   - Compare revisions
+
+6. **Share Document**:
+   - Click "Share Document"
+   - **DocumentSharingDialog** opens
+   - Select users to share with
+   - Set permission level (view, edit)
+   - Set expiration date (optional)
+   - Click "Share"
+   - Share record created
+   - Recipient notified
+   - Recipient can access document
+
+7. **Audit Trail**:
+   - All actions logged in activity_log
+   - Document events table
+   - Complete history maintained
+
+---
+
+### 17.4 RFI Workflow
+
+**Step-by-Step**:
+
+1. **Create RFI**:
+   - Navigate to `/rfis` (project context)
+   - Click "Create RFI"
+   - **CreateRFIDialog** or **AdvancedRFIComposer** opens
+   - Select RFI type:
+     - General Correspondence (GC)
+     - Request for Information (RFI)
+     - General Advice (GA)
+   - Enter details:
+     - Subject
+     - Description
+     - Category
+     - Priority (urgent, high, normal, low)
+     - Required date (due date)
+     - Assign to (recipient)
+   - Add attachments (optional)
+   - Click "Create RFI"
+   - RFI number auto-generated (COMPANY-TYPE-0001)
+   - RFI created
+   - `send-rfi-notification` edge function called
+   - Recipient notified
+
+2. **Recipient Receives Notification**:
+   - Email notification
+   - In-app notification
+   - RFI appears in their inbox
+
+3. **View RFI**:
+   - Navigate to `/rfis`
+   - Click on RFI
+   - **RFIDetailsDialog** or **UnifiedRFIDetailsDialog** opens
+   - View RFI details
+   - View attachments
+   - View activity history
+
+4. **Respond to RFI**:
+   - Click "Respond" or "Quick Respond"
+   - **RFIResponseComposer** or **QuickRFIRespondDialog**
+   - Enter response
+   - Add attachments (optional)
+   - Click "Submit Response"
+   - Response saved
+   - RFI creator notified
+   - Status updated to "In Progress"
+
+5. **Follow-up**:
+   - RFI creator receives response notification
+   - Views response
+   - Can add follow-up response
+   - Can mark as resolved
+   - Or request more information
+
+6. **Close RFI**:
+   - When satisfied with response
+   - Click "Close RFI"
+   - Status changed to "Closed"
+   - Closed date recorded
+   - All participants notified
+   - RFI archived in "Closed" view
+
+7. **Analytics**:
+   - RFI response time tracked
+   - Performance metrics updated
+   - Analytics dashboard shows stats
+
+---
+
+### 17.5 Tender/Bid Workflow
+
+**Comprehensive Tender Process**:
+
+**Phase 1: Tender Creation (Architect)**
+
+1. **Create Tender**:
+   - Navigate to `/tenders` (project context)
+   - Click "Create Tender"
+   - **CreateTenderWizard** or **EnhancedTenderWizard** opens
+
+2. **Step 1: Basic Information**:
+   - Tender title
+   - Description
+   - Issue date
+   - Closing date
+   - Budget range
+   - Trade category
+   - Click "Next"
+
+3. **Step 2: Line Items (Bill of Quantities)**:
+   - Manually add line items:
+     - Item number (auto-increment)
+     - Description
+     - Quantity
+     - Unit
+     - Estimated rate
+     - Category
+     - Trade
+   - Or import from Excel:
+     - Upload Excel file
+     - AI-powered column mapping
+     - Preview imported data
+     - Confirm import
+   - Click "Next"
+
+4. **Step 3: Documents**:
+   - Select documents from document library
+   - Create tender package
+   - Add drawings:
+     - **DrawingsUploadManager**
+     - Upload CAD files
+     - Organize by sheet number
+   - Add specifications
+   - Add contracts
+   - Click "Next"
+
+5. **Step 4: Contractor Selection**:
+   - Choose access level:
+     - Invite-only (private)
+     - Public (anyone can request access)
+     - Prequalification required
+   - If invite-only:
+     - **TenderInviteDialog**
+     - Select contractors from database
+     - Enter external emails
+     - Custom invitation message
+     - Send invitations
+   - If prequalification required:
+     - Set prequalification criteria
+   - Click "Next"
+
+6. **Step 5: Review and Publish**:
+   - Review all tender details
+   - Preview tender package
+   - Click "Publish Tender"
+   - Tender ID auto-generated (15 chars)
+   - Tender status: "Issued"
+   - Invitations sent (if applicable)
+   - Edge function: `send-tender-invitation`
+
+**Phase 2: Contractor Access**
+
+7. **Contractor Receives Invitation**:
+   - Email with tender link
+   - Or finds public tender
+   - Clicks link
+   - Redirected to `/join-tender/:tenderId`
+
+8. **Request Access**:
+   - View limited tender details
+   - Click "Request Access"
+   - If prequalification required:
+     - **ContractorPrequalificationPanel**
+     - Fill out prequalification form:
+       - Company details
+       - Years of experience
+       - Certifications
+       - Insurance details
+       - Financial capacity
+       - Previous projects
+       - References
+       - Upload documents
+     - Submit prequalification
+   - Else:
+     - Simple access request
+   - Request sent to tender creator
+
+9. **Architect Approves Access**:
+   - Navigate to tender
+   - **TenderAccessApprovals** section
+   - Review access requests
+   - Review prequalification (if applicable)
+   - Approve or reject
+   - Contractor notified
+
+**Phase 3: Bid Preparation (Contractor)**
+
+10. **View Full Tender**:
+    - Access approved
+    - Navigate to `/tender-response/:tenderId`
+    - View full tender details
+    - View all line items
+    - View all documents
+    - Download tender package (ZIP)
+    - View drawings
+
+11. **Prepare Bid**:
+    - **TenderBidSubmissionWizard** opens
+    - **Step 1: Company Information**:
+      - Company details (pre-filled)
+      - Contact person
+      - Verify information
+    - **Step 2: Line Item Pricing**:
+      - Enter unit rate for each line item
+      - Total calculated automatically
+      - Option A: Manual entry
+        - **BidLineItemEditor**
+        - Enter rates for each line
+      - Option B: Excel upload
+        - Download template
+        - Fill in Excel
+        - Upload Excel
+        - `parse-line-items` function
+        - AI parses and maps data
+      - Grand total calculated
+    - **Step 3: Documents/Attachments**:
+      - Upload bid documents
+      - Upload insurance certificates
+      - Upload method statements
+      - Upload company profile
+    - **Step 4: Review and Submit**:
+      - Review all bid details
+      - Enter delivery timeline (weeks)
+      - Enter notes/comments
+      - Accept terms and conditions
+      - Click "Submit Bid"
+
+12. **Bid Submitted**:
+    - Bid saved with status "Submitted"
+    - Architect notified
+    - Contractor receives confirmation
+    - Bid can be edited until closing date
+    - After closing date, bid is locked
+
+**Phase 4: Bid Evaluation (Architect)**
+
+13. **View Bids**:
+    - Navigate to tender
+    - **BidsReceivedSection**
+    - See all submitted bids
+    - Bid count displayed
+
+14. **Compare Bids**:
+    - Click "Compare Bids"
+    - **EnhancedBidComparison** or **TenderComparisonDashboard**
+    - Side-by-side comparison
+    - Compare line item pricing
+    - Compare totals
+    - Compare delivery times
+    - Compare documents
+    - Visual comparison charts
+    - Scoring (optional):
+      - Price score
+      - Time score
+      - Quality score
+      - Overall score
+
+15. **Evaluate Bids**:
+    - **BidEvaluationWorkflow**
+    - Review each bid
+    - View contractor details
+    - View prequalification
+    - View past performance
+    - Add evaluation notes
+    - Rank bids
+
+16. **Award Contract**:
+    - Select winning bid
+    - Click "Award Contract"
+    - **TenderBidDetailsDialog**
+    - Confirm award
+    - Enter award notes
+    - Click "Confirm Award"
+    - Tender status: "Awarded"
+    - Winning contractor notified
+    - Other contractors notified (not selected)
+    - Award details logged
+
+**Phase 5: Post-Award**
+
+17. **Contract Finalization**:
+    - Generate contract documents
+    - Digital signatures (if implemented)
+    - Contract becomes part of project
+    - Financials updated based on winning bid
+
+18. **Tender Analytics**:
+    - **TenderAnalytics**
+    - View tender performance
+    - Bid analysis
+    - Participation rate
+    - Average bid vs. estimate
+    - Time to award
+    - Export reports
+
+---
+
+### 17.6 Communication Workflow
+
+**Message Threads**:
+
+1. **Create Thread**:
+   - Navigate to `/messages` (project context)
+   - Click "New Thread"
+   - **CreateThreadDialog**
+   - Enter thread title
+   - Add participants (team members)
+   - Enter initial message
+   - Click "Create"
+
+2. **Send Message**:
+   - Open thread
+   - **MessageInput** component
+   - Type message
+   - Add attachments (optional)
+   - Mention users with @
+   - Click "Send"
+   - Message sent
+   - Real-time delivery to participants
+   - Typing indicator shown to others
+
+3. **Receive Message**:
+   - Real-time notification
+   - Message appears in thread
+   - Unread indicator
+   - Desktop notification (if enabled)
+
+4. **Convert to Formal RFI**:
+   - Click "Convert to RFI" in message
+   - **FormalInquiryDialog**
+   - Pre-filled with message content
+   - Select RFI type
+   - Add additional details
+   - Click "Create RFI"
+   - RFI created
+   - Link to RFI in message thread
+
+5. **Thread Management**:
+   - Archive thread
+   - Pin important threads
+   - Search within thread
+   - Filter threads
+
+---
+
+## 18. Advanced Features
+
+Additional platform capabilities.
+
+---
+
+### 18.1 Search & Filtering
+
+**Global Search** (`/search` or global search bar):
+- **What can be searched**:
+  - Projects (name, description, address)
+  - Documents (title, content, tags)
+  - RFIs (subject, description, RFI number)
+  - Messages (content, thread title)
+  - Tenders (title, description)
+  - Users (name, email, company)
+  - Calendar events (title, description)
+
+**Search Implementation**:
+- Full-text search on database
+- PostgreSQL `tsvector` and `ts_rank`
+- Debounced search input
+- Search suggestions
+- Recent searches
+- Search filters
+- Result highlighting
+
+**Advanced Filters**:
+- **Documents**: Category, status, type, project, date range, uploaded by
+- **RFIs**: Type, status, priority, project, date range, raised by, assigned to
+- **Tenders**: Status, trade category, budget range, closing date
+- **Messages**: Thread, sender, date range, has attachments
+- **Projects**: Status, role, created by, date range
+- **Calendar**: Event type, date range, project, attendees
+
+**Smart Filters** (RFIs):
+- AI-suggested filters based on usage patterns
+- Quick filter presets
+- Saved filter combinations
+
+---
+
+### 18.2 Bulk Operations
+
+**RFI Bulk Actions** (`RFIBulkActions`):
+- Select multiple RFIs
+- Bulk status change
+- Bulk assignment
+- Bulk priority change
+- Bulk category change
+- Bulk export to Excel/PDF
+- Bulk delete
+
+**Document Bulk Operations**:
+- Select multiple documents
+- Bulk status change
+- Bulk category change
+- Bulk tag addition
+- Bulk download (ZIP)
+- Bulk delete
+- Bulk share
+
+**User Bulk Actions** (Admin):
+- Select multiple users
+- Bulk approve
+- Bulk reject
+- Bulk role assignment
+- Bulk export
+
+**Project Bulk Actions** (`BulkProjectActions`):
+- Select multiple projects
+- Bulk status change
+- Bulk archive
+- Bulk export
+- Bulk delete
+
+---
+
+### 18.3 Import/Export
+
+**Excel Import**:
+- **Tender Line Items**: Import bill of quantities
+  - Template download
+  - AI-powered column mapping
+  - Data validation
+  - Preview before import
+- **Bid Pricing**: Import contractor bid pricing
+- **Budget Line Items**: Import project budget
+  - Detailed line items
+  - Categories and allocations
+
+**Excel Export**:
+- **Tender Data**: Export tender details and line items
+- **Bid Comparison**: Export bid comparison
+- **Budget Reports**: Export budget data
+- **RFI Reports**: Export RFI list with filters
+- **Activity Log**: Export audit trail
+- **User List**: Export user directory
+
+**PDF Generation**:
+- **Tenders**: Generate tender package PDF
+- **Progress Claims**: Generate claim form PDF
+- **RFI Reports**: Generate RFI summary PDF
+- **Document Packages**: Bundle documents in PDF
+
+**ZIP Export**:
+- **Tender Package**: All tender documents
+- **Document Downloads**: Multiple documents
+- **Bid Documents**: All bid attachments
+
+---
+
+### 18.4 Templates
+
+**RFI Templates** (`RFITemplateManager`):
+- Create reusable RFI templates
+- Template name and description
+- Pre-filled subject, description, category
+- Default priority and due date
+- Save template
+- Load template when creating RFI
+- Edit/delete templates
+
+**Event Templates** (`event_templates` table):
+- Reusable calendar event templates
+- Template name
+- Title and description templates
+- Default category, priority, reminder
+- Load template when creating event
+
+**Message Templates** (`message_templates` table):
+- Reusable message templates
+- Template name
+- Message content
+- Load template when composing message
+
+**Tender Templates**:
+- Save tender as template
+- Reuse tender structure
+- Pre-defined line items
+- Standard documents
+- Typical timeline
+
+**Project Templates** (`ProjectTemplateManager`):
+- Create project templates
+- Standard project structure
+- Team roles
+- Document categories
+- Milestones
+- Budget structure
+
+---
+
+### 18.5 Maps & Location
+
+**Leaflet Maps** (`react-leaflet`):
+- **Project Location Display** (`ProjectMap`):
+  - Show project on map
+  - Interactive map with zoom
+  - Custom markers
+  - Address geocoding
+- **Tender Location Map** (`TenderLocationMap`):
+  - Show tender location
+  - Distance calculation
+  - Directions link
+- **Geocoding** (`geocoding.ts`):
+  - Convert address to coordinates
+  - Reverse geocoding
+
+---
+
+### 18.6 Charts & Analytics
+
+**Recharts Library**:
+- **Budget Charts**:
+  - Pie chart: Cost breakdown by category
+  - Bar chart: Budget vs. actual
+  - Line chart: Spending over time
+- **RFI Analytics** (`RFIAnalyticsDashboard`):
+  - Response time metrics
+  - RFI count by type
+  - RFI count by status
+  - Average resolution time
+  - Overdue RFIs chart
+- **Tender Analytics** (`TenderAnalytics`):
+  - Bid distribution
+  - Average bid vs. estimate
+  - Bid comparison chart
+  - Participation rate
+- **Project Progress**:
+  - Timeline Gantt chart (`ProjectGanttChart`)
+  - Milestone completion
+- **Financial Dashboards**:
+  - Cash flow chart (`CashflowForecast`)
+  - Payment schedule chart
+  - Budget variance chart
+- **Admin Dashboard Charts**:
+  - User growth chart
+  - Activity over time
+  - System performance metrics
+
+---
+
+## 19. Testing & Quality Assurance
+
+Available testing tools and workflows.
+
+---
+
+### 19.1 Testing Components
+
+All testing components available at `/testing`:
+
+#### **ConfirmationWorkflowTester**
+**Purpose**: Test confirmation dialogs and workflows
+
+**Tests**:
+- Dialog opening/closing
+- Confirmation actions
+- Cancel actions
+- Data persistence
+
+---
+
+#### **InvitationSystemTester**
+**Purpose**: Test project and tender invitation flows
+
+**Tests**:
+- Email invitation sending
+- Link generation
+- Token validation
+- Invitation acceptance
+- Invitation expiration
+- Auto-linking after signup
+
+---
+
+#### **RoleTestingTools**
+**Purpose**: Test role-based access control
+
+**Tests**:
+- Admin role permissions
+- Architect permissions
+- Builder permissions
+- Contractor permissions
+- Homeowner permissions
+- RLS policies
+- Permission escalation prevention
+
+---
+
+#### **SecurityTester**
+**Purpose**: Test security features
+
+**Tests**:
+- SQL injection attempts
+- XSS attempts
+- CSRF protection
+- Authentication bypasses
+- Rate limiting
+- Session management
+- Password security
+
+---
+
+#### **SystemHealthMonitor**
+**Purpose**: Monitor system health in real-time
+
+**Monitors**:
+- Database connection
+- API response time
+- Storage availability
+- Edge function status
+- Real-time connection
+- Error rates
+- Active users
+- System load
+
+---
+
+#### **PerformanceMonitor**
+**Purpose**: Monitor application performance
+
+**Metrics**:
+- Page load time
+- Component render time
+- API request time
+- Database query time
+- Memory usage
+- Network requests
+- Cache hit rate
+
+---
+
+#### **RealtimeTestingTools**
+**Purpose**: Test WebSocket real-time features
+
+**Tests**:
+- Real-time message delivery
+- Presence tracking
+- Typing indicators
+- Connection stability
+- Reconnection handling
+- Event ordering
+
+---
+
+#### **TabFunctionalityTester**
+**Purpose**: Test tabbed interfaces
+
+**Tests**:
+- Tab switching
+- Tab content loading
+- Tab state persistence
+- Tab lazy loading
+
+---
+
+#### **ProductionReadinessTester**
+**Purpose**: Pre-launch checklist
+
+**Checks**:
+- All critical features working
+- Security measures in place
+- Performance benchmarks met
+- Error handling implemented
+- Analytics tracking
+- SEO optimization
+- Accessibility standards
+
+---
+
+#### **FinalProductionValidator**
+**Purpose**: Final validation before deployment
+
+**Validates**:
+- Database integrity
+- RLS policies
+- Edge functions
+- Storage buckets
+- Email templates
+- Environment variables
+- Third-party integrations
+
+---
+
+### 19.2 Testing Workflows
+
+**Unit Testing**: (Not yet implemented)
+- Component testing with Jest/Vitest
+- Hook testing
+- Utility function testing
+
+**Integration Testing**: (Available via testing tools)
+- Multi-component workflows
+- Database integration
+- API integration
+- Real-time integration
+
+**End-to-End Testing**: (Manual via testing tools)
+- Complete user journeys
+- Multi-user scenarios
+- Cross-browser testing
+
+**Performance Testing**:
+- Load testing
+- Stress testing
+- Lighthouse audits (configured)
+
+**Security Testing**:
+- Penetration testing
+- Vulnerability scanning
+- OWASP compliance
+
+---
+
+## 20. UI/UX Components
+
+Comprehensive component library.
+
+---
+
+### 20.1 Radix UI Components
+
+**Primitive Components** (30+ packages):
+- **Accordion**: Collapsible content panels
+- **AlertDialog**: Modal confirmation dialogs
+- **AspectRatio**: Maintain aspect ratios
+- **Avatar**: User profile pictures with fallback
+- **Checkbox**: Checkbox inputs
+- **Collapsible**: Expandable content
+- **ContextMenu**: Right-click menus
+- **Dialog**: Modal overlays
+- **DropdownMenu**: Dropdown menus
+- **HoverCard**: Hover-triggered popover
+- **Label**: Form labels
+- **Menubar**: Application menu bar
+- **NavigationMenu**: Site navigation
+- **Popover**: Floating content panels
+- **Progress**: Progress indicators
+- **RadioGroup**: Radio button groups
+- **ScrollArea**: Custom scrollbars
+- **Select**: Select dropdowns
+- **Separator**: Divider lines
+- **Slider**: Range sliders
+- **Switch**: Toggle switches
+- **Tabs**: Tabbed interfaces
+- **Toast**: Notification toasts
+- **Toggle**: Toggle buttons
+- **ToggleGroup**: Toggle button groups
+- **Tooltip**: Hover tooltips
+
+**All styled with Tailwind CSS and customized for STOREA**
+
+---
+
+### 20.2 Custom UI Components
+
+Located in `src/components/ui/`:
+
+#### **StorealiteLogo**
+- Brand logo component
+- Scalable SVG
+- Color variants
+- Size variants
+
+#### **CompanyAvatar**
+- Company logo display
+- Fallback to initials
+- Custom styling
+
+#### **ProjectMap**
+- Interactive Leaflet map
+- Project location marker
+- Zoom controls
+- Full-screen option
+
+#### **RealtimeIndicator**
+- Connection status indicator
+- Online/offline badge
+- Reconnecting state
+- Color-coded status
+
+#### **DigitalSignature**
+- Canvas-based signature capture
+- Clear and save functions
+- Export as image
+- Signature validation
+
+#### **ConfirmationDialog**
+- Reusable confirmation dialog
+- Customizable title and message
+- Confirm/cancel actions
+- Destructive action variant
+
+#### **ModernCalendar**
+- Enhanced calendar component
+- Multiple views (month, week, day)
+- Event display
+- Date selection
+- Event color coding
+
+#### **SharedTableStyles**
+- Consistent table styling
+- Responsive tables
+- Sortable columns
+- Hover effects
+- Striped rows
+
+#### **UnifiedDialog**
+- Standardized dialog component
+- Consistent styling
+- Responsive sizing
+- Animation transitions
+
+#### **ViewEditField**
+- Inline edit field
+- View mode / Edit mode toggle
+- Validation
+- Save/cancel actions
+
+---
+
+### 20.3 Layout Components
+
+#### **AppLayout** (`src/components/layout/AppLayout.tsx`)
+- Main application wrapper
+- Sidebar + Header + Content
+- Responsive layout
+- Mobile drawer menu
+- Authenticated routes
+
+#### **PublicLayout** (`src/components/marketing/PublicLayout.tsx`)
+- Marketing site wrapper
+- Navbar + Content + Footer
+- Responsive design
+- Public routes
+
+#### **AdminLayout** (`src/components/admin/AdminLayout.tsx`)
+- Admin section wrapper
+- Admin sidebar + Header + Content
+- Admin-only routes
+- Real-time monitoring
+
+#### **Header** (`src/components/layout/Header.tsx`)
+- Top navigation bar
+- Project selector
+- User menu
+- Notifications
+- Search bar
+- Theme toggle
+
+#### **Sidebar** (`src/components/layout/Sidebar.tsx`)
+- Main navigation
+- Collapsible sidebar
+- Active route indication
+- Icon + text labels
+- Mobile responsive
+
+#### **AdminSidebar** (`src/components/admin/AdminSidebar.tsx`)
+- Admin navigation menu
+- Admin-specific links
+- System status indicators
+
+---
+
+### 20.4 Error Handling Components
+
+#### **ErrorBoundary** (`src/components/ui/error-boundary.tsx`)
+- React error boundary
+- Catches component errors
+- Displays fallback UI
+- Error logging
+- Reset functionality
+
+#### **AdminErrorBoundary** (`src/components/admin/AdminErrorBoundary.tsx`)
+- Admin-specific error boundary
+- Enhanced error reporting
+- Admin error logs
+
+#### **ErrorBoundaryFallback** (`src/components/errors/ErrorBoundaryFallback.tsx`)
+- User-friendly error message
+- Error details (dev mode)
+- Retry button
+- Go home button
+
+---
+
+### 20.5 Form Components
+
+**Built on React Hook Form + Zod**:
+- Form validation
+- Error display
+- Field-level validation
+- Form submission handling
+- Reset functionality
+- **FormFieldGroup** (`src/components/rfis/FormFieldGroup.tsx`): Reusable form field groups
+
+---
+
+## 21. Utilities & Services
+
+Helper functions and service classes.
+
+---
+
+### 21.1 Services
+
+#### **DocumentUploadService** (`src/services/DocumentUploadService.ts`)
+**Purpose**: Handle document uploads
+
+**Functions**:
+- Upload files to storage
+- Generate signed URLs
+- Validate file types
+- Handle upload progress
+- Error handling
+
+---
+
+#### **TenderExcelParser** (`src/services/TenderExcelParser.ts`)
+**Purpose**: Parse tender Excel files
+
+**Functions**:
+- Parse Excel workbook
+- Extract line items
+- Validate data
+- Map columns
+- Return structured data
+
+---
+
+#### **BidExcelParser** (`src/services/BidExcelParser.ts`)
+**Purpose**: Parse bid Excel files
+
+**Functions**:
+- Parse contractor bid files
+- Extract pricing
+- Validate line items
+- Match to tender items
+
+---
+
+#### **EmailRFIParser** (`src/services/EmailRFIParser.ts`)
+**Purpose**: Parse RFI emails
+
+**Functions**:
+- Extract RFI details from email
+- Parse email body
+- Extract attachments
+- Create RFI from email
+
+---
+
+#### **RFIEmailService** (`src/services/RFIEmailService.ts`)
+**Purpose**: Send RFI notification emails
+
+**Functions**:
+- Compose RFI emails
+- Send notifications
+- Email templates
+- Track email delivery
+
+---
+
+#### **TenderBidFileService** (`src/services/TenderBidFileService.ts`)
+**Purpose**: Handle tender and bid files
+
+**Functions**:
+- Upload tender documents
+- Upload bid files
+- Generate tender packages
+- File organization
+
+---
+
+#### **TradespeopleService** (`src/services/TradespeopleService.ts`)
+**Purpose**: Manage tradespeople data
+
+**Functions**:
+- Tradesperson directory
+- Specialty listings
+- Contact management
+
+---
+
+### 21.2 Utilities
+
+#### **profileUtils** (`src/utils/profileUtils.ts`)
+**Purpose**: Profile validation and helpers
+
+**Functions**:
+- `validateProfileData(data)`: Validate profile completeness
+- `normalizePhoneNumber(phone)`: Format phone numbers
+- Profile completion percentage
+
+---
+
+#### **documentUtils** (`src/utils/documentUtils.ts`)
+**Purpose**: Document handling utilities
+
+**Functions**:
+- File type detection
+- File size formatting
+- Document number generation
+- File extension extraction
+
+---
+
+#### **rfiUtils** (`src/utils/rfiUtils.ts`)
+**Purpose**: RFI helpers
+
+**Functions**:
+- RFI number generation
+- RFI type mapping
+- Status helpers
+- Priority sorting
+
+---
+
+#### **storageUtils** (`src/utils/storageUtils.ts`)
+**Purpose**: Storage bucket helpers
+
+**Functions**:
+- Generate signed URLs
+- Upload to bucket
+- Delete from bucket
+- List bucket contents
+
+---
+
+#### **geocoding** (`src/utils/geocoding.ts`)
+**Purpose**: Address geocoding
+
+**Functions**:
+- `geocodeAddress(address)`: Convert address to coordinates
+- `reverseGeocode(lat, lng)`: Convert coordinates to address
+
+---
+
+#### **notificationCleanup** (`src/utils/notificationCleanup.ts`)
+**Purpose**: Clean up old notifications
+
+**Functions**:
+- Delete read notifications
+- Archive old notifications
+- Notification retention policy
+
+---
+
+#### **projectNotifications** (`src/utils/projectNotifications.ts`)
+**Purpose**: Project notification logic
+
+**Functions**:
+- Send project notifications
+- Project event notifications
+- Team notifications
+
+---
+
+#### **teamNotifications** (`src/utils/teamNotifications.ts`)
+**Purpose**: Team notification logic
+
+**Functions**:
+- Team member added notification
+- Role change notification
+- Team invitation notification
+
+---
+
+#### **invitationValidation** (`src/utils/invitationValidation.ts`)
+**Purpose**: Invitation token validation
+
+**Functions**:
+- Validate invitation token
+- Check token expiration
+- Verify invitation status
+
+---
+
+#### **tenderExportUtils** (`src/utils/tenderExportUtils.ts`)
+**Purpose**: Tender data export
+
+**Functions**:
+- Export tender to Excel
+- Export bid comparison
+- Export tender package
+
+---
+
+#### **tenderPDFGenerator** (`src/utils/tenderPDFGenerator.ts`)
+**Purpose**: Generate tender PDFs
+
+**Functions**:
+- Generate tender document PDF
+- Include line items
+- Include drawings
+- Custom branding
+
+---
+
+#### **tenderPackageGenerator** (`src/utils/tenderPackageGenerator.ts`)
+**Purpose**: Generate tender packages
+
+**Functions**:
+- Bundle tender documents
+- Create ZIP file
+- Include all attachments
+- Generate cover sheet
+
+---
+
+#### **adminActivityLogger** (`src/utils/adminActivityLogger.ts`)
+**Purpose**: Log admin actions
+
+**Functions**:
+- Log admin activity
+- Capture changes
+- Track IP and user agent
+
+---
+
+#### **ensureTenderDraft** (`src/utils/ensureTenderDraft.ts`)
+**Purpose**: Ensure tender exists before editing
+
+**Functions**:
+- Check tender exists
+- Create draft tender
+- Validate tender state
+
+---
+
+### 21.3 Library Utilities
+
+#### **utils** (`src/lib/utils.ts`)
+**Purpose**: General utility functions
+
+**Functions**:
+- `cn(...classes)`: Tailwind class merging (clsx + tailwind-merge)
+- Date formatting helpers
+- String manipulation
+- Number formatting
+
+---
+
+#### **calendarUtils** (`src/lib/calendarUtils.ts`)
+**Purpose**: Calendar helpers
+
+**Functions**:
+- Date range calculations
+- Event sorting
+- Conflict detection
+- Recurring event generation
+
+---
+
+#### **Security Utilities**:
+
+**csrfProtection** (`src/lib/security/csrfProtection.ts`):
+- Generate CSRF tokens
+- Validate CSRF tokens
+- Token storage
+
+**loginAttemptTracker** (`src/lib/security/loginAttemptTracker.ts`):
+- Track failed login attempts
+- Rate limiting logic
+- Account locking
+
+**passwordValidator** (`src/lib/security/passwordValidator.ts`):
+- Password strength calculation
+- Complexity checks
+- Common password detection
+
+**sessionManager** (`src/lib/security/sessionManager.ts`):
+- Session creation
+- Session validation
+- Session expiration
+- Session cleanup
+
+---
+
+#### **Validation Schemas**:
+
+**profileSchemas** (`src/lib/validations/profileSchemas.ts`):
+- Zod schemas for profile validation
+- Step 1 schema (personal info)
+- Step 2 schema (professional info)
+- Step 3 schema (company info)
+- Complete profile schema
+
+---
+
+#### **Telemetry Stubs**:
+
+**telemetryStubs** (`src/lib/telemetry/telemetryStubs.ts`):
+- Placeholder telemetry functions
+- Ready for analytics integration
+- Event tracking stubs
+
+---
+
+## 22. Context Providers
+
+React context for global state management.
+
+---
+
+### 22.1 AuthContext
+
+**File**: `src/context/AuthContext.tsx`
+
+**Provides**:
+- `user`: Current authenticated user (from Supabase Auth)
+- `profile`: User profile data (from profiles table)
+- `loading`: Authentication loading state
+- `signIn(email, password)`: Email/password login
+- `signInWithGoogle()`: Google OAuth login
+- `signOut()`: Logout
+- `signUp(email, password, metadata)`: User registration
+- `updateProfile(data)`: Update profile
+- `refreshProfile()`: Reload profile data
+
+**Usage**: Wrap app with `<AuthProvider>`
+
+**Hooks**: `useAuth()`
+
+---
+
+### 22.2 ThemeContext
+
+**File**: `src/context/ThemeContext.tsx`
+
+**Provides**:
+- `theme`: Current theme ('light', 'dark', 'system')
+- `setTheme(theme)`: Change theme
+
+**Features**:
+- Persistent theme storage
+- System preference detection
+- Smooth theme transitions
+
+**Implementation**: Uses `next-themes`
+
+---
+
+### 22.3 NotificationContext
+
+**File**: `src/context/NotificationContext.tsx`
+
+**Provides**:
+- `notifications`: Array of notifications
+- `unreadCount`: Unread notification count
+- `markAsRead(id)`: Mark notification as read
+- `markAllAsRead()`: Mark all as read
+- `deleteNotification(id)`: Delete notification
+- `addNotification(data)`: Create notification
+
+**Features**:
+- Real-time notification updates
+- Notification badge count
+- Notification sound (optional)
+
+**Hooks**: `useNotifications()`
+
+---
+
+### 22.4 ProjectSelectionContext
+
+**File**: `src/context/ProjectSelectionContext.tsx`
+
+**Provides**:
+- `selectedProject`: Currently selected project
+- `selectedTender`: Currently selected tender
+- `setSelectedProject(project)`: Set active project
+- `setSelectedTender(tender)`: Set active tender
+- `clearSelection()`: Clear selections
+
+**Purpose**: Maintain global project/tender context
+
+**Usage**: Affects which data is loaded on pages
+
+---
+
+### 22.5 RealtimeContext
+
+**File**: `src/context/RealtimeContext.tsx`
+
+**Provides**:
+- Real-time subscriptions
+- WebSocket connection status
+- Reconnection logic
+- Event broadcasting
+
+**Subscriptions**:
+- Messages
+- RFIs
+- Documents
+- Activity
+- User presence
+
+**Hooks**: `useGlobalRealtime()`
+
+---
+
+## 23. Custom Hooks
+
+React hooks for common functionality.
+
+---
+
+### 23.1 Data Fetching Hooks
+
+#### **useProjects**
+**Purpose**: Fetch and manage projects
+
+**Returns**:
+- `projects`: Array of projects
+- `loading`: Loading state
+- `error`: Error state
+- `createProject(data)`: Create project
+- `updateProject(id, data)`: Update project
+- `deleteProject(id)`: Delete project
+- `refetch()`: Reload projects
+
+---
+
+#### **useDocuments**
+**Purpose**: Fetch and manage documents
+
+**Parameters**: `projectId`
+
+**Returns**:
+- `documents`: Array of documents
+- `loading`, `error`
+- `uploadDocument(file, metadata)`: Upload document
+- `updateDocument(id, metadata)`: Update document
+- `deleteDocument(id)`: Delete document
+- `refetch()`
+
+---
+
+#### **useMessages**
+**Purpose**: Fetch and manage messages
+
+**Parameters**: `projectId`, `threadId`
+
+**Returns**:
+- `messages`: Array of messages
+- `threads`: Array of threads
+- `loading`, `error`
+- `sendMessage(content, attachments)`: Send message
+- `createThread(data)`: Create thread
+- `refetch()`
+
+---
+
+#### **useRFIs**
+**Purpose**: Fetch and manage RFIs
+
+**Parameters**: `projectId`
+
+**Returns**:
+- `rfis`: Array of RFIs
+- `loading`, `error`
+- `createRFI(data)`: Create RFI
+- `updateRFI(id, data)`: Update RFI
+- `respondToRFI(id, response)`: Add response
+- `refetch()`
+
+---
+
+#### **useTenders**
+**Purpose**: Fetch and manage tenders
+
+**Parameters**: `projectId`
+
+**Returns**:
+- `tenders`: Array of tenders
+- `loading`, `error`
+- `createTender(data)`: Create tender
+- `updateTender(id, data)`: Update tender
+- `deleteTender(id)`: Delete tender
+- `refetch()`
+
+---
+
+#### **useFinancials**
+**Purpose**: Fetch financial data
+
+**Parameters**: `projectId`
+
+**Returns**:
+- `budget`: Project budget
+- `lineItems`: Budget line items
+- `claims`: Progress claims
+- `invoices`: Invoices
+- `payments`: Payments
+- `changeOrders`: Change orders
+- `loading`, `error`
+- CRUD functions for each entity
+- `refetch()`
+
+---
+
+#### **useTodos**
+**Purpose**: Fetch and manage todos
+
+**Returns**:
+- `todos`: User todos
+- `loading`, `error`
+- `createTodo(data)`: Create todo
+- `updateTodo(id, data)`: Update todo
+- `deleteTodo(id)`: Delete todo
+- `toggleComplete(id)`: Mark complete/incomplete
+- `refetch()`
+
+---
+
+### 23.2 Specialized Hooks
+
+#### **useProjectTeam**
+**Purpose**: Manage project team members
+
+**Parameters**: `projectId`
+
+**Returns**:
+- `teamMembers`: Array of team members
+- `loading`, `error`
+- `addTeamMember(userId, role)`: Add member
+- `removeTeamMember(userId)`: Remove member
+- `updateMemberRole(userId, role)`: Change role
+- `refetch()`
+
+---
+
+#### **usePendingInvitations**
+**Purpose**: Manage project invitations
+
+**Parameters**: `projectId`
+
+**Returns**:
+- `invitations`: Array of invitations
+- `loading`, `error`
+- `sendInvitation(email, role)`: Send invitation
+- `cancelInvitation(id)`: Cancel invitation
+- `resendInvitation(id)`: Resend invitation
+- `refetch()`
+
+---
+
+#### **useDocumentSharing**
+**Purpose**: Manage document sharing
+
+**Parameters**: `documentId`
+
+**Returns**:
+- `shares`: Array of shares
+- `loading`, `error`
+- `shareDocument(userId, permission)`: Share document
+- `updateShare(id, permission)`: Update permission
+- `revokeShare(id)`: Revoke share
+- `refetch()`
+
+---
+
+#### **useDocumentVersions**
+**Purpose**: Manage document versions
+
+**Parameters**: `documentId`
+
+**Returns**:
+- `versions`: Array of versions
+- `currentVersion`: Current version
+- `loading`, `error`
+- `uploadNewVersion(file, summary)`: Upload new version
+- `refetch()`
+
+---
+
+#### **useDocumentHistory**
+**Purpose**: View document history
+
+**Parameters**: `documentId`
+
+**Returns**:
+- `history`: Array of history events
+- `loading`, `error`
+
+---
+
+#### **useUserRFIs**
+**Purpose**: Fetch RFIs for current user
+
+**Returns**:
+- `raisedRFIs`: RFIs raised by user
+- `assignedRFIs`: RFIs assigned to user
+- `loading`, `error`
+- `refetch()`
+
+---
+
+#### **useRFIWorkflow**
+**Purpose**: RFI workflow management
+
+**Parameters**: `rfiId`
+
+**Returns**:
+- `rfi`: RFI details
+- `responses`: RFI responses
+- `loading`, `error`
+- `addResponse(response)`: Add response
+- `closeRFI()`: Close RFI
+- `reopenRFI()`: Reopen RFI
+- `refetch()`
+
+---
+
+#### **useTenderAccess**
+**Purpose**: Manage tender access
+
+**Parameters**: `tenderId`
+
+**Returns**:
+- `accessRequests`: Array of access requests
+- `loading`, `error`
+- `approveAccess(userId)`: Approve access
+- `rejectAccess(userId)`: Reject access
+- `refetch()`
+
+---
+
+#### **useTenderLineItems**
+**Purpose**: Manage tender line items
+
+**Parameters**: `tenderId`
+
+**Returns**:
+- `lineItems`: Array of line items
+- `loading`, `error`
+- `addLineItem(data)`: Add line item
+- `updateLineItem(id, data)`: Update line item
+- `deleteLineItem(id)`: Delete line item
+- `importFromExcel(file)`: Import from Excel
+- `refetch()`
+
+---
+
+#### **useTenderBidLineItems**
+**Purpose**: Manage bid line items
+
+**Parameters**: `bidId`
+
+**Returns**:
+- `bidLineItems`: Array of bid line items
+- `total`: Total bid amount
+- `loading`, `error`
+- `updateBidLineItem(id, rate)`: Update line item rate
+- `refetch()`
+
+---
+
+### 23.3 Monitoring Hooks
+
+#### **useAdminStats**
+**Purpose**: Fetch admin dashboard statistics
+
+**Returns**:
+- `stats`: Admin statistics object
+- `loading`, `error`
+- `refetch()`
+
+---
+
+#### **useSystemHealth**
+**Purpose**: Monitor system health
+
+**Returns**:
+- `health`: System health metrics
+- `status`: Overall status
+- `loading`, `error`
+- `refetch()`
+
+---
+
+#### **useAPIMonitoring**
+**Purpose**: Monitor API performance
+
+**Returns**:
+- `apiMetrics`: API metrics
+- `loading`, `error`
+- `refetch()`
+
+---
+
+#### **useDatabaseMonitoring**
+**Purpose**: Monitor database performance
+
+**Returns**:
+- `dbMetrics`: Database metrics
+- `loading`, `error`
+- `refetch()`
+
+---
+
+#### **useStorageMonitoring**
+**Purpose**: Monitor storage usage
+
+**Returns**:
+- `storageMetrics`: Storage metrics
+- `loading`, `error`
+- `refetch()`
+
+---
+
+#### **useEdgeFunctionsMonitoring**
+**Purpose**: Monitor edge functions
+
+**Returns**:
+- `functionMetrics`: Function metrics
+- `loading`, `error`
+- `refetch()`
+
+---
+
+#### **useSecurityMonitoring**
+**Purpose**: Monitor security events
+
+**Returns**:
+- `securityMetrics`: Security metrics
+- `alerts`: Security alerts
+- `loading`, `error`
+- `refetch()`
+
+---
+
+#### **useUserSessionMonitoring**
+**Purpose**: Monitor user sessions
+
+**Returns**:
+- `sessions`: Active sessions
+- `loading`, `error`
+- `refetch()`
+
+---
+
+#### **useRealtimeMonitoring**
+**Purpose**: Monitor real-time connections
+
+**Returns**:
+- `connections`: Active connections
+- `loading`, `error`
+- `refetch()`
+
+---
+
+#### **useCalendarMonitoring**
+**Purpose**: Monitor calendar events
+
+**Returns**:
+- `calendarMetrics`: Calendar metrics
+- `loading`, `error`
+- `refetch()`
+
+---
+
+#### **useDocumentsMonitoring**
+**Purpose**: Monitor document statistics
+
+**Returns**:
+- `documentMetrics`: Document metrics
+- `loading`, `error`
+- `refetch()`
+
+---
+
+#### **useMessagesMonitoring**
+**Purpose**: Monitor message statistics
+
+**Returns**:
+- `messageMetrics`: Message metrics
+- `loading`, `error`
+- `refetch()`
+
+---
+
+#### **useTasksMonitoring**
+**Purpose**: Monitor task statistics
+
+**Returns**:
+- `taskMetrics`: Task metrics
+- `loading`, `error`
+- `refetch()`
+
+---
+
+#### **useRealtimeAdminStats**
+**Purpose**: Real-time admin statistics
+
+**Returns**:
+- `stats`: Real-time admin stats
+- WebSocket subscription
+- `loading`, `error`
+
+---
+
+#### **useAdminAlerts**
+**Purpose**: Manage admin alerts
+
+**Returns**:
+- `alerts`: Array of alerts
+- `loading`, `error`
+- `acknowledgeAlert(id)`: Acknowledge alert
+- `resolveAlert(id)`: Resolve alert
+- `refetch()`
+
+---
+
+### 23.4 Utility Hooks
+
+#### **useAuth**
+**Purpose**: Access authentication context
+
+**Returns**: All values from AuthContext
+
+---
+
+#### **useAnalytics**
+**Purpose**: Access analytics tracking
+
+**Returns**:
+- `trackEvent(name, params)`: Track custom event
+- `trackPageView(path)`: Track page view
+- `trackConversion(name, value)`: Track conversion
+- `trackSignup(method)`: Track signup
+- `trackContactForm()`: Track contact form
+- `trackPricingSelection(plan)`: Track pricing
+- `trackFeatureView(feature)`: Track feature view
+- `trackDownload(type)`: Track download
+- `trackScrollDepth(percentage)`: Track scroll
+
+---
+
+#### **usePageMeta**
+**Purpose**: Set page metadata (SEO)
+
+**Parameters**: `{ title, description, keywords, ogImage }`
+
+**Effects**: Updates document head with SEO tags
+
+---
+
+#### **useAutoSave**
+**Purpose**: Auto-save form data
+
+**Parameters**: `data`, `saveFunction`, `interval`
+
+**Features**:
+- Debounced auto-save
+- Draft saving
+- Unsaved changes warning
+
+---
+
+#### **useFormValidation**
+**Purpose**: Form validation helpers
+
+**Parameters**: `schema` (Zod schema)
+
+**Returns**:
+- `validate(data)`: Validate data
+- `errors`: Validation errors
+- `isValid`: Validation state
+
+---
+
+#### **useGlobalRealtime**
+**Purpose**: Access real-time context
+
+**Returns**: All values from RealtimeContext
+
+---
+
+#### **useGlobalSearch**
+**Purpose**: Global search functionality
+
+**Parameters**: `query`, `filters`
+
+**Returns**:
+- `results`: Search results
+- `loading`, `error`
+- `search(query)`: Execute search
+
+---
+
+#### **useViewEditMode**
+**Purpose**: Toggle view/edit modes
+
+**Returns**:
+- `isEditing`: Boolean
+- `toggleEdit()`: Toggle mode
+- `startEdit()`: Enter edit mode
+- `cancelEdit()`: Cancel editing
+
+---
+
+#### **useTabNotifications**
+**Purpose**: Browser tab notifications
+
+**Features**:
+- Update tab title with unread count
+- Flash tab title on new message
+- Restore original title
+
+---
+
+#### **useRateLimit**
+**Purpose**: Rate limiting for actions
+
+**Parameters**: `limit`, `interval`
+
+**Returns**:
+- `canExecute`: Boolean
+- `execute(fn)`: Execute if allowed
+- `remaining`: Remaining calls
+
+---
+
+#### **useSecureAuth**
+**Purpose**: Enhanced authentication security
+
+**Features**:
+- CAPTCHA integration
+- Login attempt tracking
+- Session validation
+- Security event logging
+
+---
+
+#### **useActivity**
+**Purpose**: Track user activity
+
+**Returns**:
+- `logActivity(action, entity)`: Log action
+- `recentActivity`: Recent user actions
+
+---
+
+#### **useAdvancedProjects**
+**Purpose**: Advanced project management
+
+**Returns**: Enhanced project operations
+
+---
+
+#### **useEnhancedTenders**
+**Purpose**: Enhanced tender operations
+
+**Returns**: Advanced tender features
+
+---
+
+#### **useCalendarEvents**
+**Purpose**: Calendar event management
+
+**Parameters**: `projectId`
+
+**Returns**:
+- `events`: Array of events
+- `loading`, `error`
+- `createEvent(data)`: Create event
+- `updateEvent(id, data)`: Update event
+- `deleteEvent(id)`: Delete event
+- `refetch()`
+
+---
+
+#### **useDocumentCategories**
+**Purpose**: Manage document categories
+
+**Parameters**: `projectId`
+
+**Returns**:
+- `categories`: Array of categories
+- `loading`, `error`
+- `createCategory(name)`: Create category
+- `deleteCategory(id)`: Delete category
+- `refetch()`
+
+---
+
+#### **useDocumentGroups**
+**Purpose**: Manage document groups
+
+**Parameters**: `projectId`
+
+**Returns**:
+- `documentGroups`: Array of document groups
+- `loading`, `error`
+- CRUD operations
+- `refetch()`
+
+---
+
+#### **useProjectJoinRequests**
+**Purpose**: Manage join requests
+
+**Parameters**: `projectId`
+
+**Returns**:
+- `requests`: Array of join requests
+- `loading`, `error`
+- `approveRequest(id)`: Approve request
+- `rejectRequest(id)`: Reject request
+- `refetch()`
+
+---
+
+#### **useTenderStatus**
+**Purpose**: Tender status helpers
+
+**Parameters**: `tenderId`
+
+**Returns**:
+- `status`: Current status
+- `canEdit`: Boolean
+- `canClose`: Boolean
+- `updateStatus(status)`: Update status
+
+---
+
+#### **useAdminNotifications**
+**Purpose**: Admin notification system
+
+**Returns**:
+- `notifications`: Admin notifications
+- `loading`, `error`
+- Send notification functions
+
+---
+
+## 24. SEO & Metadata
+
+Search engine optimization implementation.
+
+---
+
+### 24.1 SEO Best Practices
+
+**All pages implement**:
+- Unique `<title>` tags (max 60 chars)
+- Meta descriptions (max 160 chars)
+- H1 tags with keywords
+- Semantic HTML5 tags
+- Alt text on all images
+- Canonical URLs
+- Open Graph tags
+- Twitter Card tags
+- Structured data (JSON-LD)
+- Mobile responsive design
+- Fast load times
+- Clean URLs
+
+---
+
+### 24.2 Page-Specific SEO
+
+**Home Page** (`/`):
+- Title: "STOREA - Construction Project Management Platform"
+- Description: "Streamline your construction projects with STOREA. Document management, RFI tracking, tender management, and team collaboration in one platform."
+- Keywords: construction management, project management, RFI tracking, tender management
+- Structured data: Organization, SoftwareApplication
+
+**Features Page** (`/features`):
+- Title: "Features - STOREA Construction Management"
+- Description: "Explore STOREA's powerful features: document control, RFI management, tender/bid system, financial tracking, and real-time collaboration."
+- Structured data: ItemList (features)
+
+**Pricing Page** (`/pricing`):
+- Title: "Pricing Plans - STOREA"
+- Description: "Flexible pricing for construction teams of all sizes. Free trial available. No credit card required."
+- Structured data: Product, Offer
+
+**About Page** (`/about`):
+- Title: "About STOREA - Construction Management Software"
+- Description: "Learn about STOREA's mission to revolutionize construction project management through innovative technology."
+- Structured data: Organization, AboutPage
+
+**Contact Page** (`/contact`):
+- Title: "Contact Us - STOREA"
+- Description: "Get in touch with STOREA. We're here to help with your construction project management needs."
+- Structured data: ContactPage, ContactPoint
+
+---
+
+### 24.3 SEO Files
+
+**Sitemap** (`public/sitemap.xml`):
+- Lists all public pages
+- Updated regularly
+- Priority and change frequency set
+
+**Robots.txt** (`public/robots.txt`):
+- Allow all crawlers
+- Sitemap location
+- Crawl-delay if needed
+
+**Google Search Console**:
+- Verification file: `public/google65241742a0f21977.html`
+- Property verified
+- Sitemap submitted
+
+---
+
+### 24.4 Open Graph & Social Media
+
+**Open Graph Images**:
+- `public/og-image.jpg` (default)
+- `public/og-features.jpg`
+- `public/og-pricing.jpg`
+- `public/og-about.jpg`
+- `public/og-contact.jpg`
+
+**Meta Tags**:
+- `og:title`
+- `og:description`
+- `og:image`
+- `og:url`
+- `og:type`
+- `twitter:card`
+- `twitter:title`
+- `twitter:description`
+- `twitter:image`
+
+---
+
+### 24.5 Performance Optimization
+
+**Implemented**:
+- Code splitting (React.lazy)
+- Image lazy loading
+- Component lazy loading
+- Vite bundle optimization
+- React Query caching
+- Memoization (React.memo, useMemo)
+- Debouncing (search, auto-save)
+- Optimistic UI updates
+
+**Lighthouse Configuration**:
+- `.lighthouserc.json` configured
+- Performance audits
+- Accessibility checks
+- SEO validation
+- Best practices
+
+---
+
+## 25. Deployment & Infrastructure
+
+Hosting and deployment information.
+
+---
+
+### 25.1 Frontend Deployment
+
+**Platform**: Lovable
+
+**Features**:
+- Automatic deployments
+- Preview deployments
+- Custom domains
+- HTTPS/SSL included
+- CDN distribution
+- Zero-downtime deployments
+
+**Build Process**:
+- Vite production build
+- TypeScript compilation
+- Asset optimization
+- Bundle minification
+
+**Environment Variables**:
+- `VITE_SUPABASE_URL`
+- `VITE_SUPABASE_ANON_KEY`
+
+---
+
+### 25.2 Backend Infrastructure
+
+**Platform**: Supabase
+
+**Components**:
+- **Database**: PostgreSQL 13+
+  - Auto-scaling
+  - Automated backups
+  - Point-in-time recovery
+  - Connection pooling
+- **Authentication**: Supabase Auth
+  - Email/password
+  - Google OAuth
+  - JWT tokens
+- **Storage**: Supabase Storage
+  - S3-compatible
+  - CDN distribution
+  - Automatic backups
+- **Edge Functions**: Deno runtime
+  - Serverless
+  - Auto-scaling
+  - Global edge network
+- **Realtime**: WebSocket server
+  - Database changes
+  - Presence
+  - Broadcast
+
+**Scaling**:
+- Automatic scaling
+- Load balancing
+- Resource monitoring
+- Instance size upgrades available
+
+---
+
+### 25.3 Configuration Files
+
+**vite.config.ts**:
+- Vite configuration
+- Build optimization
+- Plugin configuration
+- Path aliases
+
+**tailwind.config.ts**:
+- Tailwind CSS configuration
+- Design system tokens
+- Custom colors
+- Theme extension
+
+**vercel.json** (optional):
+- Vercel deployment config
+- Redirects
+- Headers
+- Environment variables
+
+**supabase/config.toml**:
+- Supabase project config
+- Database settings
+- Auth settings
+- Storage settings
+
+---
+
+### 25.4 Monitoring & Logging
+
+**Application Monitoring**:
+- Error tracking (telemetry tables)
+- Performance monitoring
+- User session tracking
+- Real-time metrics
+
+**Database Monitoring**:
+- Query performance
+- Connection pool status
+- Table sizes
+- Index usage
+
+**Security Monitoring**:
+- Failed login attempts
+- Suspicious activity
+- Rate limit violations
+- Security alerts
+
+---
+
+## 26. Integrations
+
+Third-party service integrations.
+
+---
+
+### 26.1 Current Integrations
+
+#### **Supabase**
+**Services Used**:
+- Database (PostgreSQL)
+- Authentication (Auth)
+- Storage (File storage)
+- Realtime (WebSocket)
+- Edge Functions (Serverless)
+
+**Integration**: Complete
+
+---
+
+#### **Google Analytics 4**
+**Tracking ID**: `G-8EBGY1HGEE`
+
+**Metrics**:
+- Page views
+- User sessions
+- Custom events
+- Conversions
+
+**Integration**: Complete
+
+---
+
+#### **Microsoft Clarity**
+**Project ID**: `p3vxdyy2fc`
+
+**Features**:
+- Session recordings
+- Heatmaps
+- User behavior analytics
+
+**Integration**: Complete
+
+---
+
+#### **Google OAuth**
+**Provider**: Supabase Auth
+
+**Features**:
+- Social login
+- User data sync
+- Avatar import
+
+**Integration**: Complete
+
+---
+
+#### **Leaflet Maps**
+**Library**: React-Leaflet
+
+**Features**:
+- Project location display
+- Interactive maps
+- Custom markers
+
+**Integration**: Complete
+
+---
+
+#### **External Weather API**
+**Edge Function**: `get-weather`
+
+**Features**:
+- Location-based weather
+- Weather forecasts
+- Project weather display
+
+**Integration**: Complete
+
+---
+
+### 26.2 Potential Future Integrations
+
+**Payment Processing**:
+- Stripe (payment processing)
+- Square (invoicing)
+
+**Communication**:
+- SendGrid (email delivery)
+- Twilio (SMS notifications)
+- Slack (team notifications)
+- Microsoft Teams (collaboration)
+
+**Accounting**:
+- Xero (accounting sync)
+- QuickBooks (financial integration)
+
+**Construction Management**:
+- Procore (integration)
+- PlanGrid (drawing management)
+- BIM 360 (3D modeling)
+
+**Document Management**:
+- DocuSign (digital signatures)
+- Adobe Sign (contracts)
+
+**AI/ML**:
+- OpenAI (document parsing, AI assistance)
+- Google Cloud Vision (OCR, image analysis)
+
+---
+
+## 27. Technical Specifications
+
+Platform requirements and technical details.
+
+---
+
+### 27.1 Browser Support
+
+**Supported Browsers**:
+- Chrome 90+ (recommended)
+- Firefox 88+
+- Safari 14+
+- Edge 90+
+- Chrome Mobile (latest)
+- Safari iOS (latest)
+
+**Not Supported**:
+- Internet Explorer (all versions)
+
+---
+
+### 27.2 Responsive Design
+
+**Breakpoints**:
+- `xs`: < 640px (mobile)
+- `sm`: 640px (large mobile)
+- `md`: 768px (tablet)
+- `lg`: 1024px (desktop)
+- `xl`: 1280px (large desktop)
+- `2xl`: 1536px (extra large)
+
+**Design Approach**: Mobile-first
+
+---
+
+### 27.3 Accessibility
+
+**Standards**: WCAG 2.1 Level AA
+
+**Features**:
+- Keyboard navigation
+- Screen reader support
+- ARIA labels and roles
+- Focus management
+- Color contrast compliance
+- Semantic HTML
+- Alternative text for images
+
+---
+
+### 27.4 Performance Targets
+
+**Lighthouse Scores**:
+- Performance: 90+
+- Accessibility: 95+
+- Best Practices: 95+
+- SEO: 100
+
+**Core Web Vitals**:
+- LCP (Largest Contentful Paint): < 2.5s
+- FID (First Input Delay): < 100ms
+- CLS (Cumulative Layout Shift): < 0.1
+
+---
+
+### 27.5 Database Limits
+
+**Supabase Limits** (depends on plan):
+- Database size: Varies by plan
+- API requests: Varies by plan
+- Storage: Varies by plan
+- Concurrent connections: Varies by plan
+- Edge function executions: Varies by plan
+
+---
+
+### 27.6 File Upload Limits
+
+**Storage Buckets**:
+- **avatars**: 5 MB max
+- **company-logos**: 5 MB max
+- **documents**: 100 MB max
+- **tender-documents**: 100 MB max
+- **rfi-attachments**: 50 MB max
+- **message-attachments**: 50 MB max
+
+**Supported File Types**:
+- Images: jpg, jpeg, png, gif, webp, svg
+- Documents: pdf, doc, docx, xls, xlsx, ppt, pptx
+- CAD: dwg, dxf, rvt
+- Archive: zip, rar
+- Text: txt, csv
+
+---
+
+### 27.7 Security Standards
+
+**Compliance**:
+- HTTPS/TLS encryption
+- OWASP Top 10 mitigation
+- GDPR considerations
+- SOC 2 Type II (Supabase)
+
+**Data Protection**:
+- At-rest encryption
+- In-transit encryption
+- Regular backups
+- Disaster recovery plan
+
+---
+
+## Conclusion
+
+This comprehensive documentation covers every major aspect of the STOREA platform, from public marketing pages to complex tender management workflows and database architecture. The platform is built on modern web technologies with a focus on:
+
+- **User Experience**: Intuitive interfaces, real-time updates, mobile responsiveness
+- **Security**: Row-level security, role-based access, admin approval, encryption, audit trails
+- **Scalability**: Serverless architecture, optimized queries, caching strategies, auto-scaling
+- **Collaboration**: Real-time messaging, notifications, activity feeds, presence indicators
+- **Compliance**: Comprehensive audit trails, document version control, formal workflows
+- **Flexibility**: Customizable categories, templates, filters, bulk operations
+- **Analytics**: Detailed insights, trends, performance metrics, export capabilities
+- **Performance**: Fast load times, optimized assets, efficient queries, CDN distribution
+
+The platform serves construction industry professionals with enterprise-grade project management, document control, communication, tendering, and financial tracking capabilities.
+
+---
+
 **Document Version**: 1.0  
 **Generated**: 2025  
+**Total Sections**: 27  
 **Format**: Markdown (convertible to PDF/Word)  
 **Maintenance**: Update as features are added or changed
 
 ---
 
-**Export Instructions**:
+## How to Use This Documentation
 
-To convert this markdown file to PDF or Word:
+**For Developers**:
+- Reference database schema for queries
+- Use edge function documentation for API integration
+- Review component structure for contributions
+- Follow workflows for feature implementation
 
-**PDF Conversion**:
-- Use Pandoc: `pandoc STOREA_COMPLETE_DOCUMENTATION.md -o STOREA_COMPLETE_DOCUMENTATION.pdf`
-- Use online converters: markdown2pdf.com, cloudconvert.com
-- Use VS Code extensions: Markdown PDF
-- Print to PDF from markdown viewers
+**For Project Managers**:
+- Understand complete platform capabilities
+- Plan feature rollouts
+- Identify integration opportunities
+- Assess platform readiness
 
-**Word Conversion**:
-- Use Pandoc: `pandoc STOREA_COMPLETE_DOCUMENTATION.md -o STOREA_COMPLETE_DOCUMENTATION.docx`
-- Open in Microsoft Word (Word can import .md files)
-- Use online converters
-- Copy-paste into Word (formatting may need adjustment)
+**For Administrators**:
+- Configure system settings
+- Manage users and permissions
+- Monitor system health
+- Review security policies
 
-**Viewing**:
-- Any markdown viewer/editor (VS Code, Typora, MacDown, etc.)
-- GitHub/GitLab (auto-renders markdown)
-- Markdown preview in most IDEs
+**For Users**:
+- Learn platform features
+- Follow workflow guides
+- Understand capabilities
+- Maximize platform value
 
 ---
 
-END OF DOCUMENT
+## Export Instructions
+
+**To convert this markdown file to PDF or Word**:
+
+### PDF Conversion:
+- **Using Pandoc**: `pandoc STOREA_COMPLETE_DOCUMENTATION.md -o STOREA_COMPLETE_DOCUMENTATION.pdf`
+- **Online converters**: markdown2pdf.com, cloudconvert.com
+- **VS Code extensions**: Markdown PDF extension
+- **Print to PDF**: Open in markdown viewer, Print, Save as PDF
+
+### Word Conversion:
+- **Using Pandoc**: `pandoc STOREA_COMPLETE_DOCUMENTATION.md -o STOREA_COMPLETE_DOCUMENTATION.docx`
+- **Microsoft Word**: File → Open → Select .md file (Word can import markdown)
+- **Online converters**: Use markdown to Word converters
+- **Copy-paste**: Copy content and paste into Word (formatting may need adjustment)
+
+### Viewing:
+- **Markdown viewers**: VS Code, Typora, MacDown, Obsidian
+- **GitHub/GitLab**: Automatically renders markdown
+- **IDE preview**: Most IDEs have markdown preview
+- **Browser**: Many markdown browser extensions available
+
+---
+
+**END OF DOCUMENTATION**
+
+---
+
+**File Location**: `STOREA_COMPLETE_DOCUMENTATION.md` (in project root)
+
+**Access**: Available in Dev Mode file browser or can be downloaded directly.
