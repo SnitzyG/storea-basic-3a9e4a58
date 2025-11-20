@@ -4090,19 +4090,1255 @@ Draft → Issued → Closed → Under Review → Awarded
 
 ---
 
-## Conclusion
+### 6.7 Financials Page (`/financials`)
 
-This comprehensive documentation covers every major aspect of the STOREA platform, from public marketing pages to complex tender management workflows. The platform is built on modern web technologies with a focus on:
+**Purpose**: Complete financial tracking and management for construction projects
 
-- **User Experience**: Intuitive interfaces, real-time updates, mobile responsiveness
-- **Security**: Row-level security, role-based access, admin approval, encryption
-- **Scalability**: Serverless architecture, optimized queries, caching strategies
-- **Collaboration**: Real-time messaging, notifications, activity feeds, presence indicators
-- **Compliance**: Audit trails, document version control, formal workflows
-- **Flexibility**: Customizable categories, templates, filters, bulk operations
-- **Analytics**: Insights, trends, performance metrics, export capabilities
+**Route Protection**: Requires authentication + complete profile
 
-The platform serves construction industry professionals with enterprise-grade project management, document control, communication, tendering, and financial tracking capabilities.
+---
+
+#### **Financial Overview Dashboard**
+
+**Budget Overview** (`BudgetOverview.tsx`):
+- Total contract value display
+- Original budget vs. revised budget
+- Total spent to date
+- Remaining budget
+- Budget variance (over/under)
+- Visual progress indicator
+- Budget breakdown by category
+- Alerts for budget overruns
+
+**Contract Summary** (`ContractSummaryOverview.tsx`):
+- Contract number and details
+- Contract value
+- Contract start and end dates
+- Payment terms
+- Contract status (active, completed, terminated)
+- Contract parties (client, contractor)
+- Contract documents link
+- Key milestones
+
+---
+
+#### **Budget Management**
+
+**Cost Breakdown** (`CostBreakdown.tsx`):
+- Pie chart or bar chart of costs by category
+- Categories:
+  - Labor costs
+  - Materials
+  - Equipment
+  - Subcontractors
+  - Overheads
+  - Contingencies
+- Drill-down to individual items
+- Export to Excel/PDF
+- Visual comparison (budgeted vs. actual)
+
+**Line Item Budgets** (`LineItemBudgets.tsx`):
+- Detailed line-by-line budget tracking
+- Table with columns:
+  - Item number
+  - Description
+  - Category/trade
+  - Quantity, Unit
+  - Rate, Total
+  - Contract budget
+  - Revised budget (if changed)
+  - Total claimed to date
+  - Balance to claim
+  - Percentage complete
+  - Forecast to complete
+  - Notes
+- Inline editing capabilities
+- Add/remove line items
+- Import from tender
+- Bulk update operations
+- Filter by category, status
+- Sort by any column
+- Total calculations at bottom
+
+**Line Item Importer** (`LineItemImporter.tsx`):
+- Import budgets from Excel
+- Template download
+- Column mapping
+- Data validation
+- Preview before import
+- Error reporting
+- Bulk insert
+- Update existing items
+
+---
+
+#### **Progress Claims**
+
+**Progress Claims Section** (`ProgressClaimsSection.tsx`):
+- List of all progress claims
+- Claim number, date, status
+- Total amount (excl GST, incl GST)
+- Payment received
+- Outstanding balance
+- Create new claim button
+- Claim details dialog
+
+**Create Progress Claim**:
+- Claim number (auto-generated)
+- Claim date
+- Period covered (month/dates)
+- Select line items to claim:
+  - Current claim amount
+  - Previous claims
+  - Total to date
+  - Percentage complete
+- Subtotals:
+  - Total works to date
+  - Less previous claims
+  - **This claim amount**
+- Variations included
+- GST calculation
+- Grand total
+- Attach supporting documents
+- Submit for review/approval
+
+**Claims History** (`ClaimsHistoryTable.tsx`):
+- Chronological list of claims
+- Status tracking (draft, submitted, approved, paid)
+- Payment dates
+- Outstanding amounts
+- Retention amounts
+- Export to PDF (claim form)
+
+---
+
+#### **Invoices & Payments**
+
+**Invoices Section** (`InvoicesSection.tsx`):
+- List of all invoices
+- Invoice number, date, amount
+- Vendor/supplier name
+- Status (draft, sent, paid, overdue)
+- Due date
+- Payment status
+- Attached documents
+- Create invoice button
+- Filter by status, vendor, date
+- Export to accounting software
+
+**Create Invoice Form**:
+- Invoice number (auto or manual)
+- Invoice date
+- Vendor/supplier details
+- Line items (description, qty, rate, total)
+- Subtotal
+- Tax/GST
+- Total amount
+- Due date
+- Payment terms
+- Notes
+- Attach PDF/images
+- Link to budget category
+- Submit
+
+**Payments Section** (`PaymentsSection.tsx`):
+- List of all payments made
+- Payment date, amount, method
+- Recipient
+- Reference number
+- Linked invoice
+- Payment status
+- Bank account details
+- Reconciliation status
+- Export to Excel
+
+**Record Payment Form**:
+- Payment date
+- Amount
+- Payment method (bank transfer, check, cash, card)
+- Reference/transaction number
+- Recipient details
+- Link to invoice(s)
+- Bank account
+- Notes
+- Upload receipt/confirmation
+
+---
+
+#### **Change Orders & Variations**
+
+**Change Orders Section** (`ChangeOrdersSection.tsx`):
+- List of all change orders
+- Change order number
+- Title and description
+- Financial impact (+ or -)
+- Timeline impact (days)
+- Status (pending, approved, rejected)
+- Requested by, approved by
+- Approval date
+- Link to variation
+- Create change order button
+
+**Create Change Order**:
+- CO number (auto-generated)
+- Title
+- Description of change
+- Reason for change
+- Financial impact (cost increase/decrease)
+- Timeline impact (days added/removed)
+- Requested by
+- Supporting documents
+- Submit for approval
+
+**Variations Detailed Section** (`VariationsDetailedSection.tsx`):
+- Variation number
+- Description
+- Original scope
+- Changed scope
+- Cost impact
+- Time impact
+- Status
+- Approval workflow
+- Linked change order
+- Linked claims (if claimed)
+- Audit trail
+
+---
+
+#### **Payment Stages & Milestones**
+
+**Payment Schedule Stages** (`PaymentScheduleStages.tsx`):
+- Milestone-based payment schedule
+- Table showing:
+  - Stage number
+  - Stage name (e.g., "Foundation Complete", "Framing Complete")
+  - Percentage of contract
+  - Amount
+  - Completion criteria
+  - Status (not started, in progress, complete, paid)
+  - Actual completion date
+  - Payment date
+- Progress visualization
+- Mark stage as complete
+- Request payment
+- Link to progress claim
+
+**Progress Billing**:
+- Automated payment triggers
+- Milestone tracking
+- Percentage complete vs. payment
+- Retentions and holdbacks
+- Final payment release
+
+---
+
+#### **Financial Forecasting**
+
+**Cashflow Forecast** (`CashflowForecast.tsx`):
+- Monthly/weekly cash flow projection
+- Chart showing:
+  - Expected income (progress claims)
+  - Expected expenses (invoices, payments)
+  - Net cashflow
+  - Cumulative cashflow
+- Forecast vs. actual comparison
+- Identify cashflow gaps
+- Scenario planning
+- Export forecast
+
+**Cashflow Items**:
+- Expected income items:
+  - Progress claim payments
+  - Retention releases
+  - Variation approvals
+  - Client contributions
+- Expected expense items:
+  - Supplier invoices
+  - Subcontractor payments
+  - Equipment rentals
+  - Labor costs
+  - Overheads
+
+---
+
+#### **Client Contributions**
+
+**Client Contributions Section** (`ClientContributionsSection.tsx`):
+- Owner-supplied materials/equipment
+- Owner payments/deposits
+- Track client contributions:
+  - Contribution type
+  - Description
+  - Expected amount
+  - Received amount
+  - Expected date
+  - Received date
+  - Status (expected, received, overdue)
+  - Payment method
+  - Reference number
+- Total contributions
+- Impact on project budget
+
+---
+
+#### **Financial Reports & Analytics**
+
+**Financial Analytics**:
+- Budget performance chart (plan vs. actual)
+- Cash flow chart
+- Invoice aging report
+- Payment history
+- Variation impact analysis
+- Cost per trade/category
+- Profitability analysis
+- Forecast to complete
+
+**Export Capabilities**:
+- Export to Excel (all financial data)
+- Export to PDF (reports, invoices, claims)
+- Export to accounting software (CSV)
+- Print-friendly formats
+
+---
+
+#### **Permissions**
+
+- **View Financials**: All project members can view
+- **Edit Budget**: Architect, Builder (project creator)
+- **Create Claims**: Builder, Contractor
+- **Approve Claims**: Architect, Homeowner
+- **Record Payments**: Architect, Builder
+- **Create Invoices**: Builder, Contractor
+- **Approve Change Orders**: Architect
+
+---
+
+**Key Features Summary**:
+✅ Budget tracking with line-item detail  
+✅ Progress claims with GST calculation  
+✅ Invoice and payment management  
+✅ Change orders and variations  
+✅ Milestone-based payment schedule  
+✅ Cashflow forecasting  
+✅ Client contributions tracking  
+✅ Financial reports and analytics  
+✅ Excel import/export  
+✅ Audit trail for all transactions  
+✅ Real-time budget updates  
+✅ Role-based financial permissions  
+
+---
+
+### 6.8 Calendar Page (`/calendar`)
+
+**Purpose**: Project scheduling, events, meetings, and deadlines
+
+**Route Protection**: Requires authentication + complete profile
+
+---
+
+#### **Calendar Views**
+
+**Modern Calendar** (`ModernCalendar.tsx`):
+- Full calendar interface
+- Monthly view (primary)
+- Weekly view option
+- Daily view option
+- Agenda/list view
+- Event color coding by type
+- Multi-project event display
+- Today indicator
+- Navigate between months
+- Quick date picker
+- Event count badges on dates
+- Responsive mobile layout
+
+**Calendar Widget** (`CalendarWidget.tsx`):
+- Compact calendar for dashboard
+- Shows current month
+- Highlights days with events
+- Click date to see events
+- Quick event creation
+
+**Agenda View** (`AgendaView.tsx`):
+- List of upcoming events
+- Grouped by date
+- Shows event details:
+  - Title
+  - Time
+  - Location
+  - Project
+  - Attendees
+  - Category
+  - Priority
+- Filter by date range
+- Filter by project
+- Filter by event type
+- Search events
+
+---
+
+#### **Event Management**
+
+**Create Event**:
+- Event title (required)
+- Description
+- Start date/time
+- End date/time (optional)
+- All-day event toggle
+- Project association
+- Event category:
+  - Meeting
+  - Deadline
+  - Milestone
+  - Site visit
+  - Inspection
+  - Delivery
+  - Other
+- Location
+- Meeting link (Zoom, Teams, etc.)
+- Priority (high, medium, low)
+- Attendees:
+  - Select from project team
+  - Add external emails
+- Reminder:
+  - 15 min before
+  - 30 min before
+  - 1 hour before
+  - 1 day before
+  - Custom
+- Recurring event:
+  - Daily
+  - Weekly
+  - Monthly
+  - Custom pattern
+- Event status (scheduled, completed, cancelled)
+- Notes
+- Save
+
+**Edit Event**:
+- Update any field
+- Delete event
+- Mark as complete
+- Cancel event
+- Send update notifications
+
+**Event Details View**:
+- Full event information
+- Attendees list with RSVP status
+- Edit/delete buttons
+- Quick actions:
+  - Join meeting (if link)
+  - Get directions (if location)
+  - Add to personal calendar
+  - Share event
+
+---
+
+#### **Event Types & Categories**
+
+**Event Categories**:
+- **Meetings**: Team meetings, client meetings, contractor meetings
+- **Deadlines**: RFI due dates, tender closing, submission deadlines, payment due dates
+- **Milestones**: Project phases, completion dates, handover
+- **Site Visits**: Inspections, walkthroughs, surveys
+- **Deliveries**: Material deliveries, equipment arrivals
+- **Inspections**: Building inspections, compliance checks
+- **Other**: Custom categories
+
+**Color Coding**:
+- Each category has distinct color
+- Visual differentiation on calendar
+- Customizable colors per user
+
+---
+
+#### **Integration with Other Modules**
+
+**Automatic Event Creation**:
+- RFI due dates → Calendar events
+- Tender closing dates → Calendar events
+- Meeting scheduled in messages → Calendar event
+- Payment due dates → Calendar events
+- Milestone dates → Calendar events
+- Inspection dates → Calendar events
+
+**Event Notifications**:
+- Email reminder before event
+- In-app notification
+- Browser notification (if permitted)
+- SMS reminder (optional)
+
+---
+
+#### **Calendar Features**
+
+**Filtering**:
+- Filter by project
+- Filter by category
+- Filter by attendee
+- Filter by status
+- Show/hide completed events
+- Show only my events
+
+**Search**:
+- Search event titles
+- Search descriptions
+- Search locations
+- Date range search
+
+**Sharing**:
+- Share event with team
+- Export to .ics file
+- Add to Google Calendar
+- Add to Outlook
+- Print calendar
+
+**Conflict Detection**:
+- Warns if overlapping events
+- Shows conflicting events
+- Suggests alternative times
+
+**Real-time Updates**:
+- Live sync across devices
+- Instant updates when events change
+- Team member's changes reflected immediately
+
+---
+
+**Database**:
+- **Table**: `calendar_events`
+- **Fields**:
+  - `id`, `title`, `description`
+  - `start_datetime`, `end_datetime`
+  - `project_id`, `created_by`
+  - `category`, `location`, `meeting_link`
+  - `attendees` (JSONB array)
+  - `external_attendees` (email addresses)
+  - `priority`, `status`
+  - `reminder_minutes`
+  - `is_meeting` (boolean)
+  - `created_at`, `updated_at`
+
+---
+
+**Key Features Summary**:
+✅ Full calendar interface with multiple views  
+✅ Event creation and management  
+✅ Meeting scheduling with attendees  
+✅ Automatic event creation from RFIs, tenders  
+✅ Event reminders and notifications  
+✅ Color-coded event categories  
+✅ Calendar sharing and export  
+✅ Conflict detection  
+✅ Real-time synchronization  
+✅ Mobile responsive  
+
+---
+
+### 6.9 To-Do List Page (`/todo-list`)
+
+**Purpose**: Personal task management for users
+
+**Route Protection**: Requires authentication + complete profile
+
+---
+
+#### **Task Management**
+
+**Task List View**:
+- All user's tasks displayed
+- Task checkbox (mark complete)
+- Task title
+- Due date
+- Priority indicator
+- Project association
+- Category/tag
+- Add new task button
+- Completed tasks (collapsible section)
+
+**Create Task**:
+- Task title (required)
+- Description (optional)
+- Due date (optional)
+- Priority (high, medium, low, none)
+- Project link (optional)
+- Category/tags
+- Assignee (self or team member)
+- Reminder date
+- Save
+
+**Task Details**:
+- Full description
+- Created date
+- Due date
+- Priority
+- Status
+- Linked project
+- Notes
+- Edit button
+- Delete button
+- Mark complete
+
+**Task Actions**:
+- Mark as complete/incomplete
+- Edit task
+- Delete task
+- Duplicate task
+- Snooze (postpone due date)
+- Convert to RFI or project issue
+
+---
+
+#### **Task Organization**
+
+**Filtering**:
+- Show all tasks
+- Show only incomplete
+- Show only completed
+- Filter by priority
+- Filter by project
+- Filter by due date
+- Filter by category
+- Overdue tasks only
+- Today's tasks only
+- This week's tasks
+
+**Sorting**:
+- Sort by due date
+- Sort by priority
+- Sort by created date
+- Sort by alphabetical
+- Sort by project
+
+**Categories/Tags**:
+- User-defined categories
+- Color-coded tags
+- Quick filter by tag
+- Examples: "Follow-up", "Urgent", "Awaiting response", "Admin", etc.
+
+---
+
+#### **Task Notifications**
+
+**Reminders**:
+- Email reminder on due date
+- In-app notification
+- Overdue task alerts
+- Daily digest of tasks
+
+**Integration**:
+- Link tasks to projects, RFIs, documents
+- Create tasks from messages
+- Create tasks from RFI responses
+
+---
+
+**Database**:
+- **Table**: `todos`
+- **Fields**:
+  - `id`, `user_id`, `project_id`
+  - `title`, `description`
+  - `completed` (boolean)
+  - `due_date`
+  - `priority`
+  - `category`, `tags`
+  - `reminder_date`
+  - `created_at`, `updated_at`
+
+---
+
+**Key Features Summary**:
+✅ Simple task creation and management  
+✅ Due dates and priorities  
+✅ Project association  
+✅ Categories and tags  
+✅ Task reminders  
+✅ Filter and sort  
+✅ Completed task tracking  
+✅ Real-time sync  
+
+---
+
+## 7. Project Invitation System
+
+### Purpose
+Allow architects and project creators to invite users to join projects via email or shareable links.
+
+---
+
+### 7.1 Project Invite Page (`/project-invite/:token`)
+
+**Purpose**: Accept project invitations via unique token link
+
+**Flow**:
+1. User clicks invitation link from email
+2. If not logged in → redirect to auth page (with return URL)
+3. If logged in → show project details
+4. User clicks "Accept Invitation"
+5. User added to project team
+6. Redirect to project page
+
+**Components**:
+- **ProjectInvitationLink**: Display invitation details
+- **Project information preview**:
+  - Project name
+  - Project description
+  - Project address
+  - Project creator
+  - Role they're being invited as
+- **Accept/Decline buttons**
+- **Error handling for invalid/expired tokens**
+
+**Database**:
+- **Table**: `invitations`
+- **Fields**: `id`, `token`, `email`, `project_id`, `role`, `inviter_id`, `status`, `expires_at`
+
+---
+
+### 7.2 Project Join Page (`/project-join/:projectId`)
+
+**Purpose**: Request to join a public project or view join invitation
+
+**Flow**:
+1. User navigates to project join URL
+2. View project details (limited info)
+3. Click "Request to Join" or "Join Now" (if open)
+4. Join request submitted
+5. Project admin receives notification
+6. Admin approves/rejects
+7. User receives notification
+
+**Components**:
+- **ProjectJoinSection**: Join request interface
+- Project preview
+- Join button
+- Status message (pending, approved, rejected)
+
+---
+
+### 7.3 Accept Invitation Page (`/accept-invitation`)
+
+**Purpose**: Generic invitation acceptance handler
+
+**Handles**:
+- Email-based invitations
+- Token validation
+- Auto-login if needed
+- Project linking
+
+---
+
+### 7.4 Invitation Features
+
+**Invitation Methods**:
+1. **Email Invitation**:
+   - Admin enters email address and role
+   - System sends email with link
+   - Edge function: `send-team-invitation`
+   - Token-based authentication
+   - Expiration (7 days default)
+
+2. **Shareable Link**:
+   - Admin generates invitation link
+   - Copy link to clipboard
+   - Share via any channel
+   - Same token system
+   - Link can be regenerated (invalidates old)
+
+**Invitation Management**:
+- **Pending Invitations Dialog**: View all sent invitations
+- Invitation status (pending, accepted, expired, rejected)
+- Resend invitation
+- Cancel invitation
+- Track who invited whom
+
+**Database Tables**:
+- `invitations`: Tracks all project invitations
+- `project_pending_invitations`: Pre-registration invitations (users who don't have accounts yet)
+- `project_join_requests`: User-initiated join requests
+
+**Edge Functions**:
+- `send-team-invitation`: Sends invitation emails
+- `link-pending-projects`: Links users to projects they were invited to before registration
+- `generate-invite-link`: Generates secure invitation tokens
+
+---
+
+**Key Features Summary**:
+✅ Email invitations with expiration  
+✅ Shareable invitation links  
+✅ Token-based security  
+✅ Auto-linking after registration  
+✅ Pending invitation management  
+✅ Join request system  
+✅ Role assignment on invitation  
+✅ Resend and cancel invitations  
+
+---
+
+## 8. Tender Invitation System
+
+### Purpose
+Allow tender creators to invite contractors to submit bids, or allow contractors to request access to tenders.
+
+---
+
+### 8.1 Join Tender Page (`/join-tender/:tenderId`)
+
+**Purpose**: Contractor requests access to a tender
+
+**Flow**:
+1. Contractor receives tender link or finds tender
+2. Navigates to join page
+3. Views tender details (limited information):
+   - Tender title
+   - Project name
+   - Closing date
+   - Brief description
+   - Required trades
+4. Clicks "Request Access"
+5. Access request submitted
+6. Tender creator receives notification
+7. Creator approves/rejects access
+8. Contractor receives notification
+9. If approved → can view full tender and submit bid
+
+**Components**:
+- **TenderJoinSection**: Request access interface
+- Tender preview card
+- Request access button
+- Status indicator (pending, approved, rejected)
+- Company information form (if required)
+
+---
+
+### 8.2 Tender Response Page (`/tender-response/:tenderId`)
+
+**Purpose**: Contractor submits bid to tender
+
+**Flow**:
+1. Approved contractor navigates to response page
+2. Views full tender details
+3. Fills out bid submission form:
+   - Company details (pre-filled from profile)
+   - Total bid amount
+   - Line item pricing (matches tender line items)
+   - Delivery timeline
+   - Notes/comments
+   - Alternative proposals
+   - Upload bid documents/Excel
+4. Submits bid
+5. Confirmation shown
+6. Tender creator receives notification
+7. Contractor can view/edit bid until closing date
+
+**Components**:
+- **TenderResponse** page component
+- **PublicBidSubmission**: External bid form
+- **BidSubmissionForm**: Bid entry interface
+- **TenderBidSubmissionWizard**: Multi-step bid wizard
+- Tender documents viewer
+- Line items pricing table
+- Excel upload for pricing
+- Bid summary and total
+- Submit button
+
+---
+
+### 8.3 Tender Access Control
+
+**Access Levels**:
+1. **Invite-Only Tenders**:
+   - Tender creator sends invitations
+   - Only invited contractors can access
+   - Invitation via email or link
+   - Approval required before full access
+
+2. **Public Tenders**:
+   - Visible to all contractors
+   - Anyone can request access
+   - Approval may still be required
+   - Prequalification criteria
+
+3. **Prequalification Required**:
+   - Contractors submit prequalification form
+   - Experience, certifications, insurance
+   - Financial capacity
+   - References
+   - Previous projects
+   - Creator reviews and approves
+
+**Tender Invitations**:
+- **TenderInviteDialog**: Send invitations to contractors
+- Select contractors from database
+- Enter external contractor emails
+- Customizable invitation message
+- Track invitation status
+- Reminder emails
+
+**Access Management**:
+- **TenderAccessApprovals**: Manage access requests
+- List of pending requests
+- View contractor details
+- Approve/reject access
+- Bulk approval actions
+- Notification to contractors
+
+---
+
+### 8.4 Tender Documents
+
+**Document Access**:
+- Tender package documents visible to approved contractors
+- Document gallery with preview
+- Download all documents as ZIP
+- Document versioning
+- Addendums and clarifications
+
+**Components**:
+- **EnhancedDocumentGallery**: Visual document browser
+- **TenderDocumentCarousel**: Swipeable document viewer
+- **DocumentCreatorDialog**: Create tender documents
+- **DrawingsUploadManager**: CAD drawing management
+
+---
+
+### 8.5 Contractor Prequalification
+
+**Prequalification Process**:
+1. Contractor fills out prequalification form:
+   - Company details
+   - Years of experience
+   - Trade specializations
+   - Licenses and certifications
+   - Insurance details (liability, workers comp)
+   - Financial capacity
+   - Bank references
+   - Previous project references
+   - Upload company documents
+2. Submit for review
+3. Tender creator reviews
+4. Approve/reject with notes
+5. Approved contractors can bid
+
+**Components**:
+- **ContractorPrequalificationPanel**: Prequalification form and review
+- Company profile display
+- Document upload
+- Reference management
+- Review and approval interface
+
+**Database**:
+- **Table**: `contractor_prequalifications`
+- **Fields**: `contractor_id`, `tender_id`, `status`, `experience_years`, `certifications`, `insurance_details`, `financial_capacity`, `previous_projects`, `contractor_references`, `documents`, `reviewed_by`, `reviewed_at`, `review_notes`
+
+---
+
+**Key Features Summary**:
+✅ Tender access request system  
+✅ Invitation-based or public tenders  
+✅ Contractor prequalification  
+✅ Bid submission interface  
+✅ Line-item pricing entry  
+✅ Document access control  
+✅ Excel upload for bids  
+✅ Access approval workflow  
+✅ Email notifications  
+✅ Audit trail  
+
+---
+
+## 9. Admin Pages (Admin Role Only)
+
+### Purpose
+System administration, user management, monitoring, and configuration for users with admin role.
+
+**Access**: Only users with `user_roles.role = 'admin'` can access these pages.
+
+---
+
+### 9.1 Admin Login (`/admin/login`)
+
+**Purpose**: Separate authentication page for admin access
+
+**Features**:
+- Admin-specific login form
+- Enhanced security checks
+- Admin session management
+- Redirect to admin dashboard on success
+- Separate from regular user auth
+
+**Components**:
+- **AdminAuth**: Admin login interface
+- Security validation
+- Rate limiting
+- Activity logging
+
+---
+
+### 9.2 Admin Dashboard (`/admin/dashboard`)
+
+**Purpose**: Central hub for system administration and monitoring
+
+**Layout**:
+- **AdminLayout**: Wrapper with admin sidebar and header
+- **AdminSidebar**: Navigation menu
+- **AdminHeader**: Top bar with system status
+
+**Dashboard Widgets** (all real-time):
+
+#### System Overview
+- **DashboardOverviewWidget**: Key metrics at a glance
+  - Total users (approved, pending)
+  - Total projects
+  - Active projects
+  - Total documents
+  - Total RFIs
+  - Active tenders
+  - System health status
+  - Server uptime
+  - Today's activity count
+
+#### System Health
+- **SystemHealthWidget**: Infrastructure monitoring
+  - Supabase status (operational, degraded, down)
+  - Database status
+  - API response time
+  - Storage status
+  - Edge functions status
+  - Error rate
+  - Uptime percentage
+  - Health score (0-100)
+  - Alerts and warnings
+
+#### User Activity
+- **UserActivityCard**: User engagement metrics
+  - Active users now (online)
+  - Active users today
+  - Active users this week
+  - New signups today
+  - Pending approvals count
+  - User growth chart
+  - Most active users
+  - User session times
+  - Online/offline status indicators
+
+#### API Monitoring
+- **APIMonitoringCard**: Supabase API health
+  - API uptime
+  - Request count (last hour, today)
+  - Average response time
+  - Error rate
+  - Slow queries
+  - Rate limit status
+  - API endpoint status
+  - Request distribution chart
+
+#### Database Performance
+- **DatabasePerformanceCard**: Database metrics
+  - Database size
+  - Table sizes
+  - Row counts
+  - Active connections
+  - Connection pool status
+  - Query performance
+  - Slow queries log
+  - Index usage
+  - Cache hit rate
+  - Database CPU and memory
+
+#### Edge Functions
+- **EdgeFunctionsCard**: Serverless function monitoring
+  - Function execution count
+  - Average execution time
+  - Error rate by function
+  - Cold starts
+  - Function logs
+  - Deployment status
+  - Function list with metrics
+  - Recent errors
+
+#### Storage Overview
+- **StorageOverviewCard**: File storage metrics
+  - Total storage used
+  - Storage by bucket
+  - File count by bucket
+  - Recent uploads
+  - Large files
+  - Storage growth trend
+  - Bucket quotas
+  - Bandwidth usage
+
+#### Security Overview
+- **SecurityOverviewCard**: Security monitoring
+  - Failed login attempts (last hour, today)
+  - Suspicious activity alerts
+  - Rate limit violations
+  - CSRF token failures
+  - Recent security events
+  - IP blocks
+  - Security score
+  - Vulnerabilities detected
+
+#### Email Monitoring
+- **EmailMonitoringDashboard**: Email delivery tracking
+  - Emails sent (today, this week)
+  - Delivery rate
+  - Bounce rate
+  - Failed deliveries
+  - Email queue status
+  - Email types (invitation, notification, RFI, etc.)
+  - Recent emails log
+  - SMTP status
+
+#### Module-Specific Cards
+- **CalendarOverviewCard**: Calendar events stats
+- **DocumentsOverviewCard**: Document system metrics
+- **ProjectsOverviewCard**: Project analytics
+- **TasksOverviewCard**: Tasks and todos
+- **MessagesOverviewCard**: Messaging stats
+- **TenderRFIPipelineCard**: Tenders and RFIs in progress
+
+#### Alerts & Issues
+- **AlertsIssuesCard**: Active system alerts
+  - Critical alerts
+  - Warning alerts
+  - Info alerts
+  - Recent issues
+  - Alert history
+  - Acknowledge button
+  - Resolve button
+
+#### Financial Dashboard
+- **FinancialDashboardCard**: (If applicable)
+  - Revenue metrics
+  - Subscription status
+  - Payment processing
+  - Billing issues
+
+#### Team Collaboration
+- **TeamCollaborationCard**: (If applicable)
+  - Active collaborations
+  - Team performance
+  - Collaboration metrics
+
+#### Real-time Activity Log
+- **EnhancedRealtimeActivityLog**: Live system activity
+  - Real-time activity feed
+  - User actions
+  - System events
+  - Filters by action type, user, entity
+  - Search functionality
+  - Activity details
+  - Timestamp
+  - IP address
+  - User agent
+  - Metadata
+
+---
+
+**Real-time Data**:
+- All dashboard data updates in real-time via WebSocket subscriptions
+- No page refresh needed
+- Live counters and charts
+- Instant alert notifications
+
+**Components**:
+- **AdminDashboard**: Main dashboard page
+- **AdminLayout**: Layout wrapper
+- **AdminSidebar**: Navigation
+- **AdminHeader**: Header with user menu and notifications
+- All widget components listed above
+
+**Hooks**:
+- `useAdminStats`: Fetch admin statistics
+- `useSystemHealth`: System health monitoring
+- `useAPIMonitoring`: API metrics
+- `useDatabaseMonitoring`: DB performance
+- `useStorageMonitoring`: Storage stats
+- `useEdgeFunctionsMonitoring`: Edge function metrics
+- `useSecurityMonitoring`: Security monitoring
+- `useCalendarMonitoring`: Calendar metrics
+- `useDocumentsMonitoring`: Documents metrics
+- `useMessagesMonitoring`: Messages stats
+- `useTasksMonitoring`: Tasks stats
+- `useRealtimeMonitoring`: Real-time data subscriptions
+- `useRealtimeAdminStats`: Real-time admin stats
+- `useAdminAlerts`: Alert management
+- `useUserSessionMonitoring`: User session tracking
+
+---
+
+### 9.3 User Management (`/admin/users`)
+
+**Purpose**: Manage all users in the system
+
+**Features**:
+
+**User List**:
+- Table of all users with:
+  - Avatar
+  - Name
+  - Email
+  - Role (contractor, architect, builder, homeowner)
+  - Company
+  - Status (approved, pending, rejected)
+  - Last seen
+  - Online status
+  - Created date
+  - Actions (view, edit, approve, reject, delete)
+- Search users (by name, email, company)
+- Filter by:
+  - Role
+  - Status (approved, pending, rejected)
+  - Company
+  - Online status
+  - Registration date
+- Sort by any column
+- Pagination
+
+**User Actions**:
+- **Approve User**: Change approval status to approved
+- **Reject User**: Reject pending user with reason
+- **Edit User**:
+  - Change role
+  - Change company
+  - Update profile information
+  - Reset password
+  - Change admin status (grant/revoke admin role)
+- **View User Details**:
+  - Full profile
+  - Activity history
+  - Projects they're in
+  - Documents uploaded
+  - RFIs created/responded
+  - Login history
+  - Security events
+- **Deactivate User**: Temporarily disable account
+- **Delete User**: Permanently remove (with confirmation)
+
+**Bulk Operations**:
+- Select multiple users
+- Bulk approve
+- Bulk reject
+- Bulk delete
+- Bulk role assignment
+- Export user list to Excel
+
+**Components**:
+- **UserManagement**: Main user management page
+- **AdvancedUserManagement**: Advanced user administration
+- **UserApprovalDashboard**: Pending approval queue
+- User list table
+- User details dialog
+- Edit user dialog
+- Activity log viewer
+
+**Database**:
+- **Table**: `profiles` (user profiles)
+- **Table**: `user_roles` (admin role assignments)
+- **Table**: `activity_log` (user actions)
 
 ---
 
