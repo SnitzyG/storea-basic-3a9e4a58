@@ -1,6 +1,9 @@
 import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 
+// Google Ads Conversion ID - Replace with your actual ID or leave empty to disable conversion tracking
+const GOOGLE_ADS_CONVERSION_ID = '';
+
 declare global {
   interface Window {
     gtag?: (...args: any[]) => void;
@@ -27,9 +30,14 @@ export const useAnalytics = () => {
   };
 
   const trackConversion = (conversionLabel: string, value?: number) => {
+    // Only track conversions if Google Ads ID is configured
+    if (!GOOGLE_ADS_CONVERSION_ID) {
+      return;
+    }
+    
     if (typeof window.gtag !== 'undefined') {
       window.gtag('event', 'conversion', {
-        send_to: `AW-CONVERSION_ID/${conversionLabel}`,
+        send_to: `${GOOGLE_ADS_CONVERSION_ID}/${conversionLabel}`,
         value: value || 0,
         currency: 'AUD',
       });
