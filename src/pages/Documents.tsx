@@ -20,6 +20,7 @@ import { DocumentListView } from '@/components/documents/DocumentListView';
 import { DocumentActivity } from '@/components/documents/DocumentActivity';
 import { CreateTenderPackageDialog } from '@/components/documents/CreateTenderPackageDialog';
 import { useDocumentCategories } from '@/hooks/useDocumentCategories';
+import { useAnalytics } from '@/hooks/useAnalytics';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 const Documents = () => {
@@ -44,6 +45,7 @@ const Documents = () => {
   const {
     toast
   } = useToast();
+  const { trackDownload } = useAnalytics();
   const {
     projects
   } = useProjects();
@@ -93,20 +95,19 @@ const Documents = () => {
       return;
     }
     try {
-      const {
-        downloadFromStorage,
-        normalizeStorageError
-      } = await import('@/utils/storageUtils');
+      const { downloadFromStorage, normalizeStorageError } = await import('@/utils/storageUtils');
       await downloadFromStorage(group.current_revision.file_path, group.current_revision.file_name || 'document');
+      
+      // Track document download
+      trackDownload(group.current_revision.file_name || 'document');
+      
       toast({
         title: "Success",
         description: "File downloaded successfully"
       });
     } catch (e: any) {
       console.error('Download failed:', e);
-      const {
-        normalizeStorageError
-      } = await import('@/utils/storageUtils');
+      const { normalizeStorageError } = await import('@/utils/storageUtils');
       toast({
         title: "Error",
         description: normalizeStorageError(e?.message),

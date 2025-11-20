@@ -5,6 +5,7 @@ import { FeatureCard } from '@/components/marketing/FeatureCard';
 import { FAQSection } from '@/components/marketing/FAQSection';
 import { RelatedPages } from '@/components/marketing/RelatedPages';
 import { usePageMeta } from '@/hooks/usePageMeta';
+import { useAnalytics } from '@/hooks/useAnalytics';
 import { Breadcrumbs } from '@/components/marketing/Breadcrumbs';
 import { 
   FileText, 
@@ -22,6 +23,8 @@ import {
 } from 'lucide-react';
 
 const Features = () => {
+  const { trackFeatureView } = useAnalytics();
+  
   usePageMeta({
     title: 'Construction Project Management Features | STOREA',
     description: 'Explore STOREA\'s comprehensive construction management features: document control, RFI tracking, tender management, team collaboration, and financial tools for Australian builders.',
@@ -30,6 +33,9 @@ const Features = () => {
   });
 
   useEffect(() => {
+    // Track feature page view
+    trackFeatureView('Features Page');
+    
     // Add ItemList structured data for features
     const itemListSchema = {
       "@context": "https://schema.org",
