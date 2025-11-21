@@ -107,6 +107,10 @@ export const AppLayout = ({
     );
   }
 
+  // Safety net: redirect to profile setup if profile is incomplete
+  if (profile && !isProfileComplete(profile)) {
+    return <Navigate to="/profile-setup" replace />;
+  }
 
   const userRole = profile?.role ?? 'contractor';
 
