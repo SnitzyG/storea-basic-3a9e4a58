@@ -9,12 +9,58 @@ interface RequireCompleteProfileProps {
 }
 
 export const RequireCompleteProfile = ({ children }: RequireCompleteProfileProps) => {
-  const { user, loading } = useAuth();
+  const { user, profile, loading } = useAuth();
+  const location = useLocation();
+  const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
+  const [adminCheckLoading, setAdminCheckLoading] = useState(true);
 
-  // While auth loading, don't flicker
-  if (loading) return null;
+  useEffect(() => {
+    const checkAdminStatus = async () => {
+      if (!user) {
+        setAdminCheckLoading(false);
+        return;
+      }
+
+      try {
+        const { data, error } = await supabase.rpc('has_role', {
+          _user_id: user.id,
+          _role: 'admin'
+        });
+
+        if (error) {
+          console.error('Error checking admin status:', error);
+          setIsAdmin(false);
+        } else {
+          setIsAdmin(data === true);
+        }
+      } catch (error) {
+        console.error('Error checking admin status:', error);
+        setIsAdmin(false);
+      } finally {
+        setAdminCheckLoading(false);
+      }
+    };
+
+    checkAdminStatus();
+  }, [user]);
+
+  // While auth/profile/admin status loading, don't flicker
+  if (loading || adminCheckLoading) return null;
 
   if (!user) return <Navigate to="/auth" replace />;
+
+  // Allow the profile setup page itself
+  if (location.pathname === '/profile-setup') return <>{children}</>;
+
+  // Allow admin routes without profile completion
+  if (location.pathname.startsWith('/admin') && isAdmin) {
+    return <>{children}</>;
+  }
+
+  // If incomplete and not admin, force users to profile setup first
+  if (!isProfileComplete(profile) && !isAdmin) {
+    return <Navigate to="/profile-setup" replace />;
+  }
 
   return <>{children}</>;
 };
