@@ -834,14 +834,15 @@ const TenderBuilder = () => {
       } = await supabase.from('tender_bid_line_items').insert(lineItemsToInsert);
       if (lineItemsError) throw lineItemsError;
 
-      // Log activity
-      await supabase.from('activity_log').insert({
-        user_id: user!.id,
-        entity_type: 'tender_bid',
-        entity_id: bidId,
-        action: existingBid ? 'updated' : 'created',
-        description: `${existingBid ? 'Updated' : 'Submitted'} bid for tender: ${tender.title}`,
-        project_id: tender.project_id
+      // Log activity using secure RPC function
+      await supabase.rpc('log_activity', {
+        p_user_id: user!.id,
+        p_entity_type: 'tender_bid',
+        p_entity_id: bidId,
+        p_action: existingBid ? 'updated' : 'created',
+        p_description: `${existingBid ? 'Updated' : 'Submitted'} bid for tender: ${tender.title}`,
+        p_project_id: tender.project_id,
+        p_metadata: {}
       });
       toast.success(existingBid ? 'Bid updated successfully' : 'Bid submitted successfully');
 

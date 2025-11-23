@@ -121,15 +121,15 @@ export const RealtimeTestingTools: React.FC = () => {
           const { data: { user } } = await supabase.auth.getUser();
           if (!user) return false;
           
-          const testActivity = {
-            user_id: user.id,
-            entity_type: 'test',
-            action: 'realtime_test',
-            description: 'Testing real-time connectivity',
-            metadata: { test: true, timestamp: Date.now() }
-          };
-          
-          const { error } = await supabase.from('activity_log').insert(testActivity);
+          // Use secure RPC function instead of direct insert
+          const { error } = await supabase.rpc('log_activity', {
+            p_user_id: user.id,
+            p_entity_type: 'test',
+            p_entity_id: null,
+            p_action: 'realtime_test',
+            p_description: 'Testing real-time connectivity',
+            p_metadata: { test: true, timestamp: Date.now() }
+          });
           return !error;
         }
       }

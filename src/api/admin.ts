@@ -6,6 +6,21 @@ type AdminAlert = any;
 type SystemMetric = any;
 type UserSession = any;
 
+// Helper function to verify admin role
+async function requireAdminRole(): Promise<void> {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('Authentication required');
+
+  const { data: isAdmin, error } = await supabase.rpc('has_role', {
+    _user_id: user.id,
+    _role: 'admin'
+  });
+
+  if (error || !isAdmin) {
+    throw new Error('Unauthorized: Admin role required');
+  }
+}
+
 // GET SYSTEM ACTIVITY WITH FILTERS
 export async function getSystemActivity(filters?: {
   userId?: string;
@@ -67,6 +82,8 @@ export async function getAuditLogs(filters?: {
 
 // GET ALL USERS FROM AUTH
 export async function getAllUsers() {
+  await requireAdminRole();
+  
   const { data: users, error } = await supabase.auth.admin.listUsers();
   if (error) throw new Error(error.message);
   
@@ -117,6 +134,8 @@ export async function getSystemMetrics() {
 
 // DISABLE USER - LOGS TO AUDIT TRAIL
 export async function disableUser(userId: string, reason: string) {
+  await requireAdminRole();
+  
   const { data: { user: currentUser } } = await supabase.auth.getUser();
   if (!currentUser) throw new Error('Not authenticated');
 
@@ -174,6 +193,8 @@ export async function disableUser(userId: string, reason: string) {
 
 // ENABLE USER - LOGS TO AUDIT TRAIL
 export async function enableUser(userId: string) {
+  await requireAdminRole();
+  
   const { data: { user: currentUser } } = await supabase.auth.getUser();
   if (!currentUser) throw new Error('Not authenticated');
 
@@ -209,6 +230,8 @@ export async function enableUser(userId: string) {
 
 // CHANGE USER ROLE - LOGS TO AUDIT TRAIL
 export async function changeUserRole(userId: string, newRole: string) {
+  await requireAdminRole();
+  
   const { data: { user: currentUser } } = await supabase.auth.getUser();
   if (!currentUser) throw new Error('Not authenticated');
 
