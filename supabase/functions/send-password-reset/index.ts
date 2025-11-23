@@ -1,11 +1,37 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.0";
 import { Resend } from "npm:resend@4.0.0";
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
+
+// Simple in-memory rate limiter
+const rateLimits = new Map<string, { count: number; resetAt: number }>();
+
+function checkRateLimit(ip: string, maxRequests = 5, windowMs = 15 * 60 * 1000): boolean {
+  const now = Date.now();
+  const limit = rateLimits.get(ip);
+  
+  if (!limit || now > limit.resetAt) {
+    rateLimits.set(ip, { count: 1, resetAt: now + windowMs });
+    return true;
+  }
+  
+  if (limit.count >= maxRequests) {
+    return false;
+  }
+  
+  limit.count++;
+  return true;
+}
+
+// Input validation schema
+const passwordResetSchema = z.object({
+  email: z.string().email().max(255).trim()
+});
 
 serve(async (req) => {
   // Handle CORS preflight requests
@@ -14,14 +40,22 @@ serve(async (req) => {
   }
 
   try {
-    const { email } = await req.json();
-
-    if (!email || typeof email !== "string") {
+    // Rate limiting by IP
+    const ip = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown';
+    if (!checkRateLimit(ip)) {
+      console.warn(`Rate limit exceeded for IP: ${ip}`);
       return new Response(
-        JSON.stringify({ error: "Email is required" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        JSON.stringify({ error: "Too many requests. Please try again later." }),
+        { 
+          status: 429, 
+          headers: { ...corsHeaders, "Content-Type": "application/json" }
+        }
       );
     }
+
+    // Validate input
+    const body = await req.json();
+    const { email } = passwordResetSchema.parse(body);
 
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
     const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
@@ -145,6 +179,19 @@ serve(async (req) => {
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (err) {
+    if (err instanceof z.ZodError) {
+      return new Response(
+        JSON.stringify({ 
+          error: "Invalid email address",
+          details: err.errors 
+        }),
+        { 
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" }
+        }
+      );
+    }
+    
     console.error("Unexpected error in send-password-reset:", err);
     return new Response(
       JSON.stringify({ error: "Internal server error" }),

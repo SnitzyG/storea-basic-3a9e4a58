@@ -3815,6 +3815,16 @@ export type Database = {
         }
         Returns: string
       }
+      create_notification: {
+        Args: {
+          _data?: Json
+          _message: string
+          _title: string
+          _type: string
+          _user_id: string
+        }
+        Returns: string
+      }
       delete_tender_cascade: {
         Args: { tender_id_param: string }
         Returns: Json
@@ -3900,20 +3910,41 @@ export type Database = {
         Args: { target_user_id: string; user_email: string }
         Returns: undefined
       }
-      log_activity: {
+      log_activity:
+        | {
+            Args: {
+              _action: string
+              _description: string
+              _entity_id: string
+              _entity_type: string
+              _metadata?: Json
+              _project_id?: string
+            }
+            Returns: string
+          }
+        | {
+            Args: {
+              p_action: string
+              p_description: string
+              p_entity_id: string
+              p_entity_type: string
+              p_ip_address?: unknown
+              p_metadata?: Json
+              p_project_id?: string
+              p_session_id?: string
+              p_user_agent?: string
+              p_user_id: string
+            }
+            Returns: undefined
+          }
+      log_document_event: {
         Args: {
-          p_action: string
-          p_description: string
-          p_entity_id: string
-          p_entity_type: string
-          p_ip_address?: unknown
-          p_metadata?: Json
-          p_project_id?: string
-          p_session_id?: string
-          p_user_agent?: string
-          p_user_id: string
+          _document_id: string
+          _event_description: string
+          _event_type: string
+          _metadata?: Json
         }
-        Returns: undefined
+        Returns: string
       }
       migrate_existing_documents: { Args: never; Returns: undefined }
       revoke_admin_by_email: { Args: { target_email: string }; Returns: Json }

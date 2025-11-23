@@ -1,8 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-// Note: Resend functionality temporarily disabled to avoid dependency issues
-// import { Resend } from "npm:resend@2.0.0";
-
-// const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -10,17 +7,18 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
-interface RFINotificationRequest {
-  recipientEmail: string;
-  recipientName: string;
-  rfiNumber: string;
-  rfiSubject: string;
-  rfiQuestion: string;
-  senderName: string;
-  projectName: string;
-  dueDate?: string;
-  priority: 'low' | 'medium' | 'high' | 'critical';
-}
+// Input validation schema
+const rfiNotificationSchema = z.object({
+  recipientEmail: z.string().email().max(255).trim(),
+  recipientName: z.string().min(1).max(200).trim(),
+  rfiNumber: z.string().max(50).trim(),
+  rfiSubject: z.string().max(500).trim(),
+  rfiQuestion: z.string().max(10000).trim(),
+  senderName: z.string().max(200).trim(),
+  projectName: z.string().max(300).trim(),
+  dueDate: z.string().optional(),
+  priority: z.enum(['low', 'medium', 'high', 'critical'])
+});
 
 const handler = async (req: Request): Promise<Response> => {
   // Handle CORS preflight requests
@@ -29,6 +27,8 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
+    // Validate input
+    const body = await req.json();
     const {
       recipientEmail,
       recipientName,
@@ -39,7 +39,7 @@ const handler = async (req: Request): Promise<Response> => {
       projectName,
       dueDate,
       priority
-    }: RFINotificationRequest = await req.json();
+    } = rfiNotificationSchema.parse(body);
 
     const priorityColor = {
       'low': '#22c55e',
@@ -156,6 +156,19 @@ const handler = async (req: Request): Promise<Response> => {
       },
     });
   } catch (error: any) {
+    if (error instanceof z.ZodError) {
+      return new Response(
+        JSON.stringify({ 
+          error: "Invalid input data",
+          details: error.errors 
+        }),
+        { 
+          status: 400,
+          headers: { "Content-Type": "application/json", ...corsHeaders }
+        }
+      );
+    }
+    
     console.error("Error in send-rfi-notification function:", error);
     return new Response(
       JSON.stringify({ error: error.message }),
