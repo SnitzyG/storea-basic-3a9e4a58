@@ -1,10 +1,20 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.0";
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+// Input validation schema
+const teamInviteSchema = z.object({
+  projectId: z.string().uuid(),
+  email: z.string().email().max(255).trim(),
+  role: z.enum(['architect', 'builder', 'contractor', 'homeowner']),
+  projectName: z.string().max(300).trim(),
+  inviterName: z.string().max(200).trim().optional()
+});
 
 serve(async (req) => {
   // Handle CORS preflight requests
@@ -15,16 +25,10 @@ serve(async (req) => {
   try {
     console.log('📨 Team invitation function called');
     
-    const { projectId, email, role, projectName, inviterName } = await req.json();
+    // Validate input
+    const body = await req.json();
+    const { projectId, email, role, projectName, inviterName } = teamInviteSchema.parse(body);
     console.log('📨 Sending project invite:', { projectId, email, role, projectName, inviterName });
-
-    // Validate required fields
-    if (!projectId || !email || !role || !projectName) {
-      return new Response(
-        JSON.stringify({ error: 'Missing required fields' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
 
     // Initialize Supabase admin client
     const supabase = createClient(
@@ -140,6 +144,19 @@ serve(async (req) => {
     );
 
   } catch (err) {
+    if (err instanceof z.ZodError) {
+      return new Response(
+        JSON.stringify({ 
+          error: 'Invalid input data',
+          details: err.errors 
+        }),
+        { 
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        }
+      );
+    }
+    
     console.error('💥 Unexpected error:', err);
     return new Response(
       JSON.stringify({ error: 'Internal server error', details: (err as Error).message || 'Unknown error' }),
