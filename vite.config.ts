@@ -39,7 +39,7 @@ export default defineConfig(({ mode }) => ({
           // Separate vendor libraries into their own chunks
           if (id.includes('node_modules')) {
             // Critical chunks (always needed)
-            if (id.includes('react') || id.includes('react-dom')) {
+            if (id.includes('react') || id.includes('react-dom') || id.includes('scheduler')) {
               return 'vendor-react';
             }
             if (id.includes('@supabase')) {
