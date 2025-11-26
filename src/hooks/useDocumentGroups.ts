@@ -83,29 +83,12 @@ export const useDocumentGroups = (projectId?: string) => {
       // 1. Creator of the document
       // 2. Document has been shared with them
       // 3. Document visibility is 'project' (visible to all project members)
-      let query = supabase
+      const { data, error } = await supabase
         .from('document_groups')
-        .select(`
-          *,
-          current_revision:document_revisions!fk_current_revision (
-            id,
-            revision_number,
-            file_name,
-            file_path,
-            file_type,
-            file_size,
-            file_extension,
-            uploaded_by,
-            is_current,
-            is_archived,
-            created_at
-          )
-        `)
+        .select('*')
         .eq('project_id', targetProjectId)
         .or(`created_by.eq.${user.id},visibility_scope.eq.project`)
         .order('updated_at', { ascending: false });
-
-      const { data, error } = await query;
 
       if (error) {
         console.error('Document groups fetch error:', error);
@@ -114,9 +97,30 @@ export const useDocumentGroups = (projectId?: string) => {
 
       let filteredData = data || [];
 
-      // Additional check for shared documents if user is not the creator
+      // Fetch current revisions separately and add them to the groups
+      let dataWithRevisions: any[] = filteredData;
+      
       if (filteredData.length > 0) {
-        const nonOwnedDocs = filteredData.filter(doc => doc.created_by !== user.id);
+        const groupIds = filteredData.map(g => g.current_revision_id).filter(Boolean);
+        
+        if (groupIds.length > 0) {
+          const { data: revisions } = await supabase
+            .from('document_revisions')
+            .select('*')
+            .in('id', groupIds);
+
+          // Map revisions to groups
+          const revisionsMap = new Map(revisions?.map(r => [r.id, r]) || []);
+          dataWithRevisions = filteredData.map(group => ({
+            ...group,
+            current_revision: group.current_revision_id ? revisionsMap.get(group.current_revision_id) : null
+          }));
+        }
+      }
+
+      // Additional check for shared documents if user is not the creator
+      if (dataWithRevisions.length > 0) {
+        const nonOwnedDocs = dataWithRevisions.filter(doc => doc.created_by !== user.id);
         
         if (nonOwnedDocs.length > 0) {
           // Check for shared documents
@@ -128,7 +132,7 @@ export const useDocumentGroups = (projectId?: string) => {
           const sharedDocIds = new Set(sharedDocs?.map(share => share.document_id) || []);
           
           // Filter out private documents that aren't shared with the user
-          filteredData = filteredData.filter(doc => 
+          dataWithRevisions = dataWithRevisions.filter(doc => 
             doc.created_by === user.id || 
             doc.visibility_scope === 'project' ||
             sharedDocIds.has(doc.id)
@@ -137,7 +141,7 @@ export const useDocumentGroups = (projectId?: string) => {
       }
 
       // Get user names for uploaded_by
-      const userIds = [...new Set(filteredData?.map(group => group.current_revision?.uploaded_by).filter(Boolean) || [])];
+      const userIds = [...new Set(dataWithRevisions?.map(group => group.current_revision?.uploaded_by).filter(Boolean) || [])];
       let userNames: Record<string, { name: string; role: string }> = {};
       
       if (userIds.length > 0) {
@@ -150,7 +154,7 @@ export const useDocumentGroups = (projectId?: string) => {
       }
 
       // Enhance data with user names
-      const enhancedData = filteredData?.map(group => ({
+      const enhancedData = dataWithRevisions?.map(group => ({
         ...group,
         current_revision: group.current_revision ? {
           ...group.current_revision,
