@@ -431,11 +431,17 @@ export class ComprehensivePDFGenerator {
       this.addText(`Provider: ${func.provider}`);
       this.currentY += 2;
       
-      this.addText('Input:', 10, 5);
-      this.addCodeBlock(JSON.stringify(func.input, null, 2));
+      if (func.inputs && func.inputs.length > 0) {
+        this.addText('Inputs:', 10, 5);
+        func.inputs.forEach((input: string) => {
+          this.addBulletPoint(input, 10);
+        });
+      }
       
-      this.addText('Output:', 10, 5);
-      this.addCodeBlock(JSON.stringify(func.output, null, 2));
+      if (func.output) {
+        this.addText('Output:', 10, 5);
+        this.addText(func.output, 10, 10);
+      }
       
       this.currentY += 5;
       this.checkPageBreak(40);
@@ -674,8 +680,7 @@ export class ComprehensivePDFGenerator {
     this.addSubtitle('Required Secrets');
     platformDocumentation.setup.secrets.forEach((secret: any) => {
       this.addSectionTitle(secret.name);
-      this.addText(secret.description);
-      this.addText(`Purpose: ${secret.purpose}`);
+      this.addText(secret.purpose || secret.description || 'No description');
       this.currentY += 3;
     });
     
