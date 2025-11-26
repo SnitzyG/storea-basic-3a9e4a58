@@ -40,7 +40,7 @@ export function ProgressBilling({ projectId, userRole }: ProgressBillingProps) {
         .from('project_budgets')
         .select('original_budget, revised_budget')
         .eq('project_id', projectId)
-        .single();
+        .maybeSingle();
 
       // Fetch invoice data
       const { data: invoicesData } = await supabase

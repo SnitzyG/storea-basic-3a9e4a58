@@ -43,7 +43,7 @@ export function BudgetOverview({ projectId, userRole, userId }: BudgetOverviewPr
         .from('project_budgets')
         .select('*')
         .eq('project_id', projectId)
-        .single();
+        .maybeSingle();
 
       if (budgetData) {
         setBudget(budgetData);
@@ -121,7 +121,7 @@ export function BudgetOverview({ projectId, userRole, userId }: BudgetOverviewPr
           created_by: (await supabase.auth.getUser()).data.user?.id
         })
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
 

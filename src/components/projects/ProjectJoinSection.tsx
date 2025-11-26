@@ -66,7 +66,7 @@ export const ProjectJoinSection: React.FC<ProjectJoinSectionProps> = ({ classNam
         .from('companies')
         .select('name')
         .eq('id', companyId)
-        .single();
+        .maybeSingle();
       
       if (companyData && !error) {
         setCompany(companyData.name);

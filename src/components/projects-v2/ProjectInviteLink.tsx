@@ -32,7 +32,7 @@ export const ProjectInviteLink = ({ projectId, projectName }: ProjectInvitationL
         .from('projects')
         .select('invitation_token')
         .eq('id', projectId)
-        .single();
+        .maybeSingle();
 
       if (error) {
         console.error('Error fetching invitation token:', error);

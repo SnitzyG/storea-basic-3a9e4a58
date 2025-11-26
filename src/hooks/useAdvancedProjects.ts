@@ -130,7 +130,7 @@ export const useAdvancedProjects = () => {
         .from('profiles')
         .select('role')
         .eq('user_id', userData.user.id)
-        .single();
+        .maybeSingle();
 
       let query = supabase.from('projects').select('*, project_id, latitude, longitude, geocoded_at');
 
@@ -262,7 +262,7 @@ export const useAdvancedProjects = () => {
           timeline: projectCreateData.timeline || {}
         }])
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
 
@@ -429,7 +429,11 @@ export const useAdvancedProjects = () => {
         .from('projects')
         .select('*')
         .eq('id', sourceProjectId)
-        .single();
+        .maybeSingle();
+
+      if (!sourceProject) {
+        throw new Error('Source project not found');
+      }
 
       if (fetchError) throw fetchError;
 
@@ -502,7 +506,11 @@ export const useAdvancedProjects = () => {
         .from('projects')
         .select('timeline')
         .eq('id', projectId)
-        .single();
+        .maybeSingle();
+
+      if (!currentProject) {
+        throw new Error('Project not found');
+      }
 
       const currentTimeline = (currentProject?.timeline as any) || {};
       const pendingCollaborators = currentTimeline.pending_collaborators || [];

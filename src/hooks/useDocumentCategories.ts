@@ -83,7 +83,7 @@ export const useDocumentCategories = (projectId: string | null) => {
           name: name.trim()
         })
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
 

@@ -315,7 +315,7 @@ export const useEnhancedTenders = (projectId?: string) => {
           created_by: user.id,
         })
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
 
@@ -354,7 +354,7 @@ export const useEnhancedTenders = (projectId?: string) => {
           user_id: user.id,
         })
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
 
@@ -404,7 +404,7 @@ export const useEnhancedTenders = (projectId?: string) => {
           issued_by: user.id,
         })
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
 
@@ -465,7 +465,7 @@ export const useEnhancedTenders = (projectId?: string) => {
         })
         .eq('id', bidId)
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
 
@@ -496,7 +496,11 @@ export const useEnhancedTenders = (projectId?: string) => {
         .from('tender_bids')
         .select('*, tenders(*)')
         .eq('id', bidId)
-        .single();
+        .maybeSingle();
+
+      if (!bid) {
+        throw new Error('Bid not found');
+      }
 
       if (error) throw error;
 

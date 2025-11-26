@@ -52,7 +52,7 @@ export const useCalendarEvents = (projectId?: string) => {
           .select('user_id')
           .eq('project_id', projectId)
           .eq('user_id', user.id)
-          .single();
+          .maybeSingle();
 
         if (!membership) {
           setEvents([]);
@@ -121,7 +121,7 @@ export const useCalendarEvents = (projectId?: string) => {
           attendees: eventData.attendees || [],
         })
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
 
@@ -150,7 +150,7 @@ export const useCalendarEvents = (projectId?: string) => {
         .update(updates)
         .eq('id', id)
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
 

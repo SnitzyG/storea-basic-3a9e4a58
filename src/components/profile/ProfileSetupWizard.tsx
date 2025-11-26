@@ -119,7 +119,7 @@ export const ProfileSetupWizard: React.FC<ProfileSetupWizardProps> = ({ onComple
           .from('companies')
           .select('id')
           .eq('name', formData.company)
-          .single();
+          .maybeSingle();
 
         if (existingCompany) {
           companyId = existingCompany.id;
@@ -132,7 +132,7 @@ export const ProfileSetupWizard: React.FC<ProfileSetupWizardProps> = ({ onComple
               settings: {}
             })
             .select()
-            .single();
+            .maybeSingle();
 
           if (companyError) throw companyError;
           companyId = newCompany.id;

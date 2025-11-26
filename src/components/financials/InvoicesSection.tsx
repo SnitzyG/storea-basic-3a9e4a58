@@ -95,7 +95,7 @@ export function InvoicesSection({ projectId, userRole }: InvoicesSectionProps) {
           created_by: (await supabase.auth.getUser()).data.user?.id
         })
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
 

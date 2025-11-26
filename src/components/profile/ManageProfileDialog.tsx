@@ -37,10 +37,10 @@ export const ManageProfileDialog = ({ children }: ManageProfileDialogProps) => {
         .from('companies')
         .select('name')
         .eq('id', companyId)
-        .single();
+        .maybeSingle();
       
       if (error) throw error;
-      setLinkedCompanyName(data.name);
+      setLinkedCompanyName(data?.name || 'Unknown Company');
     } catch (error) {
       console.error('Error fetching company:', error);
       setLinkedCompanyName(null);
