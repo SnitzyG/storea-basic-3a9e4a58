@@ -1,7 +1,7 @@
 project_id = "inibugusrzfihldvegrb"
 
 [functions.link-pending-projects]
-verify_jwt = false
+verify_jwt = true
 
 [functions.parse-line-items]
 verify_jwt = true
