@@ -42,6 +42,7 @@ const SystemActivity = lazy(() => import("./pages/admin/SystemActivity.tsx"));
 const SystemAlerts = lazy(() => import("./pages/admin/SystemAlerts.tsx"));
 const AdminApprovals = lazy(() => import("./pages/AdminApprovals.tsx"));
 const AdminSettings = lazy(() => import("./pages/AdminSettings.tsx"));
+const Documentation = lazy(() => import("./pages/admin/Documentation.tsx"));
 
 // Public marketing pages - lazy loaded with error handling
 const About = lazy(() => import("./pages/public/About.tsx").catch(err => {
@@ -173,6 +174,7 @@ try {
                     <Route path="/admin/alerts" element={<SystemAlerts />} />
                     <Route path="/admin/approvals" element={<AdminApprovals />} />
                     <Route path="/admin/settings" element={<AdminSettings />} />
+                    <Route path="/admin/documentation" element={<Documentation />} />
                     <Route path="/admin/style-guide" element={<StyleGuide />} />
 
                     <Route path="/style-guide" element={<Navigate to="/admin/style-guide" replace />} />

@@ -1,6 +1,6 @@
 // @ts-nocheck
 import { useEffect, useState } from 'react';
-import { Home, Users, Activity, AlertCircle, FileText, Settings, UserCheck } from 'lucide-react';
+import { Home, Users, Activity, AlertCircle, FileText, Settings, UserCheck, BookOpen } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
@@ -67,6 +67,7 @@ export function AdminSidebar() {
     { name: 'System Activity', href: '/admin/activity', icon: Activity },
     { name: 'Alerts & Issues', href: '/admin/alerts', icon: AlertCircle, badge: alertCount },
     { name: 'Audit Logs', href: '/admin/logs', icon: FileText },
+    { name: 'Documentation', href: '/admin/documentation', icon: BookOpen },
     { name: 'Settings', href: '/admin/settings', icon: Settings },
   ];
 
