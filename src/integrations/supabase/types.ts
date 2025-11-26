@@ -3906,6 +3906,10 @@ export type Database = {
         Args: { project_id: string; user_id: string }
         Returns: boolean
       }
+      is_tender_issuer: {
+        Args: { _tender_id: string; _user_id: string }
+        Returns: boolean
+      }
       link_pending_users_to_projects: {
         Args: { target_user_id: string; user_email: string }
         Returns: undefined
