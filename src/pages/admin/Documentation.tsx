@@ -19,16 +19,30 @@ export default function Documentation() {
       setIsGenerating(true);
       toast({
         title: 'Generating PDF...',
-        description: 'This may take a few moments.',
+        description: 'Creating comprehensive 100+ page documentation. This may take a moment.',
       });
 
-      const generator = new PlatformDocumentationGenerator();
-      generator.download();
+      // Use setTimeout to allow toast to render before heavy processing
+      setTimeout(() => {
+        try {
+          const generator = new ComprehensivePDFGenerator();
+          generator.download('STOREA_Complete_Documentation.pdf');
 
-      toast({
-        title: 'PDF Generated',
-        description: 'Documentation PDF has been downloaded.',
-      });
+          toast({
+            title: 'PDF Generated',
+            description: 'Comprehensive documentation PDF has been downloaded.',
+          });
+        } catch (error) {
+          toast({
+            title: 'Error',
+            description: 'Failed to generate PDF documentation.',
+            variant: 'destructive',
+          });
+          console.error('PDF generation error:', error);
+        } finally {
+          setIsGenerating(false);
+        }
+      }, 100);
     } catch (error) {
       toast({
         title: 'Error',
@@ -36,7 +50,6 @@ export default function Documentation() {
         variant: 'destructive',
       });
       console.error('PDF generation error:', error);
-    } finally {
       setIsGenerating(false);
     }
   };
