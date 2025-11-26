@@ -107,11 +107,8 @@ export const AppLayout = ({
     );
   }
 
-  // Safety net: redirect to profile setup if profile is incomplete
-  if (profile && !isProfileComplete(profile)) {
-    return <Navigate to="/profile-setup" replace />;
-  }
-
+  // Profile completion is now optional - users can access app without completing profile
+  
   const userRole = profile?.role ?? 'contractor';
 
   return (
