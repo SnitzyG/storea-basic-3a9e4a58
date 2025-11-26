@@ -84,7 +84,6 @@ export default defineConfig(({ mode }) => ({
     // Minification settings (esbuild is faster and built-in)
     minify: 'esbuild',
     esbuild: {
-      drop: mode === 'production' ? ['console', 'debugger'] : [],
       legalComments: 'none', // Remove comments for smaller bundles
     },
   },
