@@ -193,7 +193,7 @@ export const TabFunctionalityTester = () => {
           status: 'planning'
         })
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
 

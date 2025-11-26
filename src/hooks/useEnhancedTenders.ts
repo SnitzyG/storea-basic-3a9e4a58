@@ -528,7 +528,7 @@ export const useEnhancedTenders = (projectId?: string) => {
         })
         .eq('id', bidId)
         .select()
-        .single();
+        .maybeSingle();
 
       if (updateError) throw updateError;
 

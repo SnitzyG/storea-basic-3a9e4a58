@@ -283,16 +283,18 @@ export const EnhancedTenderWizard = ({ open, onOpenChange, projectId, existingTe
         .from('projects')
         .select('*')
         .eq('id', projectId)
-        .single();
+        .maybeSingle();
 
-      if (projectError) throw projectError;
+      if (!project) {
+        throw new Error('Project not found');
+      }
 
       // Fetch creator profile
       const { data: creatorProfile } = await supabase
         .from('profiles')
         .select('name, company_id')
         .eq('user_id', project.created_by)
-        .single();
+        .maybeSingle();
 
       // Fetch company if available
       let companyName = 'COMPANY';
@@ -301,7 +303,7 @@ export const EnhancedTenderWizard = ({ open, onOpenChange, projectId, existingTe
           .from('companies')
           .select('name')
           .eq('id', creatorProfile.company_id)
-          .single();
+          .maybeSingle();
         
         if (company) companyName = company.name;
       }

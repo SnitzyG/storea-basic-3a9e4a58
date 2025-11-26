@@ -141,7 +141,7 @@ export const useMessages = (projectId?: string) => {
           .from('message_threads')
           .select('participants')
           .eq('id', threadId)
-          .single();
+          .maybeSingle();
         
         if (!threadData || !threadData.participants.includes(user.id)) {
           console.warn('User not authorized to view this thread');
@@ -202,7 +202,7 @@ export const useMessages = (projectId?: string) => {
           created_by: user.id
         })
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) {
         console.error('Supabase error creating thread:', error);
@@ -300,7 +300,7 @@ export const useMessages = (projectId?: string) => {
         .from('messages')
         .insert(messageData)
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
 

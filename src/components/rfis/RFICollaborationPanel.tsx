@@ -121,7 +121,7 @@ export function RFICollaborationPanel({ rfi, onUpdate }: RFICollaborationPanelPr
           comment_type: commentType
         })
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
 

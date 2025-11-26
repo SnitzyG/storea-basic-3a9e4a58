@@ -59,7 +59,7 @@ export const useTenderBidLineItems = (bidId?: string) => {
         .from('tender_bid_line_items')
         .insert([item])
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
 

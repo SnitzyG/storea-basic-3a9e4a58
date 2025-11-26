@@ -61,7 +61,7 @@ export const useTodos = (projectId?: string) => {
         .from('todos')
         .insert([newTodo])
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
 

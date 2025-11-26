@@ -102,7 +102,7 @@ export function ConfirmationWorkflowTester() {
           .from('invitations')
           .select('id, email, role, expires_at')
           .eq('token', invitationToken)
-          .single();
+          .maybeSingle();
 
         if (fetchError || !invitationData) {
           addTestResult('Link Validation', 'fail', 'Generated link cannot retrieve invitation data');
@@ -136,7 +136,7 @@ export function ConfirmationWorkflowTester() {
         .from('invitations')
         .select('expires_at')
         .eq('token', invitationToken)
-        .single();
+        .maybeSingle();
       
       if (expirationData) {
         const expiresAt = new Date(expirationData.expires_at);

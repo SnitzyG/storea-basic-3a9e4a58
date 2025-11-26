@@ -172,7 +172,7 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
               .select('project_id')
               .eq('project_id', message.project_id)
               .eq('user_id', user.id)
-              .single()
+              .maybeSingle()
               .then(({ data }) => {
                 if (data) refreshCounts();
               });

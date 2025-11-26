@@ -112,7 +112,7 @@ export const RFIResponsesViewer: React.FC<RFIResponsesViewerProps> = ({
           .from('projects')
           .select('project_reference_number')
           .eq('id', rfi.project_id)
-          .single();
+          .maybeSingle();
         
         if (project?.project_reference_number) {
           projectReference = project.project_reference_number;
@@ -128,7 +128,7 @@ export const RFIResponsesViewer: React.FC<RFIResponsesViewerProps> = ({
           .from('profiles')
           .select('company_logo_url, company_address, phone, company_name, company_website')
           .eq('user_id', rfi.raised_by)
-          .single();
+          .maybeSingle();
         
         if (profile) {
           companyDetails = {

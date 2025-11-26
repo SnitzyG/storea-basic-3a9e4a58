@@ -46,9 +46,11 @@ export const TenderBidDetailsDialog = ({ open, onOpenChange, bidId, tenderId }: 
             )
           `)
           .eq('id', bidId)
-          .single();
+          .maybeSingle();
 
-        if (bidError) throw bidError;
+        if (!bidData) {
+          throw new Error('Bid not found');
+        }
         setBid(bidData);
 
         // Fetch tender details
@@ -56,9 +58,11 @@ export const TenderBidDetailsDialog = ({ open, onOpenChange, bidId, tenderId }: 
           .from('tenders')
           .select('*')
           .eq('id', tenderId)
-          .single();
+          .maybeSingle();
 
-        if (tenderError) throw tenderError;
+        if (!tenderData) {
+          throw new Error('Tender not found');
+        }
         setTender(tenderData);
       } catch (error: any) {
         console.error('Error fetching bid details:', error);

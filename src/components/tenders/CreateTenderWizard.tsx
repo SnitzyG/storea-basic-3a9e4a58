@@ -231,9 +231,11 @@ export const CreateTenderWizard = ({
         .from('tenders')
         .select('*')
         .eq('id', currentTenderId)
-        .single();
+        .maybeSingle();
       
-      if (error) throw error;
+      if (!tender) {
+        throw new Error('Tender not found');
+      }
       
       // Generate the package
       await generateTenderPackage(tender as any);

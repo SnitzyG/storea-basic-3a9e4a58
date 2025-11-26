@@ -78,7 +78,7 @@ export const useUserRFIs = () => {
         .update(updates)
         .eq('id', id)
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
 

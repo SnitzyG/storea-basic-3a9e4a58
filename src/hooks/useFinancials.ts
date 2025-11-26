@@ -187,7 +187,7 @@ export const useFinancials = (projectId?: string) => {
         .select('user_id')
         .eq('project_id', projectId)
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
       if (!membership) {
         setLoading(false);

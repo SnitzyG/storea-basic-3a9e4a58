@@ -206,9 +206,11 @@ export default function DocumentCreatorDialog({
         .from('tender_package_documents')
         .select('*')
         .eq('id', existingDocumentId)
-        .single();
+        .maybeSingle();
 
-      if (error) throw error;
+      if (!data) {
+        throw new Error('Document not found');
+      }
 
       if (data.document_content) {
         setSections(JSON.parse(data.document_content));
@@ -282,7 +284,7 @@ export default function DocumentCreatorDialog({
             uploaded_by: profile?.user_id
           })
           .select()
-          .single();
+          .maybeSingle();
 
         if (error) throw error;
         onDocumentSaved(data);

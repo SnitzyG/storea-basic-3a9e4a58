@@ -68,7 +68,7 @@ export const useNotifications = () => {
               .select('project_id')
               .eq('project_id', notificationData.project_id)
               .eq('user_id', user.id)
-              .single();
+              .maybeSingle();
             
             if (projectAccess) {
               validNotifications.push(notification);

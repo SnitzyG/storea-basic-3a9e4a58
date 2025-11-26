@@ -180,7 +180,7 @@ export const useProjectJoinRequests = () => {
         .from('projects')
         .select('created_by, name')
         .eq('id', project.id)
-        .single();
+        .maybeSingle();
 
       if (projectData) {
         await supabase
@@ -229,9 +229,11 @@ export const useProjectJoinRequests = () => {
         .from('project_join_requests')
         .select('*')
         .eq('id', requestId)
-        .single();
+        .maybeSingle();
 
-      if (requestError) throw requestError;
+      if (!request) {
+        throw new Error('Join request not found');
+      }
 
       // Update the request status
       const { error: updateError } = await supabase
