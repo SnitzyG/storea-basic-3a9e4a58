@@ -1,5 +1,6 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { Resend } from 'npm:resend@2.0.0';
+import { z } from 'https://deno.land/x/zod@v3.22.4/mod.ts';
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
@@ -8,11 +9,14 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-interface TenderInvitationRequest {
-  tender_id: string;
-  recipient_emails: string[];
-  message?: string;
-}
+// Input validation schema
+const tenderInvitationSchema = z.object({
+  tender_id: z.string().uuid('Invalid tender ID format'),
+  recipient_emails: z.array(
+    z.string().email('Invalid email format').max(255).trim()
+  ).min(1, 'At least one recipient email required').max(100, 'Maximum 100 recipients allowed'),
+  message: z.string().max(5000).trim().optional()
+});
 
 const handler = async (req: Request): Promise<Response> => {
   if (req.method === "OPTIONS") {
@@ -25,7 +29,9 @@ const handler = async (req: Request): Promise<Response> => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    const { tender_id, recipient_emails, message }: TenderInvitationRequest = await req.json();
+    // Validate input
+    const body = await req.json();
+    const { tender_id, recipient_emails, message } = tenderInvitationSchema.parse(body);
 
     // Get tender details
     const { data: tender, error: tenderError } = await supabase
@@ -176,6 +182,19 @@ const handler = async (req: Request): Promise<Response> => {
     );
 
   } catch (error: any) {
+    if (error instanceof z.ZodError) {
+      return new Response(
+        JSON.stringify({ 
+          error: 'Invalid input data',
+          details: error.errors 
+        }),
+        { 
+          status: 400,
+          headers: { "Content-Type": "application/json", ...corsHeaders }
+        }
+      );
+    }
+    
     console.error("Error in send-tender-invitation:", error);
     return new Response(
       JSON.stringify({ error: error.message }),

@@ -1,21 +1,23 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-interface SecurityNotificationRequest {
-  type: 'login_success' | 'password_change' | 'suspicious_activity';
-  userId: string;
-  metadata?: {
-    ip?: string;
-    userAgent?: string;
-    location?: string;
-    device?: string;
-  };
-}
+// Input validation schema
+const securityNotificationSchema = z.object({
+  type: z.enum(['login_success', 'password_change', 'suspicious_activity']),
+  userId: z.string().uuid('Invalid user ID format'),
+  metadata: z.object({
+    ip: z.string().max(45).optional(), // IPv6 max length
+    userAgent: z.string().max(500).optional(),
+    location: z.string().max(200).optional(),
+    device: z.string().max(200).optional()
+  }).optional()
+});
 
 const handler = async (req: Request): Promise<Response> => {
   // Handle CORS preflight requests
@@ -29,7 +31,9 @@ const handler = async (req: Request): Promise<Response> => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    const { type, userId, metadata }: SecurityNotificationRequest = await req.json();
+    // Validate input
+    const body = await req.json();
+    const { type, userId, metadata } = securityNotificationSchema.parse(body);
 
     // Get user profile for notification
     const { data: profile, error: profileError } = await supabaseClient
@@ -116,6 +120,19 @@ const handler = async (req: Request): Promise<Response> => {
     );
 
   } catch (error) {
+    if (error instanceof z.ZodError) {
+      return new Response(
+        JSON.stringify({ 
+          error: 'Invalid input data',
+          details: error.errors 
+        }),
+        { 
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        }
+      );
+    }
+    
     console.error('Error in security-notifications function:', error);
     return new Response(
       JSON.stringify({ error: 'Internal server error' }),

@@ -1,9 +1,15 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { z } from 'https://deno.land/x/zod@v3.22.4/mod.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+// Input validation schema
+const inviteLinkSchema = z.object({
+  projectId: z.string().uuid('Invalid project ID format')
+});
 
 Deno.serve(async (req) => {
   // Handle CORS preflight requests
@@ -22,19 +28,10 @@ Deno.serve(async (req) => {
 
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    const { projectId } = await req.json();
+    // Validate input
+    const body = await req.json();
+    const { projectId } = inviteLinkSchema.parse(body);
     console.log('Regenerating invite link for project:', projectId);
-
-    if (!projectId) {
-      console.error('Missing projectId in request');
-      return new Response(
-        JSON.stringify({ success: false, error: 'Missing projectId' }), 
-        { 
-          status: 400,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        }
-      );
-    }
 
     // Generate a new token using the database function
     const { data: tokenResult, error: tokenError } = await supabase
@@ -90,6 +87,20 @@ Deno.serve(async (req) => {
       }
     );
   } catch (err) {
+    if (err instanceof z.ZodError) {
+      return new Response(
+        JSON.stringify({ 
+          success: false,
+          error: 'Invalid input data',
+          details: err.errors
+        }),
+        { 
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        }
+      );
+    }
+    
     console.error('Edge function error:', err);
     const errorMessage = err instanceof Error ? err.message : String(err);
     return new Response(
