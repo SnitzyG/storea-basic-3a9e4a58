@@ -155,21 +155,13 @@ const AdvancedProjects = () => {
   });
   const [savedFilters, setSavedFilters] = useState<Array<{ id: string; name: string; config: any }>>([]);
   
-  // Guard: Redirect to profile setup if profile is incomplete
-  useEffect(() => {
-    if (!authLoading && !isProfileComplete(profile)) {
-      navigate('/profile-setup');
-    }
-  }, [profile, authLoading, navigate]);
+  // Profile completion is now optional - no redirect needed
   
   // CRITICAL: Only architects can create projects
   const isArchitect = profile?.role === 'architect';
   const canCreateProjects = isArchitect;
 
-  // Don't render if profile is incomplete (will redirect)
-  if (!authLoading && !isProfileComplete(profile)) {
-    return null;
-  }
+  // Profile completion is now optional - render normally
 
   const statusColors = {
     active: 'bg-green-100 text-green-800',
