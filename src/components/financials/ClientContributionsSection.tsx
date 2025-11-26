@@ -87,7 +87,7 @@ export function ClientContributionsSection({ projectId, userRole }: ClientContri
           created_by: (await supabase.auth.getUser()).data.user?.id
         })
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
 

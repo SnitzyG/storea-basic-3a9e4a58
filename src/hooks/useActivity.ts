@@ -146,7 +146,12 @@ export const useActivity = () => {
         .from('activity_log')
         .select('metadata')
         .eq('id', activityId)
-        .single();
+        .maybeSingle();
+
+      if (!activity) {
+        console.error('Activity not found');
+        return;
+      }
 
       if (fetchError) throw fetchError;
 

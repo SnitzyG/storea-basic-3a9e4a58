@@ -97,7 +97,7 @@ export const DocumentActivity: React.FC<DocumentActivityProps> = ({ document }) 
             .from('profiles')
             .select('name')
             .eq('user_id', userId)
-            .single();
+            .maybeSingle();
           userNames[userId] = profile?.name || 'Unknown User';
         } catch {
           userNames[userId] = 'Unknown User';

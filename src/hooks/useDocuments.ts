@@ -90,7 +90,7 @@ export const useDocuments = (projectId?: string) => {
         .select('user_id')
         .eq('project_id', targetProjectId)
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
       if (!membership) {
         // User is not a member of this project
@@ -170,7 +170,11 @@ export const useDocuments = (projectId?: string) => {
         .from('documents')
         .select('*')
         .eq('id', documentId)
-        .single();
+        .maybeSingle();
+
+      if (!currentDoc) {
+        throw new Error('Document not found');
+      }
 
       if (docError) throw docError;
 
@@ -224,7 +228,7 @@ export const useDocuments = (projectId?: string) => {
           changes_summary: changesSummary
         })
         .select()
-        .single();
+        .maybeSingle();
 
       if (versionError) throw versionError;
 
@@ -368,7 +372,7 @@ export const useDocuments = (projectId?: string) => {
           .eq('project_id', projectId)
           .eq('document_number', metadata.documentNumber)
           .eq('is_superseded', false)
-          .single();
+          .maybeSingle();
         
         existingDocument = existing;
       }
@@ -425,7 +429,7 @@ export const useDocuments = (projectId?: string) => {
         .from('documents')
         .insert(documentData)
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) {
         console.error('Database insert error:', error);
@@ -809,7 +813,11 @@ export const useDocuments = (projectId?: string) => {
         .from('document_versions')
         .select('*')
         .eq('id', versionId)
-        .single();
+        .maybeSingle();
+
+      if (!version) {
+        throw new Error('Version not found');
+      }
 
       if (versionError) throw versionError;
 
@@ -851,7 +859,11 @@ export const useDocuments = (projectId?: string) => {
         .from('documents')
         .select('*')
         .eq('id', documentId)
-        .single();
+        .maybeSingle();
+
+      if (!currentDoc) {
+        throw new Error('Document not found');
+      }
 
       if (docError) throw docError;
 
@@ -901,7 +913,7 @@ export const useDocuments = (projectId?: string) => {
         .from('documents')
         .insert(newDocumentData)
         .select()
-        .single();
+        .maybeSingle();
 
       if (insertError) throw insertError;
 

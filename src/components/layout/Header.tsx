@@ -62,7 +62,7 @@ export const Header = ({
             .from('companies')
             .select('name')
             .eq('id', profile.company_id)
-            .single();
+            .maybeSingle();
           
           if (error) throw error;
           setCompanyName(data?.name || null);

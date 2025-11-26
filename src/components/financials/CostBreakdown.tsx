@@ -89,7 +89,7 @@ export function CostBreakdown({ projectId, userRole }: CostBreakdownProps) {
           category_type: newCategory.type
         })
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
 

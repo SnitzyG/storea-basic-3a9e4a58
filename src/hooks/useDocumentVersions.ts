@@ -27,7 +27,11 @@ export const useDocumentVersions = (): UseDocumentVersionsReturn => {
         .from('documents')
         .select('version, project_id')
         .eq('id', documentId)
-        .single();
+        .maybeSingle();
+
+      if (!currentDoc) {
+        throw new Error('Document not found');
+      }
 
       if (docError) throw docError;
 
@@ -59,7 +63,7 @@ export const useDocumentVersions = (): UseDocumentVersionsReturn => {
           changes_summary: changesSummary
         })
         .select()
-        .single();
+        .maybeSingle();
 
       if (versionError) throw versionError;
 
@@ -124,7 +128,11 @@ export const useDocumentVersions = (): UseDocumentVersionsReturn => {
         .from('documents')
         .select('*')
         .eq('id', documentId)
-        .single();
+        .maybeSingle();
+
+      if (!document) {
+        throw new Error('Document not found');
+      }
 
       if (docError) throw docError;
 
@@ -181,7 +189,11 @@ export const useDocumentVersions = (): UseDocumentVersionsReturn => {
         .from('document_versions')
         .select('*')
         .eq('id', versionId)
-        .single();
+        .maybeSingle();
+
+      if (!version) {
+        throw new Error('Version not found');
+      }
 
       if (versionError) throw versionError;
 

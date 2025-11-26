@@ -62,14 +62,14 @@ export function PendingInvitationsDialog({ projectId, open, onOpenChange }: Pend
         .from('projects')
         .select('name')
         .eq('id', projectId)
-        .single();
+        .maybeSingle();
 
       // Get inviter name
       const { data: profile } = await supabase
         .from('profiles')
         .select('name, full_name')
         .eq('user_id', sessionData.session.user.id)
-        .single();
+        .maybeSingle();
 
       const inviterName = profile?.name || profile?.full_name || sessionData.session.user.email?.split('@')[0] || 'Someone';
 

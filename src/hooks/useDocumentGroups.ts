@@ -70,7 +70,7 @@ export const useDocumentGroups = (projectId?: string) => {
         .select('user_id')
         .eq('project_id', targetProjectId)
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
       if (!membership) {
         // User is not a member of this project
@@ -217,7 +217,7 @@ export const useDocumentGroups = (projectId?: string) => {
           document_number: metadata?.documentNumber
         })
         .select()
-        .single();
+        .maybeSingle();
 
       if (groupError) throw groupError;
 
@@ -236,7 +236,7 @@ export const useDocumentGroups = (projectId?: string) => {
           is_current: true
         })
         .select()
-        .single();
+        .maybeSingle();
 
       if (revisionError) throw revisionError;
 
@@ -297,7 +297,11 @@ export const useDocumentGroups = (projectId?: string) => {
         .from('document_groups')
         .select('project_id')
         .eq('id', groupId)
-        .single();
+        .maybeSingle();
+
+      if (!group) {
+        throw new Error('Document group not found');
+      }
 
       if (groupError) throw groupError;
 

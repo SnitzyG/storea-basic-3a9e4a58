@@ -105,7 +105,11 @@ export const useDocumentHistory = (): UseDocumentHistoryReturn => {
           version
         `)
         .eq('id', documentId)
-        .single();
+        .maybeSingle();
+
+      if (!currentDoc) {
+        throw new Error('Document not found');
+      }
 
       if (docError) throw docError;
 
@@ -114,7 +118,7 @@ export const useDocumentHistory = (): UseDocumentHistoryReturn => {
         .from('profiles')
         .select('user_id, name')
         .eq('user_id', currentDoc.uploaded_by)
-        .single();
+        .maybeSingle();
 
       const historyItems: DocumentHistoryItem[] = [];
 
@@ -200,7 +204,11 @@ export const useDocumentHistory = (): UseDocumentHistoryReturn => {
           created_at
         `)
         .eq('id', documentId)
-        .single();
+        .maybeSingle();
+
+      if (!currentDoc) {
+        throw new Error('Document not found');
+      }
 
       if (docError) throw docError;
 
@@ -209,7 +217,7 @@ export const useDocumentHistory = (): UseDocumentHistoryReturn => {
         .from('profiles')
         .select('user_id, name')
         .eq('user_id', currentDoc.uploaded_by)
-        .single();
+        .maybeSingle();
 
       // Get all versions
       const { data: versions, error: versionsError } = await supabase

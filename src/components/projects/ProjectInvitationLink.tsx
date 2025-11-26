@@ -31,7 +31,7 @@ export const ProjectInvitationLink = ({ projectId, projectName }: ProjectInvitat
         .from('projects')
         .select('invitation_token')
         .eq('id', projectId)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
       

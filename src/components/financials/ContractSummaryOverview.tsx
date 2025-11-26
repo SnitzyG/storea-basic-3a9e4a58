@@ -53,7 +53,7 @@ export function ContractSummaryOverview({ projectId }: { projectId: string }) {
         .from('project_budgets')
         .select('project_management_margin_percent, provisional_sums_total, prime_cost_sums_total')
         .eq('project_id', projectId)
-        .single();
+        .maybeSingle();
 
       const marginPercent = budget?.project_management_margin_percent || 10;
       const margin = baseTotal * (marginPercent / 100);
