@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { PlatformDocumentationGenerator } from '@/utils/platformDocumentationGenerator';
+import { ComprehensivePDFGenerator } from '@/utils/comprehensivePDFGenerator';
 import { platformDocumentation } from '@/data/platformDocumentation';
 import { Download, FileText, Database, Shield, Users, Settings, Zap } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
