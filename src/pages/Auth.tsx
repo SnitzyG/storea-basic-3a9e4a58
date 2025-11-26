@@ -101,11 +101,7 @@ const Auth = () => {
         sessionStorage.removeItem('pending_invitation_token');
       }
 
-      // Check if profile is complete
-      if (!isProfileComplete(profile)) {
-        navigate('/profile-setup');
-        return;
-      }
+      // Profile completion is now optional - redirect to projects or pending invitation
 
       // If there was a pending invitation and profile is complete, go there
       const pendingUrl = sessionStorage.getItem('pendingInvitationUrl');

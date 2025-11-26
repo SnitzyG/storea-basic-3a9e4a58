@@ -31,9 +31,7 @@ const NotFound = () => {
     
     // Determine redirect target
     let redirectPath = '/';
-    if (user && profile && !isProfileComplete(profile)) {
-      redirectPath = '/profile-setup';
-    } else if (user) {
+    if (user) {
       redirectPath = '/dashboard';
     } else if (location.pathname.startsWith('/admin')) {
       redirectPath = '/admin/dashboard';
