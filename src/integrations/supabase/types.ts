@@ -3797,6 +3797,7 @@ export type Database = {
         Args: { invitation_token_param: string; user_id_param: string }
         Returns: Json
       }
+      add_storea_bot_to_all_projects: { Args: never; Returns: undefined }
       approve_user: { Args: { target_user_id: string }; Returns: Json }
       check_tender_access: {
         Args: { _tender_id: string; _user_id: string }
