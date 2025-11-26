@@ -7,6 +7,26 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Simple in-memory rate limiter
+const rateLimits = new Map<string, { count: number; resetAt: number }>();
+
+function checkRateLimit(userId: string, maxRequests = 20, windowMs = 60000): boolean {
+  const now = Date.now();
+  const limit = rateLimits.get(userId);
+  
+  if (!limit || now > limit.resetAt) {
+    rateLimits.set(userId, { count: 1, resetAt: now + windowMs });
+    return true;
+  }
+  
+  if (limit.count >= maxRequests) {
+    return false;
+  }
+  
+  limit.count++;
+  return true;
+}
+
 // Input validation schema
 const teamInviteSchema = z.object({
   projectId: z.string().uuid(),
@@ -25,46 +45,60 @@ serve(async (req) => {
   try {
     console.log('📨 Team invitation function called');
     
-    // Validate input
-    const body = await req.json();
-    const { projectId, email, role, projectName, inviterName } = teamInviteSchema.parse(body);
-    console.log('📨 Sending project invite:', { projectId, email, role, projectName, inviterName });
-
-    // Initialize Supabase admin client
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
-      {
-        auth: {
-          autoRefreshToken: false,
-          persistSession: false
-        }
-      }
-    );
-
     // Get current user from the request token for validation
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
       return new Response(
-        JSON.stringify({ error: 'Authorization header required' }),
+        JSON.stringify({ error: 'Authentication required' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
     const token = authHeader.replace('Bearer ', '');
-    const supabasePublic = createClient(
-      Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_ANON_KEY')!
-    );
+    
+    // Initialize Supabase clients
+    const supabaseUrl = Deno.env.get('SUPABASE_URL');
+    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY');
+    
+    if (!supabaseUrl || !supabaseKey || !supabaseAnonKey) {
+      console.error('Missing Supabase environment variables');
+      return new Response(
+        JSON.stringify({ error: 'Service temporarily unavailable' }),
+        { status: 503, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const supabase = createClient(supabaseUrl, supabaseKey, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false
+      }
+    });
+
+    const supabasePublic = createClient(supabaseUrl, supabaseAnonKey);
     
     const { data: { user }, error: authError } = await supabasePublic.auth.getUser(token);
     
     if (authError || !user) {
       return new Response(
-        JSON.stringify({ error: 'Invalid token' }),
+        JSON.stringify({ error: 'Invalid authentication' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+
+    // Rate limiting by user
+    if (!checkRateLimit(user.id)) {
+      return new Response(
+        JSON.stringify({ error: 'Too many requests. Please try again later.' }),
+        { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Validate input
+    const body = await req.json();
+    const { projectId, email, role, projectName, inviterName } = teamInviteSchema.parse(body);
+    console.log('📨 Sending project invite:', { projectId, email, role, projectName, inviterName });
 
     // Check for existing pending invitation to avoid duplicates
     const { data: existingInvite, error: existingInviteError } = await supabase
