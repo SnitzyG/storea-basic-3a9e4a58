@@ -10,7 +10,7 @@ verify_jwt = true
 verify_jwt = true
 
 [functions.security-notifications]
-verify_jwt = false
+verify_jwt = true
 
 [functions.send-password-reset]
 verify_jwt = false
