@@ -88,7 +88,7 @@ export const TenderDetailsView = () => {
             .from('tenders')
             .select('issued_by')
             .eq('id', tenderId)
-            .single();
+            .maybeSingle();
           
           if (tenderCheck?.issued_by !== user.id) {
             setLoading(false);
@@ -115,9 +115,11 @@ export const TenderDetailsView = () => {
             )
           `)
           .eq('id', tenderId)
-          .single();
+          .maybeSingle();
 
-        if (tenderError) throw tenderError;
+        if (!tenderData) {
+          throw new Error('Tender not found');
+        }
         setTender(tenderData);
 
         // Fetch package documents
@@ -136,9 +138,9 @@ export const TenderDetailsView = () => {
             .from('companies')
             .select('*')
             .eq('id', profile.company_id)
-            .single();
+            .maybeSingle();
           
-          setCompany(companyData);
+          setCompany(companyData || null);
         }
       } catch (error: any) {
         console.error('Error fetching tender details:', error);
@@ -167,9 +169,9 @@ export const TenderDetailsView = () => {
           .from('projects')
           .select('reference, name, id, address')
           .eq('id', tender.project_id)
-          .single();
+          .maybeSingle();
         
-        projectData = data;
+        projectData = data || undefined;
       }
 
       await generateProfessionalQuoteTemplate({

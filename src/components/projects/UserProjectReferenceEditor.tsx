@@ -33,7 +33,7 @@ export const UserProjectReferenceEditor = ({ projectId, onUpdate }: UserProjectR
         .select('user_project_reference')
         .eq('project_id', projectId)
         .eq('user_id', userData.user.id)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
 

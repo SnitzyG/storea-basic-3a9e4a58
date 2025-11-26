@@ -104,13 +104,13 @@ export function TeamInvitationStatusCard({ projectId, onInvitationUpdate }: Team
         .from('projects')
         .select('name')
         .eq('id', projectId)
-        .single();
+        .maybeSingle();
 
       const { data: inviter } = await supabase
         .from('profiles')
         .select('name, full_name')
         .eq('user_id', invitation.inviter_id)
-        .single();
+        .maybeSingle();
 
       const inviterName = inviter?.name || inviter?.full_name || 'Someone';
       const projectName = project?.name || 'Project';

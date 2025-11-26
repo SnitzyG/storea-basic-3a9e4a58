@@ -182,7 +182,7 @@ export function TenderPackageTracker({ tenderId, projectData, tenderData }: Tend
           uploaded_by: profile?.user_id
         })
         .select()
-        .single();
+        .maybeSingle();
 
       if (docError) throw docError;
 
@@ -193,7 +193,7 @@ export function TenderPackageTracker({ tenderId, projectData, tenderData }: Tend
           .from('tenders')
           .select('project_id')
           .eq('id', tenderId)
-          .single();
+          .maybeSingle();
         if (tenderRow?.project_id) projectId = tenderRow.project_id;
       }
 
@@ -415,7 +415,7 @@ export function TenderPackageTracker({ tenderId, projectData, tenderData }: Tend
           .from('tenders')
           .select('project_id')
           .eq('id', tenderId)
-          .single();
+          .maybeSingle();
         if (!tenderErr && tenderRow?.project_id) {
           projectId = tenderRow.project_id;
         }
@@ -499,7 +499,7 @@ export function TenderPackageTracker({ tenderId, projectData, tenderData }: Tend
           uploaded_by: profile?.user_id
         })
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
 

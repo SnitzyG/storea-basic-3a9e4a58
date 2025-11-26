@@ -87,7 +87,7 @@ export const useTenderAccess = (projectId?: string) => {
         .from('tenders')
         .select('id, title, tender_id')
         .eq('tender_id', tenderIdInput.toUpperCase())
-        .single();
+        .maybeSingle();
 
       if (tenderError || !tenderData) {
         toast.error('Invalid Tender ID. Please check and try again.');

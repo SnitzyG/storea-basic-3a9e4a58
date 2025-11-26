@@ -143,7 +143,7 @@ export function RFITemplateManager({ onSelectTemplate, mode = 'manage' }: RFITem
           usage_count: 0
         })
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
 
@@ -278,7 +278,7 @@ export function RFITemplateManager({ onSelectTemplate, mode = 'manage' }: RFITem
           usage_count: 0
         })
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
 

@@ -86,7 +86,7 @@ export const useRFIs = () => {
         .select('user_id')
         .eq('project_id', selectedProject.id)
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
       if (!membership) {
         // User is not a member of this project
@@ -208,7 +208,7 @@ export const useRFIs = () => {
           raised_by: user.id,
         })
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
 

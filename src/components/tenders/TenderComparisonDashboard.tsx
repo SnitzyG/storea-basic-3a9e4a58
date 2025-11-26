@@ -72,7 +72,7 @@ export const TenderComparisonDashboard: React.FC<TenderComparisonDashboardProps>
         .from('tenders')
         .select('project_id, title')
         .eq('id', tenderId)
-        .single();
+        .maybeSingle();
 
       if (error) {
         console.error('Error fetching tender data:', error);

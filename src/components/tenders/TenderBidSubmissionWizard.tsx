@@ -136,7 +136,7 @@ export const TenderBidSubmissionWizard = ({ open, onOpenChange, tender, lineItem
           status: 'submitted'
         }])
         .select()
-        .single();
+        .maybeSingle();
 
       if (bidError) throw bidError;
 

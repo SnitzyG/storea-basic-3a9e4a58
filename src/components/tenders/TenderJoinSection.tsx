@@ -109,7 +109,7 @@ export const TenderJoinSection = ({ projectId, showOnlyMyRequests = false }: Ten
                                     .from('tenders')
                                     .select('tender_id')
                                     .eq('id', request.tender_id)
-                                    .single();
+                                    .maybeSingle();
                                   
                                   if (error || !t?.tender_id) {
                                     toast.error('Failed to load tender details');
@@ -255,7 +255,7 @@ export const TenderJoinSection = ({ projectId, showOnlyMyRequests = false }: Ten
                                   .from('tenders')
                                   .select('tender_id')
                                   .eq('id', request.tender_id)
-                                  .single();
+                                  .maybeSingle();
                                 
                                 if (error || !t?.tender_id) {
                                   toast.error('Failed to load tender details');

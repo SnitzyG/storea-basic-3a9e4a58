@@ -108,7 +108,7 @@ export const EnhancedCreateTenderDialog = ({ open, onOpenChange, projectId }: En
           .from('projects')
           .select('name, address')
           .eq('id', projectId)
-          .single();
+          .maybeSingle();
 
         if (project) {
           // Generate tender reference number

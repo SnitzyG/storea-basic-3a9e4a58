@@ -49,7 +49,7 @@ export const useProjects = () => {
         .from('profiles')
         .select('role')
         .eq('user_id', userData.user.id)
-        .single();
+        .maybeSingle();
 
       let query = supabase.from('projects').select('*');
 
@@ -139,7 +139,7 @@ export const useProjects = () => {
         .from('profiles')
         .select('role')
         .eq('user_id', currentUser.id)
-        .single();
+        .maybeSingle();
         
       if (userProfile?.role !== 'architect') {
         throw new Error('Only architects can create projects');
