@@ -99,7 +99,22 @@ window.addEventListener('error', (event) => {
   console.error('Uncaught error:', event.error);
 });
 
-createRoot(document.getElementById("root")!).render(
+// Add diagnostic logging
+console.log('🚀 Starting React app initialization...');
+console.log('Document ready state:', document.readyState);
+console.log('Root element exists:', !!document.getElementById("root"));
+
+try {
+  const rootElement = document.getElementById("root");
+  if (!rootElement) {
+    throw new Error('Root element not found!');
+  }
+  
+  console.log('✅ Root element found, creating React root...');
+  const root = createRoot(rootElement);
+  
+  console.log('✅ React root created, rendering app...');
+  root.render(
   <StrictMode>
     <ErrorBoundary>
       <AuthProvider>
@@ -174,4 +189,27 @@ createRoot(document.getElementById("root")!).render(
       </AuthProvider>
     </ErrorBoundary>
   </StrictMode>
-);
+  );
+  
+  console.log('✅ React app render call completed');
+} catch (error) {
+  console.error('❌ Fatal error during React initialization:', error);
+  // Show error in the page
+  const rootElement = document.getElementById("root");
+  if (rootElement) {
+    rootElement.innerHTML = `
+      <div style="display: flex; align-items: center; justify-center; min-height: 100vh; padding: 20px; background: #fff;">
+        <div style="max-width: 600px; text-align: center;">
+          <h1 style="color: #dc2626; font-size: 24px; margin-bottom: 16px;">Failed to Initialize App</h1>
+          <p style="color: #666; margin-bottom: 16px;">There was a critical error loading the application.</p>
+          <pre style="background: #f3f4f6; padding: 16px; border-radius: 8px; text-align: left; overflow: auto; font-size: 12px;">
+${error instanceof Error ? error.message + '\n' + error.stack : String(error)}
+          </pre>
+          <button onclick="window.location.reload()" style="margin-top: 16px; padding: 8px 16px; background: #3b82f6; color: white; border: none; border-radius: 6px; cursor: pointer;">
+            Reload Page
+          </button>
+        </div>
+      </div>
+    `;
+  }
+}
