@@ -1,16 +1,21 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-interface WeatherRequestBody {
-  location?: string;
-  country?: string;
-  lat?: number;
-  lon?: number;
-}
+// Input validation schema
+const weatherRequestSchema = z.object({
+  location: z.string().max(200).trim().optional(),
+  country: z.string().max(100).optional(),
+  lat: z.number().min(-90).max(90).optional(),
+  lon: z.number().min(-180).max(180).optional()
+}).refine(
+  data => (data.lat && data.lon) || data.location,
+  { message: "Either lat/lon or location must be provided" }
+);
 
 // Australian city coordinates for better location matching
 const australianCities: { [key: string]: { lat: number; lon: number; name: string } } = {
@@ -102,7 +107,9 @@ serve(async (req: Request) => {
   }
 
   try {
-    const { location, lat, lon }: WeatherRequestBody = await req.json().catch(() => ({}));
+    // Validate input
+    const body = await req.json().catch(() => ({}));
+    const { location, lat, lon } = weatherRequestSchema.parse(body);
 
     let coordinates: { lat: number; lon: number; displayName: string };
     
@@ -186,6 +193,19 @@ serve(async (req: Request) => {
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (e) {
+    if (e instanceof z.ZodError) {
+      return new Response(
+        JSON.stringify({ 
+          error: 'Invalid input data',
+          details: e.errors 
+        }),
+        { 
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" }
+        }
+      );
+    }
+    
     console.error('get-weather error:', e);
     return new Response(
       JSON.stringify({ error: 'Failed to fetch weather', details: String(e) }),

@@ -1,11 +1,21 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.57.0';
 import { encode as b64encode } from "https://deno.land/std@0.168.0/encoding/base64.ts";
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+// Input validation schema
+const lineItemsRequestSchema = z.object({
+  fileUrl: z.string().url().optional(),
+  fileName: z.string().max(500).trim(),
+  bucket: z.string().max(100).optional(),
+  filePath: z.string().max(1000).optional(),
+  imageUrls: z.array(z.string().url()).max(20).optional()
+});
 
 const CONSTRUCTION_CATEGORIES = [
   'Preliminaries',
@@ -54,7 +64,9 @@ serve(async (req) => {
   }
 
   try {
-    const { fileUrl, fileName, bucket, filePath, imageUrls } = await req.json();
+    // Validate input
+    const body = await req.json();
+    const { fileUrl, fileName, bucket, filePath, imageUrls } = lineItemsRequestSchema.parse(body);
     
     console.log('Analyzing construction drawing:', fileName);
     
@@ -261,6 +273,20 @@ If the drawing is unclear or lacks detail, extract what you can see and note in 
       }
     );
   } catch (error) {
+    if (error instanceof z.ZodError) {
+      return new Response(
+        JSON.stringify({ 
+          error: 'Invalid input data',
+          details: error.errors,
+          lineItems: []
+        }),
+        { 
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        }
+      );
+    }
+    
     console.error('Error parsing line items:', error);
     return new Response(
       JSON.stringify({ 
