@@ -97,16 +97,6 @@ export const supabaseInfrastructure = {
       inputs: ['tender_id', 'contractor_email', 'issuer_name'],
       output: 'Email sent confirmation with tender access link',
       integrations: ['Resend API', 'Database: tender_access']
-    },
-    {
-      name: 'wipe-test-data',
-      url: 'https://inibugusrzfihldvegrb.supabase.co/functions/v1/wipe-test-data',
-      description: 'Development utility to clean test data from database',
-      trigger: 'Manually called during testing/development',
-      authentication: 'Admin required',
-      inputs: ['confirmation_token'],
-      output: 'Deletion confirmation and count of removed records',
-      integrations: ['Database: all tables with cascade deletes']
     }
   ],
 

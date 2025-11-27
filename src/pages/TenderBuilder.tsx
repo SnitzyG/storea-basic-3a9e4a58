@@ -176,7 +176,7 @@ const TenderBuilder = () => {
         if (tenderData.issued_by) {
           const {
             data: profileData
-          } = await supabase.from('profiles').select('full_name, name, company_id, company_logo_url').eq('user_id', tenderData.issued_by).single();
+          } = await supabase.from('profiles').select('full_name, name, company_id, company_logo_url').eq('user_id', tenderData.issued_by).maybeSingle();
           if (profileData) {
             enrichedTender.profiles = profileData;
             setArchitectProfile(profileData); // Store architect profile for RFI assignment
@@ -185,7 +185,7 @@ const TenderBuilder = () => {
             if (profileData.company_id) {
               const {
                 data: companyData
-              } = await supabase.from('companies').select('name, address').eq('id', profileData.company_id).single();
+              } = await supabase.from('companies').select('name, address').eq('id', profileData.company_id).maybeSingle();
               if (companyData) {
                 enrichedTender.profiles.companies = companyData;
               }
