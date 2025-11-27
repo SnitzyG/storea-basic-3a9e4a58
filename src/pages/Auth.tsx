@@ -50,7 +50,6 @@ const Auth = () => {
   const [role, setRole] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [emailConfirmed, setEmailConfirmed] = useState(false);
-  const [showWipeButton, setShowWipeButton] = useState(false);
   const [resetEmail, setResetEmail] = useState('');
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [showCaptcha, setShowCaptcha] = useState(false);
@@ -226,76 +225,6 @@ const Auth = () => {
       toast.error('An unexpected error occurred');
     }
   };
-  const handleDataWipe = async () => {
-    const password = prompt('Enter the test password to wipe all data:');
-    if (!password) return;
-    try {
-      const {
-        data,
-        error
-      } = await supabase.functions.invoke('wipe-test-data', {
-        body: {
-          password
-        }
-      });
-      if (error) {
-        toast.error('Failed to wipe data: ' + error.message);
-        return;
-      }
-      if (data.success) {
-        toast.success('✅ All user data has been cleared successfully!');
-        // Force reload the page to clear any cached state
-        window.location.reload();
-      } else {
-        toast.error(data.error || 'Failed to wipe data');
-      }
-    } catch (error) {
-      console.error('Error wiping data:', error);
-      toast.error('An unexpected error occurred');
-    }
-  };
-
-  // Show wipe button after clicking bottom-right corner multiple times
-  useEffect(() => {
-    let clickCount = 0;
-    let clickTimeout: NodeJS.Timeout;
-    const handleCornerClick = (e: MouseEvent) => {
-      const {
-        innerWidth,
-        innerHeight
-      } = window;
-      const {
-        clientX,
-        clientY
-      } = e;
-
-      // Check if click is in bottom-right corner (last 80px of both dimensions for easier targeting)
-      if (clientX > innerWidth - 80 && clientY > innerHeight - 80) {
-        clickCount++;
-        console.log(`Corner click ${clickCount}/3`); // Debug log
-
-        // Reset counter after 3 seconds of no clicks
-        clearTimeout(clickTimeout);
-        clickTimeout = setTimeout(() => {
-          clickCount = 0;
-        }, 3000);
-        if (clickCount >= 3) {
-          setShowWipeButton(true);
-          toast.info('🧪 Test data wipe button activated');
-          clickCount = 0; // Reset counter
-        }
-      } else {
-        // Reset if clicking elsewhere
-        clickCount = 0;
-        clearTimeout(clickTimeout);
-      }
-    };
-    window.addEventListener('click', handleCornerClick);
-    return () => {
-      window.removeEventListener('click', handleCornerClick);
-      clearTimeout(clickTimeout);
-    };
-  }, []);
 
   // Handle password changes for strength checking
   const handlePasswordChange = async (newPassword: string) => {
@@ -507,13 +436,6 @@ const Auth = () => {
           </CardContent>
         </Card>
       </div>
-      
-      {/* Hidden data wipe button for testing */}
-      {showWipeButton && <Button onClick={handleDataWipe} variant="ghost" size="sm" className="fixed bottom-4 right-4 opacity-50 hover:opacity-100 transition-opacity text-xs bg-destructive/10 hover:bg-destructive/20 border border-destructive/30 z-50" style={{
-      userSelect: 'none'
-    }}>
-          🧪 Wipe Test Data
-        </Button>}
     </div>;
 };
 export default Auth;

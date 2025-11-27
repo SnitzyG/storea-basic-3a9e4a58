@@ -377,7 +377,7 @@ export const useTenders = (projectId?: string) => {
         .from('tenders')
         .select('project_id, title')
         .eq('id', id)
-        .single();
+        .maybeSingle();
 
       if (tenderError || !tender) {
         throw new Error('Tender not found');
@@ -393,7 +393,7 @@ export const useTenders = (projectId?: string) => {
         .select('id')
         .eq('project_id', tender.project_id)
         .eq('user_id', awardedTo)
-        .single();
+        .maybeSingle();
 
       // If not a member, add them with role 'builder'
       if (!existingMember) {
@@ -457,7 +457,7 @@ export const useTenders = (projectId?: string) => {
         .select('id')
         .eq('tender_id', id)
         .eq('bidder_id', awardedTo)
-        .single();
+        .maybeSingle();
 
       if (bidError || !winningBid) {
         throw new Error('Could not find winning bid');

@@ -251,7 +251,12 @@ export const useProjects = () => {
         .from('projects')
         .select('timeline')
         .eq('id', projectId)
-        .single();
+        .maybeSingle();
+      
+      if (!currentProject) {
+        console.error('Project not found for adding collaborator');
+        return;
+      }
 
       const currentTimeline = (currentProject?.timeline as any) || {};
       const pendingCollaborators = currentTimeline.pending_collaborators || [];

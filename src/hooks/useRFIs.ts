@@ -317,9 +317,9 @@ export const useRFIs = () => {
           .from('rfis')
           .select('raised_by')
           .eq('id', id)
-          .single();
+          .maybeSingle();
         
-        if (rfiData?.raised_by !== user.id) {
+        if (!rfiData || rfiData.raised_by !== user.id) {
           toast({
             title: "Permission Denied",
             description: "Only the RFI creator can close this RFI",
@@ -362,7 +362,7 @@ export const useRFIs = () => {
             .from('rfis')
             .select('required_response_by, raised_by')
             .eq('id', id)
-            .single();
+            .maybeSingle();
           if (rfiRow?.required_response_by) {
             await supabase
               .from('todos')

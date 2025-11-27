@@ -100,7 +100,7 @@ const JoinProject = () => {
         .from('profiles')
         .select('name')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
       // Create notification for project creator
       const { error: notificationError } = await supabase

@@ -1,6 +1,7 @@
 import { PublicLayout } from '@/components/marketing/PublicLayout';
-import StorageAnimation from '@/components/marketing/StorageAnimation';
+import { HeroSection } from '@/components/marketing/HeroSection';
 import { usePageMeta } from '@/hooks/usePageMeta';
+
 const Home = () => {
   usePageMeta({
     title: 'STOREA – Modern Construction Project Management',
@@ -10,8 +11,8 @@ const Home = () => {
   });
 
   return (
-    <PublicLayout centered>
-      <StorageAnimation />
+    <PublicLayout>
+      <HeroSection />
     </PublicLayout>
   );
 };

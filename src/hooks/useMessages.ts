@@ -143,7 +143,7 @@ export const useMessages = (projectId?: string) => {
           .eq('id', threadId)
           .maybeSingle();
         
-        if (!threadData || !threadData.participants.includes(user.id)) {
+        if (!threadData || !threadData.participants?.includes(user.id)) {
           console.warn('User not authorized to view this thread');
           setMessages([]);
           return;
@@ -378,9 +378,9 @@ export const useMessages = (projectId?: string) => {
           .from('message_threads')
           .select('participants')
           .eq('id', threadId)
-          .single();
+          .maybeSingle();
         
-        if (!threadData || !threadData.participants.includes(user.id)) {
+        if (!threadData || !threadData.participants?.includes(user.id)) {
           return 0; // User not authorized to view this thread
         }
         
@@ -447,9 +447,9 @@ export const useMessages = (projectId?: string) => {
               .from('message_threads')
               .select('participants')
               .eq('id', newMessage.thread_id)
-              .single();
+              .maybeSingle();
             
-            if (!threadData || !threadData.participants.includes(user.id)) {
+            if (!threadData || !threadData.participants?.includes(user.id)) {
               return; // User not authorized to see this message
             }
           }
@@ -482,9 +482,9 @@ export const useMessages = (projectId?: string) => {
               .from('message_threads')
               .select('participants')
               .eq('id', updatedMessage.thread_id)
-              .single();
+              .maybeSingle();
             
-            if (!threadData || !threadData.participants.includes(user.id)) {
+            if (!threadData || !threadData.participants?.includes(user.id)) {
               return; // User not authorized to see this message
             }
           }
