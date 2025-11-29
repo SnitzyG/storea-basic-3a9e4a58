@@ -8,7 +8,7 @@ interface StoreaLogoProps {
 
 export const StorealiteLogo = ({
   variant = 'icon-only',
-  className = 'h-14 w-auto'
+  className = 'h-40 w-auto'
 }: StoreaLogoProps) => {
   const logoStyle = {
     color: 'hsl(var(--primary))',
@@ -29,8 +29,8 @@ export const StorealiteLogo = ({
             className={className} 
             loading="eager"
             decoding="async"
-            width="56"
-            height="56"
+            width="160"
+            height="160"
           />
         </picture>
       </Link>
@@ -48,8 +48,8 @@ export const StorealiteLogo = ({
             className={className} 
             loading="eager"
             decoding="async"
-            width="56"
-            height="56"
+            width="160"
+            height="160"
           />
         </picture>
         <span style={logoStyle}>STOREA</span>
