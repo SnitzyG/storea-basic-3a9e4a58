@@ -31,7 +31,7 @@ export const cleanupOrphanedData = async () => {
             .from('projects')
             .select('id')
             .eq('id', notificationData.project_id)
-            .single();
+            .maybeSingle();
           
           if (!projectExists) {
             orphanedNotificationIds.push(notification.id);

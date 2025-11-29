@@ -32,14 +32,14 @@ export default function JoinTender() {
       }
 
       try {
-        // Check if tender exists
-        const { data: tender, error: tenderError } = await supabase
-          .from('tenders')
-          .select('id, title')
-          .eq('id', tenderId)
-          .single();
+      // Check if tender exists
+      const { data: tender, error: tenderError } = await supabase
+        .from('tenders')
+        .select('id, title')
+        .eq('id', tenderId)
+        .maybeSingle();
 
-        if (tenderError || !tender) {
+      if (tenderError || !tender) {
           setStatus('error');
           setErrorMessage('Tender not found. Please check the Tender ID and try again.');
           setLoading(false);
@@ -48,15 +48,15 @@ export default function JoinTender() {
 
         setTenderTitle(tender.title);
 
-        // Check if user has approved access
-        const { data: accessData, error: accessError } = await supabase
-          .from('tender_access')
-          .select('status')
-          .eq('tender_id', tenderId)
-          .eq('user_id', user.id)
-          .single();
+      // Check if user has approved access
+      const { data: accessData, error: accessError } = await supabase
+        .from('tender_access')
+        .select('status')
+        .eq('tender_id', tenderId)
+        .eq('user_id', user.id)
+        .maybeSingle();
 
-        if (accessError || !accessData) {
+      if (accessError || !accessData) {
           setStatus('error');
           setErrorMessage('You do not have access to this tender. Please request access first.');
           setLoading(false);

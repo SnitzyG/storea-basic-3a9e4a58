@@ -168,27 +168,6 @@
 
   <body>
     <div id="root"></div>
-    
-    <!-- Diagnostic Script - REMOVE AFTER DOMAIN IS WORKING -->
-    <script>
-      console.log('🔍 STOREA Routing Diagnostic');
-      console.log('Current URL:', window.location.href);
-      console.log('Pathname:', window.location.pathname);
-      console.log('Host:', window.location.host);
-      console.log('Protocol:', window.location.protocol);
-      console.log('index.html loaded successfully ✅');
-      
-      // Check if React app loads
-      setTimeout(() => {
-        const root = document.getElementById('root');
-        if (root && root.innerHTML.trim() === '') {
-          console.error('❌ React app failed to mount - root div is empty');
-        } else if (root) {
-          console.log('✅ React app mounted successfully');
-        }
-      }, 2000);
-    </script>
-    
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

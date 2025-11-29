@@ -28,7 +28,7 @@ export const validateInvitationRequest = async (
       .from('projects')
       .select('created_by, name')
       .eq('id', projectId)
-      .single();
+      .maybeSingle();
 
     if (projectError || !project) {
       return {
@@ -66,7 +66,7 @@ export const validateInvitationRequest = async (
         .select('id, role')
         .eq('project_id', projectId)
         .eq('user_id', existingUser.id)
-        .single();
+        .maybeSingle();
 
       if (isTeamMember) {
         return {
@@ -85,7 +85,7 @@ export const validateInvitationRequest = async (
       .eq('email', email)
       .eq('status', 'pending')
       .gt('expires_at', new Date().toISOString())
-      .single();
+      .maybeSingle();
 
     if (existingInvitation) {
       const inviteAge = Math.floor((Date.now() - new Date(existingInvitation.created_at).getTime()) / (1000 * 60));

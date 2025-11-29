@@ -117,7 +117,7 @@ const TenderResponse = () => {
           )
         `)
         .eq('id', tenderId)
-        .single();
+        .maybeSingle();
 
       if (tenderError || !tenderData) {
         throw new Error('Tender not found');
@@ -128,7 +128,7 @@ const TenderResponse = () => {
         .from('profiles')
         .select('name, phone')
         .eq('user_id', tenderData.issued_by)
-        .single();
+        .maybeSingle();
 
       setTender({
         id: tenderData.id,

@@ -79,9 +79,9 @@ export const useRFIWorkflow = (rfiId?: string) => {
         .from('rfis')
         .select('status')
         .eq('id', rfiId)
-        .single();
+        .maybeSingle();
 
-      if (rfiError) throw rfiError;
+      if (rfiError || !rfi) throw rfiError || new Error('RFI not found');
 
       // Map RFI status to workflow state
       const mappedState = mapRFIStatusToWorkflowState(rfi.status);
@@ -143,9 +143,9 @@ export const useRFIWorkflow = (rfiId?: string) => {
           notes
         })
         .select()
-        .single();
+        .maybeSingle();
 
-      if (transitionError) throw transitionError;
+      if (transitionError || !transition) throw transitionError || new Error('Failed to create transition');
 
       // Update RFI status
       const rfiStatus = mapWorkflowStateToRFIStatus(newState);

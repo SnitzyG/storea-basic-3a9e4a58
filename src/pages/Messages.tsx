@@ -176,7 +176,7 @@ const Messages = () => {
           .from('profiles')
           .select('company_id, companies(name)')
           .eq('user_id', profile.user_id)
-          .single();
+          .maybeSingle();
         if (profileData?.companies) {
           setCompanyName((profileData.companies as any).name || 'COMPANY');
         }
