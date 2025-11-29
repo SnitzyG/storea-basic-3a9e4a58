@@ -94,7 +94,7 @@ const ProjectInvite = () => {
         .from('projects')
         .select('created_by')
         .eq('id', project.id)
-        .single();
+        .maybeSingle();
 
       // Add user to project team as contractor (default role for invitation links)
       const { error: memberError } = await supabase

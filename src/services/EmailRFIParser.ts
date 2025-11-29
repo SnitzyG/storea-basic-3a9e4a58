@@ -107,9 +107,9 @@ export const EmailRFIParser = {
         .from('rfis')
         .insert(rfiData)
         .select()
-        .single();
+        .maybeSingle();
 
-      if (rfiError) throw rfiError;
+      if (rfiError || !rfi) throw rfiError || new Error('Failed to create RFI');
 
       // Process attachments if any
       if (parsedEmail.attachments.length > 0) {
@@ -325,11 +325,14 @@ async function findMatchingProject(references: string[], senderEmail: string) {
 async function findOrCreateUserFromEmail(email: string, name?: string) {
   try {
     // Try to find existing user
+    const userId = await getUserIdFromEmail(email);
+    if (!userId) return null;
+    
     const { data: profile } = await supabase
       .from('profiles')
       .select('user_id')
-      .eq('user_id', await getUserIdFromEmail(email))
-      .single();
+      .eq('user_id', userId)
+      .maybeSingle();
 
     if (profile) {
       return { id: profile.user_id };

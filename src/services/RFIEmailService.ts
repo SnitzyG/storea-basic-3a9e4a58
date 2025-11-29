@@ -180,9 +180,9 @@ export const RFIEmailService = {
         .from('rfi_email_delivery')
         .select('*, rfis(*)')
         .eq('id', deliveryStatusId)
-        .single();
+        .maybeSingle();
 
-      if (fetchError) throw fetchError;
+      if (fetchError || !status) throw fetchError || new Error('Delivery status not found');
 
       if (status.attempt_count >= 3) {
         throw new Error('Maximum retry attempts reached');

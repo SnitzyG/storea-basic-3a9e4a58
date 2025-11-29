@@ -27,8 +27,8 @@ export async function ensureTenderDraft(params: {
     .from("tenders")
     .insert([base])
     .select("id")
-    .single();
+    .maybeSingle();
     
-  if (error) throw error;
+  if (error || !data) throw error || new Error('Failed to create tender draft');
   return data.id;
 }

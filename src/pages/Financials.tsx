@@ -34,17 +34,17 @@ export default function Financials() {
 
     const fetchUserRole = async () => {
       try {
-        // Fetch current user's role
-        const { data: projectUser } = await supabase
-          .from('project_users')
-          .select('role')
-          .eq('project_id', selectedProject.id)
-          .eq('user_id', session.user.id)
-          .single();
+      // Fetch current user's role
+      const { data: projectUser } = await supabase
+        .from('project_users')
+        .select('role')
+        .eq('project_id', selectedProject.id)
+        .eq('user_id', session.user.id)
+        .maybeSingle();
 
-        if (projectUser) {
-          setUserRole(projectUser.role);
-        }
+      if (projectUser) {
+        setUserRole(projectUser.role);
+      }
       } catch (error) {
         console.error('Error fetching user role:', error);
       } finally {

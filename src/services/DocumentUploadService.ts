@@ -142,9 +142,9 @@ export class DocumentUploadService {
           status: 'For Information'
         })
         .select()
-        .single();
+        .maybeSingle();
 
-      if (documentError) throw documentError;
+      if (documentError || !documentData) throw documentError || new Error('Failed to create document record');
 
       // Generate thumbnail for images
       let thumbnail;
@@ -258,9 +258,12 @@ export class DocumentUploadService {
         .from('documents')
         .select('*')
         .eq('id', documentId)
-        .single();
+        .maybeSingle();
 
-      if (error) throw error;
+      if (error || !document) {
+        console.error('Document not found:', error);
+        return null;
+      }
 
       // Get signed URL for private files
       const { data: urlData } = supabase.storage
@@ -291,9 +294,12 @@ export class DocumentUploadService {
         .from('documents')
         .select('file_path')
         .eq('id', documentId)
-        .single();
+        .maybeSingle();
 
-      if (fetchError) throw fetchError;
+      if (fetchError || !document) {
+        console.error('Document not found:', fetchError);
+        return false;
+      }
 
       // Delete from storage
       const { error: storageError } = await supabase.storage

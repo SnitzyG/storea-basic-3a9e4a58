@@ -193,7 +193,7 @@ export const useTenderAccess = (projectId?: string) => {
         .select('status')
         .eq('tender_id', tenderId)
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
       if (error || !data) {
         return { hasAccess: false, status: 'no_request' };
