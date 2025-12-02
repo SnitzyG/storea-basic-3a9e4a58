@@ -88,10 +88,7 @@ export const useTenders = (projectId?: string) => {
   const { toast } = useToast();
 
   const fetchTenders = async () => {
-    console.log('[useTenders] fetchTenders called with projectId:', projectId);
-    
     if (!projectId) {
-      console.log('[useTenders] No projectId, returning early');
       return;
     }
     
@@ -122,18 +119,14 @@ export const useTenders = (projectId?: string) => {
 
       // Also fetch tenders the user has approved access to (for builders)
       if (user) {
-        console.log('[useTenders] Fetching approved tenders for user:', user.id);
         const { data: approvedAccess } = await supabase
           .from('tender_access')
           .select('tender_id')
           .eq('user_id', user.id)
           .eq('status', 'approved');
 
-        console.log('[useTenders] Approved access records:', approvedAccess);
-
         if (approvedAccess && approvedAccess.length > 0) {
           const approvedTenderIds = approvedAccess.map(a => a.tender_id);
-          console.log('[useTenders] Fetching tenders with IDs:', approvedTenderIds);
           
           const { data: approvedTenders, error: approvedError } = await supabase
             .from('tenders')
@@ -153,13 +146,10 @@ export const useTenders = (projectId?: string) => {
             .in('id', approvedTenderIds)
             .order('created_at', { ascending: false });
 
-          console.log('[useTenders] Approved tenders fetched:', approvedTenders, 'error:', approvedError);
-
           if (approvedTenders) {
             // Merge approved tenders with project tenders (avoid duplicates)
             const existingIds = new Set(tendersData.map(t => t.id));
             const newTenders = approvedTenders.filter(t => !existingIds.has(t.id));
-            console.log('[useTenders] Adding', newTenders.length, 'approved tenders to the list');
             tendersData = [...tendersData, ...newTenders];
           }
         }
@@ -204,7 +194,6 @@ export const useTenders = (projectId?: string) => {
         my_bid: userBidMap.get(tender.id),
       }));
 
-      console.log('[useTenders] Final enriched tenders count:', enrichedTenders.length);
       setTenders(enrichedTenders as Tender[]);
     } catch (error) {
       console.error('Error fetching tenders:', error);
@@ -267,9 +256,9 @@ export const useTenders = (projectId?: string) => {
         .from('tenders')
         .insert(payload as any)
         .select()
-        .single();
+        .maybeSingle();
 
-      if (error) throw error;
+      if (error || !data) throw error || new Error('Failed to create tender');
 
       // Log activity for tender creation
       await supabase
@@ -313,9 +302,9 @@ export const useTenders = (projectId?: string) => {
         .update(updates)
         .eq('id', id)
         .select()
-        .single();
+        .maybeSingle();
 
-      if (error) throw error;
+      if (error || !data) throw error || new Error('Failed to update tender');
 
       toast({
         title: "Success",
@@ -568,16 +557,16 @@ export const useTenders = (projectId?: string) => {
           bidder_id: user.id,
         })
         .select()
-        .single();
+        .maybeSingle();
 
-      if (error) throw error;
+      if (error || !data) throw error || new Error('Failed to submit bid');
 
       // Get tender project_id for activity logging
       const { data: tender } = await supabase
         .from('tenders')
         .select('project_id, title')
         .eq('id', bidData.tender_id)
-        .single();
+        .maybeSingle();
 
       if (tender) {
         // Log activity for bid submission
@@ -655,7 +644,6 @@ export const useTenders = (projectId?: string) => {
   // Listen to global real-time events for instant updates
   useEffect(() => {
     const handleTenderChange = () => {
-      console.log('[useTenders] Tender change detected, refetching...');
       fetchTenders();
     };
 

@@ -100,21 +100,14 @@ window.addEventListener('error', (event) => {
   console.error('Uncaught error:', event.error);
 });
 
-// Add diagnostic logging
-console.log('🚀 Starting React app initialization...');
-console.log('Document ready state:', document.readyState);
-console.log('Root element exists:', !!document.getElementById("root"));
-
 try {
   const rootElement = document.getElementById("root");
   if (!rootElement) {
     throw new Error('Root element not found!');
   }
   
-  console.log('✅ Root element found, creating React root...');
   const root = createRoot(rootElement);
   
-  console.log('✅ React root created, rendering app...');
   root.render(
   <StrictMode>
     <ErrorBoundary>
@@ -126,7 +119,7 @@ try {
               <TooltipProvider>
                 <Toaster />
                 <Sonner />
-                <BrowserRouter>
+                <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
                   <Suspense fallback={<div className="flex items-center justify-center min-h-screen"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>}>
                     <Routes>
                       {/* Public marketing pages */}
@@ -192,8 +185,6 @@ try {
     </ErrorBoundary>
   </StrictMode>
   );
-  
-  console.log('✅ React app render call completed');
 } catch (error) {
   console.error('❌ Fatal error during React initialization:', error);
   // Show error in the page
