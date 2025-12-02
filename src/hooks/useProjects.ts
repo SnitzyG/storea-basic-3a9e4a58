@@ -175,9 +175,9 @@ export const useProjects = () => {
           company_id: null // Allow projects without company association
         }])
         .select()
-        .single();
+        .maybeSingle();
 
-      if (error) throw error;
+      if (error || !data) throw error || new Error('Failed to create project');
 
       // Add the creator as a project user with their actual role
       await supabase
@@ -428,7 +428,6 @@ export const useProjects = () => {
 
     // Listen for project updates from invitation flow
     const handleProjectsUpdate = () => {
-      console.log('Projects updated event received, refetching...');
       fetchProjects();
     };
 
@@ -458,7 +457,6 @@ export const useProjects = () => {
             table: 'projects',
           },
           (payload) => {
-            console.log('Project change detected:', payload);
             fetchProjects();
           }
         )
@@ -478,7 +476,6 @@ export const useProjects = () => {
             filter: `user_id=eq.${user.id}`,
           },
           (payload) => {
-            console.log('Project membership change detected:', payload);
             fetchProjects();
           }
         )
@@ -497,7 +494,6 @@ export const useProjects = () => {
             table: 'invitations',
           },
           (payload) => {
-            console.log('Invitation change detected:', payload);
             fetchProjects();
           }
         )

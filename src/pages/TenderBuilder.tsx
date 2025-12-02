@@ -658,7 +658,8 @@ const TenderBuilder = () => {
         } as any).eq('id', existingBid.id);
       } else {
         const {
-          data: newBid
+          data: newBid,
+          error: newBidError
         } = await supabase.from('tender_bids').insert({
           tender_id: tender.id,
           bidder_id: user.id,
@@ -666,11 +667,12 @@ const TenderBuilder = () => {
           builder_margin: includeMargin ? builderMargin : 0,
           attachments: bidDocuments as any,
           status: 'draft'
-        } as any).select().single();
-        if (newBid) {
-          setExistingBid(newBid);
-          bidId = newBid.id;
+        } as any).select().maybeSingle();
+        if (newBidError || !newBid) {
+          throw new Error('Failed to create bid');
         }
+        setExistingBid(newBid);
+        bidId = newBid.id;
       }
 
       // Save line item pricing
@@ -802,8 +804,8 @@ const TenderBuilder = () => {
           attachments: bidDocuments as any,
           status: 'submitted',
           submitted_at: new Date().toISOString()
-        } as any).select().single();
-        if (createError) throw createError;
+        } as any).select().maybeSingle();
+        if (createError || !newBid) throw createError || new Error('Failed to create bid');
         bidId = newBid.id;
         setExistingBid(newBid);
       }

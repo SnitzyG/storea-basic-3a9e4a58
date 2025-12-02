@@ -72,7 +72,6 @@ export const useProjectTeam = (projectId: string): UseProjectTeamReturn => {
     // Debounce rapid calls unless forced
     const now = Date.now();
     if (!force && now - lastFetchRef.current < 1000) {
-      console.log('Debouncing team fetch, too soon since last call');
       return;
     }
     lastFetchRef.current = now;
@@ -208,7 +207,6 @@ export const useProjectTeam = (projectId: string): UseProjectTeamReturn => {
 
       // Only update state if component is still mounted
       if (isMountedRef.current) {
-        console.log(`Successfully loaded ${transformedMembers.length} team members for project ${currentProjectId}`);
         setTeamMembers(transformedMembers);
       }
 
@@ -325,9 +323,9 @@ export const useProjectTeam = (projectId: string): UseProjectTeamReturn => {
           expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
         }])
         .select()
-        .single();
+        .maybeSingle();
 
-      if (inviteError) {
+      if (inviteError || !invitation) {
         console.error('Error creating invitation:', inviteError);
         toast({
           title: "Failed to create invitation",
@@ -452,7 +450,6 @@ export const useProjectTeam = (projectId: string): UseProjectTeamReturn => {
       
       fetchTimeoutRef.current = setTimeout(() => {
         if (isMountedRef.current) {
-          console.log('Debounced team refetch triggered for project:', currentProjectId);
           fetchTeamMembers();
         }
       }, 1500); // Increased debounce time to reduce flickering
@@ -469,7 +466,6 @@ export const useProjectTeam = (projectId: string): UseProjectTeamReturn => {
           filter: `project_id=eq.${currentProjectId}`
         },
         (payload) => {
-          console.log('Project users change detected:', payload.eventType);
           debouncedRefetch();
         }
       )
@@ -482,7 +478,6 @@ export const useProjectTeam = (projectId: string): UseProjectTeamReturn => {
           filter: `project_id=eq.${currentProjectId}`
         },
         (payload) => {
-          console.log('Invitations change detected:', payload.eventType);
           debouncedRefetch();
         }
       )
@@ -497,7 +492,6 @@ export const useProjectTeam = (projectId: string): UseProjectTeamReturn => {
           // Only refetch if a team member's profile was updated
           const updatedUserId = payload.new?.user_id;
           if (updatedUserId && teamMembers.some(m => m.user_id === updatedUserId)) {
-            console.log('Team member profile updated:', updatedUserId);
             debouncedRefetch();
           }
         }

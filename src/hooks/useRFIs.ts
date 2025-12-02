@@ -144,17 +144,6 @@ export const useRFIs = () => {
         };
       });
 
-      // Debug: Log first RFI to see data structure
-      if (enrichedRFIs.length > 0) {
-        console.log('Sample enriched RFI:', {
-          id: enrichedRFIs[0].id,
-          rfi_number: enrichedRFIs[0].rfi_number,
-          rfi_type: enrichedRFIs[0].rfi_type,
-          raised_by_company_name: enrichedRFIs[0].raised_by_company_name,
-          raised_by_profile: enrichedRFIs[0].raised_by_profile
-        });
-      }
-
       setRFIs(enrichedRFIs as RFI[]);
     } catch (error) {
       console.error('Error fetching RFIs:', error);
@@ -334,9 +323,9 @@ export const useRFIs = () => {
         .update(updates)
         .eq('id', id)
         .select()
-        .single();
+        .maybeSingle();
 
-      if (error) throw error;
+      if (error || !data) throw error || new Error('Failed to update RFI');
 
       // Log activity
       const actions = [];
@@ -450,7 +439,6 @@ export const useRFIs = () => {
           filter: `project_id=eq.${selectedProject.id}`,
         },
         (payload) => {
-          console.log('RFI change detected:', payload);
           // Only refetch if the RFI involves the current user
           const rfi = payload.new || payload.old;
           if (rfi && typeof rfi === 'object' && 'raised_by' in rfi && 'assigned_to' in rfi) {
@@ -475,7 +463,6 @@ export const useRFIs = () => {
           table: 'rfi_activities',
         },
         (payload: any) => {
-          console.log('RFI activity change detected:', payload);
           // Check if this activity belongs to an RFI in our project
           if (rfis.some(rfi => rfi.id === payload.new?.rfi_id || rfi.id === payload.old?.rfi_id)) {
             fetchRFIs();
@@ -497,7 +484,6 @@ export const useRFIs = () => {
           table: 'rfi_collaboration_comments',
         },
         (payload: any) => {
-          console.log('RFI comment change detected:', payload);
           // Check if this comment belongs to an RFI in our project
           if (rfis.some(rfi => rfi.id === payload.new?.rfi_id || rfi.id === payload.old?.rfi_id)) {
             fetchRFIs();

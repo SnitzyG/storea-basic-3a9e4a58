@@ -79,14 +79,18 @@ export const useTodos = (projectId?: string) => {
         .update(updates)
         .eq('id', id)
         .select()
-        .single();
+        .maybeSingle();
 
-      if (error) throw error;
+      if (error || !data) {
+        console.error('Error updating todo:', error);
+        return null;
+      }
 
       setTodos(prev => prev.map(todo => todo.id === id ? data as Todo : todo));
       return data;
     } catch (error) {
       console.error('Error updating todo:', error);
+      return null;
     }
   };
 
@@ -156,7 +160,6 @@ export const useTodos = (projectId?: string) => {
           filter: `user_id=eq.${user.id}`,
         },
         (payload) => {
-          console.log('Todo change detected:', payload);
           fetchTodos();
         }
       )
