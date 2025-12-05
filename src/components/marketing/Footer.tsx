@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { Facebook, Instagram, Youtube } from 'lucide-react';
+import { AppVersion } from '@/components/ui/app-version';
 
 export const Footer = () => {
   const handleSocialClick = (e: React.MouseEvent<HTMLAnchorElement>, url: string) => {
@@ -62,6 +63,7 @@ export const Footer = () => {
             <Link to="/privacy" className="hover:text-foreground transition-colors">Privacy</Link>
             <Link to="/terms" className="hover:text-foreground transition-colors">Terms</Link>
             <p>&copy; {new Date().getFullYear()} STOREA</p>
+            <AppVersion />
           </div>
         </div>
       </div>
