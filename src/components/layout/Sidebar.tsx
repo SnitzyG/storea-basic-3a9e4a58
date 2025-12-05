@@ -89,7 +89,7 @@ export const Sidebar = ({
   return <div className="w-64 bg-sidebar-background border-r border-sidebar-border flex flex-col">
       <div className="p-6 border-b border-sidebar-border">
         <div className="flex items-center justify-center space-x-2">
-          <StorealiteLogo className="h-8" />
+          <StorealiteLogo size="md" />
           
           {/* Company logo - shown for non-homeowners */}
           {showCompanyLogo && <div className="flex flex-col items-end flex-shrink-0 min-w-0">
