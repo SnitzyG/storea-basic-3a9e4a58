@@ -11,7 +11,7 @@ export const PendingApprovalMessage = () => {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted p-4">
       <Card className="w-full max-w-md p-8 text-center space-y-6 shadow-glow">
         <div className="flex justify-center">
-          <StorealiteLogo className="h-12" />
+          <StorealiteLogo size="lg" />
         </div>
         
         <div className="space-y-4">

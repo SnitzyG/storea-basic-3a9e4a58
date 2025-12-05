@@ -438,7 +438,7 @@ export const DrawingsUploadManager = ({ projectId, tenderId, onLineItemsImported
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/95 backdrop-blur-sm">
           <div className="flex flex-col items-center gap-8 max-w-md w-full px-4">
             <div className="animate-pulse">
-              <StorealiteLogo className="h-20" />
+              <StorealiteLogo size="xl" />
             </div>
             <div className="w-full space-y-3">
               <Progress value={uploadProgress} className="h-3" />

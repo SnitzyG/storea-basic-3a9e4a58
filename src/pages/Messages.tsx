@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { StorealiteLogo } from '@/components/ui/storealite-logo';
+
 import { Link } from 'react-router-dom';
 import { Plus, Search, MessageSquare, Users2, Circle } from 'lucide-react';
 import { Button } from '@/components/ui/button';

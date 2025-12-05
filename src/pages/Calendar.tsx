@@ -1,7 +1,7 @@
 import React from 'react';
 import { CalendarWidget } from '@/components/dashboard/CalendarWidget';
 import { useProjectSelection } from '@/context/ProjectSelectionContext';
-import { StorealiteLogo } from '@/components/ui/storealite-logo';
+
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';

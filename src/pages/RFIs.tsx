@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { StorealiteLogo } from '@/components/ui/storealite-logo';
+
 import { Link } from 'react-router-dom';
 import { useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';

@@ -284,7 +284,7 @@ const Auth = () => {
         <Card className="w-full">
           <CardHeader className="text-center space-y-6 pt-10 pb-6">
             <div className="flex justify-center">
-              <StorealiteLogo variant="icon-only" className="h-16 w-auto" />
+              <StorealiteLogo size="xl" />
             </div>
             
             <div className="space-y-2">

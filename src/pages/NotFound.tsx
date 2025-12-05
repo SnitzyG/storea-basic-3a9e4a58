@@ -70,7 +70,7 @@ const NotFound = () => {
       <Card className="max-w-2xl w-full">
         <CardHeader className="text-center space-y-4">
           <div className="flex justify-center">
-            <StorealiteLogo className="h-12" />
+            <StorealiteLogo size="lg" />
           </div>
           
           <div>
