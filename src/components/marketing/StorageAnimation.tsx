@@ -74,19 +74,16 @@ export default function StorageAnimation() {
   
   return (
     <div className="flex items-center justify-center w-full h-[calc(100vh-8rem)] px-4">
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap');
-      `}</style>
       <div className="flex flex-col items-center gap-6">
-        <div className="text-gray-800 text-8xl md:text-[10rem] lg:text-[14rem] font-bold whitespace-nowrap leading-none" style={{ fontFamily: 'Roboto' }}>
+        <div className="text-foreground text-8xl md:text-[10rem] lg:text-[14rem] font-bold whitespace-nowrap leading-none font-roboto">
           STORE A
         </div>
         
-        <div className="text-8xl md:text-[10rem] lg:text-[14rem] font-bold whitespace-nowrap leading-none" style={{ 
-          fontFamily: 'Roboto',
-          color: isSpinning ? '#d1d5db' : '#000000',
-          transition: 'color 0.3s'
-        }}>
+        <div 
+          className={`text-8xl md:text-[10rem] lg:text-[14rem] font-bold whitespace-nowrap leading-none font-roboto transition-colors duration-300 ${
+            isSpinning ? 'text-muted-foreground' : 'text-foreground'
+          }`}
+        >
           {currentWord}
         </div>
       </div>

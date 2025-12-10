@@ -3798,8 +3798,8 @@ export type Database = {
         Returns: Json
       }
       add_storea_bot_to_all_projects:
-        | { Args: { bot_email?: string }; Returns: undefined }
         | { Args: never; Returns: undefined }
+        | { Args: { bot_email?: string }; Returns: undefined }
       approve_user: { Args: { target_user_id: string }; Returns: Json }
       check_tender_access: {
         Args: { _tender_id: string; _user_id: string }
@@ -3849,22 +3849,22 @@ export type Database = {
       generate_rfi_number:
         | { Args: { project_id_param: string }; Returns: string }
         | {
+            Args: { company_name_param: string; project_id_param: string }
+            Returns: string
+          }
+        | {
+            Args: {
+              project_id_param: string
+              rfi_type_param: Database["public"]["Enums"]["rfi_type"]
+            }
+            Returns: string
+          }
+        | {
             Args: {
               project_id_param: string
               raised_by_param: string
               rfi_type_param: Database["public"]["Enums"]["rfi_type"]
             }
-            Returns: string
-          }
-        | {
-            Args: {
-              project_id_param: string
-              rfi_type_param: Database["public"]["Enums"]["rfi_type"]
-            }
-            Returns: string
-          }
-        | {
-            Args: { company_name_param: string; project_id_param: string }
             Returns: string
           }
       generate_unique_project_id: { Args: never; Returns: string }
