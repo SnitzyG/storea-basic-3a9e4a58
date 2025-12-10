@@ -100,13 +100,18 @@ window.addEventListener('error', (event) => {
   console.error('Uncaught error:', event.error);
 });
 
+console.log('🚀 STOREA: Starting app initialization...');
+
 try {
   const rootElement = document.getElementById("root");
+  console.log('🚀 STOREA: Root element found:', !!rootElement);
+  
   if (!rootElement) {
     throw new Error('Root element not found!');
   }
   
   const root = createRoot(rootElement);
+  console.log('🚀 STOREA: React root created, rendering app...');
   
   root.render(
   <StrictMode>
