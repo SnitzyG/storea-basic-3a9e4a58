@@ -36,40 +36,40 @@ export default defineConfig(({ mode }) => ({
     rollupOptions: {
       output: {
         manualChunks: (id) => {
-          // Separate vendor libraries into their own chunks
           if (id.includes('node_modules')) {
-            // Critical chunks (always needed)
-            if (id.includes('react') || id.includes('react-dom') || id.includes('scheduler')) {
+            // Core React + React ecosystem that MUST be together
+            if (id.includes('react') || 
+                id.includes('react-dom') || 
+                id.includes('scheduler') ||
+                id.includes('@tanstack/react-query') ||
+                id.includes('react-router')) {
               return 'vendor-react';
             }
+            // UI libraries with React dependencies
+            if (id.includes('@radix-ui') || 
+                id.includes('sonner') ||
+                id.includes('cmdk') ||
+                id.includes('vaul') ||
+                id.includes('react-hook-form') ||
+                id.includes('react-day-picker') ||
+                id.includes('react-dropzone') ||
+                id.includes('embla-carousel-react') ||
+                id.includes('input-otp') ||
+                id.includes('react-resizable-panels')) {
+              return 'vendor-ui';
+            }
+            // Supabase
             if (id.includes('@supabase')) {
               return 'vendor-supabase';
             }
-            if (id.includes('@radix-ui')) {
-              return 'vendor-radix';
-            }
+            // Heavy/lazy-loaded libraries
+            if (id.includes('pdfjs-dist')) return 'vendor-pdf';
+            if (id.includes('xlsx') || id.includes('jszip')) return 'vendor-excel';
+            if (id.includes('leaflet')) return 'vendor-maps';
+            if (id.includes('recharts')) return 'vendor-charts';
+            if (id.includes('html2canvas') || id.includes('jspdf')) return 'vendor-imaging';
             
-            // Lazy-loaded chunks (only when needed)
-            if (id.includes('pdfjs-dist')) {
-              return 'vendor-pdf';
-            }
-            if (id.includes('xlsx') || id.includes('jszip')) {
-              return 'vendor-excel';
-            }
-            if (id.includes('leaflet')) {
-              return 'vendor-maps';
-            }
-            if (id.includes('recharts')) {
-              return 'vendor-charts';
-            }
-            if (id.includes('html2canvas') || id.includes('jspdf')) {
-              return 'vendor-imaging';
-            }
-            if (id.includes('react-router')) {
-              return 'vendor-router';
-            }
-            
-            // All other node_modules
+            // All other (non-React) node_modules
             return 'vendor-other';
           }
         },
