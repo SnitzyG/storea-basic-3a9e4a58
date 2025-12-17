@@ -37,39 +37,58 @@ export default defineConfig(({ mode }) => ({
       output: {
         manualChunks: (id) => {
           if (id.includes('node_modules')) {
-            // Core React + React ecosystem that MUST be together
+            // Core React + ALL React ecosystem packages that MUST load together
             if (id.includes('react') || 
                 id.includes('react-dom') || 
                 id.includes('scheduler') ||
                 id.includes('@tanstack/react-query') ||
-                id.includes('react-router')) {
+                id.includes('react-router') ||
+                id.includes('next-themes')) {
               return 'vendor-react';
             }
-            // UI libraries with React dependencies
+            
+            // UI libraries with tight React coupling
             if (id.includes('@radix-ui') || 
                 id.includes('sonner') ||
                 id.includes('cmdk') ||
                 id.includes('vaul') ||
                 id.includes('react-hook-form') ||
+                id.includes('@hookform/resolvers') ||
                 id.includes('react-day-picker') ||
                 id.includes('react-dropzone') ||
+                id.includes('react-slick') ||
                 id.includes('embla-carousel-react') ||
                 id.includes('input-otp') ||
-                id.includes('react-resizable-panels')) {
+                id.includes('react-resizable-panels') ||
+                id.includes('class-variance-authority') ||
+                id.includes('clsx') ||
+                id.includes('tailwind-merge')) {
               return 'vendor-ui';
             }
+            
             // Supabase
             if (id.includes('@supabase')) {
               return 'vendor-supabase';
             }
+            
             // Heavy/lazy-loaded libraries
             if (id.includes('pdfjs-dist')) return 'vendor-pdf';
             if (id.includes('xlsx') || id.includes('jszip')) return 'vendor-excel';
             if (id.includes('leaflet')) return 'vendor-maps';
             if (id.includes('recharts')) return 'vendor-charts';
             if (id.includes('html2canvas') || id.includes('jspdf')) return 'vendor-imaging';
+            if (id.includes('slick-carousel')) return 'vendor-carousel';
             
-            // All other (non-React) node_modules
+            // Date utilities
+            if (id.includes('date-fns')) return 'vendor-dates';
+            
+            // Form validation
+            if (id.includes('zod')) return 'vendor-validation';
+            
+            // Crypto
+            if (id.includes('crypto-js')) return 'vendor-crypto';
+            
+            // All other non-React node_modules
             return 'vendor-other';
           }
         },
