@@ -204,33 +204,6 @@ const Features = () => {
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <Breadcrumbs />
           
-          <div className="max-w-4xl mx-auto text-center mb-12">
-            <h1 className="text-4xl md:text-5xl font-bold mb-4 text-gray-800">
-              Construction Project Management Features
-            </h1>
-            <h2 className="text-2xl md:text-3xl font-semibold mb-4 text-gray-700">
-              Complete Construction Management Software for Australian Builders
-            </h2>
-            <p className="text-base text-muted-foreground mb-4 max-w-3xl mx-auto leading-relaxed text-left">
-              STOREA is the leading construction project management platform designed specifically 
-              for Australian builders, contractors, and construction teams. Our comprehensive suite 
-              of features streamlines every aspect of construction management, from document control 
-              and RFI tracking to tender management and team collaboration.
-            </p>
-            <p className="text-base text-muted-foreground mb-4 max-w-3xl mx-auto leading-relaxed text-left">
-              With STOREA, you can manage construction projects more efficiently, reduce administrative 
-              overhead, and ensure all stakeholders stay aligned. Our platform includes powerful 
-              document management with version control, real-time RFI tracking, comprehensive tender 
-              and bid management, integrated messaging for team communication, financial oversight 
-              with progress claims and invoicing, and a centralized calendar for scheduling.
-            </p>
-            <p className="text-base text-muted-foreground mb-4 max-w-3xl mx-auto leading-relaxed text-left">
-              Whether you're managing a single residential project or multiple commercial developments, 
-              STOREA provides the tools you need to deliver on time and on budget. Our intuitive 
-              interface eliminates the learning curve, allowing your team to get up and running quickly. 
-              <Link to="/pricing" className="text-primary hover:underline font-medium">View our affordable pricing plans</Link> or <Link to="/contact" className="text-primary hover:underline font-medium">contact our team</Link> to get started today.
-            </p>
-          </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 max-w-7xl mx-auto mb-16">
             {features.map((feature, index) => (
