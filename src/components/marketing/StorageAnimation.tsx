@@ -73,14 +73,14 @@ export default function StorageAnimation() {
   };
   
   return (
-    <div className="flex items-center justify-center w-full h-[calc(100vh-8rem)] px-4">
-      <div className="flex flex-col items-center gap-6">
-        <div className="text-foreground text-8xl md:text-[10rem] lg:text-[14rem] font-bold whitespace-nowrap leading-none font-roboto">
+    <div className="flex items-center justify-center w-full h-full px-4">
+      <div className="flex flex-col items-center gap-4 md:gap-6">
+        <div className="text-foreground text-6xl sm:text-7xl md:text-[10rem] lg:text-[14rem] xl:text-[16rem] font-bold whitespace-nowrap leading-none font-roboto">
           STORE A
         </div>
         
         <div 
-          className={`text-8xl md:text-[10rem] lg:text-[14rem] font-bold whitespace-nowrap leading-none font-roboto transition-colors duration-300 ${
+          className={`text-6xl sm:text-7xl md:text-[10rem] lg:text-[14rem] xl:text-[16rem] font-bold whitespace-nowrap leading-none font-roboto transition-colors duration-300 ${
             isSpinning ? 'text-muted-foreground' : 'text-foreground'
           }`}
         >
