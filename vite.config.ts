@@ -3,7 +3,6 @@ import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { componentTagger } from "lovable-tagger";
 
-// https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
@@ -11,8 +10,7 @@ export default defineConfig(({ mode }) => ({
   },
   plugins: [
     react(),
-    mode === 'development' &&
-    componentTagger(),
+    mode === 'development' && componentTagger(),
   ].filter(Boolean),
   resolve: {
     alias: {
@@ -20,50 +18,29 @@ export default defineConfig(({ mode }) => ({
     },
   },
   build: {
-    // Increase chunk size warning limit
-    chunkSizeWarningLimit: 1000, // 1000kb instead of default 500kb
-    
-    // Enable source maps for production debugging (optional)
+    chunkSizeWarningLimit: 1000,
     sourcemap: false,
-    
-    // Enable CSS code splitting for faster rendering
     cssCodeSplit: true,
-    
-    // Optimize asset inlining (4kb threshold)
-    assetsInlineLimit: 4096,
-    
-    // Optimize chunk splitting
     rollupOptions: {
       output: {
         manualChunks: (id) => {
           if (id.includes('node_modules')) {
-            // Core React + ALL React ecosystem packages that MUST load together
+            // Core React ecosystem - must load together
             if (id.includes('react') || 
-                id.includes('react-dom') || 
                 id.includes('scheduler') ||
                 id.includes('@tanstack/react-query') ||
                 id.includes('react-router') ||
-                id.includes('next-themes')) {
-              return 'vendor-react';
-            }
-            
-            // UI libraries with tight React coupling
-            if (id.includes('@radix-ui') || 
+                id.includes('next-themes') ||
+                id.includes('@radix-ui') || 
                 id.includes('sonner') ||
                 id.includes('cmdk') ||
                 id.includes('vaul') ||
                 id.includes('react-hook-form') ||
                 id.includes('@hookform/resolvers') ||
-                id.includes('react-day-picker') ||
-                id.includes('react-dropzone') ||
-                id.includes('react-slick') ||
-                id.includes('embla-carousel-react') ||
-                id.includes('input-otp') ||
-                id.includes('react-resizable-panels') ||
                 id.includes('class-variance-authority') ||
                 id.includes('clsx') ||
                 id.includes('tailwind-merge')) {
-              return 'vendor-ui';
+              return 'vendor-react';
             }
             
             // Supabase
@@ -71,39 +48,21 @@ export default defineConfig(({ mode }) => ({
               return 'vendor-supabase';
             }
             
-            // Heavy/lazy-loaded libraries
-            if (id.includes('pdfjs-dist')) return 'vendor-pdf';
+            // Heavy libraries - loaded separately
+            if (id.includes('pdfjs-dist') || id.includes('jspdf')) return 'vendor-pdf';
             if (id.includes('xlsx') || id.includes('jszip')) return 'vendor-excel';
             if (id.includes('leaflet')) return 'vendor-maps';
             if (id.includes('recharts')) return 'vendor-charts';
-            if (id.includes('html2canvas') || id.includes('jspdf')) return 'vendor-imaging';
-            if (id.includes('slick-carousel')) return 'vendor-carousel';
             
-            // Date utilities
-            if (id.includes('date-fns')) return 'vendor-dates';
-            
-            // Form validation
-            if (id.includes('zod')) return 'vendor-validation';
-            
-            // Crypto
-            if (id.includes('crypto-js')) return 'vendor-crypto';
-            
-            // All other non-React node_modules
+            // Everything else
             return 'vendor-other';
           }
         },
-        
-        // Add asset naming for better caching
         assetFileNames: 'assets/[name]-[hash][extname]',
         chunkFileNames: 'chunks/[name]-[hash].js',
         entryFileNames: 'entries/[name]-[hash].js',
       },
     },
-    
-    // Minification settings (esbuild is faster and built-in)
     minify: 'esbuild',
-    esbuild: {
-      legalComments: 'none', // Remove comments for smaller bundles
-    },
   },
 }));
