@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Network } from 'lucide-react';
-import { useAPIMonitoring } from '@/hooks/useAPIMonitoring';
+import { useAPIMonitoring } from '@/hooks/useSystemMonitoringHub';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export const APIMonitoringCard = () => {

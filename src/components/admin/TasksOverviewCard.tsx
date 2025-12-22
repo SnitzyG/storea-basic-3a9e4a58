@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { CheckSquare } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useTasksMonitoring } from '@/hooks/useTasksMonitoring';
+import { useTasksMonitoring } from '@/hooks/useSystemMonitoringHub';
 import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
 
