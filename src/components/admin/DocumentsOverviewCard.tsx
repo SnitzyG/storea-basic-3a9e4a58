@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { FileText, TrendingUp } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useDocumentsMonitoring } from '@/hooks/useDocumentsMonitoring';
+import { useDocumentsMonitoring } from '@/hooks/useSystemMonitoringHub';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export const DocumentsOverviewCard = () => {

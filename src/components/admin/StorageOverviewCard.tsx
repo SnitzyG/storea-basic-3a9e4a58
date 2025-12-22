@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { HardDrive } from 'lucide-react';
-import { useStorageMonitoring } from '@/hooks/useStorageMonitoring';
+import { useStorageMonitoring } from '@/hooks/useSystemMonitoringHub';
 import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
 

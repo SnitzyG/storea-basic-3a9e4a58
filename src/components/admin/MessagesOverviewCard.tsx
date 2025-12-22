@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { MessageSquare } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useMessagesMonitoring } from '@/hooks/useMessagesMonitoring';
+import { useMessagesMonitoring } from '@/hooks/useSystemMonitoringHub';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export const MessagesOverviewCard = () => {
