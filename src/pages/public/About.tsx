@@ -7,7 +7,6 @@ import { RelatedPages } from '@/components/marketing/RelatedPages';
 import { Target, Lightbulb, Users } from 'lucide-react';
 import { usePageMeta } from '@/hooks/usePageMeta';
 import { Breadcrumbs } from '@/components/marketing/Breadcrumbs';
-
 const About = () => {
   usePageMeta({
     title: 'About STOREA - Modern Construction Management Platform',
@@ -15,7 +14,6 @@ const About = () => {
     canonicalPath: '/about',
     imageUrl: '/og-about.jpg'
   });
-
   useEffect(() => {
     // Add AboutPage structured data
     const aboutSchema = {
@@ -31,15 +29,9 @@ const About = () => {
         "description": "Modern construction project management platform that brings together document management, team collaboration, RFI tracking, financial oversight, and scheduling into one unified experience.",
         "foundingDate": "2024",
         "logo": "https://www.storea.com.au/storea-logo.png",
-        "sameAs": [
-          "https://www.facebook.com/storeaau",
-          "https://x.com/storea_au",
-          "https://www.instagram.com/storea_au/",
-          "https://www.youtube.com/@storea_au"
-        ]
+        "sameAs": ["https://www.facebook.com/storeaau", "https://x.com/storea_au", "https://www.instagram.com/storea_au/", "https://www.youtube.com/@storea_au"]
       }
     };
-
     let script = document.querySelector('script[data-about-schema]');
     if (!script) {
       script = document.createElement('script');
@@ -48,7 +40,6 @@ const About = () => {
       document.head.appendChild(script);
     }
     script.textContent = JSON.stringify(aboutSchema);
-
     return () => {
       const existingScript = document.querySelector('script[data-about-schema]');
       if (existingScript) {
@@ -56,19 +47,13 @@ const About = () => {
       }
     };
   }, []);
-
-  return (
-    <PublicLayout>
+  return <PublicLayout>
       <div className="w-full">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <Breadcrumbs />
           <div className="max-w-4xl mx-auto text-center mb-6">
-            <h1 className="text-4xl md:text-5xl font-bold mb-4 text-gray-800">
-              About STOREA - Modern Construction Management Platform
-            </h1>
-            <p className="text-lg text-gray-600 leading-relaxed">
-              STOREA is revolutionizing construction project management with <Link to="/features" className="text-primary hover:underline font-medium">comprehensive features</Link> designed specifically for Australian builders. Our platform combines cutting-edge technology with intuitive design to help you deliver projects on time and within budget. Explore our <Link to="/pricing" className="text-primary hover:underline font-medium">flexible pricing plans</Link> or <Link to="/contact" className="text-primary hover:underline font-medium">contact us</Link> to learn more.
-            </p>
+            
+            
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-6xl mx-auto mb-16">
@@ -109,39 +94,28 @@ const About = () => {
           </Card>
         </div>
 
-      <FAQSection 
-        title="About STOREA FAQs"
-        faqs={[
-          {
-            question: "When was STOREA founded?",
-            answer: "STOREA was founded in 2024 by a team of construction professionals and software engineers passionate about modernizing construction project management."
-          },
-          {
-            question: "Where is STOREA based?",
-            answer: "STOREA is headquartered in Melbourne, Victoria, Australia. We're proud to serve construction companies across Australia with locally-focused solutions."
-          },
-          {
-            question: "Who uses STOREA?",
-            answer: "STOREA is used by builders, contractors, project managers, architects, engineers, and construction teams across Australia. From solo builders to large construction companies, our platform scales to meet diverse needs."
-          },
-          {
-            question: "What industries do you serve?",
-            answer: "We primarily serve the construction industry, including residential building, commercial construction, renovations, civil engineering, and project management. Our platform is designed specifically for construction workflows."
-          },
-          {
-            question: "How do you support customers?",
-            answer: "We offer comprehensive support including email support, in-app help documentation, video tutorials, and priority support for paid plans. Our Australian-based support team understands the local construction industry and is here to help."
-          }
-        ]}
-      />
+      <FAQSection title="About STOREA FAQs" faqs={[{
+          question: "When was STOREA founded?",
+          answer: "STOREA was founded in 2024 by a team of construction professionals and software engineers passionate about modernizing construction project management."
+        }, {
+          question: "Where is STOREA based?",
+          answer: "STOREA is headquartered in Melbourne, Victoria, Australia. We're proud to serve construction companies across Australia with locally-focused solutions."
+        }, {
+          question: "Who uses STOREA?",
+          answer: "STOREA is used by builders, contractors, project managers, architects, engineers, and construction teams across Australia. From solo builders to large construction companies, our platform scales to meet diverse needs."
+        }, {
+          question: "What industries do you serve?",
+          answer: "We primarily serve the construction industry, including residential building, commercial construction, renovations, civil engineering, and project management. Our platform is designed specifically for construction workflows."
+        }, {
+          question: "How do you support customers?",
+          answer: "We offer comprehensive support including email support, in-app help documentation, video tutorials, and priority support for paid plans. Our Australian-based support team understands the local construction industry and is here to help."
+        }]} />
 
       <div className="mt-12 mb-8">
         <RelatedPages currentPage="about" />
       </div>
     </div>
   </div>
-</PublicLayout>
-  );
+  </PublicLayout>;
 };
-
 export default About;
