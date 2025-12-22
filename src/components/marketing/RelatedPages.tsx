@@ -1,19 +1,18 @@
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowRight, FileText, DollarSign, Mail, Users } from 'lucide-react';
-
 interface RelatedPage {
   title: string;
   description: string;
   href: string;
   icon: React.ReactNode;
 }
-
 interface RelatedPagesProps {
   currentPage: 'features' | 'pricing' | 'about' | 'contact';
 }
-
-export const RelatedPages = ({ currentPage }: RelatedPagesProps) => {
+export const RelatedPages = ({
+  currentPage
+}: RelatedPagesProps) => {
   const allPages: Record<string, RelatedPage> = {
     features: {
       title: 'Features',
@@ -40,7 +39,6 @@ export const RelatedPages = ({ currentPage }: RelatedPagesProps) => {
       icon: <Mail className="h-5 w-5" />
     }
   };
-
   const getRelatedPages = (): RelatedPage[] => {
     switch (currentPage) {
       case 'features':
@@ -55,43 +53,14 @@ export const RelatedPages = ({ currentPage }: RelatedPagesProps) => {
         return [];
     }
   };
-
   const relatedPages = getRelatedPages();
-
   if (relatedPages.length === 0) return null;
-
-  return (
-    <section className="mt-16 mb-8" aria-labelledby="related-pages-heading">
-      <h2 id="related-pages-heading" className="text-2xl font-bold mb-6 text-center">
-        Explore More
-      </h2>
+  return <section className="mt-16 mb-8" aria-labelledby="related-pages-heading">
+      
       <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
-        {relatedPages.map((page) => (
-          <Link 
-            key={page.href} 
-            to={page.href}
-            className="group"
-            aria-label={`Navigate to ${page.title}`}
-          >
-            <Card className="h-full transition-all duration-300 hover:shadow-elegant hover:scale-[1.02] border-border">
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-lg bg-primary/10 text-primary">
-                      {page.icon}
-                    </div>
-                    <CardTitle className="text-lg">{page.title}</CardTitle>
-                  </div>
-                  <ArrowRight className="h-5 w-5 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" />
-                </div>
-              </CardHeader>
-              <CardContent>
-                <CardDescription>{page.description}</CardDescription>
-              </CardContent>
-            </Card>
-          </Link>
-        ))}
+        {relatedPages.map(page => <Link key={page.href} to={page.href} className="group" aria-label={`Navigate to ${page.title}`}>
+            
+          </Link>)}
       </div>
-    </section>
-  );
+    </section>;
 };
