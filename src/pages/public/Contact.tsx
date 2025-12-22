@@ -7,7 +7,6 @@ import { RelatedPages } from '@/components/marketing/RelatedPages';
 import { Mail, MapPin, Phone } from 'lucide-react';
 import { usePageMeta } from '@/hooks/usePageMeta';
 import { Breadcrumbs } from '@/components/marketing/Breadcrumbs';
-
 const Contact = () => {
   usePageMeta({
     title: 'Contact STOREA - Get in Touch with Our Team',
@@ -15,7 +14,6 @@ const Contact = () => {
     canonicalPath: '/contact',
     imageUrl: '/og-contact.jpg'
   });
-
   useEffect(() => {
     // Add ContactPage structured data
     const contactSchema = {
@@ -28,15 +26,13 @@ const Contact = () => {
         "@type": "Organization",
         "name": "STOREA",
         "url": "https://www.storea.com.au",
-        "contactPoint": [
-          {
-            "@type": "ContactPoint",
-            "telephone": "1-800-STOREA",
-            "contactType": "customer service",
-            "areaServed": "AU",
-            "availableLanguage": "English"
-          }
-        ],
+        "contactPoint": [{
+          "@type": "ContactPoint",
+          "telephone": "1-800-STOREA",
+          "contactType": "customer service",
+          "areaServed": "AU",
+          "availableLanguage": "English"
+        }],
         "email": "support@storea.com",
         "address": {
           "@type": "PostalAddress",
@@ -46,7 +42,6 @@ const Contact = () => {
         }
       }
     };
-
     let script = document.querySelector('script[data-contact-schema]');
     if (!script) {
       script = document.createElement('script');
@@ -55,7 +50,6 @@ const Contact = () => {
       document.head.appendChild(script);
     }
     script.textContent = JSON.stringify(contactSchema);
-
     return () => {
       const existingScript = document.querySelector('script[data-contact-schema]');
       if (existingScript) {
@@ -63,19 +57,13 @@ const Contact = () => {
       }
     };
   }, []);
-
-  return (
-    <PublicLayout>
+  return <PublicLayout>
       <div className="w-full">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <Breadcrumbs />
           <div className="max-w-4xl mx-auto text-center mb-6">
-            <h1 className="text-4xl md:text-5xl font-bold mb-4 text-gray-800">
-              Contact STOREA - Get in Touch with Our Team
-            </h1>
-            <p className="text-lg text-gray-600 leading-relaxed">
-              Have questions about our <Link to="/features" className="text-primary hover:underline font-medium">construction management features</Link> or need help choosing the right <Link to="/pricing" className="text-primary hover:underline font-medium">pricing plan</Link>? Our team is here to help. Fill out the form below or use the contact information provided.
-            </p>
+            
+            
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
@@ -108,39 +96,28 @@ const Contact = () => {
           <ContactForm />
         </div>
 
-        <FAQSection
-          title="Contact & Support FAQs"
-          faqs={[
-            {
-              question: "What's the best way to reach you?",
-              answer: "The quickest way to reach us is through the contact form on this page. We respond to all inquiries within 24 hours. For existing customers, you can also use the in-app support chat for immediate assistance."
-            },
-            {
-              question: "How quickly do you respond to inquiries?",
-              answer: "We typically respond to all contact form submissions within 2-4 hours during business hours (Monday-Friday, 9 AM - 6 PM AEST). For urgent support issues, existing customers can use our in-app chat for faster response."
-            },
-            {
-              question: "Do you offer phone support?",
-              answer: "Yes, phone support is available for customers on paid plans. After signing up, you'll receive direct phone support details in your welcome email. We also offer scheduled phone consultations for prospective customers."
-            },
-            {
-              question: "Can I schedule a demo?",
-              answer: "Absolutely! We offer personalized demos to show you how STOREA can benefit your construction business. Use the contact form and mention you'd like a demo, or email demo@storea.com.au to schedule a time."
-            },
-            {
-              question: "Where are you located?",
-              answer: "STOREA is based in Melbourne, Victoria, Australia. While we primarily operate online to serve customers across Australia, we're happy to arrange in-person meetings for Melbourne-based businesses."
-            }
-          ]}
-        />
+        <FAQSection title="Contact & Support FAQs" faqs={[{
+          question: "What's the best way to reach you?",
+          answer: "The quickest way to reach us is through the contact form on this page. We respond to all inquiries within 24 hours. For existing customers, you can also use the in-app support chat for immediate assistance."
+        }, {
+          question: "How quickly do you respond to inquiries?",
+          answer: "We typically respond to all contact form submissions within 2-4 hours during business hours (Monday-Friday, 9 AM - 6 PM AEST). For urgent support issues, existing customers can use our in-app chat for faster response."
+        }, {
+          question: "Do you offer phone support?",
+          answer: "Yes, phone support is available for customers on paid plans. After signing up, you'll receive direct phone support details in your welcome email. We also offer scheduled phone consultations for prospective customers."
+        }, {
+          question: "Can I schedule a demo?",
+          answer: "Absolutely! We offer personalized demos to show you how STOREA can benefit your construction business. Use the contact form and mention you'd like a demo, or email demo@storea.com.au to schedule a time."
+        }, {
+          question: "Where are you located?",
+          answer: "STOREA is based in Melbourne, Victoria, Australia. While we primarily operate online to serve customers across Australia, we're happy to arrange in-person meetings for Melbourne-based businesses."
+        }]} />
 
         <div className="mt-12 mb-8">
           <RelatedPages currentPage="contact" />
         </div>
         </div>
       </div>
-    </PublicLayout>
-  );
+    </PublicLayout>;
 };
-
 export default Contact;
