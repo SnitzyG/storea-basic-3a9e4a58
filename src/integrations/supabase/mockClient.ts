@@ -275,6 +275,47 @@ class MockBuilder {
         return this;
     }
 
+    contains(column: string, value: any) {
+        this.filters.push((item) => {
+            const itemValue = item[column];
+            if (Array.isArray(itemValue) && Array.isArray(value)) {
+                return value.every(v => itemValue.includes(v));
+            }
+            if (Array.isArray(itemValue)) {
+                return itemValue.includes(value);
+            }
+            // Handle JSONB contains if needed, simplistic match
+            return JSON.stringify(itemValue).includes(JSON.stringify(value));
+        });
+        return this;
+    }
+
+    gt(column: string, value: any) {
+        this.filters.push((item) => item[column] > value);
+        return this;
+    }
+
+    gte(column: string, value: any) {
+        this.filters.push((item) => item[column] >= value);
+        return this;
+    }
+
+    lt(column: string, value: any) {
+        this.filters.push((item) => item[column] < value);
+        return this;
+    }
+
+    lte(column: string, value: any) {
+        this.filters.push((item) => item[column] <= value);
+        return this;
+    }
+
+    range(from: number, to: number) {
+        this.limitCount = to - from + 1;
+        // We don't strictly implement offset here in this simplistic mock but it prevents crash
+        return this;
+    }
+
     order(column: string, { ascending = true } = {}) {
         this.sort = (a: any, b: any) => {
             const valA = a[column];
@@ -382,11 +423,8 @@ export const mockSupabase = {
         },
         signOut: () => Promise.resolve({ error: null })
     },
-    channel: () => ({
-        on: () => ({ subscribe: () => { } }),
-        subscribe: () => { }
-    }),
-    removeChannel: () => { },
+    channel: (name: string) => new MockRealtimeChannel(name),
+    removeChannel: (channel: any) => { },
     storage: {
         from: () => ({
             upload: () => Promise.resolve({ data: { path: 'mock/path' }, error: null }),
@@ -394,3 +432,39 @@ export const mockSupabase = {
         })
     }
 };
+
+class MockRealtimeChannel {
+    name: string;
+    constructor(name: string) {
+        this.name = name;
+    }
+
+    on(event: string, ...args: any[]) {
+        // Return this to allow chaining .on().on()
+        return this;
+    }
+
+    subscribe(callback?: (status: string) => void) {
+        // Simulate successful subscription
+        if (callback) {
+            setTimeout(() => callback('SUBSCRIBED'), 0);
+        }
+        return this;
+    }
+
+    unsubscribe() {
+        return Promise.resolve('ok');
+    }
+
+    track(payload: any) {
+        return Promise.resolve('ok');
+    }
+
+    send(type: any) {
+        return Promise.resolve('ok');
+    }
+
+    presenceState() {
+        return {};
+    }
+}
