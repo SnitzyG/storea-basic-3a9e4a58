@@ -37,20 +37,9 @@ export const NavBar = () => {
               </Link>
             )}
             <div className="flex items-center gap-3">
-              {user ? (
-                <Link to="/dashboard">
-                  <Button>Dashboard</Button>
-                </Link>
-              ) : (
-                <>
-                  <Link to="/auth">
-                    <Button variant="outline">Login</Button>
-                  </Link>
-                  <Link to="/auth">
-                    <Button>Sign Up</Button>
-                  </Link>
-                </>
-              )}
+              <Link to="/dashboard">
+                <Button>Dashboard</Button>
+              </Link>
             </div>
           </div>
 
@@ -82,20 +71,9 @@ export const NavBar = () => {
               </Link>
             )}
             <div className="pt-3 space-y-2">
-              {user ? (
-                <Link to="/dashboard" onClick={() => setIsOpen(false)}>
-                  <Button className="w-full">Dashboard</Button>
-                </Link>
-              ) : (
-                <>
-                  <Link to="/auth" onClick={() => setIsOpen(false)}>
-                    <Button variant="outline" className="w-full">Login</Button>
-                  </Link>
-                  <Link to="/auth" onClick={() => setIsOpen(false)}>
-                    <Button className="w-full">Sign Up</Button>
-                  </Link>
-                </>
-              )}
+              <Link to="/dashboard" onClick={() => setIsOpen(false)}>
+                <Button className="w-full">Dashboard</Button>
+              </Link>
             </div>
           </div>
         )}
