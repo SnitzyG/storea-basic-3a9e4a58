@@ -54,19 +54,19 @@ export const ProjectSelectionProvider = ({ children }: ProjectSelectionProviderP
         setMemberProjectIds([]);
         return;
       }
-      
+
       // Get projects where user is a member OR creator
       const { data, error } = await supabase
         .from('project_users')
         .select('project_id')
         .eq('user_id', userId);
-        
+
       if (error) {
         console.error('Error loading user projects:', error);
         setMemberProjectIds([]);
         return;
       }
-      
+
       setMemberProjectIds((data || []).map((d) => d.project_id));
     } catch (error) {
       console.error('Error in loadUserProjects:', error);
@@ -97,64 +97,52 @@ export const ProjectSelectionProvider = ({ children }: ProjectSelectionProviderP
         return;
       }
 
-      // Get tenders where user has approved tender_access  
-      const client = supabase as any;
-      client
+      // Simplified Local Fetch: Get ALL tenders and filter in memory
+      // This is safe because it's a local mock DB with limited data
+      const { data: allTenders } = await supabase.from('tenders').select('*');
+
+      // Get Access records
+      const { data: accessRecords } = await supabase
         .from('tender_access')
-        .select('tender_id')
+        .select('*')
         .eq('user_id', userId)
-        .eq('status', 'approved')
-        .then(async (accessResult: any) => {
-          const approvedTenderIds: string[] = accessResult.data 
-            ? accessResult.data.map((a: any) => a.tender_id)
-            : [];
-          
-          // Get tenders where user is issuer or project member
-          const orCondition = memberProjectIds.length > 0 
-            ? `issued_by.eq.${userId},project_id.in.(${memberProjectIds.join(',')})`
-            : `issued_by.eq.${userId}`;
-            
-          const [ownedResult, accessResult2] = await Promise.all([
-            client
-              .from('tenders')
-              .select('*')
-              .or(orCondition),
-            approvedTenderIds.length > 0
-              ? client
-                  .from('tenders')
-                  .select('*')
-                  .in('id', approvedTenderIds)
-              : Promise.resolve({ data: [] })
-          ]);
+        .eq('status', 'approved');
 
-          // Combine and deduplicate tenders
-          const allTenders = [...(ownedResult.data || []), ...(accessResult2.data || [])];
-          const tenderMap: Record<string, any> = {};
-          allTenders.forEach((t: any) => {
-            tenderMap[t.id] = t;
-          });
-          const uniqueTendersData = Object.values(tenderMap);
+      const approvedTenderIds = new Set(accessRecords?.map((a: any) => a.tender_id) || []);
 
-          // Fetch user profiles for tender issuers
-          const userIds = [...new Set(uniqueTendersData.map((t: any) => t.issued_by).filter(Boolean))];
-          
-          const { data: profiles } = await supabase
-            .from('profiles')
-            .select('user_id, name, role')
-            .in('user_id', userIds);
+      // Filter logic:
+      // 1. Issued by user
+      // 2. Belongs to a project user is a member of
+      // 3. Explicitly approved access
+      const memberProjParams = new Set(memberProjectIds);
 
-          const profileMap = new Map(profiles?.map(p => [p.user_id, p]) || []);
+      const visibleTenders = (allTenders || []).filter((t: Tender) => {
+        const isIssuer = t.issued_by === userId;
+        const isProjectMember = memberProjParams.has(t.project_id);
+        const hasDirectAccess = approvedTenderIds.has(t.id);
 
-          // Enrich tenders with profile data
-          const enrichedTenders = uniqueTendersData.map((t: any) => ({
-            ...t,
-            issued_by_profile: profileMap.get(t.issued_by)
-          }));
+        return isIssuer || isProjectMember || hasDirectAccess;
+      });
 
-          console.log('[ProjectSelectionContext] Loaded', enrichedTenders.length, 'tenders:', enrichedTenders);
+      // Fetch user profiles for issuers
+      const issuerIds = [...new Set(visibleTenders.map((t: any) => t.issued_by).filter(Boolean))];
 
-          setAvailableTenders(enrichedTenders as Tender[]);
-        });
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('user_id, name, role')
+        .in('user_id', issuerIds);
+
+      const profileMap = new Map(profiles?.map((p: any) => [p.user_id, p]) || []);
+
+      // Enrich tenders
+      const enrichedTenders = visibleTenders.map((t: any) => ({
+        ...t,
+        issued_by_profile: profileMap.get(t.issued_by)
+      }));
+
+      console.log('[ProjectSelectionContext] Loaded', enrichedTenders.length, 'tenders');
+      setAvailableTenders(enrichedTenders as Tender[]);
+
     } catch (error) {
       console.error('Error in loadUserTenders:', error);
       setAvailableTenders([]);
@@ -238,7 +226,7 @@ export const ProjectSelectionProvider = ({ children }: ProjectSelectionProviderP
   };
 
   return (
-    <ProjectSelectionContext.Provider 
+    <ProjectSelectionContext.Provider
       value={{
         selectedProject,
         setSelectedProject: handleSetProject,

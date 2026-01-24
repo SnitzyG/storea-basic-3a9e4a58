@@ -20,11 +20,11 @@ import { useProjectSelection } from '@/context/ProjectSelectionContext';
 import { formatDistanceToNow, addDays, addHours, format } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
-import { 
-  FileText, 
-  MessageSquare, 
-  HelpCircle, 
-  Briefcase, 
+import {
+  FileText,
+  MessageSquare,
+  HelpCircle,
+  Briefcase,
   FolderOpen,
   User,
   Clock,
@@ -74,7 +74,7 @@ export const RecentActivity = ({ selectedProjectFilter }: { selectedProjectFilte
   const [isTaskDialogOpen, setIsTaskDialogOpen] = useState(false);
   const [isCalendarDialogOpen, setIsCalendarDialogOpen] = useState(false);
   const [selectedActivity, setSelectedActivity] = useState<any>(null);
-  
+
   // Task dialog state
   const [taskTitle, setTaskTitle] = useState('');
   const [taskPriority, setTaskPriority] = useState<'low' | 'medium' | 'high'>('medium');
@@ -135,7 +135,7 @@ export const RecentActivity = ({ selectedProjectFilter }: { selectedProjectFilte
       supabase.removeChannel(membershipChannel);
     };
   }, [user?.id, refetch]);
-  
+
   const navigate = useNavigate();
   const { toast } = useToast();
   const { addTodo } = useTodos();
@@ -143,8 +143,8 @@ export const RecentActivity = ({ selectedProjectFilter }: { selectedProjectFilte
   const { selectedProject, availableProjects } = useProjectSelection();
 
   // Filter activities based on selected project
-  const filteredActivities = selectedProjectFilter === 'all' 
-    ? activities 
+  const filteredActivities = selectedProjectFilter === 'all'
+    ? activities
     : activities.filter(activity => activity.project_id === selectedProjectFilter);
 
   const handleActivityClick = (activity: any) => {
@@ -199,18 +199,18 @@ export const RecentActivity = ({ selectedProjectFilter }: { selectedProjectFilte
     try {
       const dueDate = taskDueDate?.toISOString();
       await addTodo(taskTitle, taskPriority, dueDate);
-      
+
       // TODO: Implement reminder functionality if taskReminder is true
       if (taskReminder) {
         // This would require a notification system or reminder service
         console.log(`Set reminder ${taskReminderHours} hours before task due date`);
       }
-      
+
       toast({
         title: "Task Created",
         description: `"${taskTitle}" added to your task list`,
       });
-      
+
       setIsTaskDialogOpen(false);
       resetTaskForm();
     } catch (error) {
@@ -229,7 +229,7 @@ export const RecentActivity = ({ selectedProjectFilter }: { selectedProjectFilte
       const [hours, minutes] = eventTime.split(':').map(Number);
       const startDateTime = new Date(eventDate);
       startDateTime.setHours(hours, minutes, 0, 0);
-      
+
       const endDateTime = new Date(startDateTime);
       endDateTime.setMinutes(endDateTime.getMinutes() + eventDuration);
 
@@ -253,7 +253,7 @@ export const RecentActivity = ({ selectedProjectFilter }: { selectedProjectFilte
         title: "Event Created",
         description: `"${eventTitle}" added to your calendar`,
       });
-      
+
       setIsCalendarDialogOpen(false);
       resetCalendarForm();
     } catch (error) {
@@ -321,41 +321,40 @@ export const RecentActivity = ({ selectedProjectFilter }: { selectedProjectFilte
               {filteredActivities.map((activity) => {
                 const Icon = activityIcons[activity.entity_type as keyof typeof activityIcons] || User;
                 return (
-                  <div 
-                    key={activity.id} 
+                  <div
+                    key={activity.id}
                     className="group flex items-start gap-3 p-4 rounded-lg border hover:bg-muted/50 transition-colors cursor-pointer"
                     onClick={() => handleActivityClick(activity)}
                   >
                     <div className="flex-shrink-0">
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                        activity.entity_type === 'project' ? 'bg-indigo-100 text-indigo-600' :
-                        activity.entity_type === 'document' ? 'bg-blue-100 text-blue-600' :
-                        activity.entity_type === 'message' ? 'bg-green-100 text-green-600' :
-                        activity.entity_type === 'rfi' ? 'bg-orange-100 text-orange-600' :
-                        activity.entity_type === 'tender' ? 'bg-purple-100 text-purple-600' :
-                        'bg-gray-100 text-gray-600'
-                      }`}>
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center ${activity.entity_type === 'project' ? 'bg-indigo-100 text-indigo-600' :
+                          activity.entity_type === 'document' ? 'bg-blue-100 text-blue-600' :
+                            activity.entity_type === 'message' ? 'bg-green-100 text-green-600' :
+                              activity.entity_type === 'rfi' ? 'bg-orange-100 text-orange-600' :
+                                activity.entity_type === 'tender' ? 'bg-purple-100 text-purple-600' :
+                                  'bg-gray-100 text-gray-600'
+                        }`}>
                         <Icon className="h-4 w-4" />
                       </div>
                     </div>
-                    
+
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
                         <span className="font-medium text-sm">
                           {activity.user_profile?.name || 'Unknown User'}
                         </span>
-                        <Badge 
+                        <Badge
                           className={`${actionColors[activity.action as keyof typeof actionColors] || actionColors.updated} text-xs`}
                           variant="outline"
                         >
                           {activity.action}
                         </Badge>
                       </div>
-                      
+
                       <p className="text-sm text-muted-foreground mb-2 line-clamp-2 break-words overflow-hidden text-ellipsis">
                         {activity.description}
                       </p>
-                      
+
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-1 text-xs text-muted-foreground">
                           {activity.project?.name && (
@@ -371,10 +370,19 @@ export const RecentActivity = ({ selectedProjectFilter }: { selectedProjectFilte
                             </>
                           )}
                           <span>
-                            {formatDistanceToNow(new Date(activity.created_at), { addSuffix: true })}
+                            {(() => {
+                              try {
+                                const date = new Date(activity.created_at);
+                                return !isNaN(date.getTime())
+                                  ? formatDistanceToNow(date, { addSuffix: true })
+                                  : 'recently';
+                              } catch (e) {
+                                return 'recently';
+                              }
+                            })()}
                           </span>
                         </div>
-                        
+
                         <div className="flex items-center gap-1">
                           <Button
                             variant="ghost"
@@ -387,7 +395,7 @@ export const RecentActivity = ({ selectedProjectFilter }: { selectedProjectFilte
                           >
                             <X className="h-3 w-3" />
                           </Button>
-                          
+
                           <Button
                             variant="ghost"
                             size="sm"
@@ -399,7 +407,7 @@ export const RecentActivity = ({ selectedProjectFilter }: { selectedProjectFilte
                           >
                             <ExternalLink className="h-3 w-3" />
                           </Button>
-                          
+
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                               <Button

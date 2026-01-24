@@ -1,8 +1,8 @@
-
 import { createClient } from '@supabase/supabase-js';
 
-// Mock data store
-const mockData = {
+// Global in-memory store (module-level) to persist data during the session
+// This acts as our "database"
+const db: any = {
     projects: [
         {
             id: 'proj-1',
@@ -52,149 +52,27 @@ const mockData = {
             priority: 'low',
             created_at: new Date().toISOString()
         }
-    ],
-    activity_log: [
-        {
-            id: 'act-1',
-            project_id: 'proj-1',
-            user_id: 'mock-user-id',
-            entity_type: 'document',
-            action: 'uploaded',
-            description: 'Uploaded architectural plans v2.pdf',
-            created_at: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(), // 2 hours ago
-            user_profile: { name: 'Demo User' },
-            project: { name: 'Luxury Villa Renovation' }
-        },
-        {
-            id: 'act-2',
-            project_id: 'proj-1',
-            user_id: 'mock-user-id',
-            entity_type: 'rfi',
-            action: 'created',
-            description: 'Created RFI #12: Structural beam clarification',
-            created_at: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(), // 1 day ago
-            user_profile: { name: 'Demo User' },
-            project: { name: 'Luxury Villa Renovation' }
-        },
-        {
-            id: 'act-3',
-            project_id: 'proj-2',
-            user_id: 'mock-user-id',
-            entity_type: 'project',
-            action: 'updated',
-            description: 'Project status changed to On Hold',
-            created_at: new Date(Date.now() - 1000 * 60 * 60 * 48).toISOString(), // 2 days ago
-            user_profile: { name: 'System Admin' },
-            project: { name: 'City Apartment Complex' }
-        }
-    ],
-    todos: [
-        {
-            id: 'todo-1',
-            title: 'Review structural engineering report',
-            completed: false,
-            priority: 'high',
-            due_date: new Date(Date.now() + 1000 * 60 * 60 * 48).toISOString(),
-            project_id: 'proj-1',
-            created_at: new Date().toISOString()
-        },
-        {
-            id: 'todo-2',
-            title: 'Call local council regarding permits',
-            completed: true,
-            priority: 'medium',
-            due_date: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),
-            project_id: 'proj-1',
-            created_at: new Date().toISOString()
-        }
-    ],
-    calendar_events: [
-        {
-            id: 'evt-1',
-            title: 'Site Meeting',
-            start_datetime: new Date(Date.now() + 1000 * 60 * 60 * 24).toISOString(),
-            end_datetime: new Date(Date.now() + 1000 * 60 * 60 * 25).toISOString(),
-            project_id: 'proj-1',
-            description: 'Weekly site progress meeting',
-            priority: 'high',
-            is_meeting: true,
-            status: 'scheduled'
-        }
-    ],
-    documents: [
-        {
-            id: 'doc-1',
-            name: 'Floor Plans.pdf',
-            size: 1024 * 1024 * 2.5,
-            type: 'application/pdf',
-            project_id: 'proj-1',
-            created_at: new Date().toISOString(),
-            category: 'Plans'
-        }
-    ],
-    messages: [
-        {
-            id: 'msg-1',
-            conversation_id: 'conv-1',
-            content: 'Hey, did you see the new plans?',
-            sender_id: 'mock-user-id',
-            created_at: new Date().toISOString()
-        }
-    ],
-    tenders: [
-        {
-            id: 'tend-1',
-            title: 'Electrical Works',
-            status: 'open',
-            project_id: 'proj-1',
-            due_date: new Date(Date.now() + 1000 * 60 * 60 * 24 * 14).toISOString()
-        }
-    ],
-    profiles: [
-        {
-            id: 'prof-1',
-            user_id: 'mock-user-id',
-            name: 'Demo User',
-            role: 'architect',
-            email: 'demo@storea.com',
-            approved: true
-        }
-    ],
-    project_users: [
-        {
-            id: 'pu-1',
-            project_id: 'proj-1',
-            user_id: 'mock-user-id',
-            role: 'architect',
-            created_at: new Date().toISOString()
-        },
-        {
-            id: 'pu-2',
-            project_id: 'proj-2',
-            user_id: 'mock-user-id',
-            role: 'architect',
-            created_at: new Date().toISOString()
-        },
-        {
-            id: 'pu-3',
-            project_id: 'proj-3',
-            user_id: 'mock-user-id',
-            role: 'architect',
-            created_at: new Date().toISOString()
-        }
     ]
 };
 
+// Ensure array existence
+const ensureTable = (table: string) => {
+    if (!db[table]) db[table] = [];
+    return db[table];
+};
+
 class MockBuilder {
-    data: any[];
+    table: string;
     filters: ((item: any) => boolean)[];
     sort?: (a: any, b: any) => number;
     limitCount?: number;
     isSingle: boolean;
     isMaybeSingle: boolean;
+    pendingUpdate: any = null;
+    pendingDelete: boolean = false;
 
-    constructor(data: any[]) {
-        this.data = data;
+    constructor(table: string) {
+        this.table = table;
         this.filters = [];
         this.isSingle = false;
         this.isMaybeSingle = false;
@@ -205,11 +83,20 @@ class MockBuilder {
     }
 
     insert(data: any) {
-        if (Array.isArray(data)) {
-            this.data.push(...data);
-        } else {
-            this.data.push(data);
-        }
+        // STATEFUL INSERT: Push to global store
+        const tableData = ensureTable(this.table);
+        const rowsToInsert = Array.isArray(data) ? data : [data];
+
+        const insertedRows = rowsToInsert.map((row: any) => {
+            const newRow = {
+                id: `mock-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+                created_at: new Date().toISOString(),
+                ...row
+            };
+            tableData.push(newRow);
+            return newRow;
+        });
+
         // Return a Promise-like object that resolves to the inserted data
         return {
             select: () => this,
@@ -222,17 +109,19 @@ class MockBuilder {
                 return this;
             },
             then: (resolve: (value: { data: any[] | any | null; error: null }) => void) => {
-                // For insert, we usually return the inserted data
-                resolve({ data: Array.isArray(data) ? data : [data], error: null });
+                resolve({ data: Array.isArray(data) ? insertedRows : (insertedRows[0] || null), error: null });
             }
         };
     }
 
-    update(data: any) {
+    update(updates: any) {
+        // We defer update execution to 'then' because we need to apply filters first
+        this.pendingUpdate = updates;
         return this;
     }
 
     delete() {
+        this.pendingDelete = true;
         return this;
     }
 
@@ -284,7 +173,6 @@ class MockBuilder {
             if (Array.isArray(itemValue)) {
                 return itemValue.includes(value);
             }
-            // Handle JSONB contains if needed, simplistic match
             return JSON.stringify(itemValue).includes(JSON.stringify(value));
         });
         return this;
@@ -312,7 +200,6 @@ class MockBuilder {
 
     range(from: number, to: number) {
         this.limitCount = to - from + 1;
-        // We don't strictly implement offset here in this simplistic mock but it prevents crash
         return this;
     }
 
@@ -343,12 +230,40 @@ class MockBuilder {
     }
 
     then(resolve: (value: { data: any[] | any | null; error: null }) => void, reject?: (reason: any) => void) {
-        let result = [...this.data];
-
         try {
-            for (const filter of this.filters) {
-                result = result.filter(filter);
+            const tableData = ensureTable(this.table);
+
+            // Apply filtering logic
+            // Note: For Update/Delete, in a real DB we'd modify the source. 
+            // In in-memory array, modifying filtered result references modifies the store.
+            // But 'filter' returns new array. So we must find INDICES or references.
+
+            // Simple approach: Filter the global array directly to find matching items
+            let matchingItems = tableData.filter((item: any) => {
+                return this.filters.every(filter => filter(item));
+            });
+
+            if (this.pendingUpdate) {
+                // STATEFUL UPDATE
+                matchingItems.forEach((item: any) => {
+                    Object.assign(item, this.pendingUpdate);
+                });
+                resolve({ data: matchingItems, error: null });
+                return;
             }
+
+            if (this.pendingDelete) {
+                // STATEFUL DELETE
+                // We need to remove these items from the global 'db[this.table]' array
+                const idsToDelete = new Set(matchingItems.map((i: any) => i.id));
+                db[this.table] = db[this.table].filter((item: any) => !idsToDelete.has(item.id));
+                resolve({ data: matchingItems, error: null });
+                return;
+            }
+
+            // READ OPERATION
+            let result = [...matchingItems];
+
             if (this.sort) {
                 result.sort(this.sort);
             }
@@ -359,9 +274,6 @@ class MockBuilder {
             let data: any = result;
             if (this.isSingle) {
                 if (result.length === 0) {
-                    // single() expects exactly one row, throws if 0
-                    // But for mock flexibility we might just return null and error
-                    // Real supabase throws error
                     throw new Error('Row not found');
                 }
                 if (result.length > 1) {
@@ -381,12 +293,11 @@ class MockBuilder {
 }
 
 export const mockSupabase = {
-    from: (table) => {
-        return new MockBuilder(mockData[table] || []);
+    from: (table: string) => {
+        return new MockBuilder(table);
     },
-    rpc: (func, params) => {
+    rpc: (func: string, params: any) => {
         if (func === 'has_role') {
-            const { _role } = params;
             // Mock user has 'admin', 'architect', etc based on context, but let's say true for verified
             return Promise.resolve({ data: true, error: null });
         }
@@ -415,7 +326,7 @@ export const mockSupabase = {
             },
             error: null
         }),
-        onAuthStateChange: (callback) => {
+        onAuthStateChange: (callback: any) => {
             callback('SIGNED_IN', {
                 user: { id: 'mock-user-id', email: 'demo@storea.com' }
             });
