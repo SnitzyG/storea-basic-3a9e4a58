@@ -1,152 +1,130 @@
 
-# Plan: Implement Comprehensive Demo Data Throughout Application
 
-## Problem
-The application uses a local in-memory database (`localDB.ts`) that currently seeds only minimal data:
-- 1 profile, 2 projects, 2 project_users, 1 activity log entry, 1 todo
-- Empty arrays for: calendar_events, documents, messages, message_threads, message_participants, tenders, tender_packages, tender_bids, companies
-- Missing tables entirely: rfis, rfi_activities, document_groups, document_revisions, document_shares, document_events, notifications, invitations, tender_access, project_budgets, project_invoices, line_item_budgets, progress_claims, variations, user_roles, user_sessions, admin_alerts
+# Plan: 10x Demo Data Expansion + Fix Broken Calendar, Messages, Financials, Tenders
 
-This means every page except Dashboard (partially) and Projects shows empty states with no demo data.
+## Problem Summary
 
-## Solution Overview
-Expand `localDB.ts` with rich, realistic demo data across ALL tables so every page in the application displays meaningful content. Also fix the missing `functions` property and `upsert`/`resetPasswordForEmail` methods on the mock client, and add missing table registrations to the local database.
+Several critical issues prevent pages from displaying data:
 
-## What Each Page Will Show After Changes
+1. **Calendar is broken**: The `useCalendarEvents` hook queries `start_datetime` but the localDB stores events with `start_time`/`end_time` fields -- field name mismatch means zero events show up.
 
-| Page | Current State | After Changes |
-|------|--------------|---------------|
-| Dashboard | Partial (1 activity, 1 todo) | 8+ activities, 6+ todos, calendar preview, open RFIs |
-| Projects | 2 projects (minimal) | 3 projects with full details, team members, stages |
-| Documents | Empty | 8+ documents across categories (Architectural, Structural, etc.) |
-| Messages | Empty | 3+ threads with conversation history |
-| RFIs | Empty | 6+ RFIs across statuses (outstanding, answered, closed, draft) |
-| Tenders | Empty | 3+ tenders (draft, open, awarded) with bids |
-| Calendar | Empty | 6+ events (meetings, deadlines, inspections) |
-| Financials | Empty/errors | Budget data, invoices, payment schedules |
-| Notifications | Empty | 5+ notifications |
+2. **Messages show nothing**: The `useMessages` hook uses `.contains('participants', [user.id])` to filter threads, but the mock threads don't have a `participants` field -- they only have `created_by`. The messages also lack `project_id` on each message row.
 
-## Technical Implementation
+3. **Financials are empty**: The `useFinancials` hook queries 10 tables (`project_budgets`, `budget_categories`, `project_invoices`, `project_payments`, `change_orders`, `cashflow_items`, `client_contributions`, `progress_claims`, `line_item_budgets`, `payment_stages`). Several of these tables don't exist in the localDB store at all (`budget_categories`, `project_payments`, `change_orders`, `cashflow_items`, `client_contributions`, `payment_stages`).
 
-### Step 1: Add Missing Tables to LocalDB Type Union
-Add these table names to the `TableName` type:
-- `rfis`, `rfi_activities`, `rfi_collaboration_comments`
-- `document_groups`, `document_revisions`, `document_shares`, `document_events`
-- `notifications`, `invitations`
-- `tender_access`, `tender_line_items`, `tender_bid_line_items`
-- `project_budgets`, `project_invoices`
-- `line_item_budgets`, `progress_claims`, `variations`
-- `user_roles`, `user_sessions`, `admin_alerts`
+4. **Tenders don't show comparison data**: The Tenders page has a "Compare Quotes" tab that needs multiple bids with line items filled in. Currently `tender_bid_line_items` is empty.
 
-### Step 2: Add `upsert` Method to LocalQueryBuilder
-The `ProfileSetupWizard` and `markMessageAsRead` functions call `.upsert()` which doesn't exist on the query builder. Add this method.
+5. **Console error**: `supabase.from(...).update(...).eq(...).in is not a function` from `useTabNotifications.ts` -- the `update()` chain doesn't return `.in()` method.
 
-### Step 3: Add Missing Mock Client Properties
-Add to `supabase` mock in `client.ts`:
-- `auth.resetPasswordForEmail` method
-- `auth.admin` object with `listUsers`, `updateUserById`, `deleteUser`
-- `functions.invoke` method
-- `storage.from().remove` method
+6. **Insufficient volume**: Only 3-6 entries per table. Need 10x more data everywhere.
 
-### Step 4: Seed Rich Demo Data
-Create comprehensive seed data in `localDB.ts`:
+## What Will Change
 
-**Profiles (4 users)**:
-- Richard Architect (architect) - current user
-- Sarah Builder (builder)
-- James Contractor (contractor)
-- Emma Client (homeowner)
+### File 1: `src/services/localDB.ts`
 
-**Companies (3)**:
-- STOREA Architecture, BuildRight Construction, HomeVision Contracting
+**Fix calendar event field names:**
+- Change `start_time` to `start_datetime` and `end_time` to `end_datetime` on all calendar events
+- Add `status`, `priority`, `is_meeting`, `category`, `updated_at` fields to match `CalendarEvent` interface
 
-**Projects (3 - with full details)**:
-- Luxury Villa Renovation (active, Construction Documentation)
-- City Apartment Complex (active, Concept)
-- Suburban Family Home (completed)
+**Fix message thread structure:**
+- Add `participants` array field to all `message_threads` entries (the field `useMessages` uses to filter)
+- Add `project_id` field to all `messages` entries
+- Add `title` field alias (threads use `title` in some places, `subject` in others)
 
-**Project Users (8 - multiple users per project)**
+**Add missing financial tables to the store:**
+- `budget_categories` (5+ entries per project)
+- `project_payments` (5+ entries)
+- `change_orders` (4+ entries)
+- `cashflow_items` (8+ entries)
+- `client_contributions` (4+ entries)
+- `payment_stages` (6 milestone stages)
 
-**RFIs (6)**:
-- 2 outstanding, 1 answered, 1 closed, 1 draft, 1 overdue
-- With proper raised_by/assigned_to profiles, subjects, questions
+**Add these table names to `TableName` union type.**
 
-**Documents / Document Groups (8)**:
-- Architectural Plans Rev 2, Structural Engineering Report, Site Survey, Electrical Layout, Plumbing Layout, Landscape Design, Building Permit, Project Schedule
+**Massively expand all existing data (10x):**
 
-**Document Revisions (8 - one per document group)**
+- **Profiles**: 4 to 8 users (add Mike Electrician, Lisa Plumber, David Surveyor, Anna Interior Designer)
+- **Companies**: 3 to 6 (add Spark Electrical, FlowRight Plumbing, DesignStudio Interior)
+- **Projects**: 3 to 5 (add "Heritage Hotel Restoration" and "Coastal Medical Centre")
+- **Project Users**: 8 to 20+
+- **RFIs**: 6 to 20+ (across all projects, all statuses, various categories)
+- **Document Groups**: 8 to 25+ (all categories: Architectural, Structural, Survey, Services, Landscape, Permit, Specifications, Schedules)
+- **Document Revisions**: 8 to 25+ (matching document groups, with superseded revisions)
+- **Message Threads**: 3 to 10+ (across projects)
+- **Messages**: 9 to 40+ (realistic conversations in each thread)
+- **Tenders**: 3 to 8+ (all statuses: draft, open, closed, awarded, cancelled)
+- **Tender Bids**: 3 to 12+ (multiple bids per tender for comparison)
+- **Tender Bid Line Items**: 0 to 20+ (filled in per bid for comparison view)
+- **Tender Line Items**: 3 to 15+
+- **Calendar Events**: 6 to 25+ (spread across past, present, future dates)
+- **Todos**: 6 to 15+
+- **Activity Log**: 10 to 30+
+- **Notifications**: 5 to 15+
+- **Financial Data**:
+  - Project Budgets: 1 to 3+ (one per project with budgets)
+  - Project Invoices: 3 to 10+
+  - Line Item Budgets: 5 to 15+
+  - Progress Claims: 1 to 5+
+  - Variations: 2 to 6+
+  - Payment Schedule Stages: 3 to 6 full stages
+  - Budget Categories: 0 to 8+
+  - Project Payments: 0 to 6+
+  - Change Orders: 0 to 5+
+  - Cashflow Items: 0 to 10+
+  - Client Contributions: 0 to 5+
 
-**Message Threads (3)**:
-- "Design Review Discussion"
-- "Site Progress Update"  
-- "Material Selection"
+**Fix `update()` method chain to support `.in()` on the returned object.**
 
-**Messages (12+ across threads)**:
-- Realistic construction project conversations
-- With proper sender_ids matching team members
+### File 2: `src/integrations/supabase/client.ts`
 
-**Tenders (3)**:
-- Kitchen Renovation Works (draft)
-- Electrical Installation (open, with bids)
-- Landscaping Package (awarded)
+No changes needed -- client already has all required mock methods.
 
-**Tender Bids (4)**:
-- Multiple bids on open tenders
+## Technical Details
 
-**Calendar Events (6)**:
-- Site inspection, Design review meeting, Council submission deadline
-- Client presentation, Progress meeting, Final walkthrough
+### Calendar Fix
+```
+// BEFORE (broken - wrong field names):
+{ start_time: ..., end_time: ... }
 
-**Todos (6)**:
-- Review structural report, Submit DA documents, Order materials
-- Schedule site meeting, Update project timeline, Review tender submissions
+// AFTER (matches CalendarEvent interface):  
+{ start_datetime: ..., end_datetime: ..., status: 'scheduled', priority: 'medium', is_meeting: true, category: 'meeting' }
+```
 
-**Activity Log (10+)**:
-- Mix of document uploads, RFI creates, message sends, project updates
-- Spanning last 7 days
+### Messages Fix
+```
+// BEFORE (missing participants):
+{ id: 'thread-1', project_id: 'proj-1', subject: 'Design Review', created_by: userId }
 
-**Notifications (5)**:
-- New RFI assigned, Document uploaded, Tender bid received, etc.
+// AFTER (includes participants array for .contains() filter):
+{ id: 'thread-1', project_id: 'proj-1', title: 'Design Review', subject: 'Design Review', participants: [userId, sarahId, jamesId], created_by: userId }
+```
 
-**Financial Data**:
-- Project budgets, invoices, line item budgets for Luxury Villa project
+### Financial Tables Fix
+Add 6 new empty table registrations to `TableName` and seed them with realistic Australian construction project financial data.
 
-### Step 5: Fix Build Errors
-Fix the TypeScript build errors that reference missing mock client features:
-- `src/api/admin.ts` - `auth.admin` doesn't exist
-- `src/components/advanced/*` - `functions` doesn't exist
-- `src/components/dashboard/InfoPanel.tsx` - `functions` doesn't exist
-- `src/components/profile/*` - `resetPasswordForEmail`, storage `remove`
-- `src/components/financials/*` - await on thenable issues
-- Various `TS1320` errors from `await` on LocalQueryBuilder
+### Update Method Chain Fix
+The `update()` method currently returns `{ eq, select, then }`. Add `.in()` to the returned object:
+```
+update(updates) {
+  return {
+    eq: ...,
+    in: (col, vals) => { self.in(col, vals); return self.update(updates); },
+    select: ...,
+    then: ...
+  };
+}
+```
 
-### Step 6: Fix the `or()` Filter Method
-The `or()` method on `LocalQueryBuilder` currently does nothing (returns `this`). Implement basic support for the `or()` filter pattern since many hooks use it.
+## Expected Result After Changes
 
-## Files Modified
+Every page will display rich, realistic data:
+- **Dashboard**: 30+ activities, 15+ todos, calendar widget with events, open RFIs count
+- **Calendar**: 25+ events spread across past/present/future with meetings, deadlines, inspections
+- **Messages**: 10+ threads with 40+ messages, team members visible
+- **RFIs**: 20+ RFIs across all statuses with responses and activity trails
+- **Documents**: 25+ documents across all categories with revision history
+- **Tenders**: 8+ tenders with 12+ bids, comparison view populated with line items
+- **Financials**: Full budget breakdown, invoices, payments, cashflow, progress claims, variations
+- **Projects**: 5 projects with full team rosters
+- **Notifications**: 15+ notifications of various types
 
-1. **`src/services/localDB.ts`** - Major expansion:
-   - Add 20+ new table names to `TableName` union
-   - Add `upsert()` method to `LocalQueryBuilder`
-   - Implement `or()` filter method
-   - Add `ilike()` method
-   - Add `not()` method  
-   - Add `match()` method
-   - Expand seed data from ~120 lines to ~600+ lines of realistic demo data
-
-2. **`src/integrations/supabase/client.ts`** - Add missing mock features:
-   - `auth.admin` object
-   - `auth.resetPasswordForEmail` method
-   - `functions.invoke` method
-   - Enhanced `storage.from().remove` method
-   - `auth.updateUser` method
-
-3. **`src/api/admin.ts`** - Fix references to `auth.admin` (will work after client.ts update)
-
-4. **Various component files** - Minor fixes where `await` on LocalQueryBuilder causes TS1320 errors (the `then` method signature needs to match Promise interface)
-
-## Impact
-- Every page will display realistic, interconnected demo data
-- Users can immediately see how the application works in practice
-- Build errors from missing mock methods will be resolved
-- The demo will showcase the full feature set of STOREA
