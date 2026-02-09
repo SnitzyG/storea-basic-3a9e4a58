@@ -87,7 +87,7 @@ export async function getAllUsers() {
   const { data: users, error } = await supabase.auth.admin.listUsers();
   if (error) throw new Error(error.message);
   
-  return users?.users?.map(user => ({
+  return (users as any)?.users?.map((user: any) => ({
     id: user.id,
     email: user.email,
     role: user.user_metadata?.role || 'user',
@@ -141,10 +141,10 @@ export async function disableUser(userId: string, reason: string) {
 
   try {
     // Get user data before change
-    const { data: userData, error: getUserError } = await supabase.auth.admin.getUserById(userId);
+    const { data: userData, error: getUserError } = await supabase.auth.admin.getUserById(userId) as any;
     if (getUserError) throw getUserError;
 
-    const oldStatus = userData.user?.user_metadata?.disabled ? 'disabled' : 'active';
+    const oldStatus = (userData as any).user?.user_metadata?.disabled ? 'disabled' : 'active';
 
     // Disable user
     const { error: updateError } = await supabase.auth.admin.updateUserById(userId, {

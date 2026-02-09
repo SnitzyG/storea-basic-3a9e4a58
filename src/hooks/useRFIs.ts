@@ -127,11 +127,11 @@ export const useRFIs = () => {
         companyMap = new Map((companies || []).map(c => [c.id, c]));
       }
 
-      const profileMap = new Map((profiles || []).map(p => [p.user_id, p]) || []);
+      const profileMap = new Map((profiles || []).map((p: any) => [p.user_id, p]) || []);
 
       const enrichedRFIs = rfisData.map(rfi => {
-        const raisedProfile = profileMap.get(rfi.raised_by);
-        const assignedProfile = rfi.assigned_to ? profileMap.get(rfi.assigned_to) : undefined;
+        const raisedProfile: any = profileMap.get(rfi.raised_by);
+        const assignedProfile: any = rfi.assigned_to ? profileMap.get(rfi.assigned_to) : undefined;
         const raisedCompanyName = raisedProfile?.company_id ? companyMap.get(raisedProfile.company_id)?.name : undefined;
         const assignedCompanyName = assignedProfile?.company_id ? companyMap.get(assignedProfile.company_id)?.name : undefined;
 
