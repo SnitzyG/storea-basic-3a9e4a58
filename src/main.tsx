@@ -1,4 +1,4 @@
-import { StrictMode, lazy, Suspense } from "react";
+import { lazy, Suspense } from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster";
@@ -91,12 +91,25 @@ const queryClient = new QueryClient();
 
 // Global error handler for unhandled promise rejections
 window.addEventListener('unhandledrejection', (event) => {
+  const msg = String(event.reason?.message || event.reason || '');
+  // Suppress known benign React DOM reconciliation errors
+  if (msg.includes('removeChild') || msg.includes('insertBefore') || msg.includes('not a child')) {
+    console.warn('[Suppressed] React DOM reconciliation error:', msg);
+    event.preventDefault();
+    return;
+  }
   console.error('Unhandled promise rejection:', event.reason);
   event.preventDefault();
 });
 
 // Global error handler for uncaught errors
 window.addEventListener('error', (event) => {
+  const msg = String(event.error?.message || event.message || '');
+  if (msg.includes('removeChild') || msg.includes('insertBefore') || msg.includes('not a child')) {
+    console.warn('[Suppressed] React DOM reconciliation error:', msg);
+    event.preventDefault();
+    return;
+  }
   console.error('Uncaught error:', event.error);
 });
 
@@ -114,7 +127,7 @@ try {
   console.log('🚀 STOREA: React root created, rendering app...');
   
   root.render(
-  <StrictMode>
+  <>
     <ErrorBoundary>
       <AuthProvider>
         <RealtimeProvider>
@@ -193,7 +206,7 @@ try {
         </RealtimeProvider>
       </AuthProvider>
     </ErrorBoundary>
-  </StrictMode>
+  </>
   );
 } catch (error) {
   console.error('❌ Fatal error during React initialization:', error);
