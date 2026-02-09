@@ -8,6 +8,7 @@ export interface Profile {
   user_id: string;
   role: 'architect' | 'builder' | 'homeowner' | 'contractor' | 'system_admin';
   name: string;
+  email?: string;
   company_id?: string;
   avatar_url?: string;
   phone?: string;
